@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>GC PLAY PRO - Universal & Portal Ativo</title>
+    
+    <meta name="theme-color" content="#28D905">
+    <meta name="background-color" content="#000000">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+    <!-- FIREBASE SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <style>
+        :root {
+            --primary: #28D905;
+            --primary-dark: #1e9d03;
+            --bg-main: #000000;
+            --bg-card: #0d0d0d;
+            --bg-hover: #1f1f1f;
+            --border: #222222;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --danger: #ff3333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .smart-container {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+        }
+
+        @media (min-width: 900px) {
+            .smart-container { flex-direction: row; }
+        }
+
+        .main-content-area {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-y: auto;
+        }
+
+        .top-brand-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+
+        .top-brand-bar span {
+            color: var(--primary);
+            text-shadow: 0 0 15px rgba(40, 217, 5, 0.4);
+        }
+
+        .app-brand-logo {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: rgba(40, 217, 5, 0.1);
+            padding: 4px;
+            border: 1px solid var(--primary);
+        }
+
+        .support-top-text {
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: 700;
+            cursor: pointer;
+            padding: 8px 14px;
+            background: rgba(40, 217, 5, 0.1);
+            border-radius: 8px;
+            border: 2px solid rgba(40, 217, 5, 0.3);
+            display: inline-block;
+            text-align: center;
+        }
+
+        .playlist-selection-grid {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        @media (min-width: 900px) {
+            .playlist-selection-grid { justify-content: flex-start; }
+        }
+
+        .account-card {
+            width: 100%;
+            max-width: 280px;
+            height: 140px;
+            background: var(--bg-card);
+            border: 3px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: 0.15s;
+            position: relative;
+        }
+
+        .account-card:hover {
+            border-color: var(--primary);
+            background: var(--bg-hover);
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(40, 217, 5, 0.4);
+        }
+
+        .account-card-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+            word-break: break-all;
+        }
+
+        .badge-status {
+            font-size: 10px;
+            background: rgba(40, 217, 5, 0.15);
+            color: var(--primary);
+            padding: 3px 8px;
+            border-radius: 20px;
+            width: fit-content;
+            font-weight: bold;
+        }
+
+        .add-account-card {
+            width: 100%;
+            max-width: 280px;
+            height: 140px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 3px dashed var(--border);
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: 0.15s;
+        }
+
+        .add-account-card:hover {
+            border-color: var(--primary);
+            color: #fff;
+            background: var(--bg-hover);
+        }
+
+        .sidebar-panel {
+            width: 100%;
+            background: #050705;
+            border-top: 1px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 12px;
+        }
+
+        @media (min-width: 900px) {
+            .sidebar-panel {
+                width: 340px;
+                border-top: none;
+                border-left: 1px solid var(--border);
+                justify-content: space-between;
+            }
+        }
+
+        .qrcode-container {
+            background: #ffffff;
+            padding: 8px;
+            border-radius: 8px;
+            display: inline-block;
+            border: 4px solid #ffffff;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+        .qrcode-container img { width: 130px; height: 130px; display: block; }
+
+        .sidebar-info-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 100%;
+        }
+
+        .mac-display-box {
+            font-family: monospace; font-size: 13px; font-weight: bold; color: #fff; letter-spacing: 1px;
+        }
+        .version-tag { font-size: 11px; color: var(--text-muted); }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.88); display: none; align-items: center; justify-content: center;
+            z-index: 2000; backdrop-filter: blur(5px); padding: 20px;
+        }
+
+        .modal-card {
+            background: var(--bg-card); border: 2px solid var(--border);
+            border-radius: 16px; padding: 20px; width: 100%; max-width: 420px;
+        }
+
+        .input-box {
+            width: 100%; padding: 12px; background: var(--bg-main);
+            border: 2px solid var(--border); border-radius: 8px;
+            color: #fff; font-size: 14px; outline: none; margin-bottom: 12px;
+        }
+        .input-box:focus { border-color: var(--primary); }
+
+        .btn-ui {
+            width: 100%; padding: 12px; border: none; border-radius: 8px;
+            font-weight: bold; font-size: 14px; cursor: pointer;
+            background: var(--primary); color: #000; text-transform: uppercase; transition: 0.15s;
+        }
+        .btn-ui:hover { background: var(--primary-dark); color: #fff; }
+
+        /* DASHBOARD PRINCIPAL */
+        #viewDashboard {
+            display: none; 
+            flex-direction: column; 
+            height: 100vh;
+            height: 100dvh; 
+            width: 100%; 
+            padding: 12px; 
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .dashboard-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 15px;
+            flex-shrink: 0;
+        }
+
+        .ibo-main-tabs {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .ibo-tab-btn {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 16px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .ibo-tab-btn.active, .ibo-tab-btn:hover {
+            border-color: var(--primary);
+            background: rgba(40, 217, 5, 0.2);
+            color: var(--primary);
+        }
+
+        .link-subcategories-bar {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            flex-shrink: 0;
+        }
+
+        .subcat-chip {
+            background: var(--bg-main);
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            padding: 6px 12px;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .subcat-chip.active, .subcat-chip:hover {
+            border-color: var(--primary);
+            color: #fff;
+            background: var(--bg-hover);
+        }
+
+        .main-workspace {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        @media (min-width: 900px) {
+            .main-workspace { display: grid; grid-template-columns: 1fr 380px; }
+        }
+
+        .catalog-container-area {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .catalog-search-bar {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-main);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 13px;
+            outline: none;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+        .catalog-search-bar:focus { border-color: var(--primary); }
+
+        .items-grid-box {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px;
+            padding-bottom: 20px;
+        }
+
+        .media-item-card {
+            background: var(--bg-main);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 6px;
+            cursor: pointer;
+            transition: 0.15s;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .media-item-card:hover {
+            border-color: var(--primary);
+            background: var(--bg-hover);
+        }
+
+        .media-poster {
+            width: 100%;
+            height: 120px;
+            object-fit: contain;
+            background: #050505;
+            border-radius: 6px;
+            margin-bottom: 4px;
+        }
+
+        .media-item-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: #fff;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .right-player-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 280px;
+        }
+
+        @media (min-width: 900px) {
+            .right-player-panel { max-height: none; height: 100%; }
+        }
+
+        .player-wrapper-right {
+            width: 100%;
+            height: 180px;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 900px) {
+            .player-wrapper-right { height: 220px; }
+        }
+
+        video { width: 100%; height: 100%; background: #000; }
+
+        .now-playing-info {
+            background: var(--bg-main);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .btn-back-menu {
+            background: rgba(255, 51, 51, 0.15);
+            border: 2px solid var(--danger);
+            color: var(--danger);
+            padding: 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 11px;
+            cursor: pointer;
+            text-align: center;
+            width: 100%;
+        }
+        .btn-back-menu:hover { background: var(--danger); color: #fff; }
+
+        .loading-home-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            height: 100dvh;
+            width: 100vw;
+            background: var(--bg-main);
+            position: fixed;
+            top: 0; left: 0;
+            z-index: 3000;
+            gap: 12px;
+            color: #fff;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="loadingHomeScreen" class="loading-home-screen" style="display: none;">
+        <div class="spinner"></div>
+        <h3 id="loadingStatusText" style="font-size: 16px; font-weight: bold; color: var(--primary);">Carregando dados...</h3>
+    </div>
+
+    <!-- TELA DE LOGIN / AUTENTICAÇÃO -->
+    <div id="viewAuth" class="smart-container">
+        <div class="main-content-area">
+            <div>
+                <div class="top-brand-bar">
+                    <img src="https://i.imgur.com/7D2A74V.png" class="app-brand-logo" onerror="this.style.display='none'">
+                    <i class="fa-solid fa-circle-play" style="color: var(--primary);"></i>
+                    GC PLAY <span>PRO</span>
+                </div>
+            </div>
+
+            <div>
+                <div class="playlist-selection-grid" id="accountsGrid"></div>
+            </div>
+
+            <div style="border-top: 2px solid var(--border); padding-top: 12px; margin-top: 10px;">
+                <div style="font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 4px;"><i class="fa-solid fa-mobile-screen" style="color: var(--primary);"></i> ATIVAÇÃO VIA CELULAR</div>
+                <div style="font-size: 11px; color: var(--text-muted);">Aponte a câmera para o QR Code para abrir o portal de ativação oficial do aplicativo no seu celular.</div>
+            </div>
+        </div>
+
+        <div class="sidebar-panel">
+            <div>
+                <div class="support-top-text" onclick="App.chamarSuporte()">SUPORTE: (19) 99990-18248</div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                <div class="qrcode-container">
+                    <img id="qrImage" src="" alt="QR Code Portal Ativo">
+                </div>
+                <div style="color: var(--primary); font-weight: bold; font-size: 11px; margin: 6px 0 2px 0;">Escaneie para Ativar</div>
+                
+                <div class="sidebar-info-group">
+                    <div class="mac-display-box" id="displayMac">--:--:--:--:--:--</div>
+                </div>
+                
+                <button class="btn-ui" style="margin-top: 6px; background: var(--primary); border: none; color: #000; font-size: 11px; padding: 8px; font-weight: bold;" onclick="App.copiarLinkPortal()"><i class="fa-solid fa-copy"></i> Copiar Link do Portal</button>
+            </div>
+
+            <div class="version-tag">v8.6 GC PLAY PRO</div>
+        </div>
+    </div>
+
+    <!-- MODAL ADICIONAR M3U MANUALMENTE -->
+    <div class="modal-overlay" id="modalAdd">
+        <div class="modal-card">
+            <h3 style="margin-bottom:12px; color:#fff; font-size:16px;"><i class="fa-solid fa-keyboard" style="color:var(--primary);"></i> Adicionar Manualmente</h3>
+            <input type="text" id="inputName" class="input-box" placeholder="Nome do Provedor">
+            <input type="text" id="inputUrl" class="input-box" placeholder="Cole a URL M3U completa aqui">
+            <button class="btn-ui" onclick="App.salvarEcarregarLista()">Salvar e Conectar</button>
+            <button class="btn-ui" style="background:transparent; border:2px solid var(--border); color:#888; margin-top:8px;" onclick="document.getElementById('modalAdd').style.display='none'">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- DASHBOARD PRINCIPAL -->
+    <div id="viewDashboard">
+        <div class="dashboard-header">
+            <div class="top-brand-bar" style="font-size: 15px;">
+                <img src="https://i.imgur.com/7D2A74V.png" class="app-brand-logo" onerror="this.style.display='none'">
+                <i class="fa-solid fa-tv" style="color: var(--primary);"></i>
+                <span id="headerProviderName">GC PLAY PRO</span>
+            </div>
+            <button class="btn-back-menu" style="width: auto; padding: 6px 10px;" onclick="App.sairDoPlayer()"><i class="fa-solid fa-power-off"></i> Sair</button>
+        </div>
+
+        <div class="ibo-main-tabs" id="mainTabsContainer">
+            <button class="ibo-tab-btn active" onclick="App.mudarTipoPrincipal('live', this)">
+                <i class="fa-solid fa-tv"></i> Ao Vivo
+            </button>
+            <button class="ibo-tab-btn" onclick="App.mudarTipoPrincipal('vod', this)">
+                <i class="fa-solid fa-film"></i> Filmes
+            </button>
+        </div>
+
+        <div class="link-subcategories-bar" id="subcategoriesBar"></div>
+
+        <div class="main-workspace">
+            <div class="catalog-container-area">
+                <input type="text" id="searchCatalog" class="catalog-search-bar" placeholder="🔍 Pesquisar..." oninput="App.filtrarCatalogo()">
+                <div class="items-grid-box" id="catalogGridContainer">
+                    <div style="text-align:center; padding:30px; color:#888; grid-column: 1 / -1;">Carregando...</div>
+                </div>
+            </div>
+
+            <div class="right-player-panel">
+                <div style="font-size: 12px; font-weight: bold; color: var(--primary);">
+                    <i class="fa-solid fa-play-circle"></i> Player Ativo
+                </div>
+                <div class="player-wrapper-right">
+                    <video id="mainVideoPlayer" controls autoplay playsinline></video>
+                </div>
+                <div class="now-playing-info">
+                    <div>
+                        <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 
