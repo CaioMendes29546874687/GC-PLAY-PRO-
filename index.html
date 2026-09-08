@@ -32,7 +32,6 @@
 <body>
     <div id="appRoot" class="smart-container"></div>
 
-    <!-- MODAL ADICIONAR M3U -->
     <div class="modal-overlay" id="modalAdd">
         <div class="modal-card">
             <h3 style="margin-bottom:12px; font-size:16px;"><i class="fa-solid fa-keyboard" style="color:var(--primary);"></i> Adicionar Lista</h3>
@@ -47,12 +46,20 @@
         let portalUrlGerado = "";
 
         window.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            let targetId = urlParams.get('portal_id');
+            // Verifica hash (#id=...) ou parâmetros (?portal_id=...)
+            let hashVal = window.location.hash;
+            let targetId = "";
+
+            if (hashVal && hashVal.includes('id=')) {
+                targetId = hashVal.split('id=')[1];
+            } else {
+                const urlParams = new URLSearchParams(window.location.search);
+                targetId = urlParams.get('portal_id');
+            }
 
             let root = document.getElementById('appRoot');
 
-            // SE ABRIU PELO QR CODE (COM O PORTAL_ID NA URL)
+            // SE TIVER ID, MOSTRA A TELA DE ATIVAÇÃO
             if (targetId) {
                 root.innerHTML = `
                     <div style="background:#000; color:#fff; min-height:100vh; height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px;">
@@ -74,7 +81,7 @@
                 return;
             }
 
-            // TELA NORMAL (EXIBINDO O QR CODE DA TV)
+            // TELA NORMAL DA TV (GERANDO O QR CODE)
             root.innerHTML = `
                 <div class="main-content-area">
                     <div class="top-brand-bar">
@@ -113,8 +120,9 @@
             }
             document.getElementById('displayMac').innerText = deviceId;
 
-            let currentHost = window.location.protocol + "//" + window.location.host + window.location.pathname;
-            portalUrlGerado = currentHost + "?portal_id=" + deviceId;
+            // Usando Hash (#id=) em vez de parâmetros compridos, o QR code fica mais limpo e não falha na leitura
+            let baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            portalUrlGerado = baseUrl + "#id=" + deviceId;
 
             setTimeout(() => {
                 let box = document.getElementById('qrCodeBox');
@@ -126,7 +134,7 @@
                         height: 118,
                         colorDark: "#000000",
                         colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.H
+                        correctLevel: QRCode.CorrectLevel.M
                     });
                 }
             }, 200);
@@ -153,7 +161,7 @@
             let msg = document.getElementById('pMsg');
             if(!url) { msg.style.color = '#ff3333'; msg.innerText = 'Insira a URL M3U!'; return; }
             msg.style.color = '#28D905'; 
-            msg.innerText = '✅ Ativado com sucesso para o aparelho ' + id + '!';
+            msg.innerText = '✅ Ativado com sucesso!';
         }
     </script>
 </body>
