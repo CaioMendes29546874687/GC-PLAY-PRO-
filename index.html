@@ -3,205 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GC PLAY PRO - Universal & Portal Ativo</title>
-    
+    <title>GC PLAY PRO - Universal</title>
     <meta name="theme-color" content="#28D905">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
     <style>
-        :root {
-            --primary: #28D905;
-            --primary-dark: #1e9d03;
-            --bg-main: #000000;
-            --bg-card: #0d0d0d;
-            --bg-hover: #1f1f1f;
-            --border: #222222;
-            --text-main: #ffffff;
-            --text-muted: #888888;
-            --danger: #ff3333;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
-
+        :root { --primary: #28D905; --bg-main: #000; --bg-card: #0d0d0d; --border: #222; --text-muted: #888; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: var(--bg-main); color: #fff; height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
         .smart-container { display: flex; flex: 1; width: 100%; height: 100%; flex-direction: column; }
         @media (min-width: 900px) { .smart-container { flex-direction: row; } }
-
         .main-content-area { flex: 1; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; overflow-y: auto; }
-        .top-brand-bar { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 800; color: #fff; letter-spacing: 1px; }
-        .top-brand-bar span { color: var(--primary); text-shadow: 0 0 15px rgba(40, 217, 5, 0.4); }
+        .top-brand-bar { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 800; color: #fff; }
+        .top-brand-bar span { color: var(--primary); }
         .app-brand-logo { width: 36px; height: 36px; object-fit: contain; border-radius: 8px; background: rgba(40, 217, 5, 0.1); padding: 4px; border: 1px solid var(--primary); }
-
-        .support-top-text { font-size: 12px; color: var(--primary); font-weight: 700; cursor: pointer; padding: 8px 14px; background: rgba(40, 217, 5, 0.1); border-radius: 8px; border: 2px solid rgba(40, 217, 5, 0.3); display: inline-block; text-align: center; }
-        .playlist-selection-grid { display: flex; gap: 15px; margin: 20px 0; flex-wrap: wrap; justify-content: center; }
-
-        .account-card { width: 100%; max-width: 280px; height: 140px; background: var(--bg-card); border: 3px solid var(--border); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; position: relative; }
-        .account-card:hover { border-color: var(--primary); background: var(--bg-hover); }
-        .account-card-title { font-size: 15px; font-weight: 700; color: #fff; word-break: break-all; }
-        .badge-status { font-size: 10px; background: rgba(40, 217, 5, 0.15); color: var(--primary); padding: 3px 8px; border-radius: 20px; width: fit-content; font-weight: bold; }
-
-        .add-account-card { width: 100%; max-width: 280px; height: 140px; background: rgba(255, 255, 255, 0.02); border: 3px dashed var(--border); border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: var(--text-muted); }
-        .add-account-card:hover { border-color: var(--primary); color: #fff; background: var(--bg-hover); }
-
+        .add-account-card { width: 100%; max-width: 280px; height: 140px; background: rgba(255,255,255,0.02); border: 3px dashed var(--border); border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: var(--text-muted); }
+        .add-account-card:hover { border-color: var(--primary); color: #fff; background: #1f1f1f; }
         .sidebar-panel { width: 100%; background: #050705; border-top: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; }
         @media (min-width: 900px) { .sidebar-panel { width: 340px; border-top: none; border-left: 1px solid var(--border); justify-content: space-between; } }
-
-        .qrcode-container { background: #ffffff; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; width: 130px; height: 130px; }
-        .mac-display-box { font-family: monospace; font-size: 13px; font-weight: bold; color: var(--primary); letter-spacing: 1px; }
-        .version-tag { font-size: 11px; color: var(--text-muted); }
-
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.88); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
-        .modal-card { background: var(--bg-card); border: 2px solid var(--border); border-radius: 16px; padding: 20px; width: 100%; max-width: 420px; }
+        .qrcode-container { background: #fff; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; width: 130px; height: 130px; }
+        .mac-display-box { font-family: monospace; font-size: 14px; font-weight: bold; color: var(--primary); letter-spacing: 1px; margin: 6px 0; }
+        .btn-ui { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; background: var(--primary); color: #000; text-transform: uppercase; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
+        .modal-card { background: var(--bg-card); border: 2px solid var(--border); border-radius: 16px; padding: 20px; width: 100%; max-width: 400px; }
         .input-box { width: 100%; padding: 12px; background: var(--bg-main); border: 2px solid var(--border); border-radius: 8px; color: #fff; font-size: 14px; outline: none; margin-bottom: 12px; }
-        .input-box:focus { border-color: var(--primary); }
-        .btn-ui { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; background: var(--primary); color: #000; text-transform: uppercase; }
-
-        #viewDashboard { display: none; flex-direction: column; height: 100vh; height: 100dvh; width: 100%; padding: 12px; gap: 10px; overflow: hidden; }
-        .dashboard-header { display: flex; align-items: center; justify-content: space-between; background: var(--bg-card); border: 2px solid var(--border); border-radius: 10px; padding: 10px 15px; }
-        .ibo-main-tabs { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
-        .ibo-tab-btn { background: var(--bg-card); border: 2px solid var(--border); border-radius: 8px; padding: 10px 16px; color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-        .ibo-tab-btn.active { border-color: var(--primary); background: rgba(40, 217, 5, 0.2); color: var(--primary); }
-        .link-subcategories-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
-        .subcat-chip { background: var(--bg-main); border: 2px solid var(--border); border-radius: 6px; padding: 6px 12px; color: var(--text-muted); font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; }
-        .subcat-chip.active { border-color: var(--primary); color: #fff; background: var(--bg-hover); }
-
-        .main-workspace { display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; overflow: hidden; }
-        @media (min-width: 900px) { .main-workspace { display: grid; grid-template-columns: 1fr 380px; } }
-        .catalog-container-area { background: var(--bg-card); border: 2px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-        .catalog-search-bar { width: 100%; padding: 10px 14px; background: var(--bg-main); border: 2px solid var(--border); border-radius: 8px; color: #fff; font-size: 13px; outline: none; margin-bottom: 10px; }
-        .items-grid-box { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; padding-bottom: 20px; }
-        .media-item-card { background: var(--bg-main); border: 2px solid var(--border); border-radius: 8px; padding: 6px; cursor: pointer; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
-        .media-item-card:hover { border-color: var(--primary); }
-        .media-poster { width: 100%; height: 120px; object-fit: contain; background: #050505; border-radius: 6px; margin-bottom: 4px; }
-        .media-item-title { font-size: 11px; font-weight: bold; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .right-player-panel { background: var(--bg-card); border: 2px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
-        .player-wrapper-right { width: 100%; height: 180px; background: #000; border-radius: 8px; overflow: hidden; border: 2px solid var(--border); }
-        video { width: 100%; height: 100%; background: #000; }
-        .btn-back-menu { background: rgba(255, 51, 51, 0.15); border: 2px solid var(--danger); color: var(--danger); padding: 8px; border-radius: 6px; font-weight: bold; font-size: 11px; cursor: pointer; text-align: center; width: 100%; }
     </style>
 </head>
 <body>
-
-    <!-- TELA DE LOGIN / AUTENTICAÇÃO -->
-    <div id="viewAuth" class="smart-container">
+    <div class="smart-container">
         <div class="main-content-area">
+            <div class="top-brand-bar">
+                <img src="https://i.imgur.com/7D2A74V.png" class="app-brand-logo" onerror="this.style.display='none'">
+                <i class="fa-solid fa-circle-play" style="color: var(--primary);"></i> GC PLAY <span>PRO</span>
+            </div>
             <div>
-                <div class="top-brand-bar">
-                    <img src="https://i.imgur.com/7D2A74V.png" class="app-brand-logo" onerror="this.style.display='none'">
-                    <i class="fa-solid fa-circle-play" style="color: var(--primary);"></i>
-                    GC PLAY <span>PRO</span>
+                <div class="add-account-card" onclick="abrirModal()">
+                    <i class="fa-solid fa-plus" style="font-size: 26px; color: var(--primary);"></i>
+                    <span style="font-size: 12px; font-weight: bold; color: #fff;">Adicionar Manualmente</span>
                 </div>
             </div>
-            <div>
-                <div class="playlist-selection-grid" id="accountsGrid"></div>
-            </div>
-            <div style="border-top: 2px solid var(--border); padding-top: 12px; margin-top: 10px;">
-                <div style="font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 4px;"><i class="fa-solid fa-mobile-screen" style="color: var(--primary);"></i> ATIVAÇÃO VIA CELULAR</div>
-                <div style="font-size: 11px; color: var(--text-muted);">Aponte a câmera para o QR Code para abrir o portal de ativação oficial.</div>
+            <div style="font-size: 11px; color: var(--text-muted); border-top: 2px solid var(--border); padding-top: 10px;">
+                📱 Ativação Oficial via Web
             </div>
         </div>
 
         <div class="sidebar-panel">
-            <div>
-                <div class="support-top-text" onclick="window.open('https://wa.me/55199999018248', '_blank')">SUPORTE: (19) 99990-18248</div>
+            <div style="font-size: 12px; color: var(--primary); font-weight: 700; padding: 8px 14px; background: rgba(40,217,5,0.1); border-radius: 8px; border: 2px solid rgba(40,217,5,0.3);">
+                SUPORTE: (19) 99990-18248
             </div>
-
             <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
                 <div class="qrcode-container" id="qrCodeBox"></div>
-                <div style="color: var(--primary); font-weight: bold; font-size: 11px; margin: 6px 0 2px 0;">Escaneie para Ativar</div>
-                
-                <div class="sidebar-info-group" style="margin: 4px 0;">
-                    <div class="mac-display-box" id="displayMac">Gerando ID...</div>
-                </div>
-                
-                <button class="btn-ui" style="font-size: 11px; padding: 8px; margin-top: 4px;" onclick="copiarLink()"><i class="fa-solid fa-copy"></i> Copiar Link do Portal</button>
+                <div style="color: var(--primary); font-size: 11px; font-weight: bold; margin-top: 4px;">Escaneie para Ativar</div>
+                <div class="mac-display-box" id="displayMac">Gerando...</div>
+                <button class="btn-ui" onclick="copiarLink()"><i class="fa-solid fa-copy"></i> Copiar Link</button>
             </div>
-
-            <div class="version-tag">v8.7 GC PLAY PRO</div>
+            <div style="font-size: 11px; color: var(--text-muted);">v8.7 GC PLAY PRO</div>
         </div>
     </div>
 
-    <!-- MODAL ADICIONAR M3U -->
     <div class="modal-overlay" id="modalAdd">
         <div class="modal-card">
-            <h3 style="margin-bottom:12px; color:#fff; font-size:16px;"><i class="fa-solid fa-keyboard" style="color:var(--primary);"></i> Adicionar Manualmente</h3>
+            <h3 style="margin-bottom:12px; font-size:16px;"><i class="fa-solid fa-keyboard" style="color:var(--primary);"></i> Adicionar Lista</h3>
             <input type="text" id="inputName" class="input-box" placeholder="Nome do Provedor">
-            <input type="text" id="inputUrl" class="input-box" placeholder="Cole a URL M3U completa aqui">
-            <button class="btn-ui" onclick="salvarManual()">Salvar e Conectar</button>
-            <button class="btn-ui" style="background:transparent; border:2px solid var(--border); color:#888; margin-top:8px;" onclick="document.getElementById('modalAdd').style.display='none'">Cancelar</button>
+            <input type="text" id="inputUrl" class="input-box" placeholder="URL M3U">
+            <button class="btn-ui" onclick="salvar()">Salvar</button>
+            <button class="btn-ui" style="background:transparent; border:2px solid var(--border); color:#888; margin-top:8px;" onclick="fecharModal()">Cancelar</button>
         </div>
     </div>
 
-    <!-- DASHBOARD -->
-    <div id="viewDashboard">
-        <div class="dashboard-header">
-            <div class="top-brand-bar" style="font-size: 15px;">
-                <img src="https://i.imgur.com/7D2A74V.png" class="app-brand-logo" onerror="this.style.display='none'">
-                <i class="fa-solid fa-tv" style="color: var(--primary);"></i>
-                <span id="headerProviderName">GC PLAY PRO</span>
-            </div>
-            <button class="btn-back-menu" style="width: auto; padding: 6px 10px;" onclick="sairDoPlayer()"><i class="fa-solid fa-power-off"></i> Sair</button>
-        </div>
-
-        <div class="ibo-main-tabs">
-            <button class="ibo-tab-btn active" onclick="mudarTipo('live', this)"><i class="fa-solid fa-tv"></i> Ao Vivo</button>
-            <button class="ibo-tab-btn" onclick="mudarTipo('vod', this)"><i class="fa-solid fa-film"></i> Filmes</button>
-        </div>
-
-        <div class="link-subcategories-bar" id="subcategoriesBar"></div>
-
-        <div class="main-workspace">
-            <div class="catalog-container-area">
-                <input type="text" id="searchCatalog" class="catalog-search-bar" placeholder="🔍 Pesquisar..." oninput="filtrar()">
-                <div class="items-grid-box" id="catalogGridContainer"></div>
-            </div>
-
-            <div class="right-player-panel">
-                <div style="font-size: 12px; font-weight: bold; color: var(--primary);"><i class="fa-solid fa-play-circle"></i> Player Ativo</div>
-                <div class="player-wrapper-right">
-                    <video id="mainVideoPlayer" controls autoplay playsinline></video>
-                </div>
-                <div style="background:var(--bg-main); border:2px solid var(--border); border-radius:8px; padding:10px; flex:1; display:flex; flex-direction:column; justify-content:space-between;">
-                    <div id="currentProgramText" style="font-size:11px; font-weight:bold; color:#fff; word-break:break-all;">Nenhum item selecionado.</div>
-                    <button class="btn-back-menu" onclick="pararVideo()"><i class="fa-solid fa-arrow-left"></i> Limpar Player</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script>
-        let dadosCompletos = { live: [], vod: [] };
-        let tipoAtual = 'live';
-        let subcatAtual = '';
-        let portalUrlGerado = '';
-
+        let portalUrlGerado = "";
         window.addEventListener('DOMContentLoaded', () => {
-            // Verificar se abriu pelo link de cliente
-            const urlParams = new URLSearchParams(window.location.search);
-            let targetId = urlParams.get('portal_id');
-            if (targetId) {
-                document.body.innerHTML = `
-                    <div style="background:#000; color:#fff; min-height:100vh; height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px;">
-                        <div style="width:100%; max-width:400px; background:#0d0d0d; border:2px solid #28D905; border-radius:16px; padding:24px;">
-                            <h2 style="color:#28D905; font-size:20px; text-align:center; margin-bottom:5px;">GC PLAY PRO</h2>
-                            <p style="font-size:12px; color:#888; text-align:center; margin-bottom:20px;">Ativação do Aparelho: <b style="color:#fff;">${targetId}</b></p>
-                            <label style="font-size:11px; font-weight:bold; color:#aaa; display:block; margin-bottom:5px;">NOME:</label>
-                            <input type="text" id="pName" placeholder="Ex: Provedor VIP" style="width:100%; padding:12px; background:#000; border:2px solid #222; border-radius:8px; color:#fff; font-size:14px; outline:none; margin-bottom:12px;">
-                            <label style="font-size:11px; font-weight:bold; color:#aaa; display:block; margin-bottom:5px;">URL M3U:</label>
-                            <input type="text" id="pUrl" placeholder="https://..." style="width:100%; padding:12px; background:#000; border:2px solid #222; border-radius:8px; color:#fff; font-size:14px; outline:none; margin-bottom:20px;">
-                            <button onclick="enviar('${targetId}')" style="width:100%; padding:14px; background:#28D905; color:#000; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">ENVIAR PARA A TV</button>
-                            <div id="pMsg" style="text-align:center; margin-top:15px; font-size:13px; font-weight:bold;"></div>
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-
-            // Gerar ID do Aparelho
             let deviceId = localStorage.getItem('gc_device_id');
             if(!deviceId) {
                 deviceId = "GC-" + Math.floor(Math.random() * 899999 + 100000);
@@ -209,82 +81,36 @@
             }
             document.getElementById('displayMac').innerText = deviceId;
 
-            // Gerar URL do QR Code
             let currentHost = window.location.protocol + "//" + window.location.host + window.location.pathname;
             portalUrlGerado = currentHost + "?portal_id=" + deviceId;
 
-            // Criar QR Code com segurança
             setTimeout(() => {
                 let box = document.getElementById('qrCodeBox');
                 box.innerHTML = "";
-                try {
-                    new QRCode(box, {
-                        text: portalUrlGerado,
-                        width: 118,
-                        height: 118,
-                        colorDark: "#000000",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.H
-                    });
-                } catch(e) {
-                    box.innerText = "Erro QR";
-                }
-            }, 300);
-
-            renderContas();
+                new QRCode(box, {
+                    text: portalUrlGerado,
+                    width: 118,
+                    height: 118,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            }, 200);
         });
 
-        function enviar(id) {
-            let nome = document.getElementById('pName').value.trim() || "Minha Lista";
-            let url = document.getElementById('pUrl').value.trim();
-            let msg = document.getElementById('pMsg');
-            if(!url) { msg.style.color = '#ff3333'; msg.innerText = 'Insira a URL!'; return; }
-            msg.style.color = '#28D905'; msg.innerText = 'Enviando...';
-            
-            // Simulação de envio ou Firebase se configurado
-            setTimeout(() => {
-                msg.innerText = '✅ Enviado com sucesso!';
-            }, 500);
-        }
-
+        function abrirModal() { document.getElementById('modalAdd').style.display = 'flex'; }
+        function fecharModal() { document.getElementById('modalAdd').style.display = 'none'; }
         function copiarLink() {
-            navigator.clipboard.writeText(portalUrlGerado).then(() => {
-                alert('Link copiado!');
-            }).catch(() => {
-                prompt("Copie o link:", portalUrlGerado);
-            });
+            navigator.clipboard.writeText(portalUrlGerado).then(() => alert('Link copiado!'));
         }
-
-        function renderContas() {
-            let salva = JSON.parse(localStorage.getItem('gc_playlist_cliente') || 'null');
-            let html = '';
-            if(salva) {
-                html = `
-                    <div class="account-card" onclick="carregarListaSalva()">
-                        <div style="position:absolute; top:12px; right:12px;"><i class="fa-solid fa-play" style="color:var(--primary);"></i></div>
-                        <div>
-                            <div class="badge-status">CONECTADO</div>
-                            <div class="account-card-title" style="margin-top:6px;">${salva.nome}</div>
-                        </div>
-                        <div style="font-size:11px; color:var(--text-muted);">Toque para abrir</div>
-                    </div>
-                    <div class="add-account-card" onclick="abrirModal()">
-                        <i class="fa-solid fa-keyboard" style="font-size: 18px; color: var(--primary);"></i>
-                        <span style="font-size: 11px; font-weight: bold;">Trocar URL</span>
-                    </div>
-                `;
-            } else {
-                html = `
-                    <div class="add-account-card" style="width: 100%; max-width: 280px;" onclick="abrirModal()">
-                        <i class="fa-solid fa-plus" style="font-size: 26px; color: var(--primary);"></i>
-                        <span style="font-size: 12px; font-weight: bold; color: #fff;">Adicionar Manualmente</span>
-                    </div>
-                `;
-            }
-            document.getElementById('accountsGrid').innerHTML = html;
+        function salvar() {
+            let nome = document.getElementById('inputName').value;
+            let url = document.getElementById('inputUrl').value;
+            if(!url) { alert('Insira a URL'); return; }
+            localStorage.setItem('gc_playlist_cliente', JSON.stringify({nome, url}));
+            fecharModal();
+            alert('Salvo com sucesso!');
         }
-
-        function abrirModal() {
-            let salva = JSON.parse(localStorage.getItem('gc_playlist_cliente') || 'null');
-            document.getElementById('inputName').value = salva ? salva.nome : '';
-            document.getElementById('inputUrl').value = salva ?
+    </script>
+</body>
+</html>
