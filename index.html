@@ -656,7 +656,6 @@
                 document.getElementById('viewAuth').style.display = 'flex';
             }, 600);
 
-            // Gerenciamento do ID do Dispositivo (MAC)
             let devId = localStorage.getItem('gc_device_id');
             if (!devId || devId.length < 5) {
                 devId = "GC-" + Math.floor(Math.random() * 899999 + 100000);
@@ -665,22 +664,18 @@
             this.deviceId = devId;
             document.getElementById('displayMac').innerText = this.deviceId;
 
-            // Montagem correta da URL para o QR Code apontar para o site de ativação
             let pathSegs = window.location.pathname.split('/');
             pathSegs.pop();
             this.portalUrl = window.location.protocol + "//" + window.location.host + pathSegs.join('/') + "/ativar.html?mac=" + this.deviceId;
             
-            // Gerar QR Code localmente e sem falhas
             this.gerarQRCodeNativo(this.portalUrl);
 
-            // Verificar se já existe M3U salva
             let savedM3u = localStorage.getItem('gc_manual_m3u');
             if (savedM3u) {
                 this.carregarLinkM3U(savedM3u);
                 return;
             }
 
-            // Sincronização em nuvem via Supabase para ativação remota por QR Code
             if (supabaseClient) {
                 this.checarSupabase();
                 setInterval(() => {
@@ -747,10 +742,17 @@
             statusText.innerText = "Estabelecendo Conexão com Provedor...";
             await new Promise(r => setTimeout(r, 500));
 
+            // Tratamento de Mixed Content (HTTPS -> HTTP se necessário)
+            let urlTratada = url;
+            if (window.location.protocol === 'https:' && urlTratada.startsWith('http://')) {
+                urlTratada = urlTratada.replace('http://', 'https://');
+            }
+
+            // Lista de Proxies para contornar o CORS do GitHub Pages
             const proxies = [
-                "https://corsproxy.io/?" + encodeURIComponent(url),
-                "https://api.allorigins.win/raw?url=" + encodeURIComponent(url),
-                url
+                "https://corsproxy.io/?" + encodeURIComponent(urlTratada),
+                "https://api.allorigins.win/raw?url=" + encodeURIComponent(urlTratada),
+                urlTratada
             ];
 
             let m3uTexto = "";
@@ -770,7 +772,7 @@
 
             if (!m3uTexto) {
                 loader.classList.remove('on');
-                alert("Erro ao carregar lista M3U. Verifique o link e tente novamente.");
+                alert("O navegador bloqueou a lista por CORS. Verifique o link ou provedor.");
                 this.desconectar();
                 return;
             }
@@ -813,7 +815,6 @@
                     let lowerUrl = linha.toLowerCase();
                     let lowerName = nomeAtual.toLowerCase();
 
-                    // Motor inteligente automatizado para separar Filmes, Séries e Canais Ao Vivo
                     if (lowerGrp.includes('filme') || lowerGrp.includes('vod') || lowerUrl.includes('/movie/') || lowerName.includes('filme')) {
                         tipo = 'movie';
                     } else if (lowerGrp.includes('série') || lowerGrp.includes('serie') || lowerUrl.includes('/series/') || lowerName.includes('s0') || lowerName.includes('temp')) {
