@@ -7,6 +7,8 @@
     <meta name="theme-color" content="#28D905">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Importa o cliente do Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --primary: #28D905; --bg-main: #000; --bg-card: #0d0d0d; --border: #222; --text-muted: #888; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
@@ -25,7 +27,7 @@
         .mac-display-box { font-family: monospace; font-size: 14px; font-weight: bold; color: var(--primary); letter-spacing: 1px; margin: 6px 0; }
         .btn-ui { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; background: var(--primary); color: #000; text-transform: uppercase; }
         
-        /* TELA DE RECONHECENDO ATIVAÇÃO (BOLINHA GIRANDO) */
+        /* TELA DE RECONHECENDO ATIVAÇÃO */
         #loadingScreen { display: none; width: 100%; height: 100vh; height: 100dvh; flex-direction: column; align-items: center; justify-content: center; background: #000; position: fixed; top: 0; left: 0; z-index: 9998; text-align: center; }
         .spinner { width: 60px; height: 60px; border: 5px solid rgba(40,217,5,0.1); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -37,7 +39,6 @@
 </head>
 <body>
 
-    <!-- TELA PRINCIPAL (QR CODE) -->
     <div id="tvSetupScreen" class="smart-container">
         <div class="main-content-area">
             <div class="top-brand-bar">
@@ -51,7 +52,7 @@
                 </div>
             </div>
             <div style="font-size: 11px; color: var(--text-muted); border-top: 2px solid var(--border); padding-top: 10px;">
-                📱 Ativação Oficial via Web
+                📱 Ativação Oficial via Nuvem
             </div>
         </div>
 
@@ -69,23 +70,26 @@
         </div>
     </div>
 
-    <!-- TELA DE CARREGAMENTO COM TEXTO "Reconhecendo ativação..." -->
     <div id="loadingScreen">
         <div class="spinner"></div>
-        <h2 style="color: #fff; font-size: 20px; font-weight: 600; letter-spacing: 0.5px;">Reconhecendo ativação...</h2>
+        <h2 style="color: #fff; font-size: 20px; font-weight: 600;">Reconhecendo ativação...</h2>
         <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">Carregando link M3U da sua lista...</p>
     </div>
 
-    <!-- TELA QUE EXIBE O LAYOUT DA M3U -->
     <div id="playerScreen">
         <iframe id="m3uFrame"></iframe>
     </div>
 
     <script>
+        // CONFIGURAÇÃO DO SUPABASE
+        const SUPABASE_URL = 'https://oududghyzkucvrxffoyg.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_3KI2wOG7ZXTTIkRccOTYnA_zpAjuaLz';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         let portalUrlGerado = "";
         let deviceId = "";
 
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             deviceId = localStorage.getItem('gc_device_id');
             if(!deviceId) {
                 deviceId = "GC-" + Math.floor(Math.random() * 899999 + 100000);
@@ -93,14 +97,10 @@
             }
             document.getElementById('displayMac').innerText = deviceId;
 
-            // Se já tiver uma lista ativa salva anteriormente, vai direto para o carregamento
-            let savedList = localStorage.getItem('gc_playlist_' + deviceId);
-            if(savedList) {
-                iniciarProcessoAtivacao(JSON.parse(savedList).url);
-                return;
-            }
+            // Verifica se já existe ativação salva na nuvem para este MAC
+            await verificarAtivacaoNuvem(deviceId);
 
-            // Gera o link apontando para o ativar.html
+            // Gera o link do QR code apontando para o ativar.html
             let pathSegments = window.location.pathname.split('/');
             pathSegments.pop();
             let basePath = window.location.protocol + "//" + window.location.host + pathSegments.join('/') + "/ativar.html";
@@ -119,27 +119,39 @@
                 });
             }, 200);
 
-            // Fica monitorando o momento exato em que o celular envia a ativação
-            setInterval(() => {
-                let checkActivation = localStorage.getItem('gc_playlist_' + deviceId);
-                if(checkActivation) {
-                    let dados = JSON.parse(checkActivation);
-                    iniciarProcessoAtivacao(dados.url);
-                }
-            }, 1000);
+            // Fica checando a nuvem a cada 2 segundos em tempo real
+            setInterval(async () => {
+                await verificarAtivacaoNuvem(deviceId);
+            }, 2000);
         });
 
-        function iniciarProcessoAtivacao(urlM3u) {
-            // Esconde a tela de QR code e mostra a bolinha girando com o texto solicitado
+        async function verificarAtivacaoNuvem(mac) {
+            try {
+                let { data, error } = await supabaseClient
+                    .from('ativacoes')
+                    .select('url_m3u')
+                    .eq('mac', mac)
+                    .single();
+
+                if (data && data.url_m3u) {
+                    ativarInterface(data.url_m3u);
+                }
+            } catch (err) {
+                // Silencia erros enquanto aguarda ativação
+            }
+        }
+
+        function ativarInterface(urlM3u) {
             document.getElementById('tvSetupScreen').style.display = 'none';
             document.getElementById('loadingScreen').style.display = 'flex';
 
-            // Aguarda 2 segundos exibindo a animação de reconhecimento e depois abre o layout da M3U
             setTimeout(() => {
                 document.getElementById('loadingScreen').style.display = 'none';
-                let playerScreen = document.getElementById('playerScreen');
-                playerScreen.style.display = 'flex';
-                document.getElementById('m3uFrame').src = urlM3u;
+                document.getElementById('playerScreen').style.display = 'flex';
+                let iframe = document.getElementById('m3uFrame');
+                if(iframe.src !== urlM3u) {
+                    iframe.src = urlM3u;
+                }
             }, 2000);
         }
     </script>
