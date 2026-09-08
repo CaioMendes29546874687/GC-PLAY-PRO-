@@ -24,20 +24,24 @@
         .qrcode-container { background: #fff; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; width: 130px; height: 130px; }
         .mac-display-box { font-family: monospace; font-size: 14px; font-weight: bold; color: var(--primary); letter-spacing: 1px; margin: 6px 0; }
         .btn-ui { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; background: var(--primary); color: #000; text-transform: uppercase; }
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
-        .modal-card { background: var(--bg-card); border: 2px solid var(--border); border-radius: 16px; padding: 20px; width: 100%; max-width: 400px; }
-        .input-box { width: 100%; padding: 12px; background: var(--bg-main); border: 2px solid var(--border); border-radius: 8px; color: #fff; font-size: 14px; outline: none; margin-bottom: 12px; }
+        
+        /* TELA DE CARREGAMENTO DA LISTA M3U */
+        #playerScreen { display: none; width: 100%; height: 100vh; flex-direction: column; align-items: center; justify-content: center; background: #000; text-align: center; padding: 20px; }
+        .spinner { width: 50px; height: 50px; border: 5px solid rgba(40,217,5,0.1); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="smart-container">
+
+    <!-- TELA PRINCIPAL (QR CODE) -->
+    <div id="tvSetupScreen" class="smart-container">
         <div class="main-content-area">
             <div class="top-brand-bar">
                 <img src="https://i.imgur.com/7D2A74V.png" class="app-brand-logo" onerror="this.style.display='none'">
                 <i class="fa-solid fa-circle-play" style="color: var(--primary);"></i> GC PLAY <span>PRO</span>
             </div>
             <div>
-                <div class="add-account-card" onclick="abrirModal()">
+                <div class="add-account-card" onclick="alert('Use o QR Code ao lado para ativar pelo celular!')">
                     <i class="fa-solid fa-plus" style="font-size: 26px; color: var(--primary);"></i>
                     <span style="font-size: 12px; font-weight: bold; color: #fff;">Adicionar Manualmente</span>
                 </div>
@@ -55,37 +59,42 @@
                 <div class="qrcode-container" id="qrCodeBox"></div>
                 <div style="color: var(--primary); font-size: 11px; font-weight: bold; margin-top: 4px;">Escaneie para Ativar</div>
                 <div class="mac-display-box" id="displayMac">Gerando...</div>
-                <button class="btn-ui" onclick="copiarLink()"><i class="fa-solid fa-copy"></i> Copiar Link</button>
+                <button class="btn-ui" onclick="navigator.clipboard.writeText(portalUrlGerado)"><i class="fa-solid fa-copy"></i> Copiar Link</button>
             </div>
             <div style="font-size: 11px; color: var(--text-muted);">v8.7 GC PLAY PRO</div>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modalAdd">
-        <div class="modal-card">
-            <h3 style="margin-bottom:12px; font-size:16px;"><i class="fa-solid fa-keyboard" style="color:var(--primary);"></i> Adicionar Lista</h3>
-            <input type="text" id="inputName" class="input-box" placeholder="Nome do Provedor">
-            <input type="text" id="inputUrl" class="input-box" placeholder="URL M3U">
-            <button class="btn-ui" onclick="salvar()">Salvar</button>
-            <button class="btn-ui" style="background:transparent; border:2px solid var(--border); color:#888; margin-top:8px;" onclick="fecharModal()">Cancelar</button>
-        </div>
+    <!-- TELA DE PLAYER / CARREGANDO M3U -->
+    <div id="playerScreen">
+        <div class="spinner"></div>
+        <h2 style="color: #fff; font-size: 22px; margin-bottom: 8px;">Carregando Lista M3U...</h2>
+        <p id="loadedUrlText" style="color: var(--text-muted); font-size: 13px; max-width: 500px; word-break: break-all;"></p>
     </div>
 
     <script>
         let portalUrlGerado = "";
+        let deviceId = "";
+
         window.addEventListener('DOMContentLoaded', () => {
-            let deviceId = localStorage.getItem('gc_device_id');
+            deviceId = localStorage.getItem('gc_device_id');
             if(!deviceId) {
                 deviceId = "GC-" + Math.floor(Math.random() * 899999 + 100000);
                 localStorage.setItem('gc_device_id', deviceId);
             }
             document.getElementById('displayMac').innerText = deviceId;
 
-            // Pega o caminho atual e aponta para ativar.html na mesma pasta
+            // Verifica se já existe uma lista salva para este aparelho
+            let savedList = localStorage.getItem('gc_playlist_' + deviceId);
+            if(savedList) {
+                mostrarPlayer(JSON.parse(savedList).url);
+                return;
+            }
+
+            // Gera o link do QR code apontando para o ativar.html
             let pathSegments = window.location.pathname.split('/');
-            pathSegments.pop(); // Remove index.html
+            pathSegments.pop();
             let basePath = window.location.protocol + "//" + window.location.host + pathSegments.join('/') + "/ativar.html";
-            
             portalUrlGerado = basePath + "?mac=" + deviceId;
 
             setTimeout(() => {
@@ -100,20 +109,22 @@
                     correctLevel: QRCode.CorrectLevel.M
                 });
             }, 200);
+
+            // Fica checando a cada 1 segundo se o celular ativou o aparelho
+            setInterval(() => {
+                let checkActivation = localStorage.getItem('gc_playlist_' + deviceId);
+                if(checkActivation) {
+                    let dados = JSON.parse(checkActivation);
+                    mostrarPlayer(dados.url);
+                }
+            }, 1000);
         });
 
-        function abrirModal() { document.getElementById('modalAdd').style.display = 'flex'; }
-        function fecharModal() { document.getElementById('modalAdd').style.display = 'none'; }
-        function copiarLink() {
-            navigator.clipboard.writeText(portalUrlGerado).then(() => alert('Link copiado!'));
-        }
-        function salvar() {
-            let nome = document.getElementById('inputName').value;
-            let url = document.getElementById('inputUrl').value;
-            if(!url) { alert('Insira a URL'); return; }
-            localStorage.setItem('gc_playlist_cliente', JSON.stringify({nome, url}));
-            fecharModal();
-            alert('Salvo com sucesso!');
+        function mostrarPlayer(urlM3u) {
+            document.getElementById('tvSetupScreen').style.display = 'none';
+            document.getElementById('playerScreen').style.display = 'flex';
+            document.getElementById('loadedUrlText').innerText = urlM3u;
+            // Aqui você pode integrar o player de vídeo ou carregamento real da M3U futuramente.
         }
     </script>
 </body>
