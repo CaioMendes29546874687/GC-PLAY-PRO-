@@ -3,181 +3,293 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>GC PLAY PRO - TV SYSTEM</title>
-<meta name="theme-color" content="#28D905">
+<title>GC PLAY PRO - Future System</title>
+<meta name="theme-color" content="#000000">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.12/hls.min.js"></script>
-<script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap');
+
 :root {
-  --bg: #000000;
-  --surface: #0d0d0d;
-  --surface2: #161616;
-  --border: #222222;
-  --text: #ffffff;
-  --dim: #888888;
-  --accent: #28D905;
-  --accent-glow: rgba(40, 217, 5, 0.2);
-  --radius: 12px;
-  --radius-sm: 8px;
-  --sidebar-w: 260px;
+  --bg: #030503;
+  --surface: #0a0f0a;
+  --surface-glass: rgba(10, 20, 10, 0.7);
+  --border: #143314;
+  --border-neon: #1ed73a;
+  --text: #f0fff0;
+  --dim: #709070;
+  --neon: #28D905;
+  --neon-glow: 0 0 20px rgba(40, 217, 5, 0.35);
+  --neon-glow-strong: 0 0 35px rgba(40, 217, 5, 0.6);
+  --radius: 16px;
+  --radius-sm: 10px;
 }
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI', Roboto, sans-serif;}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Rajdhani', sans-serif;}
 body{
-  background:var(--bg);color:var(--text);
-  min-height:100vh;min-height:100dvh;
-  display:flex;overflow:hidden;width:100%;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  display: flex;
 }
 
-/* SETUP SCREEN (QR CODE & MANUAL) */
+/* TELA DE ATIVAÇÃO FUTURÍSTICA */
 #tvSetupScreen {
-  position: fixed; inset: 0; background: var(--bg); z-index: 999;
-  display: flex; flex-direction: column;
+  position: fixed; inset: 0; z-index: 9999;
+  background: radial-gradient(circle at center, #071407 0%, #020502 100%);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; overflow-y: auto;
 }
-@media (min-width: 900px) { #tvSetupScreen { flex-direction: row; } }
 
-.setup-main { flex: 1; padding: 30px; display: flex; flex-direction: column; justify-content: space-between; overflow-y: auto; }
-.top-brand { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-.brand-title { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 800; color: #fff; }
-.brand-title span { color: var(--accent); }
+.futuristic-container {
+  width: 100%; max-width: 950px;
+  background: var(--surface-glass);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-neon);
+  box-shadow: var(--neon-glow-strong);
+  border-radius: var(--radius);
+  display: grid; grid-template-columns: 1fr 380px;
+  overflow: hidden; position: relative;
+}
+@media (max-width: 850px) {
+  .futuristic-container { grid-template-columns: 1fr; max-width: 500px; }
+}
 
-.manual-card-box {
-  width: 100%; max-width: 450px; margin: auto;
-  background: rgba(255,255,255,0.02); border: 2px dashed var(--accent);
-  border-radius: var(--radius); padding: 30px; text-align: center;
+.setup-left {
+  padding: 40px; display: flex; flex-direction: column; justify-content: space-between;
 }
-.manual-card-box input {
-  width: 100%; padding: 14px; background: var(--surface2);
-  border: 1px solid var(--border); color: #fff; border-radius: var(--radius-sm);
-  margin: 15px 0; outline: none; font-size: 14px;
-}
-.manual-card-box input:focus { border-color: var(--accent); }
-.btn-ui {
-  width: 100%; padding: 14px; border: none; border-radius: var(--radius-sm);
-  font-weight: bold; font-size: 14px; cursor: pointer; background: var(--accent);
-  color: #000; text-transform: uppercase; transition: opacity 0.2s;
-}
-.btn-ui:hover { opacity: 0.9; }
 
-.sidebar-panel {
-  width: 100%; background: var(--surface); border-top: 1px solid var(--border);
-  padding: 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px;
+.logo-area {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 25px;
 }
-@media (min-width: 900px) {
-  .sidebar-panel { width: 340px; border-top: none; border-left: 1px solid var(--border); justify-content: space-between; }
+.logo-icon {
+  width: 48px; height: 48px; background: rgba(40, 217, 5, 0.1);
+  border: 1px solid var(--neon); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: var(--neon); box-shadow: var(--neon-glow);
 }
-.qrcode-container { background: #fff; padding: 8px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; width: 140px; height: 140px; }
-.mac-display-box { font-family: monospace; font-size: 16px; font-weight: bold; color: var(--accent); letter-spacing: 1px; margin: 6px 0; }
+.logo-text h1 {
+  font-family: 'Orbitron', sans-serif; font-size: 24px; font-weight: 900;
+  letter-spacing: 2px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+.logo-text h1 span { color: var(--neon); text-shadow: 0 0 12px var(--neon); }
+.logo-text p { font-size: 11px; color: var(--dim); letter-spacing: 3px; text-transform: uppercase; font-weight: 600; }
 
-/* APP DASHBOARD (APÓS CARREGAR M3U) */
-#appDashboard { display: none; width: 100%; height: 100vh; height: 100dvh; flex-direction: row; }
+.input-group-futuristic {
+  margin-bottom: 25px;
+}
+.input-group-futuristic label {
+  display: block; font-size: 12px; font-weight: 700; color: var(--neon);
+  text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;
+}
+.input-wrapper {
+  position: relative; display: flex; align-items: center;
+}
+.input-wrapper i {
+  position: absolute; left: 16px; color: var(--dim); font-size: 16px;
+}
+.input-wrapper input {
+  width: 100%; padding: 15px 15px 15px 48px;
+  background: #050a05; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: #fff; font-size: 14px;
+  outline: none; transition: all 0.3s ease;
+}
+.input-wrapper input:focus {
+  border-color: var(--neon); box-shadow: var(--neon-glow);
+}
+
+.btn-futuristic {
+  width: 100%; padding: 16px; background: var(--neon);
+  color: #000; font-family: 'Orbitron', sans-serif; font-weight: 800;
+  font-size: 14px; letter-spacing: 1.5px; border: none;
+  border-radius: var(--radius-sm); cursor: pointer;
+  box-shadow: var(--neon-glow); transition: all 0.3s ease;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.btn-futuristic:hover {
+  background: #fff; box-shadow: 0 0 25px #fff; transform: translateY(-2px);
+}
+
+/* PAINEL DO QR CODE DIREITO */
+.setup-right {
+  background: rgba(2, 5, 2, 0.9);
+  border-left: 1px solid var(--border);
+  padding: 40px 30px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center;
+}
+
+.qr-frame {
+  position: relative; padding: 12px; background: #050a05;
+  border: 1px solid var(--neon); border-radius: 14px;
+  box-shadow: var(--neon-glow); margin-bottom: 20px;
+}
+.qrcode-box {
+  width: 150px; height: 150px; background: #fff;
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.qrcode-box img { width: 100%; height: 100%; display: block; }
+
+.device-mac-tag {
+  font-family: 'Orbitron', sans-serif; font-size: 15px; font-weight: 800;
+  color: var(--neon); background: rgba(40,217,5,0.08);
+  border: 1px dashed var(--neon); padding: 8px 16px;
+  border-radius: 8px; letter-spacing: 2px; margin: 10px 0 15px 0;
+  box-shadow: var(--neon-glow);
+}
+
+.btn-copy-link {
+  background: transparent; border: 1px solid var(--dim);
+  color: var(--text); padding: 10px 16px; font-size: 12px;
+  border-radius: 8px; cursor: pointer; font-weight: 600;
+  display: flex; align-items: center; gap: 8px; transition: all 0.2s;
+}
+.btn-copy-link:hover { border-color: var(--neon); color: var(--neon); background: rgba(40,217,5,0.05); }
+
+
+/* DASHBOARD DO APLICATIVO */
+#appDashboard {
+  display: none; width: 100vw; height: 100vh; height: 100dvh; flex-direction: row; background: var(--bg);
+}
 #sidebar {
-  width: var(--sidebar-w); background: var(--surface);
-  border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; z-index: 10;
+  width: 270px; background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; flex-shrink: 0; z-index: 10;
 }
-#sidebar .logo { padding: 20px; font-size: 18px; font-weight: 800; color: #fff; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
-#sidebar .logo span { color: var(--accent); }
-#sidebar nav { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+#sidebar .logo-app {
+  padding: 22px; font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: 900;
+  color: #fff; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px;
+}
+#sidebar .logo-app span { color: var(--neon); }
+#sidebar nav { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
 #sidebar nav button {
-  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
-  padding: 12px 14px; border: none; border-radius: var(--radius-sm);
-  background: transparent; color: var(--dim); font-size: 14px; cursor: pointer; font-weight: 600; transition: all .15s;
+  display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+  padding: 14px 16px; border: none; border-radius: var(--radius-sm);
+  background: transparent; color: var(--dim); font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s;
 }
-#sidebar nav button:hover { background: var(--surface2); color: #fff; }
-#sidebar nav button.on { background: var(--accent); color: #000; }
+#sidebar nav button:hover { background: rgba(40,217,5,0.05); color: #fff; }
+#sidebar nav button.on {
+  background: rgba(40,217,5,0.15); color: var(--neon);
+  border-left: 4px solid var(--neon); box-shadow: inset 10px 0 20px rgba(40,217,5,0.05);
+}
 
-#main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; background: var(--bg); }
+#main { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; }
 #topbar {
-  padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
-  border-bottom: 1px solid var(--border); background: var(--surface); min-height: 64px;
+  padding: 18px 30px; display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border); background: var(--surface);
 }
-#topbar .title { font-size: 18px; font-weight: 700; color: #fff; }
+#topbar .title { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 1px; }
 
-#content { flex: 1; overflow-y: auto; padding: 24px; }
-.grid-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+#content { flex: 1; overflow-y: auto; padding: 30px; }
+.grid-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
 .card {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-sm); padding: 14px; cursor: pointer;
-  transition: all .2s; display: flex; align-items: center; gap: 14px;
+  border-radius: var(--radius-sm); padding: 16px; cursor: pointer;
+  transition: all 0.25s ease; display: flex; align-items: center; gap: 14px;
 }
-.card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 20px var(--accent-glow); }
+.card:hover {
+  border-color: var(--neon); transform: translateY(-3px);
+  box-shadow: var(--neon-glow); background: rgba(10,25,10,0.6);
+}
 .card .thumb {
-  width: 46px; height: 46px; border-radius: 8px; background: var(--surface2);
-  display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--accent); flex-shrink: 0;
+  width: 48px; height: 48px; border-radius: 10px; background: #040804;
+  border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--neon); flex-shrink: 0;
 }
 .card .detail { flex: 1; min-width: 0; }
-.card .detail .nm { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
-.card .detail .mt { font-size: 11px; color: var(--dim); margin-top: 3px; }
+.card .detail .nm { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+.card .detail .mt { font-size: 11px; color: var(--dim); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
 
 /* PLAYER FULLSCREEN OVERLAY */
 #player-overlay {
-  position: fixed; inset: 0; background: #000; z-index: 9999;
+  position: fixed; inset: 0; background: #000; z-index: 99999;
   display: none; flex-direction: column;
 }
 #player-overlay.on { display: flex; }
-#player-overlay .topbar { background: #0a0a0a; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; }
-#player-overlay video { flex: 1; width: 100%; height: 100%; background: #000; object-fit: contain; outline: none; }
+#player-overlay .topbar-player { background: #030503; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 16px 30px; }
+#player-overlay video { flex: 1; width: 100%; height: 100%; background: #000; outline: none; }
 
-.btn-icon { background: rgba(40,217,5,0.1); border: 1px solid var(--accent); color: var(--accent); width: 38px; height: 38px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; transition: background 0.2s; }
-.btn-icon:hover { background: var(--accent); color: #000; }
+.btn-close-player {
+  background: rgba(224, 64, 64, 0.1); border: 1px solid #e04040; color: #e04040;
+  width: 38px; height: 38px; border-radius: 10px; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; font-size: 16px; transition: all 0.2s;
+}
+.btn-close-player:hover { background: #e04040; color: #fff; box-shadow: 0 0 15px rgba(224,64,64,0.5); }
 </style>
 </head>
 <body>
 
-    <!-- TELA DE SETUP / QR CODE E ATIVAÇÃO -->
+    <!-- TELA DE ATIVAÇÃO / SETUP FUTURÍSTICA -->
     <div id="tvSetupScreen">
-        <div class="setup-main">
-            <div class="top-brand">
-                <div class="brand-title">
-                    <i class="fa-solid fa-circle-play" style="color: var(--accent);"></i> GC PLAY <span>PRO</span>
+        <div class="futuristic-container">
+            <!-- Lado Esquerdo: Inserir Link M3U -->
+            <div class="setup-left">
+                <div>
+                    <div class="logo-area">
+                        <div class="logo-icon"><i class="fa-solid fa-cube"></i></div>
+                        <div class="logo-text">
+                            <h1>GC PLAY <span>PRO</span></h1>
+                            <p>Next-Gen IPTV System</p>
+                        </div>
+                    </div>
+                    <div style="font-size: 13px; color: var(--dim); line-height: 1.5; margin-bottom: 25px;">
+                        Insira sua lista M3U abaixo ou faça ativação instantânea escaneando o QR Code ao lado pelo seu painel remoto.
+                    </div>
                 </div>
-                <button class="btn-icon" onclick="trocarModoManual()" title="Inserir Manualmente"><i class="fa-solid fa-keyboard"></i></button>
-            </div>
-            
-            <div class="manual-card-box">
-                <i class="fa-solid fa-cloud-arrow-down" style="font-size: 38px; color: var(--accent); margin-bottom: 10px;"></i>
-                <h3 style="font-size: 16px; font-weight: bold; margin-bottom: 6px;">Ativação Remota ou M3U</h3>
-                <p style="font-size: 12px; color: var(--dim); margin-bottom: 10px;">Escaneie o QR Code ao lado pelo celular ou insira sua lista M3U diretamente abaixo:</p>
-                <input type="text" id="manualM3uInput" placeholder="Cole o link M3U aqui...">
-                <button class="btn-ui" onclick="salvarLinkManualDireto()">Carregar Lista M3U</button>
+
+                <div class="input-group-futuristic">
+                    <label><i class="fa-solid fa-link" style="color:var(--neon);margin-right:6px;"></i> Link M3U do Provedor</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-network-wired"></i>
+                        <input type="text" id="manualM3uInput" placeholder="https://seu-provedor.com/get.php?username=...">
+                    </div>
+                </div>
+
+                <button class="btn-futuristic" onclick="salvarLinkManualDireto()">
+                    <i class="fa-solid fa-bolt"></i> INICIALIZAR SISTEMA
+                </button>
             </div>
 
-            <div style="font-size: 11px; color: var(--dim); text-align: center; border-top: 1px solid var(--border); padding-top: 12px;">
-                ⚡ Sistema Protegido contra CORS e Otimizado v10.0
-            </div>
-        </div>
+            <!-- Lado Direito: QR Code e ID Único -->
+            <div class="setup-right">
+                <div style="font-size: 11px; font-weight: 700; color: var(--neon); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;">
+                    Ativação Remota QR
+                </div>
+                
+                <div class="qr-frame">
+                    <div class="qrcode-box" id="qrCodeBox">
+                        <!-- Gerado dinamicamente -->
+                    </div>
+                </div>
 
-        <div class="sidebar-panel">
-            <div style="font-size: 12px; color: var(--accent); font-weight: 700; padding: 8px 14px; background: rgba(40,217,5,0.1); border-radius: 8px; border: 1px solid rgba(40,217,5,0.3);">
-                SUPORTE TÉCNICO
+                <div style="font-size: 11px; color: var(--dim); text-transform: uppercase;">ID do Dispositivo:</div>
+                <div class="device-mac-tag" id="displayMac">GC-000000</div>
+
+                <button class="btn-copy-link" onclick="copiarLinkPortal()">
+                    <i class="fa-solid fa-copy"></i> Copiar Link de Ativação
+                </button>
             </div>
-            <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-                <div class="qrcode-container" id="qrCodeBox"></div>
-                <div style="color: var(--accent); font-size: 11px; font-weight: bold; margin-top: 6px;">Escaneie para Ativar no Painel</div>
-                <div class="mac-display-box" id="displayMac">Gerando...</div>
-                <button class="btn-ui" style="margin-top: 8px;" onclick="copiarLinkPortal()"><i class="fa-solid fa-copy"></i> Copiar Link de Ativação</button>
-            </div>
-            <div style="font-size: 11px; color: var(--dim);">GC PLAY PRO SYSTEM</div>
         </div>
     </div>
 
-    <!-- PAINEL PRINCIPAL DO APLICATIVO APÓS CARREGAR -->
+    <!-- PAINEL PRINCIPAL DO APP -->
     <div id="appDashboard">
         <div id="sidebar">
-            <div class="logo"><i class="fa-solid fa-tv" style="color:var(--accent);"></i> GC PLAY <span>PRO</span></div>
+            <div class="logo-app"><i class="fa-solid fa-cube" style="color:var(--neon);"></i> GC PLAY <span>PRO</span></div>
             <nav>
                 <button class="on" onclick="filtrarCategoria('live', this)"><i class="fa-solid fa-satellite-dish"></i> Ao Vivo (Live)</button>
                 <button onclick="filtrarCategoria('movie', this)"><i class="fa-solid fa-film"></i> Filmes (VOD)</button>
                 <button onclick="filtrarCategoria('series', this)"><i class="fa-solid fa-clapperboard"></i> Séries</button>
-                <button onclick="voltarConfiguracao()" style="margin-top: auto; color: #e04040;"><i class="fa-solid fa-right-from-bracket"></i> Trocar / Sair M3U</button>
+                <button onclick="voltarConfiguracao()" style="margin-top: auto; color: #e04040;"><i class="fa-solid fa-power-off"></i> Desconectar M3U</button>
             </nav>
         </div>
 
         <div id="main">
             <div id="topbar">
                 <div class="title" id="currentCategoryTitle">Canais Ao Vivo</div>
-                <div style="font-size: 12px; color: var(--dim);" id="counterItems">0 itens</div>
+                <div style="font-size: 12px; color: var(--dim); font-weight: 600;" id="counterItems">0 itens</div>
             </div>
             <div id="content">
                 <div id="dynamicGrid" class="grid-view"></div>
@@ -185,11 +297,11 @@ body{
         </div>
     </div>
 
-    <!-- PLAYER DE VÍDEO OVERLAY -->
+    <!-- PLAYER OVERLAY FUTURÍSTICO -->
     <div id="player-overlay">
-        <div class="topbar">
-            <div id="overlayTitle" style="font-weight: bold; font-size: 15px; color: #fff;">Reproduzindo</div>
-            <button class="btn-icon" onclick="fecharPlayer()"><i class="fa-solid fa-xmark"></i></button>
+        <div class="topbar-player">
+            <div id="overlayTitle" style="font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 700; color: #fff;">Reproduzindo</div>
+            <button class="btn-close-player" onclick="fecharPlayer()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <video id="videoPlayer" controls autoplay playsinline></video>
     </div>
@@ -237,7 +349,7 @@ body{
     function gerarQRCode(texto) {
         const box = document.getElementById('qrCodeBox');
         if (!box) return;
-        box.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=124x124&data=${encodeURIComponent(texto)}" alt="QR Code" style="width:124px;height:124px;display:block;" onerror="this.parentElement.innerHTML='<span style=\'color:#000;font-size:11px;\'>Use o Link</span>'">`;
+        box.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(texto)}" alt="QR Code">`;
     }
 
     async function verificarSupabaseNuvem(mac) {
@@ -267,7 +379,6 @@ body{
         document.getElementById('tvSetupScreen').style.display = 'none';
         document.getElementById('appDashboard').style.display = 'flex';
 
-        // Estratégia anti-CORS robusta baseada em múltiplos proxies públicos de alta performance
         const proxies = [
             url,
             "https://corsproxy.io/?" + encodeURIComponent(url),
@@ -311,7 +422,7 @@ body{
                 if(matchNome) nomeAtual = matchNome[1];
 
                 let matchGrp = linha.match(/group-title="([^"]+)"/i);
-                if(matchGrp) grupoAtual = matchGrp.tag || matchGrp[1];
+                if(matchGrp) grupoAtual = matchGrp[1];
             } else if(linha && !linha.startsWith('#')) {
                 let tipo = 'live';
                 let lowerGrp = grupoAtual.toLowerCase();
@@ -334,7 +445,7 @@ body{
     function filtrarCategoria(tipo, btnElement) {
         if(btnElement) {
             document.querySelectorAll('#sidebar nav button').forEach(b => b.classList.remove('on'));
-            if(!btnElement.style.color) btnElement.classList.add('on');
+            btnElement.classList.add('on');
         }
 
         let grid = document.getElementById('dynamicGrid');
@@ -351,7 +462,7 @@ body{
             return;
         }
 
-        itens.forEach((item, index) => {
+        itens.forEach((item) => {
             let card = document.createElement('div');
             card.className = 'card';
             card.innerHTML = `
@@ -371,48 +482,4 @@ body{
         let video = document.getElementById('videoPlayer');
         document.getElementById('player-overlay').classList.add('on');
 
-        if (window.hlsPlayerInstance) {
-            window.hlsPlayerInstance.destroy();
-            window.hlsPlayerInstance = null;
-        }
-
-        if (Hls.isSupported() && (url.includes('.m3u8') || url.includes('m3u8'))) {
-            const hls = new Hls();
-            window.hlsPlayerInstance = hls;
-            hls.loadSource(url);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(()=>{}); });
-        } else {
-            video.src = url;
-            video.play().catch(()=>{});
-        }
-    }
-
-    function fecharPlayer() {
-        let video = document.getElementById('videoPlayer');
-        video.pause();
-        video.src = "";
-        document.getElementById('player-overlay').classList.remove('on');
-    }
-
-    function voltarConfiguracao() {
-        if(confirm("Deseja desconectar a lista atual?")) {
-            localStorage.removeItem('gc_manual_m3u');
-            window.location.reload();
-        }
-    }
-
-    function trocarModoManual() {
-        document.getElementById('manualM3uInput').focus();
-    }
-
-    function copiarLinkPortal() {
-        navigator.clipboard.writeText(portalUrlGerado).then(() => {
-            alert("Link de ativação copiado com sucesso!");
-        }).catch(() => {
-            prompt("Copie o link abaixo:", portalUrlGerado);
-        });
-    }
-</script>
-</body>
-</html>
+  
