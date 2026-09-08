@@ -12,7 +12,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Biblioteca local para gerar QR Code com perfeição no navegador mobile -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
@@ -182,14 +181,12 @@
         }
 
         .sidebar-label { font-size: 12px; color: var(--text-muted); line-height: 1.4; text-transform: uppercase; letter-spacing: 1px; }
-        .sidebar-highlight { color: var(--primary); font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: 1px; }
         .mac-display-box {
             font-family: 'Orbitron', monospace; font-size: 13px; font-weight: bold; color: var(--primary); letter-spacing: 2px; margin: 4px 0;
             background: rgba(40,217,5,0.08); border: 1px dashed var(--primary); padding: 8px; border-radius: 8px;
             box-shadow: var(--neon-glow);
         }
 
-        /* LAUDO / LOADER FUTURISTA DE CARREGAMENTO M3U */
         #futuristicLoader {
             position: fixed; inset: 0; z-index: 999999;
             background: radial-gradient(circle at center, #071407 0%, #020502 100%);
@@ -235,7 +232,6 @@
         }
         @keyframes pulseBar { 0% { width: 10%; } 100% { width: 90%; } }
 
-        /* DASHBOARD PRINCIPAL DO VOD / IPTV */
         #viewDashboard {
             display: none; 
             flex-direction: column; 
@@ -413,7 +409,6 @@
             white-space: nowrap;
         }
 
-        /* PAINEL DIREITO DO PLAYER */
         .right-player-panel {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -489,7 +484,28 @@
             color: #fff;
         }
 
-        /* MODOS DE TELA RESPONSIVOS */
+        /* Modal de Temporadas e Episódios para Séries */
+        #modalSeries {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 4500; backdrop-filter: blur(8px); padding: 20px;
+        }
+        .series-modal-content {
+            background: var(--surface); border: 1px solid var(--primary); border-radius: 16px; padding: 20px; width: 100%; max-width: 600px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: var(--neon-glow-strong);
+        }
+        .season-tabs-container {
+            display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; flex-shrink: 0;
+        }
+        .season-tab {
+            background: var(--bg-main); border: 1px solid var(--border); border-radius: 8px; padding: 6px 14px; color: var(--text-muted); font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: 0.2s;
+        }
+        .season-tab.active, .season-tab:hover { border-color: var(--primary); color: var(--primary); background: var(--bg-hover); }
+        .episodes-list-box {
+            flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;
+        }
+        .episode-item {
+            background: var(--bg-main); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: 0.2s;
+        }
+        .episode-item:hover { border-color: var(--primary); background: var(--bg-hover); box-shadow: var(--neon-glow); }
+
         @media (max-width: 900px) {
             .smart-container { flex-direction: column; overflow-y: auto; }
             .sidebar-panel { width: 100%; border-left: none; border-top: 1px solid var(--border); }
@@ -508,7 +524,6 @@
 </head>
 <body>
 
-    <!-- LAUDO / LOADER FUTURISTA DE CARREGAMENTO -->
     <div id="futuristicLoader">
         <div class="loader-box">
             <div class="cyber-spinner"></div>
@@ -526,7 +541,6 @@
         <p style="font-size: 13px; color: var(--text-muted); text-transform: uppercase;">Sincronizando ambiente inteligente...</p>
     </div>
 
-    <!-- TELA DE AUTENTICAÇÃO / LOGIN & QR CODE -->
     <div id="viewAuth" class="smart-container" style="display: none;">
         <div class="main-content-area">
             <div>
@@ -539,7 +553,6 @@
             <div>
                 <div style="font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: 800; margin-bottom: 15px; color: #fff;">GERENCIAMENTO DE LISTAS M3U</div>
                 <div class="playlist-selection-grid" id="accountsGrid">
-                    <!-- Cards de M3U salvas ou inserção manual -->
                     <div class="account-card" onclick="App.abrirModalManual()" tabindex="0">
                         <div class="account-card-title"><i class="fa-solid fa-plus-circle" style="color:var(--primary);margin-right:6px;"></i> Adicionar Nova M3U</div>
                         <div class="badge-status">MANUAL / PROVEDOR</div>
@@ -572,11 +585,10 @@
                 </div>
             </div>
 
-            <div class="version-tag" style="font-size: 10px; color: var(--text-muted); font-family: 'Orbitron', sans-serif;">SYSTEM v4.5.0 PRO</div>
+            <div class="version-tag" style="font-size: 10px; color: var(--text-muted); font-family: 'Orbitron', sans-serif;">SYSTEM v4.7.0 PRO</div>
         </div>
     </div>
 
-    <!-- DASHBOARD PRINCIPAL (VOD & PLAYLIST) -->
     <div id="viewDashboard">
         <div class="dashboard-header">
             <div class="top-brand-bar" style="font-size: 18px;">
@@ -593,16 +605,12 @@
             <button class="ibo-tab-btn" onclick="App.mudarAba('series', this)"><i class="fa-solid fa-clapperboard"></i> Séries</button>
         </div>
 
-        <div class="link-subcategories-bar" id="subCategoriesBar">
-            <!-- Categorias geradas dinamicamente pelo VOD -->
-        </div>
+        <div class="link-subcategories-bar" id="subCategoriesBar"></div>
 
         <div class="main-workspace">
             <div class="catalog-container-area">
                 <input type="text" id="catalogSearch" class="catalog-search-bar" placeholder="Pesquisar conteúdo no catálogo..." oninput="App.filtrarBusca(this.value)">
-                <div class="items-grid-box" id="itemsGrid">
-                    <!-- Itens do VOD renderizados aqui -->
-                </div>
+                <div class="items-grid-box" id="itemsGrid"></div>
             </div>
 
             <div class="right-player-panel">
@@ -622,7 +630,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE INSERÇÃO MANUAL DE M3U -->
+    <!-- Modal Manual M3U -->
     <div id="modalManual" class="smart-container" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 4000; backdrop-filter: blur(8px); padding: 20px;">
         <div style="background: var(--surface); border: 1px solid var(--primary); border-radius: 16px; padding: 25px; width: 100%; max-width: 480px; box-shadow: var(--neon-glow-strong);">
             <div style="font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 15px;">CONFIGURAR LISTA M3U</div>
@@ -631,6 +639,18 @@
                 <button class="ibo-tab-btn active" style="flex: 1; justify-content: center;" onclick="App.salvarManual()">Salvar e Carregar</button>
                 <button class="ibo-tab-btn" style="flex: 1; justify-content: center; border-color: var(--danger); color: var(--danger);" onclick="App.fecharModalManual()">Cancelar</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal Séries (Temporadas e Episódios) -->
+    <div id="modalSeries">
+        <div class="series-modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div id="modalSeriesTitle" style="font-family: 'Orbitron', sans-serif; font-size: 15px; font-weight: 900; color: #fff;">Nome da Série</div>
+                <button onclick="App.fecharModalSeries()" style="background:none; border:none; color:var(--danger); font-size:18px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="season-tabs-container" id="seasonTabsContainer"></div>
+            <div class="episodes-list-box" id="episodesListBox"></div>
         </div>
     </div>
 
@@ -644,7 +664,7 @@
         deviceId: "",
         portalUrl: "",
         hlsInstance: null,
-        m3uData: { live: [], movie: [], series: [] },
+        m3uData: { live: [], movie: [], series: {} },
         currentTab: 'live',
         currentCategory: 'Todos',
         currentItems: [],
@@ -656,7 +676,6 @@
                 document.getElementById('viewAuth').style.display = 'flex';
             }, 600);
 
-            // Gerenciamento do ID do Dispositivo (MAC)
             let devId = localStorage.getItem('gc_device_id');
             if (!devId || devId.length < 5) {
                 devId = "GC-" + Math.floor(Math.random() * 899999 + 100000);
@@ -665,22 +684,18 @@
             this.deviceId = devId;
             document.getElementById('displayMac').innerText = this.deviceId;
 
-            // Montagem correta da URL para o QR Code apontar para o site de ativação
             let pathSegs = window.location.pathname.split('/');
             pathSegs.pop();
             this.portalUrl = window.location.protocol + "//" + window.location.host + pathSegs.join('/') + "/ativar.html?mac=" + this.deviceId;
             
-            // Gerar QR Code localmente e sem falhas
             this.gerarQRCodeNativo(this.portalUrl);
 
-            // Verificar se já existe M3U salva
             let savedM3u = localStorage.getItem('gc_manual_m3u');
             if (savedM3u) {
                 this.carregarLinkM3U(savedM3u);
                 return;
             }
 
-            // Sincronização em nuvem via Supabase para ativação remota por QR Code
             if (supabaseClient) {
                 this.checarSupabase();
                 setInterval(() => {
@@ -745,54 +760,69 @@
             loader.classList.add('on');
 
             statusText.innerText = "Estabelecendo Conexão com Provedor...";
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 400));
 
             let urlTratada = url.trim();
-            if (window.location.protocol === 'https:' && urlTratada.startsWith('http://')) {
-                urlTratada = urlTratada.replace('http://', 'https://');
-            }
+            let m3uTexto = "";
 
-            // Lista expandida de rotas para contorno completo de bloqueios CORS do navegador
-            const proxies = [
-                "https://api.allorigins.win/raw?url=" + encodeURIComponent(urlTratada),
-                "https://corsproxy.io/?" + encodeURIComponent(urlTratada),
-                "https://thingproxy.freeboard.io/fetch/" + urlTratada,
+            // Utiliza o seu Cloudflare Worker privado em primeiro lugar para evitar bloqueios CORS
+            const proxyRoutes = [
+                "https://lively-sunset-b814.caio24820.workers.dev/?url=" + encodeURIComponent(urlTratada),
                 urlTratada
             ];
 
-            let m3uTexto = "";
-            for (let i = 0; i < proxies.length; i++) {
-                statusText.innerText = `Sincronizando Stream (Rota ${i + 1})...`;
+            for (let i = 0; i < proxyRoutes.length; i++) {
+                statusText.innerText = `Testando Rota Proxy [${i + 1}/${proxyRoutes.length}]...`;
                 try {
-                    let res = await fetch(proxies[i], {
-                        headers: {
-                            'Accept': 'text/plain,application/x-mpegurl,*/*'
-                        }
+                    let res = await fetch(proxyRoutes[i], {
+                        method: 'GET',
+                        redirect: 'follow'
                     });
+                    
                     if (res.ok) {
                         let txt = await res.text();
-                        if (txt && (txt.includes('#EXTINF') || txt.includes('#EXTM3U'))) {
+                        // Validação para reconhecer o início de listas M3U / IPTV
+                        if (txt && (txt.includes('#EXTINF') || txt.includes('#EXTM3U') || txt.includes('channel-id') || txt.includes('tvg-id'))) {
                             m3uTexto = txt;
                             break;
                         }
                     }
-                } catch(err) {}
+                } catch(err) {
+                    console.warn(`Tentativa ${i+1} falhou:`, err);
+                }
+            }
+
+            // Modo de resgate caso o cabeçalho exato varie mas o conteúdo seja válido
+            if (!m3uTexto) {
+                try {
+                    let res = await fetch(proxyRoutes[0]);
+                    if (res.ok) {
+                        let txt = await res.text();
+                        if (txt && txt.length > 100) {
+                            m3uTexto = txt;
+                        }
+                    }
+                } catch(e) {}
             }
 
             if (!m3uTexto) {
                 loader.classList.remove('on');
-                alert("O provedor bloqueou a leitura remota via navegador (CORS). Tente usar outro link M3U válido.");
-                this.desconectar();
+                document.getElementById('viewAuth').style.display = 'flex';
+                alert("Falha ao reconhecer a lista M3U. Verifique se o link do provedor está correto.");
+                localStorage.removeItem('gc_manual_m3u');
                 return;
             }
 
-            statusText.innerText = "Construindo VOD e Organizando Categorias...";
-            await new Promise(r => setTimeout(r, 600));
+            // Salva a última lista funcional
+            localStorage.setItem('gc_manual_m3u', urlTratada);
+
+            statusText.innerText = "Construindo VOD e Organizando Séries...";
+            await new Promise(r => setTimeout(r, 500));
 
             this.parseM3U(m3uTexto);
 
             statusText.innerText = "Sistema Inicializado com Sucesso!";
-            await new Promise(r => setTimeout(r, 400));
+            await new Promise(r => setTimeout(r, 300));
 
             loader.classList.remove('on');
             document.getElementById('viewDashboard').style.display = 'flex';
@@ -800,7 +830,7 @@
         },
 
         parseM3U(texto) {
-            this.m3uData = { live: [], movie: [], series: [] };
+            this.m3uData = { live: [], movie: [], series: {} };
             let linhas = texto.split('\n');
             let nomeAtual = "Conteúdo";
             let grupoAtual = "Geral";
@@ -810,33 +840,72 @@
                 let linha = linhas[i].trim();
                 if (linha.startsWith('#EXTINF:')) {
                     let matchNome = linha.match(/,(.+)$/);
-                    if (matchNome) nomeAtual = matchNome[1];
+                    if (matchNome) nomeAtual = matchNome[1].trim();
 
                     let matchGrp = linha.match(/group-title="([^"]+)"/i);
-                    if (matchGrp) grupoAtual = matchGrp[1];
+                    if (matchGrp) grupoAtual = matchGrp[1].trim();
 
                     let matchLogo = linha.match(/tvg-logo="([^"]+)"/i);
                     if (matchLogo) logoAtual = matchLogo[1];
                     else logoAtual = "";
                 } else if (linha && !linha.startsWith('#')) {
-                    let tipo = 'live';
                     let lowerGrp = grupoAtual.toLowerCase();
                     let lowerUrl = linha.toLowerCase();
                     let lowerName = nomeAtual.toLowerCase();
 
-                    // Motor inteligente automatizado para separar Filmes, Séries e Canais Ao Vivo
-                    if (lowerGrp.includes('filme') || lowerGrp.includes('vod') || lowerUrl.includes('/movie/') || lowerName.includes('filme')) {
-                        tipo = 'movie';
-                    } else if (lowerGrp.includes('série') || lowerGrp.includes('serie') || lowerUrl.includes('/series/') || lowerName.includes('s0') || lowerName.includes('temp')) {
-                        tipo = 'series';
-                    }
+                    let tempEpMatch = nomeAtual.match(/(?:s|temp[a-z]*\.?\s*)(\d+)[^0-9]*(?:e|ep[a-z]*\.?\s*)(\d+)/i);
 
-                    this.m3uData[tipo].push({
-                        name: nomeAtual,
-                        group: grupoAtual,
-                        logo: logoAtual,
-                        url: linha
-                    });
+                    if (lowerGrp.includes('série') || lowerGrp.includes('serie') || lowerUrl.includes('/series/') || tempEpMatch) {
+                        let nomeSerie = nomeAtual.replace(/(?:s|temp[a-z]*\.?\s*)\d+[^0-9]*(?:e|ep[a-z]*\.?\s*)\d+.*/i, '').trim();
+                        if (!nomeSerie || nomeSerie.length < 2) nomeSerie = grupoAtual;
+
+                        let temporada = 1;
+                        let episodio = 1;
+
+                        if (tempEpMatch) {
+                            temporada = parseInt(tempEpMatch[1], 10);
+                            episodio = parseInt(tempEpMatch[2], 10);
+                        } else {
+                            let tempMatch = nomeAtual.match(/temp[a-z]*\.?\s*(\d+)/i);
+                            if (tempMatch) temporada = parseInt(tempMatch[1], 10);
+                        }
+
+                        if (!this.m3uData.series[grupoAtual]) {
+                            this.m3uData.series[grupoAtual] = {};
+                        }
+                        if (!this.m3uData.series[grupoAtual][nomeSerie]) {
+                            this.m3uData.series[grupoAtual][nomeSerie] = {
+                                name: nomeSerie,
+                                group: grupoAtual,
+                                logo: logoAtual,
+                                seasons: {}
+                            };
+                        }
+                        if (!this.m3uData.series[grupoAtual][nomeSerie].seasons[temporada]) {
+                            this.m3uData.series[grupoAtual][nomeSerie].seasons[temporada] = [];
+                        }
+
+                        this.m3uData.series[grupoAtual][nomeSerie].seasons[temporada].push({
+                            name: nomeAtual,
+                            episodeNum: episodio,
+                            url: linha
+                        });
+
+                        if (logoAtual && !this.m3uData.series[grupoAtual][nomeSerie].logo) {
+                            this.m3uData.series[grupoAtual][nomeSerie].logo = logoAtual;
+                        }
+
+                    } else {
+                        let tipo = (lowerGrp.includes('filme') || lowerGrp.includes('vod') || lowerUrl.includes('/movie/')) ? 'movie' : 'live';
+                        if (this.m3uData[tipo].length < 15000) {
+                            this.m3uData[tipo].push({
+                                name: nomeAtual,
+                                group: grupoAtual,
+                                logo: logoAtual,
+                                url: linha
+                            });
+                        }
+                    }
 
                     nomeAtual = "Conteúdo";
                     grupoAtual = "Geral";
@@ -850,11 +919,17 @@
             document.querySelectorAll('.ibo-tab-btn').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
 
-            let itensTab = this.m3uData[tipo] || [];
             let categorias = ['Todos'];
-            itensTab.forEach(it => {
-                if (!categorias.includes(it.group)) categorias.push(it.group);
-            });
+            if (tipo === 'series') {
+                Object.keys(this.m3uData.series).forEach(grp => {
+                    if (!categorias.includes(grp)) categorias.push(grp);
+                });
+            } else {
+                let itensTab = this.m3uData[tipo] || [];
+                itensTab.forEach(it => {
+                    if (!categorias.includes(it.group)) categorias.push(it.group);
+                });
+            }
 
             let subBar = document.getElementById('subCategoriesBar');
             subBar.innerHTML = "";
@@ -875,11 +950,23 @@
 
         filtrarCategoria(cat) {
             this.currentCategory = cat;
-            let itensTab = this.m3uData[this.currentTab] || [];
-            if (cat === 'Todos') {
-                this.currentItems = itensTab;
+            if (this.currentTab === 'series') {
+                let listaSeries = [];
+                let gruposObj = (cat === 'Todos') ? this.m3uData.series : { [cat]: this.m3uData.series[cat] || {} };
+                
+                Object.values(gruposObj).forEach(grpSeries => {
+                    Object.values(grpSeries).forEach(serieObj => {
+                        listaSeries.push(serieObj);
+                    });
+                });
+                this.currentItems = listaSeries;
             } else {
-                this.currentItems = itensTab.filter(it => it.group === cat);
+                let itensTab = this.m3uData[this.currentTab] || [];
+                if (cat === 'Todos') {
+                    this.currentItems = itensTab;
+                } else {
+                    this.currentItems = itensTab.filter(it => it.group === cat);
+                }
             }
             this.renderizarGrid(this.currentItems);
         },
@@ -916,9 +1003,70 @@
                     </div>
                     <div style="font-size:10px; color:var(--text-muted); text-transform:uppercase; margin-top:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.group}</div>
                 `;
-                card.onclick = () => this.reproduzirStream(item.url, item.name);
+
+                if (this.currentTab === 'series') {
+                    card.onclick = () => this.abrirModalSeries(item);
+                } else {
+                    card.onclick = () => this.reproduzirStream(item.url, item.name);
+                }
+
                 grid.appendChild(card);
             });
+        },
+
+        abrirModalSeries(serieObj) {
+            document.getElementById('modalSeriesTitle').innerText = serieObj.name;
+            const seasonContainer = document.getElementById('seasonTabsContainer');
+            seasonContainer.innerHTML = "";
+            const episodesBox = document.getElementById('episodesListBox');
+            episodesBox.innerHTML = "";
+
+            let temporadas = Object.keys(serieObj.seasons).sort((a,b) => parseInt(a) - parseInt(b));
+            if (temporadas.length === 0) {
+                episodesBox.innerHTML = `<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:20px;">Nenhum episódio encontrado.</div>`;
+                document.getElementById('modalSeries').style.display = 'flex';
+                return;
+            }
+
+            temporadas.forEach((tempNum, idx) => {
+                let tab = document.createElement('div');
+                tab.className = `season-tab ${idx === 0 ? 'active' : ''}`;
+                tab.innerText = `Temporada ${tempNum}`;
+                tab.onclick = () => {
+                    document.querySelectorAll('.season-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    this.renderizarEpisodios(serieObj.seasons[tempNum]);
+                };
+                seasonContainer.appendChild(tab);
+            });
+
+            this.renderizarEpisodios(serieObj.seasons[temporadas[0]]);
+            document.getElementById('modalSeries').style.display = 'flex';
+        },
+
+        renderizarEpisodios(episodios) {
+            const episodesBox = document.getElementById('episodesListBox');
+            episodesBox.innerHTML = "";
+
+            episodios.sort((a, b) => a.episodeNum - b.episodeNum);
+
+            episodios.forEach(ep => {
+                let epDiv = document.createElement('div');
+                epDiv.className = 'episode-item';
+                epDiv.innerHTML = `
+                    <div style="font-weight:700; font-size:13px; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:10px;">${ep.name}</div>
+                    <div style="font-size:11px; color:var(--primary); font-weight:bold; white-space:nowrap;"><i class="fa-solid fa-play"></i> Assistir</div>
+                `;
+                epDiv.onclick = () => {
+                    this.reproduzirStream(ep.url, ep.name);
+                    this.fecharModalSeries();
+                };
+                episodesBox.appendChild(epDiv);
+            });
+        },
+
+        fecharModalSeries() {
+            document.getElementById('modalSeries').style.display = 'none';
         },
 
         reproduzirStream(url, nome) {
