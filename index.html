@@ -26,12 +26,10 @@
         .mac-display-box { font-family: monospace; font-size: 14px; font-weight: bold; color: var(--primary); letter-spacing: 1px; margin: 6px 0; }
         .btn-ui { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; background: var(--primary); color: #000; text-transform: uppercase; }
         
-        /* TELA DE RECONHECENDO ATIVAÇÃO */
         #loadingScreen { display: none; width: 100%; height: 100vh; height: 100dvh; flex-direction: column; align-items: center; justify-content: center; background: #000; position: fixed; top: 0; left: 0; z-index: 9998; text-align: center; }
         .spinner { width: 60px; height: 60px; border: 5px solid rgba(40,217,5,0.1); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* TELA DO PLAYER WEB INTERNO */
         #playerScreen { display: none; width: 100%; height: 100vh; height: 100dvh; background: #000; position: fixed; top: 0; left: 0; z-index: 9999; display: none; grid-template-columns: 300px 1fr; }
         .channels-sidebar { background: #080808; border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100%; }
         .channels-header { padding: 16px; font-size: 16px; font-weight: bold; color: var(--primary); border-bottom: 1px solid var(--border); }
@@ -157,9 +155,9 @@
             document.getElementById('loadingScreen').style.display = 'flex';
 
             try {
-                // Como navegadores podem bloquear requisições diretas de HTTP para domínios externos (CORS), 
-                // tentamos baixar o conteúdo da lista M3U.
-                let response = await fetch(url);
+                // Utiliza um proxy CORS público para contornar o bloqueio do navegador da TV
+                let proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+                let response = await fetch(proxyUrl);
                 let text = await response.text();
                 
                 let canais = parseM3U(text);
@@ -169,10 +167,9 @@
 
                 exibirCanais(canais);
             } catch (err) {
-                // Caso ocorra bloqueio de CORS do navegador da TV, tentamos abrir via proxy público ou fallback
                 document.getElementById('loadingScreen').innerHTML = `
-                    <h2 style="color: #ff3333; margin-bottom: 10px;">Aviso de Segurança do Navegador</h2>
-                    <p style="color: #aaa; max-width: 400px; font-size: 13px; line-height: 1.5;">O navegador da TV bloqueou o link direto por segurança (CORS). Recomendamos usar este link em um app de IPTV (como IBO Player ou IPTV Smarters) ou configurar o link via proxy.</p>
+                    <h2 style="color: #ff3333; margin-bottom: 10px;">Erro ao carregar a lista</h2>
+                    <p style="color: #aaa; max-width: 400px; font-size: 13px;">Não foi possível baixar a lista M3U. Verifique se o link está correto.</p>
                 `;
             }
         }
@@ -217,7 +214,6 @@
                 container.appendChild(div);
             });
 
-            // Reproduz o primeiro canal automaticamente
             if(canais.length > 0) {
                 reproduzirCanal(canais[0].url);
                 container.firstChild.classList.add('active');
