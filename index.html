@@ -7,7 +7,6 @@
     <meta name="theme-color" content="#28D905">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- Importa o cliente do Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --primary: #28D905; --bg-main: #000; --bg-card: #0d0d0d; --border: #222; --text-muted: #888; }
@@ -31,6 +30,16 @@
         #loadingScreen { display: none; width: 100%; height: 100vh; height: 100dvh; flex-direction: column; align-items: center; justify-content: center; background: #000; position: fixed; top: 0; left: 0; z-index: 9998; text-align: center; }
         .spinner { width: 60px; height: 60px; border: 5px solid rgba(40,217,5,0.1); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* TELA DO PLAYER WEB INTERNO */
+        #playerScreen { display: none; width: 100%; height: 100vh; height: 100dvh; background: #000; position: fixed; top: 0; left: 0; z-index: 9999; display: none; grid-template-columns: 300px 1fr; }
+        .channels-sidebar { background: #080808; border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100%; }
+        .channels-header { padding: 16px; font-size: 16px; font-weight: bold; color: var(--primary); border-bottom: 1px solid var(--border); }
+        .channels-list { flex: 1; overflow-y: auto; padding: 10px; }
+        .channel-item { padding: 12px; margin-bottom: 6px; background: #121212; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid transparent; }
+        .channel-item:hover, .channel-item.active { border-color: var(--primary); background: rgba(40,217,5,0.1); color: var(--primary); }
+        .video-container { flex: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; }
+        video { width: 100%; height: 100%; background: #000; outline: none; }
     </style>
 </head>
 <body>
@@ -69,11 +78,22 @@
     <div id="loadingScreen">
         <div class="spinner"></div>
         <h2 style="color: #fff; font-size: 20px; font-weight: 600;">Reconhecendo ativação...</h2>
-        <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">Carregando link M3U da sua lista...</p>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">Carregando lista de canais...</p>
+    </div>
+
+    <div id="playerScreen">
+        <div class="channels-sidebar">
+            <div class="channels-header"><i class="fa-solid fa-tv"></i> Canais Disponíveis</div>
+            <div class="channels-list" id="channelsContainer">
+                <div style="padding: 20px; text-align: center; color: #777;">Carregando canais...</div>
+            </div>
+        </div>
+        <div class="video-container">
+            <video id="videoPlayer" controls autoplay></video>
+        </div>
     </div>
 
     <script>
-        // CONFIGURAÇÃO DO SUPABASE
         const SUPABASE_URL = 'https://oududghyzkucvrxffoyg.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_3KI2wOG7ZXTTIkRccOTYnA_zpAjuaLz';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -90,10 +110,8 @@
             }
             document.getElementById('displayMac').innerText = deviceId;
 
-            // Verifica se já existe ativação salva na nuvem para este MAC
             await verificarAtivacaoNuvem(deviceId);
 
-            // Gera o link do QR code apontando para o ativar.html
             let pathSegments = window.location.pathname.split('/');
             pathSegments.pop();
             let basePath = window.location.protocol + "//" + window.location.host + pathSegments.join('/') + "/ativar.html";
@@ -112,7 +130,6 @@
                 });
             }, 200);
 
-            // Fica checando a nuvem a cada 2 segundos em tempo real
             setInterval(async () => {
                 if(!ativouProcesso) {
                     await verificarAtivacaoNuvem(deviceId);
@@ -130,21 +147,87 @@
 
                 if (data && data.url_m3u && !ativouProcesso) {
                     ativouProcesso = true;
-                    ativarInterface(data.url_m3u);
+                    carregarListaM3U(data.url_m3u);
                 }
-            } catch (err) {
-                // Silencia erros enquanto aguarda ativação
-            }
+            } catch (err) {}
         }
 
-        function ativarInterface(urlM3u) {
+        async function carregarListaM3U(url) {
             document.getElementById('tvSetupScreen').style.display = 'none';
             document.getElementById('loadingScreen').style.display = 'flex';
 
-            // Exibe a animação com a bolinha girando e o texto por 2 segundos e meio, abrindo o link da lista em seguida
-            setTimeout(() => {
-                window.location.href = urlM3u;
-            }, 2500);
+            try {
+                // Como navegadores podem bloquear requisições diretas de HTTP para domínios externos (CORS), 
+                // tentamos baixar o conteúdo da lista M3U.
+                let response = await fetch(url);
+                let text = await response.text();
+                
+                let canais = parseM3U(text);
+                
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('playerScreen').style.display = 'grid';
+
+                exibirCanais(canais);
+            } catch (err) {
+                // Caso ocorra bloqueio de CORS do navegador da TV, tentamos abrir via proxy público ou fallback
+                document.getElementById('loadingScreen').innerHTML = `
+                    <h2 style="color: #ff3333; margin-bottom: 10px;">Aviso de Segurança do Navegador</h2>
+                    <p style="color: #aaa; max-width: 400px; font-size: 13px; line-height: 1.5;">O navegador da TV bloqueou o link direto por segurança (CORS). Recomendamos usar este link em um app de IPTV (como IBO Player ou IPTV Smarters) ou configurar o link via proxy.</p>
+                `;
+            }
+        }
+
+        function parseM3U(data) {
+            let lines = data.split('\n');
+            let canais = [];
+            let currentChannel = {};
+
+            for (let line of lines) {
+                line = line.trim();
+                if (line.startsWith('#EXTINF:')) {
+                    let nameMatch = line.match(/,(.+)$/);
+                    currentChannel.name = nameMatch ? nameMatch[1] : "Canal sem Nome";
+                } else if (line && !line.startsWith('#')) {
+                    currentChannel.url = line;
+                    canais.push(currentChannel);
+                    currentChannel = {};
+                }
+            }
+            return canais;
+        }
+
+        function exibirCanais(canais) {
+            let container = document.getElementById('channelsContainer');
+            container.innerHTML = "";
+
+            if(canais.length === 0) {
+                container.innerHTML = `<div style="padding: 20px; color: #ff3333; text-align:center;">Nenhum canal encontrado nesta lista.</div>`;
+                return;
+            }
+
+            canais.forEach((canal, index) => {
+                let div = document.createElement('div');
+                div.className = 'channel-item';
+                div.innerText = (index + 1) + ". " + canal.name;
+                div.onclick = () => {
+                    document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
+                    div.classList.add('active');
+                    reproduzirCanal(canal.url);
+                };
+                container.appendChild(div);
+            });
+
+            // Reproduz o primeiro canal automaticamente
+            if(canais.length > 0) {
+                reproduzirCanal(canais[0].url);
+                container.firstChild.classList.add('active');
+            }
+        }
+
+        function reproduzirCanal(url) {
+            let video = document.getElementById('videoPlayer');
+            video.src = url;
+            video.play().catch(e => console.log("Erro ao reproduzir stream:", e));
         }
     </script>
 </body>
