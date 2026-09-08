@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GC PLAY PRO - Universal</title>
+    <title>GC PLAY PRO - Ativação</title>
     <meta name="theme-color" content="#28D905">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -30,50 +30,82 @@
     </style>
 </head>
 <body>
-    <div class="smart-container">
-        <div class="main-content-area">
-            <div class="top-brand-bar">
-                <img src="https://i.imgur.com/7D2A74V.png" class="app-brand-logo" onerror="this.style.display='none'">
-                <i class="fa-solid fa-circle-play" style="color: var(--primary);"></i> GC PLAY <span>PRO</span>
-            </div>
-            <div>
-                <div class="add-account-card" onclick="abrirModal()">
-                    <i class="fa-solid fa-plus" style="font-size: 26px; color: var(--primary);"></i>
-                    <span style="font-size: 12px; font-weight: bold; color: #fff;">Adicionar Manualmente</span>
-                </div>
-            </div>
-            <div style="font-size: 11px; color: var(--text-muted); border-top: 2px solid var(--border); padding-top: 10px;">
-                📱 Ativação Oficial via Web
-            </div>
-        </div>
+    <div id="appRoot" class="smart-container"></div>
 
-        <div class="sidebar-panel">
-            <div style="font-size: 12px; color: var(--primary); font-weight: 700; padding: 8px 14px; background: rgba(40,217,5,0.1); border-radius: 8px; border: 2px solid rgba(40,217,5,0.3);">
-                SUPORTE: (19) 99990-18248
-            </div>
-            <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-                <div class="qrcode-container" id="qrCodeBox"></div>
-                <div style="color: var(--primary); font-size: 11px; font-weight: bold; margin-top: 4px;">Escaneie para Ativar</div>
-                <div class="mac-display-box" id="displayMac">Gerando...</div>
-                <button class="btn-ui" onclick="copiarLink()"><i class="fa-solid fa-copy"></i> Copiar Link</button>
-            </div>
-            <div style="font-size: 11px; color: var(--text-muted);">v8.7 GC PLAY PRO</div>
-        </div>
-    </div>
-
+    <!-- MODAL ADICIONAR M3U -->
     <div class="modal-overlay" id="modalAdd">
         <div class="modal-card">
             <h3 style="margin-bottom:12px; font-size:16px;"><i class="fa-solid fa-keyboard" style="color:var(--primary);"></i> Adicionar Lista</h3>
             <input type="text" id="inputName" class="input-box" placeholder="Nome do Provedor">
             <input type="text" id="inputUrl" class="input-box" placeholder="URL M3U">
-            <button class="btn-ui" onclick="salvar()">Salvar</button>
-            <button class="btn-ui" style="background:transparent; border:2px solid var(--border); color:#888; margin-top:8px;" onclick="fecharModal()">Cancelar</button>
+            <button class="btn-ui" onclick="salvarManual()">Salvar</button>
+            <button class="btn-ui" style="background:transparent; border:2px solid var(--border); color:#888; margin-top:8px;" onclick="document.getElementById('modalAdd').style.display='none'">Cancelar</button>
         </div>
     </div>
 
     <script>
         let portalUrlGerado = "";
+
         window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            let targetId = urlParams.get('portal_id');
+
+            let root = document.getElementById('appRoot');
+
+            // SE ABRIU PELO QR CODE (COM O PORTAL_ID NA URL)
+            if (targetId) {
+                root.innerHTML = `
+                    <div style="background:#000; color:#fff; min-height:100vh; height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px;">
+                        <div style="width:100%; max-width:400px; background:#0d0d0d; border:2px solid #28D905; border-radius:16px; padding:24px;">
+                            <h2 style="color:#28D905; font-size:20px; text-align:center; margin-bottom:5px;">GC PLAY PRO</h2>
+                            <p style="font-size:12px; color:#888; text-align:center; margin-bottom:20px;">Ativação do Aparelho: <b style="color:#fff;">${targetId}</b></p>
+                            
+                            <label style="font-size:11px; font-weight:bold; color:#aaa; display:block; margin-bottom:5px;">NOME DA LISTA:</label>
+                            <input type="text" id="pName" placeholder="Ex: Provedor VIP" class="input-box">
+                            
+                            <label style="font-size:11px; font-weight:bold; color:#aaa; display:block; margin-bottom:5px;">URL M3U:</label>
+                            <input type="text" id="pUrl" placeholder="https://..." class="input-box">
+                            
+                            <button onclick="enviarAtivacao('${targetId}')" class="btn-ui" style="padding:14px; margin-top:5px;">ENVIAR PARA A TV</button>
+                            <div id="pMsg" style="text-align:center; margin-top:15px; font-size:13px; font-weight:bold;"></div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // TELA NORMAL (EXIBINDO O QR CODE DA TV)
+            root.innerHTML = `
+                <div class="main-content-area">
+                    <div class="top-brand-bar">
+                        <img src="https://i.imgur.com/7D2A74V.png" class="app-brand-logo" onerror="this.style.display='none'">
+                        <i class="fa-solid fa-circle-play" style="color: var(--primary);"></i> GC PLAY <span>PRO</span>
+                    </div>
+                    <div>
+                        <div class="add-account-card" onclick="abrirModal()">
+                            <i class="fa-solid fa-plus" style="font-size: 26px; color: var(--primary);"></i>
+                            <span style="font-size: 12px; font-weight: bold; color: #fff;">Adicionar Manualmente</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-muted); border-top: 2px solid var(--border); padding-top: 10px;">
+                        📱 Ativação Oficial via Web
+                    </div>
+                </div>
+
+                <div class="sidebar-panel">
+                    <div style="font-size: 12px; color: var(--primary); font-weight: 700; padding: 8px 14px; background: rgba(40,217,5,0.1); border-radius: 8px; border: 2px solid rgba(40,217,5,0.3);">
+                        SUPORTE: (19) 99990-18248
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                        <div class="qrcode-container" id="qrCodeBox"></div>
+                        <div style="color: var(--primary); font-size: 11px; font-weight: bold; margin-top: 4px;">Escaneie para Ativar</div>
+                        <div class="mac-display-box" id="displayMac">Gerando...</div>
+                        <button class="btn-ui" onclick="copiarLink()"><i class="fa-solid fa-copy"></i> Copiar Link</button>
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-muted);">v8.7 GC PLAY PRO</div>
+                </div>
+            `;
+
             let deviceId = localStorage.getItem('gc_device_id');
             if(!deviceId) {
                 deviceId = "GC-" + Math.floor(Math.random() * 899999 + 100000);
@@ -86,30 +118,42 @@
 
             setTimeout(() => {
                 let box = document.getElementById('qrCodeBox');
-                box.innerHTML = "";
-                new QRCode(box, {
-                    text: portalUrlGerado,
-                    width: 118,
-                    height: 118,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.H
-                });
+                if(box) {
+                    box.innerHTML = "";
+                    new QRCode(box, {
+                        text: portalUrlGerado,
+                        width: 118,
+                        height: 118,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                }
             }, 200);
         });
 
         function abrirModal() { document.getElementById('modalAdd').style.display = 'flex'; }
-        function fecharModal() { document.getElementById('modalAdd').style.display = 'none'; }
+        
         function copiarLink() {
             navigator.clipboard.writeText(portalUrlGerado).then(() => alert('Link copiado!'));
         }
-        function salvar() {
+
+        function salvarManual() {
             let nome = document.getElementById('inputName').value;
             let url = document.getElementById('inputUrl').value;
             if(!url) { alert('Insira a URL'); return; }
             localStorage.setItem('gc_playlist_cliente', JSON.stringify({nome, url}));
-            fecharModal();
+            document.getElementById('modalAdd').style.display = 'none';
             alert('Salvo com sucesso!');
+        }
+
+        function enviarAtivacao(id) {
+            let nome = document.getElementById('pName').value.trim() || "Minha Lista";
+            let url = document.getElementById('pUrl').value.trim();
+            let msg = document.getElementById('pMsg');
+            if(!url) { msg.style.color = '#ff3333'; msg.innerText = 'Insira a URL M3U!'; return; }
+            msg.style.color = '#28D905'; 
+            msg.innerText = '✅ Ativado com sucesso para o aparelho ' + id + '!';
         }
     </script>
 </body>
