@@ -12,6 +12,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Biblioteca oficial qrious para gerar QR Code localmente sem depender de APIs externas instáveis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
     <style>
         :root {
@@ -24,7 +26,6 @@
             --text-main: #ffffff;
             --text-muted: #888888;
             --danger: #ff3333;
-            --accent: #ffc800;
         }
 
         * {
@@ -109,7 +110,7 @@
             display: inline-block;
         }
 
-        .qrcode-container img { width: 130px; height: 130px; display: block; }
+        .qrcode-container canvas { width: 130px !important; height: 130px !important; display: block; }
 
         .sidebar-info-group {
             display: flex;
@@ -121,7 +122,7 @@
         .sidebar-label { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
         .sidebar-highlight { color: var(--primary); font-weight: bold; font-size: 14px; }
         .mac-display-box, .key-display-box {
-            font-family: monospace; font-size: 13px; font-weight: bold; color: #fff; letter-spacing: 1px; margin: 2px 0;
+            font-family: monospace; font-size: 14px; font-weight: bold; color: #fff; letter-spacing: 1px; margin: 2px 0;
         }
         .key-display-box { color: var(--primary); }
         .version-tag { font-size: 11px; color: var(--text-muted); align-self: flex-end; }
@@ -181,12 +182,10 @@
             flex-shrink: 0;
         }
 
-        .ibo-tab-btn.active, .ibo-tab-btn:hover, .ibo-tab-btn:focus {
+        .ibo-tab-btn.active, .ibo-tab-btn:hover {
             border-color: var(--primary);
             background: rgba(40, 217, 5, 0.2);
             color: var(--primary);
-            outline: none;
-            box-shadow: 0 0 15px rgba(40,217,5,0.3);
         }
 
         .link-subcategories-bar {
@@ -207,15 +206,13 @@
             font-weight: bold;
             cursor: pointer;
             white-space: nowrap;
-            transition: 0.15s;
             flex-shrink: 0;
         }
 
-        .subcat-chip.active, .subcat-chip:hover, .subcat-chip:focus {
+        .subcat-chip.active, .subcat-chip:hover {
             border-color: var(--primary);
             color: #fff;
             background: var(--bg-hover);
-            outline: none;
         }
 
         .main-workspace {
@@ -256,11 +253,9 @@
             flex: 1;
             min-height: 0;
             overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 12px;
-            padding-right: 4px;
             padding-bottom: 20px;
         }
 
@@ -278,12 +273,10 @@
             height: 100%;
         }
 
-        .media-item-card:hover, .media-item-card:focus {
+        .media-item-card:hover {
             border-color: var(--primary);
             background: var(--bg-hover);
             transform: scale(1.03);
-            outline: none;
-            box-shadow: 0 0 15px rgba(40,217,5,0.4);
         }
 
         .media-poster {
@@ -304,7 +297,6 @@
             white-space: nowrap;
         }
 
-        /* MODAL DE SÉRIES */
         .series-detail-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.96); display: none; z-index: 2500;
@@ -314,36 +306,20 @@
         .series-header-info {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 15px;
-            flex-shrink: 0; gap: 10px;
-        }
-
-        .seasons-tabs {
-            display: flex; gap: 10px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 5px; flex-shrink: 0;
-        }
-
-        .season-btn {
-            background: var(--bg-card); border: 2px solid var(--border);
-            border-radius: 10px; padding: 10px 20px; color: #fff; font-weight: bold;
-            font-size: 13px; cursor: pointer; white-space: nowrap; transition: 0.15s; flex-shrink: 0;
-        }
-
-        .season-btn.active, .season-btn:hover, .season-btn:focus {
-            border-color: var(--primary); background: rgba(40,217,5,0.25); color: var(--primary); outline: none;
         }
 
         .episodes-grid {
-            flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; padding-bottom: 20px;
+            flex: 1; min-height: 0; overflow-y: auto; display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;
         }
 
         .episode-card {
             background: var(--bg-card); border: 2px solid var(--border);
-            border-radius: 10px; padding: 12px; cursor: pointer; transition: 0.15s;
+            border-radius: 10px; padding: 12px; cursor: pointer;
             display: flex; flex-direction: column; justify-content: space-between;
         }
-        .episode-card:hover, .episode-card:focus { border-color: var(--primary); background: var(--bg-hover); outline: none; box-shadow: 0 0 10px rgba(40,217,5,0.3); }
+        .episode-card:hover { border-color: var(--primary); background: var(--bg-hover); }
 
-        /* PAINEL DIREITO DO PLAYER */
         .right-player-panel {
             background: var(--bg-card);
             border: 2px solid var(--border);
@@ -363,7 +339,6 @@
             overflow: hidden;
             border: 2px solid var(--border);
             flex-shrink: 0;
-            position: relative;
         }
 
         video { width: 100%; height: 100%; background: #000; }
@@ -377,7 +352,6 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            gap: 6px;
         }
 
         .btn-back-menu {
@@ -390,16 +364,9 @@
             font-size: 12px;
             cursor: pointer;
             text-align: center;
-            transition: 0.15s;
             width: 100%;
-            flex-shrink: 0;
         }
-        .btn-back-menu:hover, .btn-back-menu:focus {
-            background: var(--danger);
-            color: #fff;
-            outline: none;
-            box-shadow: 0 0 15px rgba(255,51,51,0.5);
-        }
+        .btn-back-menu:hover { background: var(--danger); color: #fff; }
 
         .loading-home-screen {
             display: flex;
@@ -407,7 +374,6 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            height: 100dvh;
             width: 100vw;
             background: var(--bg-main);
             position: fixed;
@@ -425,36 +391,24 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* MODO TV & MOBILE ADAPTATIVO */
         body.mode-tv .smart-container { flex-direction: row !important; }
-        body.mode-tv .main-workspace { grid-template-columns: 1fr 420px !important; }
-
         @media (max-width: 900px) {
             body.mode-mobile .smart-container { flex-direction: column; overflow-y: auto; }
             body.mode-mobile .sidebar-panel { width: 100%; border-left: none; border-top: 1px solid var(--border); }
-            body.mode-mobile .main-workspace {
-                grid-template-columns: 1fr;
-                grid-template-rows: 1fr auto;
-                height: auto;
-                overflow: visible;
-            }
-            body.mode-mobile #viewDashboard { height: 100vh; height: 100dvh; overflow-y: auto; }
+            body.mode-mobile .main-workspace { grid-template-columns: 1fr; grid-template-rows: 1fr auto; height: auto; }
+            body.mode-mobile #viewDashboard { height: 100vh; overflow-y: auto; }
             body.mode-mobile .catalog-container-area { height: 440px; }
-            body.mode-mobile .right-player-panel { height: auto; }
-            body.mode-mobile .player-wrapper-right { height: 200px; }
         }
     </style>
 </head>
 <body class="mode-mobile">
 
-    <!-- TELA DE LOADING DE RECONHECIMENTO -->
     <div id="loadingHomeScreen" class="loading-home-screen" style="display: none;">
         <div class="spinner"></div>
         <h3 id="loadingStatusText" style="font-size: 18px; font-weight: bold; color: var(--primary);">Reconhecendo ativação...</h3>
         <p style="font-size: 13px; color: var(--text-muted);">Carregando sua lista M3U...</p>
     </div>
 
-    <!-- TELA DE AUTENTICAÇÃO / ESPERA DE ATIVAÇÃO -->
     <div id="viewAuth" class="smart-container">
         <div class="main-content-area">
             <div>
@@ -479,35 +433,34 @@
 
         <div class="sidebar-panel">
             <div>
-                <div class="support-top-text" tabindex="0" onclick="App.chamarSuporte()">SUPORTE: (19) 99990-18248</div>
+                <div class="support-top-text" onclick="App.chamarSuporte()">SUPORTE: (19) 99990-18248</div>
             </div>
 
             <div style="display: flex; flex-direction: column; align-items: center; width: 100%; margin: 15px 0;">
                 <div class="qrcode-container">
-                    <img id="qrImage" src="" alt="QR Code">
+                    <canvas id="qrCanvas"></canvas>
                 </div>
                 <div class="sidebar-highlight" id="detectedPlatformText" style="margin-bottom: 8px;">Plataforma: TV/Mobile</div>
                 
                 <div class="sidebar-info-group">
                     <div>
                         <div class="sidebar-label" style="font-size: 10px;">ENDEREÇO MAC</div>
-                        <div class="mac-display-box" id="displayMac">------</div>
+                        <div class="mac-display-box" id="displayMac">Gerando...</div>
                     </div>
                     <div style="margin-top: 4px;">
                         <div class="sidebar-label" style="font-size: 10px;">CHAVE DE ACESSO</div>
-                        <div class="key-display-box" id="displayKey">------</div>
+                        <div class="key-display-box" id="displayKey">----</div>
                     </div>
                 </div>
             </div>
 
             <div class="sidebar-info-group">
-                <button class="btn-ui" tabindex="0" onclick="App.copiarLinkAtivacao()">Copiar Link Ativação</button>
+                <button class="btn-ui" onclick="App.copiarLinkAtivacao()">Copiar Link Ativação</button>
                 <div class="version-tag" id="versionText">v8.7 PRO</div>
             </div>
         </div>
     </div>
 
-    <!-- DASHBOARD PRINCIPAL DA LISTA M3U -->
     <div id="viewDashboard">
         <div class="dashboard-header">
             <div class="top-brand-bar" style="font-size: 18px;">
@@ -515,7 +468,7 @@
                 GC PLAY <span style="font-size: 16px;">PRO</span>
             </div>
             <div id="dashboardAccountName" style="font-size: 14px; font-weight: bold; color: var(--primary);">Playlist Ativa</div>
-            <button class="btn-back-menu" style="width: auto; padding: 8px 16px;" tabindex="0" onclick="App.voltarAoMenu()">Trocar / Sair</button>
+            <button class="btn-back-menu" style="width: auto; padding: 8px 16px;" onclick="App.voltarAoMenu()">Trocar / Sair</button>
         </div>
 
         <div class="ibo-main-tabs" id="mainTabsContainer"></div>
@@ -538,13 +491,57 @@
                     </div>
                     <div id="npDescription" style="font-size: 12px; color: var(--text-muted); overflow-y: auto; max-height: 80px;">Clique em um canal, filme ou série para reproduzir aqui.</div>
                 </div>
-                <button class="btn-back-menu" tabindex="0" onclick="App.pararPlayer()">Parar Reprodução</button>
+                <button class="btn-back-menu" onclick="App.pararPlayer()">Parar Reprodução</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL DE DETALHES DE SÉRIE -->
     <div id="seriesDetailModal" class="series-detail-modal">
         <div class="series-header-info">
             <div>
-                <h2 id="seriesModalTitle" style="font-size: 20px; font-weight: bol
+                <h2 id="seriesModalTitle" style="font-size: 20px; font-weight: bold; color: #fff;">Nome da Série</h2>
+                <p id="seriesModalInfo" style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Selecione o episódio</p>
+            </div>
+            <button class="btn-back-menu" style="width: auto; padding: 10px 20px;" onclick="App.fecharModalSerie()">Fechar Série</button>
+        </div>
+        <div class="episodes-grid" id="episodesGridContainer"></div>
+    </div>
+
+    <script>
+        let supabaseClient = null;
+        try {
+            const SUPABASE_URL = 'https://oududghyzkucvrxffoyg.supabase.co';
+            const SUPABASE_ANON_KEY = 'sb_publishable_3KI2wOG7ZXTTIkRccOTYnA_zpAjuaLz';
+            if (typeof supabase !== 'undefined') {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) {
+            console.error("Erro Supabase:", e);
+        }
+
+        const App = {
+            deviceId: "",
+            deviceKey: "",
+            portalUrl: "",
+            isTvMode: false,
+            activePlaylistUrl: null,
+            rawM3uText: "",
+            parsedChannels: [],
+            parsedMovies: [],
+            parsedSeries: [],
+            currentTab: 'live',
+            currentCategory: 'ALL',
+            currentSubCat: 'ALL',
+            hlsInstance: null,
+            checkInterval: null,
+
+            init: function() {
+                // Força a criação do MAC e da Chave sem depender do estado anterior corrompido
+                this.deviceId = localStorage.getItem('gc_device_id');
+                if (!this.deviceId || this.deviceId === "------" || this.deviceId.length < 5) {
+                    this.deviceId = "GC-" + Math.floor(Math.random() * 899999 + 100000);
+                    localStorage.setItem('gc_device_id', this.deviceId);
+                }
+
+                this.deviceKey = localStorage.getItem('gc_device_key');
+                if (!this.deviceKey || this.deviceKey === "------" || th
