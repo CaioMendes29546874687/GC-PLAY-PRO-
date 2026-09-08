@@ -34,7 +34,7 @@
         .spinner { width: 60px; height: 60px; border: 5px solid rgba(40,217,5,0.1); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Player Interno Completo com Botão de Migração */
+        /* Player Interno Pro */
         #playerScreen { display: none; width: 100%; height: 100vh; height: 100dvh; background: #000; position: fixed; top: 0; left: 0; z-index: 9999; flex-direction: row; }
         .playlist-sidebar { width: 340px; background: #0a0a0a; border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100%; }
         .playlist-header { padding: 15px 18px; background: #121212; font-weight: bold; font-size: 14px; border-bottom: 1px solid var(--border); color: var(--primary); display: flex; align-items: center; justify-content: space-between; }
@@ -42,7 +42,11 @@
         .channel-item { padding: 12px 14px; margin-bottom: 8px; background: #161616; border-radius: 8px; cursor: pointer; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid var(--border); transition: all 0.2s; }
         .channel-item:hover, .channel-item.active { background: rgba(40,217,5,0.15); border-color: var(--primary); color: var(--primary); }
         .video-container { flex: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; }
-        video { width: 100%; height: 100%; outline: none; background: #000; }
+        video { width: 100%; height: 100%; outline: none; background: #000; object-fit: contain; }
+        
+        .player-loader { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; flex-direction: column; align-items: center; z-index: 10; pointer-events: none; background: rgba(0,0,0,0.7); padding: 20px; border-radius: 12px; }
+        .player-spinner { width: 45px; height: 45px; border: 4px solid rgba(40,217,5,0.2); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        
         .btn-config-icon { background: rgba(40,217,5,0.1); border: 1px solid var(--primary); color: var(--primary); width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: background 0.2s; }
         .btn-config-icon:hover { background: var(--primary); color: #000; }
     </style>
@@ -56,16 +60,16 @@
                     <img src="https://i.imgur.com/7D2A74V.png" class="app-brand-logo" onerror="this.style.display='none'">
                     <i class="fa-solid fa-circle-play" style="color: var(--primary);"></i> GC PLAY <span>PRO</span>
                 </div>
-                <button class="btn-config-icon" onclick="alterarLinkM3U()" title="Alterar Link M3U / Migrar Servidor"><i class="fa-solid fa-gear"></i></button>
+                <button class="btn-config-icon" onclick="adicionarLinkManual()" title="Adicionar Link M3U Manualmente"><i class="fa-solid fa-keyboard"></i></button>
             </div>
             <div>
-                <div class="add-account-card" onclick="alterarLinkM3U()">
-                    <i class="fa-solid fa-plus" style="font-size: 26px; color: var(--primary);"></i>
-                    <span style="font-size: 12px; font-weight: bold; color: #fff;">Adicionar / Alterar Servidor</span>
+                <div class="add-account-card" onclick="adicionarLinkManual()">
+                    <i class="fa-solid fa-keyboard" style="font-size: 26px; color: var(--primary);"></i>
+                    <span style="font-size: 12px; font-weight: bold; color: #fff;">Digitar / Inserir M3U Manual</span>
                 </div>
             </div>
             <div style="font-size: 11px; color: var(--text-muted); border-top: 2px solid var(--border); padding-top: 10px;">
-                📱 Ativação Oficial via Nuvem ou Manual
+                📱 Escaneie o QR Code ao lado para Ativação Remota Automática
             </div>
         </div>
 
@@ -79,28 +83,35 @@
                 <div class="mac-display-box" id="displayMac">Gerando...</div>
                 <button class="btn-ui" onclick="copiarLinkPortal()"><i class="fa-solid fa-copy"></i> Copiar Link</button>
             </div>
-            <div style="font-size: 11px; color: var(--text-muted);">v8.9 GC PLAY PRO</div>
+            <div style="font-size: 11px; color: var(--text-muted);">v9.2 GC PLAY PRO</div>
         </div>
     </div>
 
     <div id="loadingScreen">
         <div class="spinner"></div>
-        <h2 style="color: #fff; font-size: 20px; font-weight: 600;">Reconhecendo ativação...</h2>
-        <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">Baixando e processando lista M3U...</p>
+        <h2 style="color: #fff; font-size: 20px; font-weight: 600;">Sincronizando Lista...</h2>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">Baixando canais, filmes e séries do servidor...</p>
     </div>
 
     <div id="playerScreen">
         <div class="playlist-sidebar">
             <div class="playlist-header">
-                <span><i class="fa-solid fa-tv"></i> Canais</span>
-                <button class="btn-config-icon" onclick="alterarLinkM3U()" title="Migrar / Trocar Servidor M3U"><i class="fa-solid fa-gear"></i></button>
+                <span><i class="fa-solid fa-tv"></i> Lista M3U Completa</span>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-config-icon" onclick="adicionarLinkManual()" title="Digitar Link Manual"><i class="fa-solid fa-keyboard"></i></button>
+                    <button class="btn-config-icon" onclick="voltarParaQRCode()" title="Voltar para tela de QR Code / Trocar Servidor"><i class="fa-solid fa-rotate-left"></i></button>
+                </div>
             </div>
             <div class="channels-list" id="channelsListContainer">
-                <div style="color: #666; text-align: center; margin-top: 20px;">Carregando canais...</div>
+                <div style="color: #666; text-align: center; margin-top: 20px;">Carregando...</div>
             </div>
         </div>
         <div class="video-container">
-            <video id="videoPlayer" controls autoplay></video>
+            <div class="player-loader" id="playerLoader">
+                <div class="player-spinner"></div>
+                <span style="font-size: 11px; color: #aaa; margin-top: 8px;">Carregando stream...</span>
+            </div>
+            <video id="videoPlayer" controls autoplay playsinline></video>
         </div>
     </div>
 
@@ -130,7 +141,6 @@
 
             gerarQRCodeSeguro(portalUrlGerado);
 
-            // 1. Prioriza link salvo manualmente no aparelho (se houver migração feita pelo usuário)
             let savedM3u = localStorage.getItem('gc_manual_m3u');
             if (savedM3u) {
                 ativouProcesso = true;
@@ -138,7 +148,6 @@
                 return;
             }
 
-            // 2. Senão, verifica ativação via Supabase em nuvem
             verificarAtivacaoNuvem(deviceId);
             setInterval(() => {
                 if(!ativouProcesso) {
@@ -186,48 +195,48 @@
             document.getElementById('loadingScreen').style.display = 'flex';
 
             let m3uText = "";
-            
-            // Tentativa 1: Direta
-            try {
-                let response = await fetch(url);
-                if (response.ok) m3uText = await response.text();
-            } catch (e) {}
+            const proxies = [
+                url,
+                "https://corsproxy.io/?" + encodeURIComponent(url),
+                "https://api.allorigins.win/raw?url=" + encodeURIComponent(url)
+            ];
 
-            // Tentativa 2: Proxy CORS 1
-            if (!m3uText || !m3uText.includes('#EXTINF')) {
+            for (let pUrl of proxies) {
                 try {
-                    let resp = await fetch("https://corsproxy.io/?" + encodeURIComponent(url));
-                    if (resp.ok) m3uText = await resp.text();
-                } catch (e) {}
-            }
-
-            // Tentativa 3: Proxy CORS 2
-            if (!m3uText || !m3uText.includes('#EXTINF')) {
-                try {
-                    let resp = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(url));
-                    if (resp.ok) m3uText = await resp.text();
+                    let response = await fetch(pUrl);
+                    if (response.ok) {
+                        let text = await response.text();
+                        if (text && text.includes('#EXTINF')) {
+                            m3uText = text;
+                            break;
+                        }
+                    }
                 } catch (e) {}
             }
 
             document.getElementById('loadingScreen').style.display = 'none';
-            document.getElementById('playerScreen').style.display = 'flex';
 
             if (m3uText && m3uText.includes('#EXTINF')) {
+                document.getElementById('playerScreen').style.display = 'flex';
                 processarCanaisM3U(m3uText);
             } else {
-                document.getElementById('channelsListContainer').innerHTML = 
-                    `<div style='color:#ff5555; padding:20px; text-align:center;'>
-                        <strong>Falha ao carregar a lista M3U.</strong><br><br>
-                        O link atual pode estar expirado ou bloqueado.<br><br>
-                        <button onclick="alterarLinkM3U()" style="padding:8px 14px; background:#28D905; color:#000; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">Trocar / Migrar Servidor</button>
-                    </div>`;
+                // ERRO AO CARREGAR: Apaga a lista inválida e retorna para escanear o QR code novamente
+                localStorage.removeItem('gc_manual_m3u');
+                
+                // Remove também do Supabase se necessário para forçar novo atendimento remoto limpo
+                try {
+                    await supabaseClient.from('ativacoes').delete().eq('mac', deviceId);
+                } catch(e) {}
+
+                alert("Erro ao carregar a lista M3U (link inválido ou expirado). O aparelho foi redefinido para escanear o QR Code novamente.");
+                window.location.reload();
             }
         }
 
         function processarCanaisM3U(data) {
             let lines = data.split('\n');
             let channels = [];
-            let currentName = "Canal";
+            let currentName = "Item M3U";
 
             for (let i = 0; i < lines.length; i++) {
                 let line = lines[i].trim();
@@ -236,7 +245,7 @@
                     if (match) currentName = match[1];
                 } else if (line && !line.startsWith('#')) {
                     channels.push({ name: currentName, url: line });
-                    currentName = "Canal";
+                    currentName = "Item M3U";
                 }
             }
 
@@ -244,7 +253,7 @@
             container.innerHTML = "";
 
             if (channels.length === 0) {
-                container.innerHTML = "<div style='color:#888; text-align:center; padding:20px;'>Nenhum canal encontrado.</div>";
+                container.innerHTML = "<div style='color:#888; text-align:center; padding:20px;'>Nenhum conteúdo encontrado.</div>";
                 return;
             }
 
@@ -255,7 +264,7 @@
                 div.onclick = () => {
                     document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
                     div.classList.add('active');
-                    reproduzirStream(ch.url);
+                    reproduzirStreamPro(ch.url);
                 };
                 container.appendChild(div);
             });
@@ -265,39 +274,67 @@
             }
         }
 
-        function reproduzirStream(url) {
+        function reproduzirStreamPro(url) {
             const video = document.getElementById('videoPlayer');
+            const loader = document.getElementById('playerLoader');
+            
+            loader.style.display = 'flex';
+            video.onwaiting = () => { loader.style.display = 'flex'; };
+            video.onplaying = () => { loader.style.display = 'none'; };
+            video.oncanplay = () => { loader.style.display = 'none'; };
+
+            if (window.hlsInstance) {
+                window.hlsInstance.destroy();
+                window.hlsInstance = null;
+            }
+
             if (Hls.isSupported() && (url.includes('.m3u8') || url.includes('m3u8'))) {
-                if (window.hlsInstance) window.hlsInstance.destroy();
-                const hls = new Hls();
+                const hls = new Hls({
+                    maxBufferLength: 60,
+                    maxMaxBufferLength: 120,
+                    liveSyncDurationCount: 3,
+                    lowLatencyMode: true,
+                    enableWorker: true
+                });
+                
                 window.hlsInstance = hls;
                 hls.loadSource(url);
                 hls.attachMedia(video);
+                
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                    video.play().catch(() => {});
+                    video.play().then(() => { loader.style.display = 'none'; }).catch(() => {});
+                });
+
+                hls.on(Hls.Events.ERROR, function(event, data) {
+                    if (data.fatal) {
+                        switch(data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR: hls.startLoad(); break;
+                            case Hls.ErrorTypes.MEDIA_ERROR: hls.recoverMediaError(); break;
+                            default: hls.destroy(); loader.style.display = 'none'; break;
+                        }
+                    }
                 });
             } else {
-                if (window.hlsInstance) window.hlsInstance.destroy();
                 video.src = url;
                 video.load();
-                video.play().catch(() => {});
+                video.play().then(() => { loader.style.display = 'none'; }).catch(() => { loader.style.display = 'none'; });
             }
         }
 
-        function alterarLinkM3U() {
+        function voltarParaQRCode() {
+            if (confirm("Deseja trocar de servidor e voltar para a tela de leitura do QR Code?")) {
+                localStorage.removeItem('gc_manual_m3u');
+                window.location.reload();
+            }
+        }
+
+        function adicionarLinkManual() {
             let atual = localStorage.getItem('gc_manual_m3u') || "";
-            let novoLink = prompt("Digite ou cole o novo link M3U para migrar o servidor:", atual);
-            if (novoLink !== null) {
-                if (novoLink.trim().length > 5) {
-                    localStorage.setItem('gc_manual_m3u', novoLink.trim());
-                    alert("Servidor alterado com sucesso! Carregando nova lista...");
-                    window.location.reload();
-                } else {
-                    // Se o usuário apagar o campo e confirmar, limpa a personalização e volta pra nuvem
-                    localStorage.removeItem('gc_manual_m3u');
-                    alert("Link limpo. O app voltará a buscar ativação pela nuvem.");
-                    window.location.reload();
-                }
+            let novoLink = prompt("Digite ou cole o novo link M3U manualmente:", atual);
+            if (novoLink !== null && novoLink.trim().length > 5) {
+                localStorage.setItem('gc_manual_m3u', novoLink.trim());
+                alert("Link manual salvo com sucesso! Carregando...");
+                window.location.reload();
             }
         }
 
