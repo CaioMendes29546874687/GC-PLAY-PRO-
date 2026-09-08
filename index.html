@@ -484,7 +484,7 @@
             color: #fff;
         }
 
-        /* Modal de Temporadas e Episódios para Séries */
+        /* Modal de Séries */
         #modalSeries {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 4500; backdrop-filter: blur(8px); padding: 20px;
         }
@@ -540,7 +540,7 @@
         <div class="loader-box">
             <div class="cyber-spinner"></div>
             <div class="loader-title">GC PLAY PRO</div>
-            <div class="loader-status" id="loaderStatusText">Analisando M3U com Leitor Profissional...</div>
+            <div class="loader-status" id="loaderStatusText">Ativando Desbloqueador CORS Avançado...</div>
             <div class="loader-progress-bar">
                 <div class="loader-progress-fill"></div>
             </div>
@@ -567,8 +567,12 @@
                 <div style="font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: 800; margin-bottom: 15px; color: #fff;">GERENCIAMENTO DE LISTAS M3U</div>
                 <div class="playlist-selection-grid" id="accountsGrid">
                     <div class="account-card" onclick="App.abrirModalManual()" tabindex="0">
-                        <div class="account-card-title"><i class="fa-solid fa-plus-circle" style="color:var(--primary);margin-right:6px;"></i> Adicionar Nova M3U</div>
-                        <div class="badge-status">LEITOR PROFISSIONAL</div>
+                        <div class="account-card-title"><i class="fa-solid fa-plus-circle" style="color:var(--primary);margin-right:6px;"></i> Adicionar Nova M3U (Link)</div>
+                        <div class="badge-status">ANTI-CORS PRO</div>
+                    </div>
+                    <div class="account-card" onclick="App.abrirModalTexto()" tabindex="0" style="border-color: rgba(40,217,5,0.4);">
+                        <div class="account-card-title"><i class="fa-solid fa-file-import" style="color:var(--primary);margin-right:6px;"></i> Colar Texto / 100% Blindado</div>
+                        <div class="badge-status" style="background:rgba(40,217,5,0.3);">ZERO BLOQUEIO</div>
                     </div>
                 </div>
             </div>
@@ -669,9 +673,12 @@
     </div>
 
     <script>
+        // DESBLOQUEADOR DE CORS PROFISSIONAL MULTIPROXY EM CASCATA
         const CORS_PROXIES = [
-            "https://corsproxy.io/?url=",
-            "https://api.allorigins.win/raw?url="
+            (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            (url) => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+            (url) => `https://thingproxy.freeboard.io/fetch/${url}`,
+            (url) => `https://cors-anywhere.herokuapp.com/${url}`
         ];
 
         const App = {
@@ -714,6 +721,17 @@
                 }
             },
 
+            abrirModalTexto() {
+                let conteudoColado = prompt("Cole o conteúdo bruto da sua lista M3U (começando com #EXTM3U):");
+                if (conteudoColado && conteudoColado.trim() !== "") {
+                    if (conteudoColado.includes('#EXTM3U')) {
+                        this.processarConteudoM3U(conteudoColado);
+                    } else {
+                        alert("O texto inserido não parece ser uma lista M3U válida (falta a tag #EXTM3U).");
+                    }
+                }
+            },
+
             carregarDemoDefault() {
                 const demoM3U = `\
 #EXTM3U
@@ -735,35 +753,40 @@ https://test-streams.mux.dev/x364xhls/ptu.m3u8
 
             async carregarListaM3U(url) {
                 document.getElementById('futuristicLoader').classList.add('on');
-                document.getElementById('loaderStatusText').innerText = "Leitor Profissional: Baixando M3U...";
+                document.getElementById('loaderStatusText').innerText = "Desbloqueador CORS: Contornando barreiras...";
 
                 let sucesso = false;
                 let textoM3U = "";
 
-                for (let i = 0; i < CORS_PROXIES.length; i++) {
-                    try {
-                        const resposta = await fetch(CORS_PROXIES[i] + encodeURIComponent(url));
-                        if (resposta.ok) {
-                            textoM3U = await resposta.text();
-                            if (textoM3U && textoM3U.includes('#EXTM3U')) {
-                                sucesso = true;
-                                break;
-                            }
-                        }
-                    } catch (e) {
-                        console.warn("Tentativa de proxy falhou, tentando próxima...", e);
+                // Tenta carregar direto primeiro caso o servidor permita
+                try {
+                    const respDireta = await fetch(url, { mode: 'cors' });
+                    if (respDireta.ok) {
+                        textoM3U = await respDireta.text();
+                        if (textoM3U && textoM3U.includes('#EXTM3U')) sucesso = true;
                     }
+                } catch (e) {
+                    console.log("Bloqueio de CORS direto detectado, ativando proxies em cascata...");
                 }
 
+                // Se falhou direto, testa todos os proxies em sequência automática
                 if (!sucesso) {
-                    try {
-                        const respDireta = await fetch(url);
-                        if (respDireta.ok) {
-                            textoM3U = await respDireta.text();
-                            if (textoM3U) sucesso = true;
+                    for (let i = 0; i < CORS_PROXIES.length; i++) {
+                        try {
+                            let proxyUrl = CORS_PROXIES[i](url);
+                            document.getElementById('loaderStatusText').innerText = `Testando túnel CORS ${i + 1}...`;
+                            const resposta = await fetch(proxyUrl);
+                            if (resposta.ok) {
+                                let dados = await resposta.text();
+                                if (dados && (dados.includes('#EXTM3U') || dados.includes('#EXTINF'))) {
+                                    textoM3U = dados;
+                                    sucesso = true;
+                                    break;
+                                }
+                            }
+                        } catch (err) {
+                            console.warn(`Túnel ${i + 1} falhou, tentando próximo...`, err);
                         }
-                    } catch (e) {
-                        console.warn("Requisição direta bloqueada por CORS.");
                     }
                 }
 
@@ -771,7 +794,10 @@ https://test-streams.mux.dev/x364xhls/ptu.m3u8
                     this.processarConteudoM3U(textoM3U);
                 } else {
                     document.getElementById('futuristicLoader').classList.remove('on');
-                    alert("Erro no Leitor Profissional: Não foi possível ler a lista M3U. Verifique se o link está ativo e sem bloqueios de CORS.");
+                    let usarTexto = confirm("O servidor da sua lista bloqueou todas as tentativas automáticas de CORS. Deseja colar o conteúdo M3U manualmente usando a opção de 'Colar Texto / 100% Blindado'?\n\n(Isso resolve 100% dos bloqueios restritivos de provedores).");
+                    if (usarTexto) {
+                        this.abrirModalTexto();
+                    }
                 }
             },
 
@@ -818,10 +844,9 @@ https://test-streams.mux.dev/x364xhls/ptu.m3u8
                             else if (gLower.includes('music') || gLower.includes('musica') || gLower.includes('clip') || gLower.includes('audio') || gLower.includes('concert')) {
                                 music.push(itemAtual);
                             } 
-                            // 3. BLINDAGEM DE SÉRIES (Exige que venha do grupo de séries OU tenha padrão explícito de S/E)
+                            // 3. BLINDAGEM DE SÉRIES
                             else if (gLower.includes('serie') || gLower.includes('temporada') || tLower.match(/s\d+\s*e\d+/) || tLower.match(/temp\s*\d+/) || tLower.match(/ep\s*\d+/)) {
                                 
-                                // Evita que canais ao vivo de séries caiam aqui por engano
                                 if (gLower.includes('canal') || gLower.includes('ao vivo') || gLower.includes('live') || gLower.includes('24h')) {
                                     live.push(itemAtual);
                                 } else {
@@ -863,17 +888,16 @@ https://test-streams.mux.dev/x364xhls/ptu.m3u8
                                     });
                                 }
                             } 
-                            // 4. BLINDAGEM DE FILMES VOD (Separado rigorosamente de canais de TV)
+                            // 4. BLINDAGEM DE FILMES VOD
                             else if (gLower.includes('filme') || gLower.includes('vod') || gLower.includes('movie') || gLower.includes('cinema') || gLower.includes('lançamento') || gLower.includes('netflix') || gLower.includes('prime')) {
                                 
-                                // Se o grupo indicar claramente que é canal de TV (ex: "Canais Filmes HBO"), joga pra live
                                 if (gLower.includes('canal') || gLower.includes('abertos') || gLower.includes('24h') || gLower.includes('tv')) {
                                     live.push(itemAtual);
                                 } else {
                                     vod.push(itemAtual);
                                 }
                             } 
-                            // 5. CANAIS AO VIVO (Padrão para todo o resto)
+                            // 5. CANAIS AO VIVO
                             else {
                                 live.push(itemAtual);
                             }
