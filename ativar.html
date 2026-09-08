@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PAINEL DE ATIVAÇÃO - GC PLAY</title>
+    <meta name="theme-color" content="#28D905">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --primary: #28D905; --bg-main: #000; --bg-card: #0d0d0d; --border: #222; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: var(--bg-main); color: #fff; height: 100vh; height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .activation-card { width: 100%; max-width: 420px; background: var(--bg-card); border: 2px solid var(--primary); border-radius: 16px; padding: 24px; box-shadow: 0 0 20px rgba(40, 217, 5, 0.15); }
+        .title { color: var(--primary); font-size: 20px; font-weight: 800; text-align: center; margin-bottom: 20px; letter-spacing: 1px; }
+        .label-ui { font-size: 11px; font-weight: bold; color: #aaa; display: block; margin-bottom: 6px; text-transform: uppercase; }
+        .input-box { width: 100%; padding: 14px; background: var(--bg-main); border: 2px solid var(--border); border-radius: 8px; color: #fff; font-size: 14px; outline: none; margin-bottom: 16px; font-family: monospace; }
+        .input-box:focus { border-color: var(--primary); }
+        .btn-ui { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; background: var(--primary); color: #000; text-transform: uppercase; margin-bottom: 10px; }
+        .btn-secondary { background: #1a1a1a; color: #ccc; border: 1px solid var(--border); }
+        .btn-secondary:hover { background: #252525; color: #fff; }
+        #statusMsg { text-align: center; margin-top: 12px; font-size: 13px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="activation-card">
+        <h2 class="title">ATIVAR GC PLAY</h2>
+        
+        <label class="label-ui">Endereço MAC do Aparelho:</label>
+        <input type="text" id="macInput" class="input-box" placeholder="Ex: GC:839102 ou GC839102">
+        
+        <label class="label-ui">Link da Lista M3U / DNS:</label>
+        <input type="text" id="m3uInput" class="input-box" placeholder="https://...">
+        
+        <button class="btn-ui btn-secondary" onclick="verificarMac()">Verificar MAC</button>
+        <button class="btn-ui" onclick="ativarDispositivo()">Ativar</button>
+        
+        <div id="statusMsg"></div>
+    </div>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            // Pega automaticamente o MAC que veio na URL pelo QR Code (?mac=...)
+            const urlParams = new URLSearchParams(window.location.search);
+            const macParam = urlParams.get('mac');
+            
+            if (macParam) {
+                document.getElementById('macInput').value = macParam;
+            }
+        });
+
+        function verificarMac() {
+            let mac = document.getElementById('macInput').value.trim();
+            let msg = document.getElementById('statusMsg');
+            if(!mac) {
+                msg.style.color = '#ff3333';
+                msg.innerText = '⚠️ Insira ou escaneie o MAC do aparelho!';
+                return;
+            }
+            msg.style.color = '#28D905';
+            msg.innerText = '✅ Aparelho ' + mac + ' encontrado e válido!';
+        }
+
+        function ativarDispositivo() {
+            let mac = document.getElementById('macInput').value.trim();
+            let urlM3u = document.getElementById('m3uInput').value.trim();
+            let msg = document.getElementById('statusMsg');
+
+            if(!mac || !urlM3u) {
+                msg.style.color = '#ff3333';
+                msg.innerText = '⚠️ Preencha o MAC e a URL da lista!';
+                return;
+            }
+
+            msg.style.color = '#28D905';
+            msg.innerText = '🚀 Ativação enviada com sucesso para ' + mac + '!';
+        }
+    </script>
+</body>
+</html>
