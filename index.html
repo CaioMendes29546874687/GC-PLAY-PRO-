@@ -8,6 +8,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         :root { --primary: #28D905; --bg-main: #000; --bg-card: #0d0d0d; --border: #222; --text-muted: #888; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
@@ -30,6 +31,16 @@
         #loadingScreen { display: none; width: 100%; height: 100vh; height: 100dvh; flex-direction: column; align-items: center; justify-content: center; background: #000; position: fixed; top: 0; left: 0; z-index: 9998; text-align: center; }
         .spinner { width: 60px; height: 60px; border: 5px solid rgba(40,217,5,0.1); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Estilo do Player Interno M3U */
+        #playerScreen { display: none; width: 100%; height: 100vh; height: 100dvh; background: #000; position: fixed; top: 0; left: 0; z-index: 9999; display: flex; flex-direction: row; }
+        .playlist-sidebar { width: 320px; background: #111; border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100%; }
+        .playlist-header { padding: 15px; background: #181818; font-weight: bold; font-size: 14px; border-bottom: 1px solid var(--border); color: var(--primary); }
+        .channels-list { flex: 1; overflow-y: auto; padding: 10px; }
+        .channel-item { padding: 12px; margin-bottom: 6px; background: #1a1a1a; border-radius: 6px; cursor: pointer; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid transparent; }
+        .channel-item:hover, .channel-item.active { background: rgba(40,217,5,0.15); border-color: var(--primary); color: var(--primary); }
+        .video-container { flex: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; }
+        video { width: 100%; height: 100%; outline: none; }
     </style>
 </head>
 <body>
@@ -68,7 +79,19 @@
     <div id="loadingScreen">
         <div class="spinner"></div>
         <h2 style="color: #fff; font-size: 20px; font-weight: 600;">Reconhecendo ativação...</h2>
-        <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">Redirecionando para o player...</p>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">Carregando lista M3U...</p>
+    </div>
+
+    <div id="playerScreen" style="display:none;">
+        <div class="playlist-sidebar">
+            <div class="playlist-header"><i class="fa-solid fa-list"></i> Canais e Conteúdos</div>
+            <div class="channels-list" id="channelsListContainer">
+                <div style="color: #666; text-align: center; margin-top: 20px;">Carregando lista...</div>
+            </div>
+        </div>
+        <div class="video-container">
+            <video id="videoPlayer" controls autoplay></video>
+        </div>
     </div>
 
     <script>
@@ -134,20 +157,94 @@
 
                 if (data && data.url_m3u && !ativouProcesso) {
                     ativouProcesso = true;
-                    carregarPlayer(data.url_m3u);
+                    processarListaM3U(data.url_m3u);
                 }
             } catch (err) {}
         }
 
-        function carregarPlayer(url) {
+        async function processarListaM3U(url) {
             document.getElementById('tvSetupScreen').style.display = 'none';
             document.getElementById('loadingScreen').style.display = 'flex';
 
-            setTimeout(() => {
-                // Redireciona de forma limpa para o player externo sem bloqueio de iframe
-                let webPlayerUrl = "https://webtv.iptvsmarters.com/?url=" + encodeURIComponent(url);
-                window.location.href = webPlayerUrl;
-            }, 1500);
+            try {
+                // Tenta buscar a lista M3U (Caso haja bloqueio CORS direto do servidor da lista, usa um proxy público compatível)
+                let fetchUrl = url;
+                let response = await fetch(fetchUrl).catch(() => null);
+                
+                if (!response || !response.ok) {
+                    // Fallback usando proxy CORS se o provedor bloquear requisições diretas do GitHub Pages
+                    fetchUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
+                    response = await fetch(fetchUrl);
+                }
+
+                let text = await response.text();
+                parseM3UContent(text);
+
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('playerScreen').style.display = 'flex';
+            } catch (e) {
+                alert("Erro ao carregar ou processar a lista M3U. Verifique o link cadastrado.");
+                window.location.reload();
+            }
+        }
+
+        function parseM3UContent(data) {
+            let lines = data.split('\n');
+            let channels = [];
+            let currentChannel = {};
+
+            for (let line of lines) {
+                line = line.trim();
+                if (line.startsWith('#EXTINF:')) {
+                    let nameMatch = line.match(/,(.+)$/);
+                    currentChannel.name = nameMatch ? nameMatch[1] : "Canal";
+                } else if (line && !line.startsWith('#')) {
+                    currentChannel.url = line;
+                    channels.push(currentChannel);
+                    currentChannel = {};
+                }
+            }
+
+            let container = document.getElementById('channelsListContainer');
+            container.innerHTML = "";
+
+            if (channels.length === 0) {
+                container.innerHTML = "<div style='color:#888; text-align:center; padding:20px;'>Nenhum canal encontrado na lista.</div>";
+                return;
+            }
+
+            channels.forEach((ch, index) => {
+                let div = document.createElement('div');
+                div.className = 'channel-item';
+                div.innerText = `${index + 1}. ${ch.name}`;
+                div.onclick = () => {
+                    document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
+                    div.classList.add('active');
+                    playStream(ch.url);
+                };
+                container.appendChild(div);
+            });
+
+            // Toca automaticamente o primeiro canal
+            if (channels.length > 0) {
+                container.firstChild.click();
+            }
+        }
+
+        function playStream(url) {
+            const video = document.getElementById('videoPlayer');
+            if (Hls.isSupported() && url.includes('.m3u8')) {
+                const hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    video.play().catch(() => {});
+                });
+            } else {
+                video.src = url;
+                video.load();
+                video.play().catch(() => {});
+            }
         }
 
         function copiarLinkPortal() {
