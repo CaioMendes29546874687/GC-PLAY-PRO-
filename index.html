@@ -16,31 +16,35 @@
         .smart-container { display: flex; flex: 1; width: 100%; height: 100%; flex-direction: column; }
         @media (min-width: 900px) { .smart-container { flex-direction: row; } }
         .main-content-area { flex: 1; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; overflow-y: auto; }
-        .top-brand-bar { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 800; color: #fff; }
-        .top-brand-bar span { color: var(--primary); }
+        .top-brand-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+        .brand-title { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 800; color: #fff; }
+        .brand-title span { color: var(--primary); }
         .app-brand-logo { width: 36px; height: 36px; object-fit: contain; border-radius: 8px; background: rgba(40, 217, 5, 0.1); padding: 4px; border: 1px solid var(--primary); }
-        .add-account-card { width: 100%; max-width: 280px; height: 140px; background: rgba(255,255,255,0.02); border: 3px dashed var(--border); border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: var(--text-muted); }
+        .add-account-card { width: 100%; max-width: 280px; height: 140px; background: rgba(255,255,255,0.02); border: 3px dashed var(--border); border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: var(--text-muted); transition: all 0.2s; }
         .add-account-card:hover { border-color: var(--primary); color: #fff; background: #1f1f1f; }
         .sidebar-panel { width: 100%; background: #050705; border-top: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; }
         @media (min-width: 900px) { .sidebar-panel { width: 340px; border-top: none; border-left: 1px solid var(--border); justify-content: space-between; } }
         .qrcode-container { background: #fff; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; width: 130px; height: 130px; }
         .qrcode-container canvas, .qrcode-container img { display: block; width: 118px !important; height: 118px !important; }
         .mac-display-box { font-family: monospace; font-size: 15px; font-weight: bold; color: var(--primary); letter-spacing: 1px; margin: 6px 0; }
-        .btn-ui { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; background: var(--primary); color: #000; text-transform: uppercase; }
+        .btn-ui { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; background: var(--primary); color: #000; text-transform: uppercase; transition: opacity 0.2s; }
+        .btn-ui:hover { opacity: 0.9; }
         
         #loadingScreen { display: none; width: 100%; height: 100vh; height: 100dvh; flex-direction: column; align-items: center; justify-content: center; background: #000; position: fixed; top: 0; left: 0; z-index: 9998; text-align: center; }
         .spinner { width: 60px; height: 60px; border: 5px solid rgba(40,217,5,0.1); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Player Interno Completo */
+        /* Player Interno Completo com Botão de Migração */
         #playerScreen { display: none; width: 100%; height: 100vh; height: 100dvh; background: #000; position: fixed; top: 0; left: 0; z-index: 9999; flex-direction: row; }
         .playlist-sidebar { width: 340px; background: #0a0a0a; border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100%; }
-        .playlist-header { padding: 18px; background: #121212; font-weight: bold; font-size: 15px; border-bottom: 1px solid var(--border); color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .playlist-header { padding: 15px 18px; background: #121212; font-weight: bold; font-size: 14px; border-bottom: 1px solid var(--border); color: var(--primary); display: flex; align-items: center; justify-content: space-between; }
         .channels-list { flex: 1; overflow-y: auto; padding: 12px; }
         .channel-item { padding: 12px 14px; margin-bottom: 8px; background: #161616; border-radius: 8px; cursor: pointer; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid var(--border); transition: all 0.2s; }
         .channel-item:hover, .channel-item.active { background: rgba(40,217,5,0.15); border-color: var(--primary); color: var(--primary); }
         .video-container { flex: 1; background: #000; display: flex; align-items: center; justify-content: center; position: relative; }
         video { width: 100%; height: 100%; outline: none; background: #000; }
+        .btn-config-icon { background: rgba(40,217,5,0.1); border: 1px solid var(--primary); color: var(--primary); width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: background 0.2s; }
+        .btn-config-icon:hover { background: var(--primary); color: #000; }
     </style>
 </head>
 <body>
@@ -48,13 +52,16 @@
     <div id="tvSetupScreen" class="smart-container">
         <div class="main-content-area">
             <div class="top-brand-bar">
-                <img src="https://i.imgur.com/7D2A74V.png" class="app-brand-logo" onerror="this.style.display='none'">
-                <i class="fa-solid fa-circle-play" style="color: var(--primary);"></i> GC PLAY <span>PRO</span>
+                <div class="brand-title">
+                    <img src="https://i.imgur.com/7D2A74V.png" class="app-brand-logo" onerror="this.style.display='none'">
+                    <i class="fa-solid fa-circle-play" style="color: var(--primary);"></i> GC PLAY <span>PRO</span>
+                </div>
+                <button class="btn-config-icon" onclick="alterarLinkM3U()" title="Alterar Link M3U / Migrar Servidor"><i class="fa-solid fa-gear"></i></button>
             </div>
             <div>
-                <div class="add-account-card" onclick="inserirLinkManual()">
+                <div class="add-account-card" onclick="alterarLinkM3U()">
                     <i class="fa-solid fa-plus" style="font-size: 26px; color: var(--primary);"></i>
-                    <span style="font-size: 12px; font-weight: bold; color: #fff;">Adicionar Manualmente</span>
+                    <span style="font-size: 12px; font-weight: bold; color: #fff;">Adicionar / Alterar Servidor</span>
                 </div>
             </div>
             <div style="font-size: 11px; color: var(--text-muted); border-top: 2px solid var(--border); padding-top: 10px;">
@@ -72,7 +79,7 @@
                 <div class="mac-display-box" id="displayMac">Gerando...</div>
                 <button class="btn-ui" onclick="copiarLinkPortal()"><i class="fa-solid fa-copy"></i> Copiar Link</button>
             </div>
-            <div style="font-size: 11px; color: var(--text-muted);">v8.8 GC PLAY PRO</div>
+            <div style="font-size: 11px; color: var(--text-muted);">v8.9 GC PLAY PRO</div>
         </div>
     </div>
 
@@ -84,7 +91,10 @@
 
     <div id="playerScreen">
         <div class="playlist-sidebar">
-            <div class="playlist-header"><i class="fa-solid fa-tv"></i> Canais e Conteúdos</div>
+            <div class="playlist-header">
+                <span><i class="fa-solid fa-tv"></i> Canais</span>
+                <button class="btn-config-icon" onclick="alterarLinkM3U()" title="Migrar / Trocar Servidor M3U"><i class="fa-solid fa-gear"></i></button>
+            </div>
             <div class="channels-list" id="channelsListContainer">
                 <div style="color: #666; text-align: center; margin-top: 20px;">Carregando canais...</div>
             </div>
@@ -120,7 +130,7 @@
 
             gerarQRCodeSeguro(portalUrlGerado);
 
-            // Verifica se já há uma lista salva manualmente no navegador
+            // 1. Prioriza link salvo manualmente no aparelho (se houver migração feita pelo usuário)
             let savedM3u = localStorage.getItem('gc_manual_m3u');
             if (savedM3u) {
                 ativouProcesso = true;
@@ -128,6 +138,7 @@
                 return;
             }
 
+            // 2. Senão, verifica ativação via Supabase em nuvem
             verificarAtivacaoNuvem(deviceId);
             setInterval(() => {
                 if(!ativouProcesso) {
@@ -176,33 +187,25 @@
 
             let m3uText = "";
             
-            // Tentativa 1: Requisição Direta
+            // Tentativa 1: Direta
             try {
                 let response = await fetch(url);
-                if (response.ok) {
-                    m3uText = await response.text();
-                }
+                if (response.ok) m3uText = await response.text();
             } catch (e) {}
 
-            // Tentativa 2: Proxy CORS (corsproxy.io)
-            if (!m3uText || m3uText.length < 10 || !m3uText.includes('#EXTINF')) {
+            // Tentativa 2: Proxy CORS 1
+            if (!m3uText || !m3uText.includes('#EXTINF')) {
                 try {
-                    let proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(url);
-                    let resp = await fetch(proxyUrl);
-                    if (resp.ok) {
-                        m3uText = await resp.text();
-                    }
+                    let resp = await fetch("https://corsproxy.io/?" + encodeURIComponent(url));
+                    if (resp.ok) m3uText = await resp.text();
                 } catch (e) {}
             }
 
-            // Tentativa 3: Outro Proxy (api.allorigins.win)
-            if (!m3uText || m3uText.length < 10 || !m3uText.includes('#EXTINF')) {
+            // Tentativa 3: Proxy CORS 2
+            if (!m3uText || !m3uText.includes('#EXTINF')) {
                 try {
-                    let proxyUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(url);
-                    let resp = await fetch(proxyUrl);
-                    if (resp.ok) {
-                        m3uText = await resp.text();
-                    }
+                    let resp = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(url));
+                    if (resp.ok) m3uText = await resp.text();
                 } catch (e) {}
             }
 
@@ -215,9 +218,8 @@
                 document.getElementById('channelsListContainer').innerHTML = 
                     `<div style='color:#ff5555; padding:20px; text-align:center;'>
                         <strong>Falha ao carregar a lista M3U.</strong><br><br>
-                        O servidor da lista bloqueou o acesso via navegador. 
-                        <br><br>
-                        <button onclick="localStorage.removeItem('gc_manual_m3u'); window.location.reload();" style="padding:8px 12px; background:#28D905; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">Tentar Outro Link</button>
+                        O link atual pode estar expirado ou bloqueado.<br><br>
+                        <button onclick="alterarLinkM3U()" style="padding:8px 14px; background:#28D905; color:#000; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">Trocar / Migrar Servidor</button>
                     </div>`;
             }
         }
@@ -242,7 +244,7 @@
             container.innerHTML = "";
 
             if (channels.length === 0) {
-                container.innerHTML = "<div style='color:#888; text-align:center; padding:20px;'>Nenhum canal encontrado na lista.</div>";
+                container.innerHTML = "<div style='color:#888; text-align:center; padding:20px;'>Nenhum canal encontrado.</div>";
                 return;
             }
 
@@ -266,9 +268,7 @@
         function reproduzirStream(url) {
             const video = document.getElementById('videoPlayer');
             if (Hls.isSupported() && (url.includes('.m3u8') || url.includes('m3u8'))) {
-                if (window.hlsInstance) {
-                    window.hlsInstance.destroy();
-                }
+                if (window.hlsInstance) window.hlsInstance.destroy();
                 const hls = new Hls();
                 window.hlsInstance = hls;
                 hls.loadSource(url);
@@ -277,21 +277,27 @@
                     video.play().catch(() => {});
                 });
             } else {
-                if (window.hlsInstance) {
-                    window.hlsInstance.destroy();
-                }
+                if (window.hlsInstance) window.hlsInstance.destroy();
                 video.src = url;
                 video.load();
                 video.play().catch(() => {});
             }
         }
 
-        function inserirLinkManual() {
-            let linkUser = prompt("Digite ou cole o link da sua lista M3U:");
-            if (linkUser && linkUser.trim().length > 5) {
-                localStorage.setItem('gc_manual_m3u', linkUser.trim());
-                ativouProcesso = true;
-                carregarListaM3USegura(linkUser.trim());
+        function alterarLinkM3U() {
+            let atual = localStorage.getItem('gc_manual_m3u') || "";
+            let novoLink = prompt("Digite ou cole o novo link M3U para migrar o servidor:", atual);
+            if (novoLink !== null) {
+                if (novoLink.trim().length > 5) {
+                    localStorage.setItem('gc_manual_m3u', novoLink.trim());
+                    alert("Servidor alterado com sucesso! Carregando nova lista...");
+                    window.location.reload();
+                } else {
+                    // Se o usuário apagar o campo e confirmar, limpa a personalização e volta pra nuvem
+                    localStorage.removeItem('gc_manual_m3u');
+                    alert("Link limpo. O app voltará a buscar ativação pela nuvem.");
+                    window.location.reload();
+                }
             }
         }
 
