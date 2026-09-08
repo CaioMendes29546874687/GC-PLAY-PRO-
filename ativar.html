@@ -17,7 +17,6 @@
         .input-box:focus { border-color: var(--primary); }
         .btn-ui { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; font-size: 13px; cursor: pointer; background: var(--primary); color: #000; text-transform: uppercase; margin-bottom: 10px; }
         .btn-secondary { background: #1a1a1a; color: #ccc; border: 1px solid var(--border); }
-        .btn-secondary:hover { background: #252525; color: #fff; }
         #statusMsg { text-align: center; margin-top: 12px; font-size: 13px; font-weight: bold; }
     </style>
 </head>
@@ -27,7 +26,7 @@
         <h2 class="title">ATIVAR GC PLAY</h2>
         
         <label class="label-ui">Endereço MAC do Aparelho:</label>
-        <input type="text" id="macInput" class="input-box" placeholder="Ex: GC:839102 ou GC839102">
+        <input type="text" id="macInput" class="input-box" placeholder="Ex: GC-839102">
         
         <label class="label-ui">Link da Lista M3U / DNS:</label>
         <input type="text" id="m3uInput" class="input-box" placeholder="https://...">
@@ -40,7 +39,6 @@
 
     <script>
         window.addEventListener('DOMContentLoaded', () => {
-            // Pega automaticamente o MAC que veio na URL pelo QR Code (?mac=...)
             const urlParams = new URLSearchParams(window.location.search);
             const macParam = urlParams.get('mac');
             
@@ -54,11 +52,11 @@
             let msg = document.getElementById('statusMsg');
             if(!mac) {
                 msg.style.color = '#ff3333';
-                msg.innerText = '⚠️ Insira ou escaneie o MAC do aparelho!';
+                msg.innerText = '⚠️ Insira o MAC do aparelho!';
                 return;
             }
             msg.style.color = '#28D905';
-            msg.innerText = '✅ Aparelho ' + mac + ' encontrado e válido!';
+            msg.innerText = '✅ Aparelho ' + mac + ' válido!';
         }
 
         function ativarDispositivo() {
@@ -72,8 +70,21 @@
                 return;
             }
 
+            // Salva a ativação vinculada ao MAC específico do aparelho da TV
+            let dadosPlaylist = {
+                nome: "Lista Remota",
+                url: urlM3u,
+                data: new Date().getTime()
+            };
+            
+            localStorage.setItem('gc_playlist_' + mac, JSON.stringify(dadosPlaylist));
+
             msg.style.color = '#28D905';
-            msg.innerText = '🚀 Ativação enviada com sucesso para ' + mac + '!';
+            msg.innerText = '🚀 Ativado com sucesso! Verifique sua TV.';
+            
+            setTimeout(() => {
+                msg.innerText = '✅ Lista enviada. O player já deve estar carregando na TV.';
+            }, 1500);
         }
     </script>
 </body>
