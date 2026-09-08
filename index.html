@@ -506,6 +506,18 @@
         }
         .episode-item:hover { border-color: var(--primary); background: var(--bg-hover); box-shadow: var(--neon-glow); }
 
+        /* Modal de Senha / Controle Parental */
+        #modalAdultoPin {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 5000; backdrop-filter: blur(10px); padding: 20px;
+        }
+        .pin-modal-box {
+            background: var(--surface); border: 1px solid var(--danger); border-radius: 16px; padding: 25px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 0 30px rgba(255,51,51,0.3);
+        }
+        .pin-input {
+            width: 100%; background: var(--bg-main); border: 1px solid var(--border); border-radius: 8px; padding: 12px; color: #fff; font-size: 22px; text-align: center; letter-spacing: 8px; font-family: 'Orbitron', sans-serif; margin: 15px 0; outline: none;
+        }
+        .pin-input:focus { border-color: var(--danger); box-shadow: 0 0 15px rgba(255,51,51,0.4); }
+
         @media (max-width: 900px) {
             .smart-container { flex-direction: column; overflow-y: auto; }
             .sidebar-panel { width: 100%; border-left: none; border-top: 1px solid var(--border); }
@@ -528,7 +540,7 @@
         <div class="loader-box">
             <div class="cyber-spinner"></div>
             <div class="loader-title">GC PLAY PRO</div>
-            <div class="loader-status" id="loaderStatusText">Analisando M3U e Construindo VOD...</div>
+            <div class="loader-status" id="loaderStatusText">Analisando M3U com Leitor Profissional...</div>
             <div class="loader-progress-bar">
                 <div class="loader-progress-fill"></div>
             </div>
@@ -541,6 +553,7 @@
         <p style="font-size: 13px; color: var(--text-muted); text-transform: uppercase;">Sincronizando ambiente inteligente...</p>
     </div>
 
+    <!-- TELA DE AUTENTICAÇÃO / SELEÇÃO DE CONTAS -->
     <div id="viewAuth" class="smart-container" style="display: none;">
         <div class="main-content-area">
             <div>
@@ -555,98 +568,86 @@
                 <div class="playlist-selection-grid" id="accountsGrid">
                     <div class="account-card" onclick="App.abrirModalManual()" tabindex="0">
                         <div class="account-card-title"><i class="fa-solid fa-plus-circle" style="color:var(--primary);margin-right:6px;"></i> Adicionar Nova M3U</div>
-                        <div class="badge-status">MANUAL / PROVEDOR</div>
+                        <div class="badge-status">LEITOR PROFISSIONAL</div>
                     </div>
                 </div>
             </div>
 
-            <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-top: 15px;">
-                <div style="font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 6px;"><i class="fa-solid fa-microchip" style="color: var(--primary);"></i> NÚCLEO DE ATIVAÇÃO REMOTA</div>
-                <div style="font-size: 12px; color: var(--text-muted);">Escaneie o QR Code ao lado pelo seu painel remoto para injetar a lista M3U instantaneamente.</div>
+            <div style="border-top: 1px solid var(--border); padding-top: 15px; margin-top: 15px; display: flex; gap: 12px; flex-wrap: wrap;">
+                <div class="support-top-text" onclick="App.carregarDemoDefault()"><i class="fa-solid fa-play"></i> Carregar Lista de Demonstração (Exemplo)</div>
+                <div class="support-top-text" style="border-color: rgba(255,51,51,0.4); background: rgba(255,51,51,0.1); color: #ff6666;" onclick="App.abrirConfigSenha()"><i class="fa-solid fa-lock"></i> Alterar Senha de Adultos</div>
             </div>
         </div>
 
         <div class="sidebar-panel">
             <div>
-                <div class="support-top-text" tabindex="0" onclick="App.chamarSuporte()">SUPORTE TÉCNICO</div>
+                <div style="font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 5px;">ACESSO RÁPIDO</div>
+                <div class="sidebar-label">Identificação do Aparelho</div>
+                <div class="mac-display-box" id="deviceMacBox">GC-9988-PRO</div>
             </div>
 
-            <div style="display: flex; flex-direction: column; align-items: center; width: 100%; margin: 10px 0;">
-                <div style="font-size: 11px; font-weight: 700; color: var(--primary); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px;">
-                    Ativação QR Code
-                </div>
-                <div class="qrcode-container">
-                    <div id="qrCodeBox"></div>
-                </div>
-                
-                <div class="sidebar-info-group" style="margin-top: 10px;">
-                    <div class="sidebar-label">ID Único do Dispositivo</div>
-                    <div class="mac-display-box" id="displayMac">GC-000000</div>
-                </div>
+            <div class="qrcode-container">
+                <div id="qrCodeBox"></div>
             </div>
 
-            <div class="version-tag" style="font-size: 10px; color: var(--text-muted); font-family: 'Orbitron', sans-serif;">SYSTEM v4.7.0 PRO</div>
+            <div class="sidebar-info-group">
+                <div class="sidebar-label">Escaneie o QR Code com seu dispositivo móvel para parear a sessão instantaneamente.</div>
+            </div>
         </div>
     </div>
 
+    <!-- TELA DO DASHBOARD PRINCIPAL -->
     <div id="viewDashboard">
         <div class="dashboard-header">
             <div class="top-brand-bar" style="font-size: 18px;">
-                <i class="fa-solid fa-cube" style="color: var(--primary);"></i> GC PLAY <span>PRO</span>
+                <i class="fa-solid fa-cube" style="color: var(--primary);"></i>
+                GC PLAY <span>PRO</span>
             </div>
-            <button class="btn-back-menu" style="width: auto; padding: 8px 16px;" onclick="App.desconectar()">
-                <i class="fa-solid fa-power-off"></i> Desconectar
-            </button>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="btn-back-menu" style="width: auto; padding: 8px 12px; border-color: var(--primary); color: var(--primary); background: rgba(40,217,5,0.1);" onclick="App.abrirConfigSenha()"><i class="fa-solid fa-key"></i> Senha</button>
+                <button class="btn-back-menu" style="width: auto; padding: 8px 16px;" onclick="App.sairParaAuth()"><i class="fa-solid fa-arrow-left"></i> Trocar Lista</button>
+            </div>
         </div>
 
-        <div class="ibo-main-tabs" id="mainTabs">
-            <button class="ibo-tab-btn active" onclick="App.mudarAba('live', this)"><i class="fa-solid fa-satellite-dish"></i> Ao Vivo (Live)</button>
-            <button class="ibo-tab-btn" onclick="App.mudarAba('movie', this)"><i class="fa-solid fa-film"></i> Filmes (VOD)</button>
-            <button class="ibo-tab-btn" onclick="App.mudarAba('series', this)"><i class="fa-solid fa-clapperboard"></i> Séries</button>
+        <!-- Abas Principais (Canais, Filmes, Séries, Músicas, Adultos) -->
+        <div class="ibo-main-tabs" id="mainTabsContainer">
+            <button class="ibo-tab-btn active" onclick="App.mudarAbaPrincipal('live')"><i class="fa-solid fa-tv"></i> Canais Ao Vivo</button>
+            <button class="ibo-tab-btn" onclick="App.mudarAbaPrincipal('vod')"><i class="fa-solid fa-film"></i> Filmes (VOD)</button>
+            <button class="ibo-tab-btn" onclick="App.mudarAbaPrincipal('series')"><i class="fa-solid fa-layer-group"></i> Séries</button>
+            <button class="ibo-tab-btn" onclick="App.mudarAbaPrincipal('music')"><i class="fa-solid fa-music"></i> Músicas</button>
+            <button class="ibo-tab-btn" onclick="App.tentarAcessarAdultos()"><i class="fa-solid fa-shield-halved" style="color:var(--danger);"></i> Adultos</button>
         </div>
 
-        <div class="link-subcategories-bar" id="subCategoriesBar"></div>
+        <!-- Barra de Subcategorias / Grupos -->
+        <div class="link-subcategories-bar" id="subcategoriesBar"></div>
 
+        <!-- Área de Trabalho Principal -->
         <div class="main-workspace">
             <div class="catalog-container-area">
-                <input type="text" id="catalogSearch" class="catalog-search-bar" placeholder="Pesquisar conteúdo no catálogo..." oninput="App.filtrarBusca(this.value)">
-                <div class="items-grid-box" id="itemsGrid"></div>
+                <input type="text" id="catalogSearchInput" class="catalog-search-bar" placeholder="Pesquisar nesta categoria..." oninput="App.filtrarCatalogo(this.value)">
+                <div class="items-grid-box" id="itemsGridBox"></div>
             </div>
 
             <div class="right-player-panel">
                 <div class="player-wrapper-right">
-                    <video id="videoPlayer" controls autoplay playsinline></video>
+                    <video id="mainVideoPlayer" controls playsinline autoplay></video>
                 </div>
-                <div class="now-playing-info">
+                <div class="now-playing-info" id="nowPlayingInfoBox">
                     <div>
-                        <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Status do Player</div>
-                        <div id="nowPlayingTitle" style="font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 800; color: #fff; margin-top: 4px; word-break: break-all;">Nenhum conteúdo selecionado</div>
+                        <div style="font-family: 'Orbitron',sans-serif; font-size: 13px; font-weight: 800; color: var(--primary); margin-bottom: 4px;" id="npTitle">Nenhuma mídia selecionada</div>
+                        <div style="font-size: 12px; color: var(--text-muted);" id="npCategory">Selecione um item da lista ao lado para reproduzir.</div>
                     </div>
                 </div>
-                <button class="btn-back-menu" onclick="App.pararStream()">
-                    <i class="fa-solid fa-stop"></i> Parar Reprodução
-                </button>
+                <button class="btn-back-menu" onclick="App.pararPlayer()"><i class="fa-solid fa-stop"></i> Parar Reprodução</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Manual M3U -->
-    <div id="modalManual" class="smart-container" style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 4000; backdrop-filter: blur(8px); padding: 20px;">
-        <div style="background: var(--surface); border: 1px solid var(--primary); border-radius: 16px; padding: 25px; width: 100%; max-width: 480px; box-shadow: var(--neon-glow-strong);">
-            <div style="font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 15px;">CONFIGURAR LISTA M3U</div>
-            <input type="text" id="inputManualUrl" class="catalog-search-bar" placeholder="https://seu-provedor.com/get.php?username=..." style="margin-bottom: 15px;">
-            <div style="display: flex; gap: 10px;">
-                <button class="ibo-tab-btn active" style="flex: 1; justify-content: center;" onclick="App.salvarManual()">Salvar e Carregar</button>
-                <button class="ibo-tab-btn" style="flex: 1; justify-content: center; border-color: var(--danger); color: var(--danger);" onclick="App.fecharModalManual()">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Séries (Temporadas e Episódios) -->
+    <!-- MODAL DE SÉRIES (Temporadas e Episódios Reais) -->
     <div id="modalSeries">
         <div class="series-modal-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <div id="modalSeriesTitle" style="font-family: 'Orbitron', sans-serif; font-size: 15px; font-weight: 900; color: #fff;">Nome da Série</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="font-family: 'Orbitron', sans-serif; font-size: 15px; font-weight: 800; color: #fff;" id="modalSeriesTitle">Série</div>
                 <button onclick="App.fecharModalSeries()" style="background:none; border:none; color:var(--danger); font-size:18px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="season-tabs-container" id="seasonTabsContainer"></div>
@@ -654,468 +655,498 @@
         </div>
     </div>
 
-<script>
-    const SUPABASE_URL = 'https://oududghyzkucvrxffoyg.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_3KI2wOG7ZXTTIkRccOTYnA_zpAjuaLz';
-    let supabaseClient = null;
-    try { supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) {}
+    <!-- MODAL DE SENHA PARA ADULTOS -->
+    <div id="modalAdultoPin">
+        <div class="pin-modal-box">
+            <div style="font-family: 'Orbitron', sans-serif; font-size: 15px; font-weight: 800; color: var(--danger); margin-bottom: 8px;"><i class="fa-solid fa-lock"></i> CONTROLE PARENTAL</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;" id="pinInstructionText">Digite a senha de acesso (Padrão: 0000)</div>
+            <input type="password" id="inputPinBox" class="pin-input" maxlength="4" placeholder="••••">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-back-menu" style="background:none; border-color:var(--border); color:#fff;" onclick="App.fecharModalPin()">Cancelar</button>
+                <button class="btn-back-menu" style="background:var(--danger); border-color:var(--danger); color:#fff;" onclick="App.validarPinAdulto()">Confirmar</button>
+            </div>
+        </div>
+    </div>
 
-    const App = {
-        deviceId: "",
-        portalUrl: "",
-        hlsInstance: null,
-        m3uData: { live: [], movie: [], series: {} },
-        currentTab: 'live',
-        currentCategory: 'Todos',
-        currentItems: [],
-        ativouRemotamente: false,
+    <script>
+        const CORS_PROXIES = [
+            "https://corsproxy.io/?url=",
+            "https://api.allorigins.win/raw?url="
+        ];
 
-        init() {
-            setTimeout(() => {
+        const App = {
+            listaAtual: { tipo: 'manual', url: '' },
+            dadosM3U: { live: [], vod: [], series: [], music: [], adult: [] },
+            abaAtiva: 'live',
+            categoriaAtiva: 'TODOS',
+            subcategorias: [],
+            itemSelecionadoAtual: null,
+            hlsInstance: null,
+            senhaAdulto: localStorage.getItem('gc_adult_pin') || '0000',
+            modoPinAtual: 'acesso',
+
+            init() {
                 document.getElementById('loadingHomeScreen').style.display = 'none';
                 document.getElementById('viewAuth').style.display = 'flex';
-            }, 600);
+                this.gerarQRCodeMac();
+            },
 
-            let devId = localStorage.getItem('gc_device_id');
-            if (!devId || devId.length < 5) {
-                devId = "GC-" + Math.floor(Math.random() * 899999 + 100000);
-                localStorage.setItem('gc_device_id', devId);
-            }
-            this.deviceId = devId;
-            document.getElementById('displayMac').innerText = this.deviceId;
-
-            let pathSegs = window.location.pathname.split('/');
-            pathSegs.pop();
-            this.portalUrl = window.location.protocol + "//" + window.location.host + pathSegs.join('/') + "/ativar.html?mac=" + this.deviceId;
-            
-            this.gerarQRCodeNativo(this.portalUrl);
-
-            let savedM3u = localStorage.getItem('gc_manual_m3u');
-            if (savedM3u) {
-                this.carregarLinkM3U(savedM3u);
-                return;
-            }
-
-            if (supabaseClient) {
-                this.checarSupabase();
-                setInterval(() => {
-                    if (!this.ativouRemotamente) this.checarSupabase();
-                }, 3000);
-            }
-        },
-
-        gerarQRCodeNativo(texto) {
-            const box = document.getElementById('qrCodeBox');
-            if (!box) return;
-            box.innerHTML = "";
-            try {
-                new QRCode(box, {
-                    text: texto,
-                    width: 130,
-                    height: 130,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.H
-                });
-            } catch(e) {
-                box.innerHTML = "<span style='color:#000;font-size:10px;'>Erro QR</span>";
-            }
-        },
-
-        async checarSupabase() {
-            if (this.ativouRemotamente || !supabaseClient) return;
-            try {
-                let { data } = await supabaseClient.from('ativacoes').select('url_m3u').eq('mac', this.deviceId).maybeSingle();
-                if (data && data.url_m3u && !this.ativouRemotamente) {
-                    this.ativouRemotamente = true;
-                    localStorage.setItem('gc_manual_m3u', data.url_m3u);
-                    this.carregarLinkM3U(data.url_m3u);
-                }
-            } catch(e) {}
-        },
-
-        abrirModalManual() {
-            document.getElementById('modalManual').style.display = 'flex';
-        },
-
-        fecharModalManual() {
-            document.getElementById('modalManual').style.display = 'none';
-        },
-
-        salvarManual() {
-            let url = document.getElementById('inputManualUrl').value.trim();
-            if (url.length > 5) {
-                localStorage.setItem('gc_manual_m3u', url);
-                this.fecharModalManual();
-                this.carregarLinkM3U(url);
-            } else {
-                alert("Insira um link M3U válido.");
-            }
-        },
-
-        async carregarLinkM3U(url) {
-            document.getElementById('viewAuth').style.display = 'none';
-            const loader = document.getElementById('futuristicLoader');
-            const statusText = document.getElementById('loaderStatusText');
-            loader.classList.add('on');
-
-            statusText.innerText = "Estabelecendo Conexão com Provedor...";
-            await new Promise(r => setTimeout(r, 400));
-
-            let urlTratada = url.trim();
-            let m3uTexto = "";
-
-            // Utiliza o seu Cloudflare Worker privado em primeiro lugar para evitar bloqueios CORS
-            const proxyRoutes = [
-                "https://lively-sunset-b814.caio24820.workers.dev/?url=" + encodeURIComponent(urlTratada),
-                urlTratada
-            ];
-
-            for (let i = 0; i < proxyRoutes.length; i++) {
-                statusText.innerText = `Testando Rota Proxy [${i + 1}/${proxyRoutes.length}]...`;
+            gerarQRCodeMac() {
+                const mac = "GC-" + Math.floor(1000 + Math.random() * 9000) + "-PRO";
+                document.getElementById('deviceMacBox').innerText = mac;
+                const qrBox = document.getElementById('qrCodeBox');
+                qrBox.innerHTML = "";
                 try {
-                    let res = await fetch(proxyRoutes[i], {
-                        method: 'GET',
-                        redirect: 'follow'
+                    new QRCode(qrBox, {
+                        text: "https://gcplay.pro/connect?mac=" + mac,
+                        width: 130,
+                        height: 130
                     });
-                    
-                    if (res.ok) {
-                        let txt = await res.text();
-                        // Validação para reconhecer o início de listas M3U / IPTV
-                        if (txt && (txt.includes('#EXTINF') || txt.includes('#EXTM3U') || txt.includes('channel-id') || txt.includes('tvg-id'))) {
-                            m3uTexto = txt;
-                            break;
-                        }
-                    }
-                } catch(err) {
-                    console.warn(`Tentativa ${i+1} falhou:`, err);
+                } catch(e) {
+                    qrBox.innerText = mac;
                 }
-            }
+            },
 
-            // Modo de resgate caso o cabeçalho exato varie mas o conteúdo seja válido
-            if (!m3uTexto) {
-                try {
-                    let res = await fetch(proxyRoutes[0]);
-                    if (res.ok) {
-                        let txt = await res.text();
-                        if (txt && txt.length > 100) {
-                            m3uTexto = txt;
+            abrirModalManual() {
+                let urlM3U = prompt("Insira o link URL da sua lista M3U:");
+                if(urlM3U && urlM3U.trim() !== "") {
+                    this.carregarListaM3U(urlM3U.trim());
+                }
+            },
+
+            carregarDemoDefault() {
+                const demoM3U = `\
+#EXTM3U
+#EXTINF:-1 tvg-id="" tvg-name="Big Buck Bunny" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/c/c5/Big_buck_bunny_poster_big.jpg" group-title="Filmes",Big Buck Bunny
+https://test-streams.mux.dev/x364xhls/ptu.m3u8
+#EXTINF:-1 tvg-id="" tvg-name="Sintel Animation" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/8/8f/Sintel_poster.jpg" group-title="Filmes",Sintel Animation
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4
+#EXTINF:-1 tvg-id="" tvg-name="Série Exemplo - S01E01" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/c/c5/Big_buck_bunny_poster_big.jpg" group-title="Séries",Série Exemplo S01E01
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
+#EXTINF:-1 tvg-id="" tvg-name="Série Exemplo - S01E02" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/c/c5/Big_buck_bunny_poster_big.jpg" group-title="Séries",Série Exemplo S01E02
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4
+#EXTINF:-1 tvg-id="" tvg-name="Clip Musical" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/8/8f/Sintel_poster.jpg" group-title="Músicas",Clip Musical Exemplo
+https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4
+#EXTINF:-1 tvg-id="" tvg-name="Canal Adulto" tvg-logo="" group-title="Adultos",Canal Adulto Exemplo
+https://test-streams.mux.dev/x364xhls/ptu.m3u8
+`;
+                this.processarConteudoM3U(demoM3U);
+            },
+
+            async carregarListaM3U(url) {
+                document.getElementById('futuristicLoader').classList.add('on');
+                document.getElementById('loaderStatusText').innerText = "Leitor Profissional: Baixando M3U...";
+
+                let sucesso = false;
+                let textoM3U = "";
+
+                for (let i = 0; i < CORS_PROXIES.length; i++) {
+                    try {
+                        const resposta = await fetch(CORS_PROXIES[i] + encodeURIComponent(url));
+                        if (resposta.ok) {
+                            textoM3U = await resposta.text();
+                            if (textoM3U && textoM3U.includes('#EXTM3U')) {
+                                sucesso = true;
+                                break;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("Tentativa de proxy falhou, tentando próxima...", e);
+                    }
+                }
+
+                if (!sucesso) {
+                    try {
+                        const respDireta = await fetch(url);
+                        if (respDireta.ok) {
+                            textoM3U = await respDireta.text();
+                            if (textoM3U) sucesso = true;
+                        }
+                    } catch (e) {
+                        console.warn("Requisição direta bloqueada por CORS.");
+                    }
+                }
+
+                if (sucesso && textoM3U) {
+                    this.processarConteudoM3U(textoM3U);
+                } else {
+                    document.getElementById('futuristicLoader').classList.remove('on');
+                    alert("Erro no Leitor Profissional: Não foi possível ler a lista M3U. Verifique se o link está ativo e sem bloqueios de CORS.");
+                }
+            },
+
+            processarConteudoM3U(conteudo) {
+                document.getElementById('futuristicLoader').classList.add('on');
+                document.getElementById('loaderStatusText').innerText = "Processando Classificação Rigorosa...";
+
+                setTimeout(() => {
+                    const linhas = conteudo.replace(/\r\n/g, '\n').split('\n');
+                    let live = [], vod = [], seriesMap = {}, music = [], adult = [];
+                    let itemAtual = null;
+
+                    for (let i = 0; i < linhas.length; i++) {
+                        let linha = linhas[i].trim();
+                        
+                        if (linha.startsWith('#EXTINF:')) {
+                            itemAtual = { titulo: '', logo: '', grupo: 'Geral', url: '' };
+                            
+                            let matchLogo = linha.match(/tvg-logo=["']?([^"']+)["']?/i);
+                            if (matchLogo && matchLogo[1].trim() !== "") {
+                                itemAtual.logo = matchLogo[1].trim();
+                            }
+
+                            let matchGroup = linha.match(/group-title=["']?([^"']+)["']?/i);
+                            if (matchGroup && matchGroup[1].trim() !== "") {
+                                itemAtual.grupo = matchGroup[1].trim();
+                            }
+
+                            let indiceVirgula = linha.lastIndexOf(',');
+                            if (indiceVirgula !== -1) {
+                                itemAtual.titulo = linha.substring(indiceVirgula + 1).trim();
+                            }
+                        } else if (linha && !linha.startsWith('#') && itemAtual) {
+                            itemAtual.url = linha;
+                            
+                            let gLower = itemAtual.grupo.toLowerCase();
+                            let tLower = itemAtual.titulo.toLowerCase();
+
+                            // 1. BLINDAGEM DE ADULTOS
+                            if (gLower.includes('adult') || gLower.includes('xxx') || gLower.includes('private') || gLower.includes('hot') || gLower.includes('maiores') || gLower.includes('18+') || gLower.includes('sex')) {
+                                adult.push(itemAtual);
+                            } 
+                            // 2. BLINDAGEM DE MÚSICAS
+                            else if (gLower.includes('music') || gLower.includes('musica') || gLower.includes('clip') || gLower.includes('audio') || gLower.includes('concert')) {
+                                music.push(itemAtual);
+                            } 
+                            // 3. BLINDAGEM DE SÉRIES (Exige que venha do grupo de séries OU tenha padrão explícito de S/E)
+                            else if (gLower.includes('serie') || gLower.includes('temporada') || tLower.match(/s\d+\s*e\d+/) || tLower.match(/temp\s*\d+/) || tLower.match(/ep\s*\d+/)) {
+                                
+                                // Evita que canais ao vivo de séries caiam aqui por engano
+                                if (gLower.includes('canal') || gLower.includes('ao vivo') || gLower.includes('live') || gLower.includes('24h')) {
+                                    live.push(itemAtual);
+                                } else {
+                                    let nomeSerie = itemAtual.titulo
+                                        .replace(/s\d+\s*e\d+/i, '')
+                                        .replace(/temporada\s*\d+/i, '')
+                                        .replace(/temp\s*\d+/i, '')
+                                        .replace(/ep\s*\d+/i, '')
+                                        .replace(/-\s*$/, '')
+                                        .trim();
+                                    
+                                    if(!nomeSerie) nomeSerie = itemAtual.grupo;
+
+                                    if (!seriesMap[nomeSerie]) {
+                                        seriesMap[nomeSerie] = {
+                                            titulo: nomeSerie,
+                                            logo: itemAtual.logo,
+                                            grupo: itemAtual.grupo,
+                                            temporadas: {}
+                                        };
+                                    } else if (!seriesMap[nomeSerie].logo && itemAtual.logo) {
+                                        seriesMap[nomeSerie].logo = itemAtual.logo;
+                                    }
+
+                                    let matchTemp = tLower.match(/s(\d+)/i) || tLower.match(/temp[^\d]*(\d+)/i);
+                                    let tempNum = matchTemp ? parseInt(matchTemp[1]) : 1;
+
+                                    let matchEp = tLower.match(/e(\d+)/i) || tLower.match(/ep[^\d]*(\d+)/i);
+                                    let epNum = matchEp ? parseInt(matchEp[1]) : 1;
+
+                                    if (!seriesMap[nomeSerie].temporadas[tempNum]) {
+                                        seriesMap[nomeSerie].temporadas[tempNum] = [];
+                                    }
+
+                                    seriesMap[nomeSerie].temporadas[tempNum].push({
+                                        titulo: itemAtual.titulo,
+                                        url: itemAtual.url,
+                                        ep: epNum
+                                    });
+                                }
+                            } 
+                            // 4. BLINDAGEM DE FILMES VOD (Separado rigorosamente de canais de TV)
+                            else if (gLower.includes('filme') || gLower.includes('vod') || gLower.includes('movie') || gLower.includes('cinema') || gLower.includes('lançamento') || gLower.includes('netflix') || gLower.includes('prime')) {
+                                
+                                // Se o grupo indicar claramente que é canal de TV (ex: "Canais Filmes HBO"), joga pra live
+                                if (gLower.includes('canal') || gLower.includes('abertos') || gLower.includes('24h') || gLower.includes('tv')) {
+                                    live.push(itemAtual);
+                                } else {
+                                    vod.push(itemAtual);
+                                }
+                            } 
+                            // 5. CANAIS AO VIVO (Padrão para todo o resto)
+                            else {
+                                live.push(itemAtual);
+                            }
+                            itemAtual = null;
                         }
                     }
-                } catch(e) {}
-            }
 
-            if (!m3uTexto) {
-                loader.classList.remove('on');
+                    let seriesArray = Object.values(seriesMap);
+
+                    this.dadosM3U = { live, vod, series: seriesArray, music, adult };
+                    document.getElementById('futuristicLoader').classList.remove('on');
+                    this.abrirDashboard();
+                }, 400);
+            },
+
+            abrirDashboard() {
+                document.getElementById('viewAuth').style.display = 'none';
+                document.getElementById('viewDashboard').style.display = 'flex';
+                this.mudarAbaPrincipal('live');
+            },
+
+            sairParaAuth() {
+                this.pararPlayer();
+                document.getElementById('viewDashboard').style.display = 'none';
                 document.getElementById('viewAuth').style.display = 'flex';
-                alert("Falha ao reconhecer a lista M3U. Verifique se o link do provedor está correto.");
-                localStorage.removeItem('gc_manual_m3u');
-                return;
-            }
+            },
 
-            // Salva a última lista funcional
-            localStorage.setItem('gc_manual_m3u', urlTratada);
-
-            statusText.innerText = "Construindo VOD e Organizando Séries...";
-            await new Promise(r => setTimeout(r, 500));
-
-            this.parseM3U(m3uTexto);
-
-            statusText.innerText = "Sistema Inicializado com Sucesso!";
-            await new Promise(r => setTimeout(r, 300));
-
-            loader.classList.remove('on');
-            document.getElementById('viewDashboard').style.display = 'flex';
-            this.mudarAba('live', document.querySelector('.ibo-tab-btn'));
-        },
-
-        parseM3U(texto) {
-            this.m3uData = { live: [], movie: [], series: {} };
-            let linhas = texto.split('\n');
-            let nomeAtual = "Conteúdo";
-            let grupoAtual = "Geral";
-            let logoAtual = "";
-
-            for (let i = 0; i < linhas.length; i++) {
-                let linha = linhas[i].trim();
-                if (linha.startsWith('#EXTINF:')) {
-                    let matchNome = linha.match(/,(.+)$/);
-                    if (matchNome) nomeAtual = matchNome[1].trim();
-
-                    let matchGrp = linha.match(/group-title="([^"]+)"/i);
-                    if (matchGrp) grupoAtual = matchGrp[1].trim();
-
-                    let matchLogo = linha.match(/tvg-logo="([^"]+)"/i);
-                    if (matchLogo) logoAtual = matchLogo[1];
-                    else logoAtual = "";
-                } else if (linha && !linha.startsWith('#')) {
-                    let lowerGrp = grupoAtual.toLowerCase();
-                    let lowerUrl = linha.toLowerCase();
-                    let lowerName = nomeAtual.toLowerCase();
-
-                    let tempEpMatch = nomeAtual.match(/(?:s|temp[a-z]*\.?\s*)(\d+)[^0-9]*(?:e|ep[a-z]*\.?\s*)(\d+)/i);
-
-                    if (lowerGrp.includes('série') || lowerGrp.includes('serie') || lowerUrl.includes('/series/') || tempEpMatch) {
-                        let nomeSerie = nomeAtual.replace(/(?:s|temp[a-z]*\.?\s*)\d+[^0-9]*(?:e|ep[a-z]*\.?\s*)\d+.*/i, '').trim();
-                        if (!nomeSerie || nomeSerie.length < 2) nomeSerie = grupoAtual;
-
-                        let temporada = 1;
-                        let episodio = 1;
-
-                        if (tempEpMatch) {
-                            temporada = parseInt(tempEpMatch[1], 10);
-                            episodio = parseInt(tempEpMatch[2], 10);
-                        } else {
-                            let tempMatch = nomeAtual.match(/temp[a-z]*\.?\s*(\d+)/i);
-                            if (tempMatch) temporada = parseInt(tempMatch[1], 10);
-                        }
-
-                        if (!this.m3uData.series[grupoAtual]) {
-                            this.m3uData.series[grupoAtual] = {};
-                        }
-                        if (!this.m3uData.series[grupoAtual][nomeSerie]) {
-                            this.m3uData.series[grupoAtual][nomeSerie] = {
-                                name: nomeSerie,
-                                group: grupoAtual,
-                                logo: logoAtual,
-                                seasons: {}
-                            };
-                        }
-                        if (!this.m3uData.series[grupoAtual][nomeSerie].seasons[temporada]) {
-                            this.m3uData.series[grupoAtual][nomeSerie].seasons[temporada] = [];
-                        }
-
-                        this.m3uData.series[grupoAtual][nomeSerie].seasons[temporada].push({
-                            name: nomeAtual,
-                            episodeNum: episodio,
-                            url: linha
-                        });
-
-                        if (logoAtual && !this.m3uData.series[grupoAtual][nomeSerie].logo) {
-                            this.m3uData.series[grupoAtual][nomeSerie].logo = logoAtual;
-                        }
-
-                    } else {
-                        let tipo = (lowerGrp.includes('filme') || lowerGrp.includes('vod') || lowerUrl.includes('/movie/')) ? 'movie' : 'live';
-                        if (this.m3uData[tipo].length < 15000) {
-                            this.m3uData[tipo].push({
-                                name: nomeAtual,
-                                group: grupoAtual,
-                                logo: logoAtual,
-                                url: linha
-                            });
-                        }
-                    }
-
-                    nomeAtual = "Conteúdo";
-                    grupoAtual = "Geral";
-                    logoAtual = "";
-                }
-            }
-        },
-
-        mudarAba(tipo, btn) {
-            this.currentTab = tipo;
-            document.querySelectorAll('.ibo-tab-btn').forEach(b => b.classList.remove('active'));
-            if (btn) btn.classList.add('active');
-
-            let categorias = ['Todos'];
-            if (tipo === 'series') {
-                Object.keys(this.m3uData.series).forEach(grp => {
-                    if (!categorias.includes(grp)) categorias.push(grp);
-                });
-            } else {
-                let itensTab = this.m3uData[tipo] || [];
-                itensTab.forEach(it => {
-                    if (!categorias.includes(it.group)) categorias.push(it.group);
-                });
-            }
-
-            let subBar = document.getElementById('subCategoriesBar');
-            subBar.innerHTML = "";
-            categorias.slice(0, 30).forEach((cat, idx) => {
-                let chip = document.createElement('div');
-                chip.className = `subcat-chip ${idx === 0 ? 'active' : ''}`;
-                chip.innerText = cat;
-                chip.onclick = () => {
-                    document.querySelectorAll('.subcat-chip').forEach(c => c.classList.remove('active'));
-                    chip.classList.add('active');
-                    this.filtrarCategoria(cat);
-                };
-                subBar.appendChild(chip);
-            });
-
-            this.filtrarCategoria('Todos');
-        },
-
-        filtrarCategoria(cat) {
-            this.currentCategory = cat;
-            if (this.currentTab === 'series') {
-                let listaSeries = [];
-                let gruposObj = (cat === 'Todos') ? this.m3uData.series : { [cat]: this.m3uData.series[cat] || {} };
+            mudarAbaPrincipal(tipo) {
+                this.abaAtiva = tipo;
                 
-                Object.values(gruposObj).forEach(grpSeries => {
-                    Object.values(grpSeries).forEach(serieObj => {
-                        listaSeries.push(serieObj);
-                    });
+                const botoes = document.querySelectorAll('.ibo-tab-btn');
+                botoes.forEach(btn => btn.classList.remove('active'));
+                
+                if(tipo === 'live') botoes[0].classList.add('active');
+                if(tipo === 'vod') botoes[1].classList.add('active');
+                if(tipo === 'series') botoes[2].classList.add('active');
+                if(tipo === 'music') botoes[3].classList.add('active');
+                if(tipo === 'adult') botoes[4].classList.add('active');
+
+                this.construirSubcategorias();
+            },
+
+            tentarAcessarAdultos() {
+                this.modoPinAtual = 'acesso';
+                document.getElementById('pinInstructionText').innerText = "Digite a senha para acessar a pasta Adultos (Padrão: 0000)";
+                document.getElementById('inputPinBox').value = '';
+                document.getElementById('modalAdultoPin').style.display = 'flex';
+            },
+
+            abrirConfigSenha() {
+                this.modoPinAtual = 'alterar';
+                document.getElementById('pinInstructionText').innerText = "Digite a senha atual para cadastrar uma nova senha";
+                document.getElementById('inputPinBox').value = '';
+                document.getElementById('modalAdultoPin').style.display = 'flex';
+            },
+
+            fecharModalPin() {
+                document.getElementById('modalAdultoPin').style.display = 'none';
+            },
+
+            validarPinAdulto() {
+                let digitado = document.getElementById('inputPinBox').value.trim();
+                
+                if (this.modoPinAtual === 'acesso') {
+                    if (digitado === this.senhaAdulto) {
+                        this.fecharModalPin();
+                        this.mudarAbaPrincipal('adult');
+                    } else {
+                        alert("Senha incorreta!");
+                    }
+                } else if (this.modoPinAtual === 'alterar') {
+                    if (digitado === this.senhaAdulto) {
+                        let novaSenha = prompt("Digite a NOVA senha de 4 dígitos:");
+                        if (novaSenha && novaSenha.trim().length >= 3) {
+                            this.senhaAdulto = novaSenha.trim();
+                            localStorage.setItem('gc_adult_pin', this.senhaAdulto);
+                            alert("Senha alterada com sucesso!");
+                            this.fecharModalPin();
+                        } else {
+                            alert("Senha inválida.");
+                        }
+                    } else {
+                        alert("Senha atual incorreta!");
+                    }
+                }
+            },
+
+            construirSubcategorias() {
+                const listaItens = this.dadosM3U[this.abaAtiva] || [];
+                let gruposSet = new Set();
+                listaItens.forEach(item => gruposSet.add(item.grupo || 'Geral'));
+
+                this.subcategorias = ['TODOS', ...Array.from(gruposSet)];
+                this.categoriaAtiva = 'TODOS';
+
+                const barraSub = document.getElementById('subcategoriesBar');
+                barraSub.innerHTML = '';
+
+                this.subcategorias.forEach((cat, idx) => {
+                    let chip = document.createElement('div');
+                    chip.className = `subcat-chip ${idx === 0 ? 'active' : ''}`;
+                    chip.innerText = cat;
+                    chip.onclick = () => {
+                        document.querySelectorAll('.subcat-chip').forEach(c => c.classList.remove('active'));
+                        chip.classList.add('active');
+                        this.categoriaAtiva = cat;
+                        this.renderizarCatalogo();
+                    };
+                    barraSub.appendChild(chip);
                 });
-                this.currentItems = listaSeries;
-            } else {
-                let itensTab = this.m3uData[this.currentTab] || [];
-                if (cat === 'Todos') {
-                    this.currentItems = itensTab;
-                } else {
-                    this.currentItems = itensTab.filter(it => it.group === cat);
-                }
-            }
-            this.renderizarGrid(this.currentItems);
-        },
 
-        filtrarBusca(termo) {
-            let q = termo.toLowerCase();
-            let filtrados = this.currentItems.filter(it => it.name.toLowerCase().includes(q));
-            this.renderizarGrid(filtrados);
-        },
+                this.renderizarCatalogo();
+            },
 
-        renderizarGrid(itens) {
-            let grid = document.getElementById('itemsGrid');
-            grid.innerHTML = "";
+            renderizarCatalogo(filtroBusca = '') {
+                const gridBox = document.getElementById('itemsGridBox');
+                gridBox.innerHTML = '';
 
-            if (itens.length === 0) {
-                grid.innerHTML = `<div style="color:var(--text-muted); padding:20px; font-size:13px;">Nenhum item encontrado.</div>`;
-                return;
-            }
+                let itens = this.dadosM3U[this.abaAtiva] || [];
 
-            itens.forEach(item => {
-                let card = document.createElement('div');
-                card.className = 'media-item-card';
-                card.tabIndex = 0;
-
-                let iconClass = this.currentTab === 'live' ? 'fa-tv' : this.currentTab === 'movie' ? 'fa-film' : 'fa-clapperboard';
-                let posterHtml = item.logo ? `<img class="media-poster" src="${item.logo}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : '';
-                let fallbackHtml = `<div class="media-poster" style="display:${item.logo?'none':'flex'}; align-items:center; justify-content:center; color:var(--primary); font-size:24px;"><i class="fa-solid ${iconClass}"></i></div>`;
-
-                card.innerHTML = `
-                    <div>
-                        ${posterHtml}
-                        ${fallbackHtml}
-                        <div class="media-item-title">${item.name}</div>
-                    </div>
-                    <div style="font-size:10px; color:var(--text-muted); text-transform:uppercase; margin-top:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.group}</div>
-                `;
-
-                if (this.currentTab === 'series') {
-                    card.onclick = () => this.abrirModalSeries(item);
-                } else {
-                    card.onclick = () => this.reproduzirStream(item.url, item.name);
+                if (this.categoriaAtiva !== 'TODOS') {
+                    itens = itens.filter(i => (i.grupo || 'Geral') === this.categoriaAtiva);
                 }
 
-                grid.appendChild(card);
-            });
-        },
+                if (filtroBusca.trim() !== '') {
+                    let termo = filtroBusca.toLowerCase();
+                    itens = itens.filter(i => i.titulo.toLowerCase().includes(termo));
+                }
 
-        abrirModalSeries(serieObj) {
-            document.getElementById('modalSeriesTitle').innerText = serieObj.name;
-            const seasonContainer = document.getElementById('seasonTabsContainer');
-            seasonContainer.innerHTML = "";
-            const episodesBox = document.getElementById('episodesListBox');
-            episodesBox.innerHTML = "";
+                if (itens.length === 0) {
+                    gridBox.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding: 40px; color: var(--text-muted);">Nenhum conteúdo encontrado nesta seção.</div>`;
+                    return;
+                }
 
-            let temporadas = Object.keys(serieObj.seasons).sort((a,b) => parseInt(a) - parseInt(b));
-            if (temporadas.length === 0) {
-                episodesBox.innerHTML = `<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:20px;">Nenhum episódio encontrado.</div>`;
+                itens.forEach(item => {
+                    let card = document.createElement('div');
+                    card.className = 'media-item-card';
+                    card.tabIndex = 0;
+                    
+                    let posterImg = (item.logo && item.logo.startsWith('http')) ? item.logo : 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=300&auto=format&fit=crop&q=80';
+
+                    card.innerHTML = `
+                        <img src="${posterImg}" class="media-poster" alt="${item.titulo}" onerror="this.src='https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=300&auto=format&fit=crop&q=80'">
+                        <div class="media-item-title">${item.titulo}</div>
+                    `;
+
+                    card.onclick = () => {
+                        if (this.abaAtiva === 'series') {
+                            this.abrirModalSeries(item);
+                        } else {
+                            this.reproduzirMidia(item);
+                        }
+                    };
+
+                    gridBox.appendChild(card);
+                });
+            },
+
+            filtrarCatalogo(termo) {
+                this.renderizarCatalogo(termo);
+            },
+
+            reproduzirMidia(item) {
+                this.itemSelecionadoAtual = item;
+                document.getElementById('npTitle').innerText = item.titulo;
+                document.getElementById('npCategory').innerText = "Categoria: " + (item.grupo || 'Geral');
+
+                const video = document.getElementById('mainVideoPlayer');
+                
+                if (this.hlsInstance) {
+                    this.hlsInstance.destroy();
+                    this.hlsInstance = null;
+                }
+
+                let urlStream = item.url;
+
+                if (urlStream.includes('.m3u8')) {
+                    if (Hls.isSupported()) {
+                        this.hlsInstance = new Hls();
+                        this.hlsInstance.loadSource(urlStream);
+                        this.hlsInstance.attachMedia(video);
+                        this.hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+                            video.play().catch(e => console.log("Auto-play restrito pelo navegador"));
+                        });
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        video.src = urlStream;
+                        video.addEventListener('loadedmetadata', () => {
+                            video.play();
+                        });
+                    }
+                } else {
+                    video.src = urlStream;
+                    video.play().catch(e => console.log("Auto-play restrito pelo navegador"));
+                }
+            },
+
+            pararPlayer() {
+                const video = document.getElementById('mainVideoPlayer');
+                video.pause();
+                video.src = "";
+                if (this.hlsInstance) {
+                    this.hlsInstance.destroy();
+                    this.hlsInstance = null;
+                }
+                document.getElementById('npTitle').innerText = "Nenhuma mídia selecionada";
+                document.getElementById('npCategory').innerText = "Selecione um item da lista ao lado para reproduzir.";
+            },
+
+            abrirModalSeries(serie) {
+                document.getElementById('modalSeriesTitle').innerText = serie.titulo;
                 document.getElementById('modalSeries').style.display = 'flex';
-                return;
+                
+                const tempContainer = document.getElementById('seasonTabsContainer');
+                tempContainer.innerHTML = '';
+
+                let temporadasDisponiveis = Object.keys(serie.temporadas).sort((a,b) => a - b);
+
+                if (temporadasDisponiveis.length === 0) {
+                    document.getElementById('episodesListBox').innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">Nenhum episódio cadastrado.</div>`;
+                    return;
+                }
+
+                temporadasDisponiveis.forEach((tempNum, idx) => {
+                    let tab = document.createElement('div');
+                    tab.className = `season-tab ${idx === 0 ? 'active' : ''}`;
+                    tab.innerText = `Temporada ${tempNum}`;
+                    tab.onclick = () => {
+                        document.querySelectorAll('.season-tab').forEach(st => st.classList.remove('active'));
+                        tab.classList.add('active');
+                        this.renderizarEpisodios(serie.temporadas[tempNum], serie.titulo, tempNum);
+                    };
+                    tempContainer.appendChild(tab);
+                });
+
+                this.renderizarEpisodios(serie.temporadas[temporadasDisponiveis[0]], serie.titulo, temporadasDisponiveis[0]);
+            },
+
+            renderizarEpisodios(episodios, nomeSerie, tempNum) {
+                const epsContainer = document.getElementById('episodesListBox');
+                epsContainer.innerHTML = '';
+
+                episodios.sort((a,b) => a.ep - b.ep);
+
+                episodios.forEach(ep => {
+                    let epItem = document.createElement('div');
+                    epItem.className = 'episode-item';
+                    epItem.innerHTML = `
+                        <div>
+                            <div style="font-weight: 700; color:#fff; font-size:13px;">Episódio ${ep.ep} - ${ep.titulo}</div>
+                            <div style="font-size:11px; color:var(--text-muted);">T${tempNum}E${ep.ep}</div>
+                        </div>
+                        <i class="fa-solid fa-play" style="color:var(--primary);"></i>
+                    `;
+                    epItem.onclick = () => {
+                        this.fecharModalSeries();
+                        this.reproduzirMidia({
+                            titulo: `${nomeSerie} - T${tempNum}E${ep.ep} (${ep.titulo})`,
+                            url: ep.url,
+                            grupo: 'Séries'
+                        });
+                    };
+                    epsContainer.appendChild(epItem);
+                });
+            },
+
+            fecharModalSeries() {
+                document.getElementById('modalSeries').style.display = 'none';
             }
+        };
 
-            temporadas.forEach((tempNum, idx) => {
-                let tab = document.createElement('div');
-                tab.className = `season-tab ${idx === 0 ? 'active' : ''}`;
-                tab.innerText = `Temporada ${tempNum}`;
-                tab.onclick = () => {
-                    document.querySelectorAll('.season-tab').forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    this.renderizarEpisodios(serieObj.seasons[tempNum]);
-                };
-                seasonContainer.appendChild(tab);
-            });
-
-            this.renderizarEpisodios(serieObj.seasons[temporadas[0]]);
-            document.getElementById('modalSeries').style.display = 'flex';
-        },
-
-        renderizarEpisodios(episodios) {
-            const episodesBox = document.getElementById('episodesListBox');
-            episodesBox.innerHTML = "";
-
-            episodios.sort((a, b) => a.episodeNum - b.episodeNum);
-
-            episodios.forEach(ep => {
-                let epDiv = document.createElement('div');
-                epDiv.className = 'episode-item';
-                epDiv.innerHTML = `
-                    <div style="font-weight:700; font-size:13px; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:10px;">${ep.name}</div>
-                    <div style="font-size:11px; color:var(--primary); font-weight:bold; white-space:nowrap;"><i class="fa-solid fa-play"></i> Assistir</div>
-                `;
-                epDiv.onclick = () => {
-                    this.reproduzirStream(ep.url, ep.name);
-                    this.fecharModalSeries();
-                };
-                episodesBox.appendChild(epDiv);
-            });
-        },
-
-        fecharModalSeries() {
-            document.getElementById('modalSeries').style.display = 'none';
-        },
-
-        reproduzirStream(url, nome) {
-            document.getElementById('nowPlayingTitle').innerText = nome;
-            let video = document.getElementById('videoPlayer');
-
-            if (this.hlsInstance) {
-                this.hlsInstance.destroy();
-                this.hlsInstance = null;
-            }
-
-            if (Hls.isSupported() && (url.includes('.m3u8') || url.includes('m3u8'))) {
-                const hls = new Hls();
-                this.hlsInstance = hls;
-                hls.loadSource(url);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play().catch(()=>{}); });
-            } else {
-                video.src = url;
-                video.play().catch(()=>{});
-            }
-        },
-
-        pararStream() {
-            let video = document.getElementById('videoPlayer');
-            video.pause();
-            video.src = "";
-            document.getElementById('nowPlayingTitle').innerText = "Nenhum conteúdo selecionado";
-            if (this.hlsInstance) {
-                this.hlsInstance.destroy();
-                this.hlsInstance = null;
-            }
-        },
-
-        desconectar() {
-            if (confirm("Deseja realmente desconectar a lista M3U atual?")) {
-                localStorage.removeItem('gc_manual_m3u');
-                window.location.reload();
-            }
-        },
-
-        chamarSuporte() {
-            window.open("https://wa.me/55199999018248?text=Olá,%20preciso%20de%20suporte%20com%20o%20GC%20PLAY%20PRO", "_blank");
-        }
-    };
-
-    window.addEventListener('DOMContentLoaded', () => {
-        App.init();
-    });
-</script>
+        window.onload = () => {
+            App.init();
+        };
+    </script>
 </body>
 </html>
