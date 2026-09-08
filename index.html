@@ -3,545 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>GC PLAY PRO - AUTO-ADAPTATIVE TV & MOBILE</title>
-    
+    <title>GC PLAY PRO - TV</title>
     <meta name="theme-color" content="#28D905">
-    <meta name="background-color" content="#000000">
-
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <!-- Bibliotecas essenciais carregadas de forma síncrona/confiável -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Biblioteca oficial qrious para gerar QR Code localmente sem depender de APIs externas instáveis -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-
     <style>
-        :root {
-            --primary: #28D905;
-            --primary-dark: #1e9d03;
-            --bg-main: #000000;
-            --bg-card: #0d0d0d;
-            --bg-hover: #1f1f1f;
-            --border: #222222;
-            --text-main: #ffffff;
-            --text-muted: #888888;
-            --danger: #ff3333;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            height: 100vh;
-            height: 100dvh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .smart-container {
-            display: flex;
-            flex: 1;
-            width: 100%;
-            height: 100%;
-        }
-
-        .main-content-area {
-            flex: 1;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            overflow-y: auto;
-        }
-
-        .top-brand-bar {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 24px;
-            font-weight: 800;
-            color: #fff;
-            letter-spacing: 1px;
-        }
-
-        .top-brand-bar span {
-            color: var(--primary);
-            text-shadow: 0 0 15px rgba(40, 217, 5, 0.4);
-        }
-
-        .support-top-text {
-            font-size: 13px;
-            color: var(--primary);
-            font-weight: 700;
-            cursor: pointer;
-            padding: 10px 16px;
-            background: rgba(40, 217, 5, 0.1);
-            border-radius: 8px;
-            border: 1px solid rgba(40, 217, 5, 0.3);
-            transition: 0.2s;
-            display: inline-block;
-        }
-
-        .sidebar-panel {
-            width: 360px;
-            background: #050705;
-            border-left: 1px solid var(--border);
-            padding: 30px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            justify-content: space-between;
-        }
-
-        .qrcode-container {
-            background: #fff;
-            padding: 10px;
-            border-radius: 8px;
-            margin: 15px 0;
-            display: inline-block;
-        }
-
-        .qrcode-container canvas { width: 130px !important; height: 130px !important; display: block; }
-
-        .sidebar-info-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            width: 100%;
-        }
-
-        .sidebar-label { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
-        .sidebar-highlight { color: var(--primary); font-weight: bold; font-size: 14px; }
-        .mac-display-box, .key-display-box {
-            font-family: monospace; font-size: 14px; font-weight: bold; color: #fff; letter-spacing: 1px; margin: 2px 0;
-        }
-        .key-display-box { color: var(--primary); }
-        .version-tag { font-size: 11px; color: var(--text-muted); align-self: flex-end; }
-
-        .btn-ui {
-            width: 100%; padding: 14px; border: none; border-radius: 8px;
-            font-weight: bold; font-size: 14px; cursor: pointer;
-            background: var(--primary); color: #000; text-transform: uppercase; transition: 0.15s;
-        }
-        .btn-ui:hover, .btn-ui:focus { background: var(--primary-dark); outline: none; box-shadow: 0 0 15px var(--primary); }
-
-        /* DASHBOARD PRINCIPAL */
-        #viewDashboard {
-            display: none; 
-            flex-direction: column; 
-            height: 100vh;
-            height: 100dvh; 
-            width: 100%; 
-            padding: 15px; 
-            gap: 12px;
-            overflow: hidden;
-        }
-
-        .dashboard-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--bg-card);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            padding: 12px 20px;
-            flex-shrink: 0;
-        }
-
-        .ibo-main-tabs {
-            display: flex;
-            gap: 12px;
-            flex-shrink: 0;
-            overflow-x: auto;
-            padding-bottom: 4px;
-        }
-
-        .ibo-tab-btn {
-            background: var(--bg-card);
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            padding: 12px 20px;
-            color: #fff;
-            font-weight: 800;
-            font-size: 14px;
-            cursor: pointer;
-            transition: 0.15s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .ibo-tab-btn.active, .ibo-tab-btn:hover {
-            border-color: var(--primary);
-            background: rgba(40, 217, 5, 0.2);
-            color: var(--primary);
-        }
-
-        .link-subcategories-bar {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 4px;
-            flex-shrink: 0;
-        }
-
-        .subcat-chip {
-            background: var(--bg-main);
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            padding: 8px 16px;
-            color: var(--text-muted);
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .subcat-chip.active, .subcat-chip:hover {
-            border-color: var(--primary);
-            color: #fff;
-            background: var(--bg-hover);
-        }
-
-        .main-workspace {
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 12px;
-            flex: 1;
-            min-height: 0;
-            overflow: hidden;
-        }
-
-        .catalog-container-area {
-            background: var(--bg-card);
-            border: 2px solid var(--border);
-            border-radius: 14px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-            overflow: hidden;
-        }
-
-        .catalog-search-bar {
-            width: 100%;
-            padding: 12px 16px;
-            background: var(--bg-main);
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            color: #fff;
-            font-size: 14px;
-            outline: none;
-            margin-bottom: 12px;
-            flex-shrink: 0;
-        }
-        .catalog-search-bar:focus { border-color: var(--primary); }
-
-        .items-grid-box {
-            flex: 1;
-            min-height: 0;
-            overflow-y: auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 12px;
-            padding-bottom: 20px;
-        }
-
-        .media-item-card {
-            background: var(--bg-main);
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            padding: 8px;
-            cursor: pointer;
-            transition: 0.15s;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
-        }
-
-        .media-item-card:hover {
-            border-color: var(--primary);
-            background: var(--bg-hover);
-            transform: scale(1.03);
-        }
-
-        .media-poster {
-            width: 100%;
-            height: 160px;
-            object-fit: cover;
-            border-radius: 8px;
-            background: #111;
-            margin-bottom: 6px;
-        }
-
-        .media-item-title {
-            font-size: 12px;
-            font-weight: bold;
-            color: #fff;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .series-detail-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.96); display: none; z-index: 2500;
-            padding: 25px; flex-direction: column; backdrop-filter: blur(10px);
-        }
-
-        .series-header-info {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 15px;
-        }
-
-        .episodes-grid {
-            flex: 1; min-height: 0; overflow-y: auto; display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;
-        }
-
-        .episode-card {
-            background: var(--bg-card); border: 2px solid var(--border);
-            border-radius: 10px; padding: 12px; cursor: pointer;
-            display: flex; flex-direction: column; justify-content: space-between;
-        }
-        .episode-card:hover { border-color: var(--primary); background: var(--bg-hover); }
-
-        .right-player-panel {
-            background: var(--bg-card);
-            border: 2px solid var(--border);
-            border-radius: 14px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            height: 100%;
-        }
-
-        .player-wrapper-right {
-            width: 100%;
-            height: 240px;
-            background: #000;
-            border-radius: 10px;
-            overflow: hidden;
-            border: 2px solid var(--border);
-            flex-shrink: 0;
-        }
-
-        video { width: 100%; height: 100%; background: #000; }
-
-        .now-playing-info {
-            background: var(--bg-main);
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            padding: 12px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .btn-back-menu {
-            background: rgba(255, 51, 51, 0.15);
-            border: 2px solid var(--danger);
-            color: var(--danger);
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 12px;
-            cursor: pointer;
-            text-align: center;
-            width: 100%;
-        }
-        .btn-back-menu:hover { background: var(--danger); color: #fff; }
-
-        .loading-home-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            width: 100vw;
-            background: var(--bg-main);
-            position: fixed;
-            top: 0; left: 0;
-            z-index: 3000;
-            gap: 15px;
-            color: #fff;
-        }
-        .spinner {
-            width: 50px; height: 50px;
-            border: 5px solid var(--border);
-            border-top: 5px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
+        :root { --primary: #28D905; --bg-main: #000; --bg-card: #0d0d0d; --border: #222; --text-muted: #888; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: var(--bg-main); color: #fff; height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        .smart-container { display: flex; flex: 1; width: 100%; height: 100%; flex-direction: column; }
+        @media (min-width: 900px) { .smart-container { flex-direction: row; } }
+        .main-content-area { flex: 1; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; overflow-y: auto; }
+        .top-brand-bar { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 800; color: #fff; }
+        .top-brand-bar span { color: var(--primary); }
+        .app-brand-logo { width: 36px; height: 36px; object-fit: contain; border-radius: 8px; background: rgba(40, 217, 5, 0.1); padding: 4px; border: 1px solid var(--primary); }
+        .add-account-card { width: 100%; max-width: 280px; height: 140px; background: rgba(255,255,255,0.02); border: 3px dashed var(--border); border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: var(--text-muted); }
+        .add-account-card:hover { border-color: var(--primary); color: #fff; background: #1f1f1f; }
+        .sidebar-panel { width: 100%; background: #050705; border-top: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; }
+        @media (min-width: 900px) { .sidebar-panel { width: 340px; border-top: none; border-left: 1px solid var(--border); justify-content: space-between; } }
+        .qrcode-container { background: #fff; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; width: 130px; height: 130px; }
+        .qrcode-container canvas, .qrcode-container img { display: block; width: 118px !important; height: 118px !important; }
+        .mac-display-box { font-family: monospace; font-size: 15px; font-weight: bold; color: var(--primary); letter-spacing: 1px; margin: 6px 0; }
+        .btn-ui { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; background: var(--primary); color: #000; text-transform: uppercase; transition: opacity 0.2s; }
+        .btn-ui:active { opacity: 0.8; }
+        
+        #loadingScreen { display: none; width: 100%; height: 100vh; height: 100dvh; flex-direction: column; align-items: center; justify-content: center; background: #000; position: fixed; top: 0; left: 0; z-index: 9998; text-align: center; }
+        .spinner { width: 60px; height: 60px; border: 5px solid rgba(40,217,5,0.1); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        body.mode-tv .smart-container { flex-direction: row !important; }
-        @media (max-width: 900px) {
-            body.mode-mobile .smart-container { flex-direction: column; overflow-y: auto; }
-            body.mode-mobile .sidebar-panel { width: 100%; border-left: none; border-top: 1px solid var(--border); }
-            body.mode-mobile .main-workspace { grid-template-columns: 1fr; grid-template-rows: 1fr auto; height: auto; }
-            body.mode-mobile #viewDashboard { height: 100vh; overflow-y: auto; }
-            body.mode-mobile .catalog-container-area { height: 440px; }
-        }
+        #playerScreen { display: none; width: 100%; height: 100vh; height: 100dvh; background: #000; position: fixed; top: 0; left: 0; z-index: 9999; }
+        iframe { width: 100%; height: 100%; border: none; background: #000; }
     </style>
 </head>
-<body class="mode-mobile">
+<body>
 
-    <div id="loadingHomeScreen" class="loading-home-screen" style="display: none;">
-        <div class="spinner"></div>
-        <h3 id="loadingStatusText" style="font-size: 18px; font-weight: bold; color: var(--primary);">Reconhecendo ativação...</h3>
-        <p style="font-size: 13px; color: var(--text-muted);">Carregando sua lista M3U...</p>
-    </div>
-
-    <div id="viewAuth" class="smart-container">
+    <div id="tvSetupScreen" class="smart-container">
         <div class="main-content-area">
+            <div class="top-brand-bar">
+                <img src="https://i.imgur.com/7D2A74V.png" class="app-brand-logo" onerror="this.style.display='none'">
+                <i class="fa-solid fa-circle-play" style="color: var(--primary);"></i> GC PLAY <span>PRO</span>
+            </div>
             <div>
-                <div class="top-brand-bar">
-                    <i class="fa-solid fa-circle-play" style="color: var(--primary);"></i>
-                    GC PLAY <span id="platformBadgeLabel">PRO</span>
+                <div class="add-account-card" onclick="alert('Escaneie o QR Code ao lado para ativar pelo celular!')">
+                    <i class="fa-solid fa-plus" style="font-size: 26px; color: var(--primary);"></i>
+                    <span style="font-size: 12px; font-weight: bold; color: #fff;">Adicionar Manualmente</span>
                 </div>
             </div>
-
-            <div style="margin: 40px 0;">
-                <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 10px;">Ativação via Nuvem</h2>
-                <p style="color: var(--text-muted); font-size: 14px; max-width: 450px; line-height: 1.5;">
-                    Escaneie o QR Code ao lado com o seu celular para ativar instantaneamente este dispositivo ou inserir sua lista M3U. O sistema reconhecerá automaticamente assim que salvar.
-                </p>
-            </div>
-
-            <div style="border-top: 2px solid var(--border); padding-top: 15px; margin-top: 15px;">
-                <div style="font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 6px;"><i class="fa-solid fa-microchip" style="color: var(--primary);"></i> SISTEMA DE RECONHECIMENTO INTELIGENTE</div>
-                <div style="font-size: 12px; color: var(--text-muted);" id="platformDetectionInfo">Aguardando ativação remota pelo painel...</div>
+            <div style="font-size: 11px; color: var(--text-muted); border-top: 2px solid var(--border); padding-top: 10px;">
+                📱 Ativação Oficial via Nuvem
             </div>
         </div>
 
         <div class="sidebar-panel">
-            <div>
-                <div class="support-top-text" onclick="App.chamarSuporte()">SUPORTE: (19) 99990-18248</div>
+            <div style="font-size: 12px; color: var(--primary); font-weight: 700; padding: 8px 14px; background: rgba(40,217,5,0.1); border-radius: 8px; border: 2px solid rgba(40,217,5,0.3);">
+                SUPORTE: (19) 99990-18248
             </div>
-
-            <div style="display: flex; flex-direction: column; align-items: center; width: 100%; margin: 15px 0;">
-                <div class="qrcode-container">
-                    <canvas id="qrCanvas"></canvas>
-                </div>
-                <div class="sidebar-highlight" id="detectedPlatformText" style="margin-bottom: 8px;">Plataforma: TV/Mobile</div>
-                
-                <div class="sidebar-info-group">
-                    <div>
-                        <div class="sidebar-label" style="font-size: 10px;">ENDEREÇO MAC</div>
-                        <div class="mac-display-box" id="displayMac">Gerando...</div>
-                    </div>
-                    <div style="margin-top: 4px;">
-                        <div class="sidebar-label" style="font-size: 10px;">CHAVE DE ACESSO</div>
-                        <div class="key-display-box" id="displayKey">----</div>
-                    </div>
-                </div>
+            <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                <div class="qrcode-container" id="qrCodeBox"></div>
+                <div style="color: var(--primary); font-size: 11px; font-weight: bold; margin-top: 4px;">Escaneie para Ativar</div>
+                <div class="mac-display-box" id="displayMac">Gerando...</div>
+                <button class="btn-ui" onclick="copiarLinkPortal()"><i class="fa-solid fa-copy"></i> Copiar Link</button>
             </div>
-
-            <div class="sidebar-info-group">
-                <button class="btn-ui" onclick="App.copiarLinkAtivacao()">Copiar Link Ativação</button>
-                <div class="version-tag" id="versionText">v8.7 PRO</div>
-            </div>
+            <div style="font-size: 11px; color: var(--text-muted);">v8.7 GC PLAY PRO</div>
         </div>
     </div>
 
-    <div id="viewDashboard">
-        <div class="dashboard-header">
-            <div class="top-brand-bar" style="font-size: 18px;">
-                <i class="fa-solid fa-circle-play" style="color: var(--primary);"></i>
-                GC PLAY <span style="font-size: 16px;">PRO</span>
-            </div>
-            <div id="dashboardAccountName" style="font-size: 14px; font-weight: bold; color: var(--primary);">Playlist Ativa</div>
-            <button class="btn-back-menu" style="width: auto; padding: 8px 16px;" onclick="App.voltarAoMenu()">Trocar / Sair</button>
-        </div>
-
-        <div class="ibo-main-tabs" id="mainTabsContainer"></div>
-        <div class="link-subcategories-bar" id="subCategoriesContainer"></div>
-
-        <div class="main-workspace">
-            <div class="catalog-container-area">
-                <input type="text" id="catalogSearch" class="catalog-search-bar" placeholder="Pesquisar nesta categoria..." oninput="App.filtrarCatalogo(this.value)">
-                <div class="items-grid-box" id="catalogGrid"></div>
-            </div>
-
-            <div class="right-player-panel">
-                <div class="player-wrapper-right">
-                    <video id="videoPlayer" controls autoplay playsinline></video>
-                </div>
-                <div class="now-playing-info">
-                    <div>
-                        <div id="npCategory" style="font-size: 10px; color: var(--primary); font-weight: bold; text-transform: uppercase;">Categoria</div>
-                        <div id="npTitle" style="font-size: 14px; font-weight: bold; color: #fff; margin-top: 2px;">Selecione um item</div>
-                    </div>
-                    <div id="npDescription" style="font-size: 12px; color: var(--text-muted); overflow-y: auto; max-height: 80px;">Clique em um canal, filme ou série para reproduzir aqui.</div>
-                </div>
-                <button class="btn-back-menu" onclick="App.pararPlayer()">Parar Reprodução</button>
-            </div>
-        </div>
+    <div id="loadingScreen">
+        <div class="spinner"></div>
+        <h2 style="color: #fff; font-size: 20px; font-weight: 600;">Reconhecendo ativação...</h2>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">Iniciando player da lista...</p>
     </div>
 
-    <div id="seriesDetailModal" class="series-detail-modal">
-        <div class="series-header-info">
-            <div>
-                <h2 id="seriesModalTitle" style="font-size: 20px; font-weight: bold; color: #fff;">Nome da Série</h2>
-                <p id="seriesModalInfo" style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Selecione o episódio</p>
-            </div>
-            <button class="btn-back-menu" style="width: auto; padding: 10px 20px;" onclick="App.fecharModalSerie()">Fechar Série</button>
-        </div>
-        <div class="episodes-grid" id="episodesGridContainer"></div>
+    <div id="playerScreen">
+        <iframe id="m3uIframe" allow="autoplay; fullscreen"></iframe>
     </div>
 
     <script>
-        let supabaseClient = null;
-        try {
-            const SUPABASE_URL = 'https://oududghyzkucvrxffoyg.supabase.co';
-            const SUPABASE_ANON_KEY = 'sb_publishable_3KI2wOG7ZXTTIkRccOTYnA_zpAjuaLz';
-            if (typeof supabase !== 'undefined') {
-                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const SUPABASE_URL = 'https://oududghyzkucvrxffoyg.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_3KI2wOG7ZXTTIkRccOTYnA_zpAjuaLz';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let portalUrlGerado = "";
+        let deviceId = "";
+        let ativouProcesso = false;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // 1. Identificação Segura do MAC/Device ID
+            deviceId = localStorage.getItem('gc_device_id');
+            if (!deviceId || deviceId.length < 5) {
+                deviceId = "GC-" + Math.floor(Math.random() * 899999 + 100000);
+                localStorage.setItem('gc_device_id', deviceId);
             }
-        } catch (e) {
-            console.error("Erro Supabase:", e);
+            
+            // Exibe o MAC imediatamente na tela
+            const macElement = document.getElementById('displayMac');
+            if(macElement) {
+                macElement.innerText = deviceId;
+            }
+
+            // 2. Montagem correta da URL do Portal de Ativação
+            let pathSegments = window.location.pathname.split('/');
+            pathSegments.pop();
+            let basePath = window.location.protocol + "//" + window.location.host + pathSegments.join('/') + "/ativar.html";
+            portalUrlGerado = basePath + "?mac=" + deviceId;
+
+            // 3. Renderização Garantida do QR Code
+            gerarQRCodeSeguro(portalUrlGerado);
+
+            // 4. Checagem inicial e loop do Supabase
+            verificarAtivacaoNuvem(deviceId);
+            setInterval(() => {
+                if(!ativouProcesso) {
+                    verificarAtivacaoNuvem(deviceId);
+                }
+            }, 3000);
+        });
+
+        function gerarQRCodeSeguro(urlTexto) {
+            const box = document.getElementById('qrCodeBox');
+            if (!box) return;
+            box.innerHTML = ""; // Limpa qualquer conteúdo prévio
+            
+            try {
+                new QRCode(box, {
+                    text: urlTexto,
+                    width: 118,
+                    height: 118,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            } catch (e) {
+                console.error("Erro ao gerar QR Code:", e);
+                box.innerHTML = "<span style='color:red; font-size:10px;'>Erro QR</span>";
+            }
         }
 
-        const App = {
-            deviceId: "",
-            deviceKey: "",
-            portalUrl: "",
-            isTvMode: false,
-            activePlaylistUrl: null,
-            rawM3uText: "",
-            parsedChannels: [],
-            parsedMovies: [],
-            parsedSeries: [],
-            currentTab: 'live',
-            currentCategory: 'ALL',
-            currentSubCat: 'ALL',
-            hlsInstance: null,
-            checkInterval: null,
+        async function verificarAtivacaoNuvem(mac) {
+            if (ativouProcesso) return;
+            try {
+                let { data, error } = await supabaseClient
+                    .from('ativacoes')
+                    .select('url_m3u')
+                    .eq('mac', mac)
+                    .maybeSingle(); // Usando maybeSingle para evitar erro caso não encontre registro
 
-            init: function() {
-                // Força a criação do MAC e da Chave sem depender do estado anterior corrompido
-                this.deviceId = localStorage.getItem('gc_device_id');
-                if (!this.deviceId || this.deviceId === "------" || this.deviceId.length < 5) {
-                    this.deviceId = "GC-" + Math.floor(Math.random() * 899999 + 100000);
-                    localStorage.setItem('gc_device_id', this.deviceId);
+                if (data && data.url_m3u && !ativouProcesso) {
+                    ativouProcesso = true;
+                    carregarPlayer(data.url_m3u);
                 }
+            } catch (err) {
+                console.log("Aguardando ativação remota...");
+            }
+        }
 
-                this.deviceKey = localStorage.getItem('gc_device_key');
-                if (!this.deviceKey || this.deviceKey === "------" || th
+        function carregarPlayer(url) {
+            document.getElementById('tvSetupScreen').style.display = 'none';
+            document.getElementById('loadingScreen').style.display = 'flex';
+
+            setTimeout(() => {
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('playerScreen').style.display = 'flex';
+                
+                let webPlayerUrl = "https://webtv.iptvsmarters.com/?url=" + encodeURIComponent(url);
+                document.getElementById('m3uIframe').src = webPlayerUrl;
+            }, 1500);
+        }
+
+        function copiarLinkPortal() {
+            if(!portalUrlGerado) return;
+            navigator.clipboard.writeText(portalUrlGerado).then(() => {
+                alert("Link de ativação copiado com sucesso!");
+            }).catch(() => {
+                prompt("Copie o link abaixo:", portalUrlGerado);
+            });
+        }
+    </script>
+</body>
+</html>
