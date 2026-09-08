@@ -6,7 +6,6 @@
     <title>GC PLAY PRO - TV</title>
     <meta name="theme-color" content="#28D905">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Bibliotecas essenciais carregadas de forma síncrona/confiável -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -26,15 +25,11 @@
         .qrcode-container { background: #fff; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; width: 130px; height: 130px; }
         .qrcode-container canvas, .qrcode-container img { display: block; width: 118px !important; height: 118px !important; }
         .mac-display-box { font-family: monospace; font-size: 15px; font-weight: bold; color: var(--primary); letter-spacing: 1px; margin: 6px 0; }
-        .btn-ui { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; background: var(--primary); color: #000; text-transform: uppercase; transition: opacity 0.2s; }
-        .btn-ui:active { opacity: 0.8; }
+        .btn-ui { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; background: var(--primary); color: #000; text-transform: uppercase; }
         
         #loadingScreen { display: none; width: 100%; height: 100vh; height: 100dvh; flex-direction: column; align-items: center; justify-content: center; background: #000; position: fixed; top: 0; left: 0; z-index: 9998; text-align: center; }
         .spinner { width: 60px; height: 60px; border: 5px solid rgba(40,217,5,0.1); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        #playerScreen { display: none; width: 100%; height: 100vh; height: 100dvh; background: #000; position: fixed; top: 0; left: 0; z-index: 9999; }
-        iframe { width: 100%; height: 100%; border: none; background: #000; }
     </style>
 </head>
 <body>
@@ -73,11 +68,7 @@
     <div id="loadingScreen">
         <div class="spinner"></div>
         <h2 style="color: #fff; font-size: 20px; font-weight: 600;">Reconhecendo ativação...</h2>
-        <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">Iniciando player da lista...</p>
-    </div>
-
-    <div id="playerScreen">
-        <iframe id="m3uIframe" allow="autoplay; fullscreen"></iframe>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">Redirecionando para o player...</p>
     </div>
 
     <script>
@@ -90,29 +81,22 @@
         let ativouProcesso = false;
 
         window.addEventListener('DOMContentLoaded', () => {
-            // 1. Identificação Segura do MAC/Device ID
             deviceId = localStorage.getItem('gc_device_id');
             if (!deviceId || deviceId.length < 5) {
                 deviceId = "GC-" + Math.floor(Math.random() * 899999 + 100000);
                 localStorage.setItem('gc_device_id', deviceId);
             }
             
-            // Exibe o MAC imediatamente na tela
             const macElement = document.getElementById('displayMac');
-            if(macElement) {
-                macElement.innerText = deviceId;
-            }
+            if(macElement) macElement.innerText = deviceId;
 
-            // 2. Montagem correta da URL do Portal de Ativação
             let pathSegments = window.location.pathname.split('/');
             pathSegments.pop();
             let basePath = window.location.protocol + "//" + window.location.host + pathSegments.join('/') + "/ativar.html";
             portalUrlGerado = basePath + "?mac=" + deviceId;
 
-            // 3. Renderização Garantida do QR Code
             gerarQRCodeSeguro(portalUrlGerado);
 
-            // 4. Checagem inicial e loop do Supabase
             verificarAtivacaoNuvem(deviceId);
             setInterval(() => {
                 if(!ativouProcesso) {
@@ -124,8 +108,7 @@
         function gerarQRCodeSeguro(urlTexto) {
             const box = document.getElementById('qrCodeBox');
             if (!box) return;
-            box.innerHTML = ""; // Limpa qualquer conteúdo prévio
-            
+            box.innerHTML = "";
             try {
                 new QRCode(box, {
                     text: urlTexto,
@@ -136,7 +119,6 @@
                     correctLevel: QRCode.CorrectLevel.M
                 });
             } catch (e) {
-                console.error("Erro ao gerar QR Code:", e);
                 box.innerHTML = "<span style='color:red; font-size:10px;'>Erro QR</span>";
             }
         }
@@ -148,15 +130,13 @@
                     .from('ativacoes')
                     .select('url_m3u')
                     .eq('mac', mac)
-                    .maybeSingle(); // Usando maybeSingle para evitar erro caso não encontre registro
+                    .maybeSingle();
 
                 if (data && data.url_m3u && !ativouProcesso) {
                     ativouProcesso = true;
                     carregarPlayer(data.url_m3u);
                 }
-            } catch (err) {
-                console.log("Aguardando ativação remota...");
-            }
+            } catch (err) {}
         }
 
         function carregarPlayer(url) {
@@ -164,11 +144,9 @@
             document.getElementById('loadingScreen').style.display = 'flex';
 
             setTimeout(() => {
-                document.getElementById('loadingScreen').style.display = 'none';
-                document.getElementById('playerScreen').style.display = 'flex';
-                
+                // Redireciona de forma limpa para o player externo sem bloqueio de iframe
                 let webPlayerUrl = "https://webtv.iptvsmarters.com/?url=" + encodeURIComponent(url);
-                document.getElementById('m3uIframe').src = webPlayerUrl;
+                window.location.href = webPlayerUrl;
             }, 1500);
         }
 
