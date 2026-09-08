@@ -25,10 +25,9 @@
         .mac-display-box { font-family: monospace; font-size: 14px; font-weight: bold; color: var(--primary); letter-spacing: 1px; margin: 6px 0; }
         .btn-ui { width: 100%; padding: 10px; border: none; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; background: var(--primary); color: #000; text-transform: uppercase; }
         
-        /* TELA DE CARREGAMENTO DA LISTA M3U */
-        #playerScreen { display: none; width: 100%; height: 100vh; flex-direction: column; align-items: center; justify-content: center; background: #000; text-align: center; padding: 20px; }
-        .spinner { width: 50px; height: 50px; border: 5px solid rgba(40,217,5,0.1); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* TELA DO PLAYER / LAYOUT DA M3U */
+        #playerScreen { display: none; width: 100%; height: 100vh; height: 100dvh; flex-direction: column; background: #000; position: fixed; top: 0; left: 0; z-index: 9999; }
+        iframe { width: 100%; height: 100%; border: none; background: #000; }
     </style>
 </head>
 <body>
@@ -41,7 +40,7 @@
                 <i class="fa-solid fa-circle-play" style="color: var(--primary);"></i> GC PLAY <span>PRO</span>
             </div>
             <div>
-                <div class="add-account-card" onclick="alert('Use o QR Code ao lado para ativar pelo celular!')">
+                <div class="add-account-card" onclick="alert('Escaneie o QR Code ao lado para ativar pelo celular!')">
                     <i class="fa-solid fa-plus" style="font-size: 26px; color: var(--primary);"></i>
                     <span style="font-size: 12px; font-weight: bold; color: #fff;">Adicionar Manualmente</span>
                 </div>
@@ -65,11 +64,9 @@
         </div>
     </div>
 
-    <!-- TELA DE PLAYER / CARREGANDO M3U -->
+    <!-- TELA QUE INCORPORA O LAYOUT DA M3U DIRETAMENTE -->
     <div id="playerScreen">
-        <div class="spinner"></div>
-        <h2 style="color: #fff; font-size: 22px; margin-bottom: 8px;">Carregando Lista M3U...</h2>
-        <p id="loadedUrlText" style="color: var(--text-muted); font-size: 13px; max-width: 500px; word-break: break-all;"></p>
+        <iframe id="m3uFrame" src=""></iframe>
     </div>
 
     <script>
@@ -87,7 +84,7 @@
             // Verifica se já existe uma lista salva para este aparelho
             let savedList = localStorage.getItem('gc_playlist_' + deviceId);
             if(savedList) {
-                mostrarPlayer(JSON.parse(savedList).url);
+                carregarLayoutM3U(JSON.parse(savedList).url);
                 return;
             }
 
@@ -110,21 +107,23 @@
                 });
             }, 200);
 
-            // Fica checando a cada 1 segundo se o celular ativou o aparelho
+            // Fica checando a ativação a cada 1 segundo
             setInterval(() => {
                 let checkActivation = localStorage.getItem('gc_playlist_' + deviceId);
                 if(checkActivation) {
                     let dados = JSON.parse(checkActivation);
-                    mostrarPlayer(dados.url);
+                    carregarLayoutM3U(dados.url);
                 }
             }, 1000);
         });
 
-        function mostrarPlayer(urlM3u) {
+        function carregarLayoutM3U(urlM3u) {
             document.getElementById('tvSetupScreen').style.display = 'none';
-            document.getElementById('playerScreen').style.display = 'flex';
-            document.getElementById('loadedUrlText').innerText = urlM3u;
-            // Aqui você pode integrar o player de vídeo ou carregamento real da M3U futuramente.
+            let playerDiv = document.getElementById('playerScreen');
+            playerDiv.style.display = 'flex';
+            
+            // Joga o link M3U diretamente no iframe para renderizar o layout próprio da lista
+            document.getElementById('m3uFrame').src = urlM3u;
         }
     </script>
 </body>
