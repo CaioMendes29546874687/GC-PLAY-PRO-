@@ -31,10 +31,6 @@
         #loadingScreen { display: none; width: 100%; height: 100vh; height: 100dvh; flex-direction: column; align-items: center; justify-content: center; background: #000; position: fixed; top: 0; left: 0; z-index: 9998; text-align: center; }
         .spinner { width: 60px; height: 60px; border: 5px solid rgba(40,217,5,0.1); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* TELA FINAL DO LAYOUT M3U */
-        #playerScreen { display: none; width: 100%; height: 100vh; height: 100dvh; flex-direction: column; background: #000; position: fixed; top: 0; left: 0; z-index: 9999; }
-        iframe { width: 100%; height: 100%; border: none; background: #000; }
     </style>
 </head>
 <body>
@@ -76,10 +72,6 @@
         <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">Carregando link M3U da sua lista...</p>
     </div>
 
-    <div id="playerScreen">
-        <iframe id="m3uFrame"></iframe>
-    </div>
-
     <script>
         // CONFIGURAÇÃO DO SUPABASE
         const SUPABASE_URL = 'https://oududghyzkucvrxffoyg.supabase.co';
@@ -88,6 +80,7 @@
 
         let portalUrlGerado = "";
         let deviceId = "";
+        let ativouProcesso = false;
 
         window.addEventListener('DOMContentLoaded', async () => {
             deviceId = localStorage.getItem('gc_device_id');
@@ -121,7 +114,9 @@
 
             // Fica checando a nuvem a cada 2 segundos em tempo real
             setInterval(async () => {
-                await verificarAtivacaoNuvem(deviceId);
+                if(!ativouProcesso) {
+                    await verificarAtivacaoNuvem(deviceId);
+                }
             }, 2000);
         });
 
@@ -133,7 +128,8 @@
                     .eq('mac', mac)
                     .single();
 
-                if (data && data.url_m3u) {
+                if (data && data.url_m3u && !ativouProcesso) {
+                    ativouProcesso = true;
                     ativarInterface(data.url_m3u);
                 }
             } catch (err) {
@@ -145,14 +141,10 @@
             document.getElementById('tvSetupScreen').style.display = 'none';
             document.getElementById('loadingScreen').style.display = 'flex';
 
+            // Exibe a animação com a bolinha girando e o texto por 2 segundos e meio, abrindo o link da lista em seguida
             setTimeout(() => {
-                document.getElementById('loadingScreen').style.display = 'none';
-                document.getElementById('playerScreen').style.display = 'flex';
-                let iframe = document.getElementById('m3uFrame');
-                if(iframe.src !== urlM3u) {
-                    iframe.src = urlM3u;
-                }
-            }, 2000);
+                window.location.href = urlM3u;
+            }, 2500);
         }
     </script>
 </body>
