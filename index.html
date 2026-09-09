@@ -2,8 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <title>GC PLAY PRO</title>
 
@@ -21,20 +20,36 @@
     padding:0;
 }
 
+:root{
+    --bg:#070b12;
+    --panel:#0d131d;
+    --panel2:#121a26;
+    --border:#1e2a3a;
+    --text:#fff;
+    --muted:#8b98aa;
+    --primary:#e50914;
+    --primary2:#ff3340;
+    --green:#18c964;
+    --yellow:#ffb020;
+    --blue:#1683ff;
+}
+
 html,body{
     width:100%;
     height:100%;
     overflow:hidden;
-    background:#050505;
-    color:#fff;
+    background:var(--bg);
+    color:var(--text);
     font-family:Arial,Helvetica,sans-serif;
 }
 
-button,input{
+button,
+input{
     font-family:inherit;
 }
 
 button{
+    border:0;
     cursor:pointer;
 }
 
@@ -43,54 +58,135 @@ button{
     height:100%;
     display:flex;
     flex-direction:column;
-    background:#070707;
 }
 
 /* HEADER */
 
 .header{
-    height:65px;
-    min-height:65px;
-    background:#111;
-    border-bottom:1px solid #222;
+    height:64px;
+    min-height:64px;
+    background:#090e17;
+    border-bottom:1px solid var(--border);
     display:flex;
     align-items:center;
     padding:0 18px;
-    gap:15px;
+    gap:18px;
+    z-index:20;
 }
 
 .logo{
-    font-size:21px;
-    font-weight:bold;
-    color:#00e5ff;
-    white-space:nowrap;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    min-width:210px;
 }
 
-.logo span{
+.logo-icon{
+    width:40px;
+    height:40px;
+    border-radius:10px;
+    background:var(--primary);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+}
+
+.logo-text{
+    font-size:20px;
+    font-weight:900;
+    letter-spacing:.5px;
+}
+
+.logo-text span{
+    color:var(--primary);
+}
+
+.header-center{
+    flex:1;
+    display:flex;
+    justify-content:center;
+}
+
+.search-box{
+    width:min(500px,100%);
+    position:relative;
+}
+
+.search-box i{
+    position:absolute;
+    left:14px;
+    top:50%;
+    transform:translateY(-50%);
+    color:var(--muted);
+}
+
+.search-box input{
+    width:100%;
+    height:40px;
+    background:#111925;
+    border:1px solid var(--border);
+    border-radius:10px;
     color:#fff;
+    padding:0 14px 0 42px;
+    outline:none;
 }
 
-.status{
-    margin-left:auto;
+.search-box input:focus{
+    border-color:var(--primary);
+}
+
+.header-actions{
     display:flex;
     align-items:center;
     gap:8px;
+}
+
+.icon-btn{
+    width:40px;
+    height:40px;
+    border-radius:9px;
+    background:#111925;
+    color:#fff;
+    border:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.icon-btn:hover,
+.icon-btn:focus{
+    background:#1a2433;
+    border-color:#40506a;
+    outline:none;
+}
+
+.status-pill{
+    height:34px;
+    padding:0 12px;
+    border-radius:20px;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    background:#111925;
+    border:1px solid var(--border);
     font-size:12px;
+    white-space:nowrap;
 }
 
 .status-dot{
-    width:9px;
-    height:9px;
+    width:8px;
+    height:8px;
     border-radius:50%;
-    background:#ff9800;
+    background:var(--yellow);
 }
 
-.status.active .status-dot{
-    background:#00e676;
+.status-dot.active{
+    background:var(--green);
 }
 
-.status.blocked .status-dot{
-    background:#ff1744;
+.status-dot.blocked{
+    background:var(--primary);
 }
 
 /* BODY */
@@ -104,425 +200,611 @@ button{
 /* SIDEBAR */
 
 .sidebar{
-    width:250px;
-    min-width:250px;
-    background:#0d0d0d;
-    border-right:1px solid #222;
+    width:230px;
+    min-width:230px;
+    background:#090e17;
+    border-right:1px solid var(--border);
+    padding:15px 10px;
+    overflow-y:auto;
+}
+
+.sidebar-title{
+    color:#66758a;
+    font-size:11px;
+    font-weight:bold;
+    text-transform:uppercase;
+    padding:10px 10px 7px;
+}
+
+.nav-btn{
+    width:100%;
+    height:42px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:0 12px;
+    background:transparent;
+    color:#aab5c4;
+    border-radius:8px;
+    margin-bottom:3px;
+    text-align:left;
+}
+
+.nav-btn i{
+    width:18px;
+    text-align:center;
+}
+
+.nav-btn:hover,
+.nav-btn:focus,
+.nav-btn.active{
+    background:#171f2c;
+    color:#fff;
+    outline:none;
+}
+
+.nav-btn.active{
+    border-left:3px solid var(--primary);
+}
+
+.category-count{
+    margin-left:auto;
+    color:#657387;
+    font-size:11px;
+}
+
+/* MAIN */
+
+.main{
+    flex:1;
+    min-width:0;
     display:flex;
     flex-direction:column;
+    overflow:hidden;
 }
 
-.menu{
-    padding:12px;
+.toolbar{
+    min-height:58px;
+    padding:9px 14px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    gap:8px;
+    align-items:center;
+    background:#0b111a;
 }
 
-.menu button{
-    width:100%;
-    border:0;
-    background:transparent;
-    color:#aaa;
-    padding:13px;
-    text-align:left;
-    border-radius:7px;
-    margin-bottom:5px;
-    font-size:14px;
+.url-input{
+    flex:1;
+    height:40px;
+    min-width:100px;
+    border-radius:8px;
+    background:#111925;
+    color:#fff;
+    border:1px solid var(--border);
+    padding:0 13px;
+    outline:none;
 }
 
-.menu button:hover,
-.menu button.active{
-    background:#191919;
-    color:#00e5ff;
+.url-input:focus{
+    border-color:var(--primary);
 }
 
-.playlist-info{
-    margin-top:auto;
-    border-top:1px solid #222;
-    padding:15px;
-    color:#777;
-    font-size:11px;
-    line-height:1.5;
+.action-btn{
+    height:40px;
+    padding:0 15px;
+    border-radius:8px;
+    background:var(--primary);
+    color:#fff;
+    font-weight:bold;
+    display:flex;
+    align-items:center;
+    gap:7px;
+}
+
+.action-btn:hover,
+.action-btn:focus{
+    background:var(--primary2);
+    outline:none;
+}
+
+.action-btn.secondary{
+    background:#151e2b;
+    border:1px solid var(--border);
+}
+
+.action-btn.secondary:hover{
+    background:#202c3d;
 }
 
 /* CONTENT */
 
 .content{
     flex:1;
-    min-width:0;
+    min-height:0;
+    overflow-y:auto;
+    padding:18px;
+}
+
+.page-title{
     display:flex;
-    flex-direction:column;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:17px;
 }
 
-/* TOOLBAR */
-
-.toolbar{
-    min-height:58px;
-    padding:10px 15px;
-    display:flex;
-    gap:8px;
-    border-bottom:1px solid #222;
-    background:#0b0b0b;
+.page-title h1{
+    font-size:22px;
 }
 
-.toolbar input{
-    flex:1;
-    min-width:0;
-    background:#171717;
-    border:1px solid #292929;
-    color:#fff;
-    border-radius:7px;
-    padding:0 13px;
-    outline:none;
+.page-title small{
+    color:var(--muted);
 }
-
-.toolbar input:focus{
-    border-color:#00bcd4;
-}
-
-.btn{
-    border:0;
-    border-radius:7px;
-    padding:0 15px;
-    background:#00bcd4;
-    color:#001014;
-    font-weight:bold;
-}
-
-.btn:hover{
-    filter:brightness(1.1);
-}
-
-.btn.secondary{
-    background:#202020;
-    color:#fff;
-}
-
-/* CHANNELS */
 
 .channels{
-    flex:1;
-    min-height:0;
-    overflow:auto;
-    padding:15px;
-}
-
-.grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
-    gap:10px;
+    grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+    gap:12px;
 }
 
 .channel{
-    background:#121212;
-    border:1px solid #242424;
-    border-radius:9px;
-    padding:11px;
+    min-height:100px;
+    background:linear-gradient(145deg,#111925,#0c121c);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:13px;
     display:flex;
-    gap:10px;
-    align-items:center;
-    min-height:70px;
+    gap:12px;
+    cursor:pointer;
     transition:.15s;
+    outline:none;
 }
 
 .channel:hover,
-.channel.selected{
-    border-color:#00bcd4;
-    background:#181818;
+.channel:focus{
+    border-color:#46566e;
+    transform:translateY(-1px);
+    background:#151e2b;
+}
+
+.channel.favorite{
+    border-color:#5b2830;
 }
 
 .channel-logo{
-    width:48px;
-    height:48px;
-    flex:none;
+    width:58px;
+    height:58px;
+    min-width:58px;
+    border-radius:8px;
+    background:#070b11;
+    border:1px solid #1c2736;
     object-fit:contain;
-    background:#080808;
-    border-radius:6px;
-}
-
-.channel-no-logo{
-    width:48px;
-    height:48px;
-    flex:none;
-    border-radius:6px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:#202020;
-    color:#00bcd4;
-    font-size:20px;
+    padding:4px;
 }
 
 .channel-info{
     min-width:0;
+    flex:1;
 }
 
 .channel-name{
-    font-size:13px;
+    font-size:14px;
     font-weight:bold;
-    white-space:nowrap;
+    line-height:1.3;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
     overflow:hidden;
-    text-overflow:ellipsis;
 }
 
 .channel-group{
-    color:#777;
+    margin-top:7px;
+    color:#7f8da0;
     font-size:11px;
-    margin-top:4px;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
 }
 
-/* PLAYER */
-
-.player{
-    position:fixed;
-    inset:0;
-    z-index:100;
-    background:#000;
-    display:none;
-    flex-direction:column;
+.channel-star{
+    color:#526075;
+    margin-top:7px;
+    font-size:12px;
 }
 
-.player.show{
-    display:flex;
-}
-
-.player-video{
-    flex:1;
-    min-height:0;
-    width:100%;
-    background:#000;
-    object-fit:contain;
-}
-
-.player-bar{
-    min-height:60px;
-    background:#101010;
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:10px 15px;
-}
-
-.player-title{
-    flex:1;
-    min-width:0;
-    font-weight:bold;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-}
-
-.player-close{
-    width:42px;
-    height:42px;
-    border:0;
-    border-radius:50%;
-    background:#222;
-    color:#fff;
-    font-size:18px;
-}
-
-/* ACTIVATION */
-
-.activation{
-    position:fixed;
-    inset:0;
-    z-index:200;
-    background:rgba(0,0,0,.96);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:20px;
-}
-
-.activation.hidden{
-    display:none;
-}
-
-.activation-box{
-    width:min(500px,100%);
-    background:#101010;
-    border:1px solid #292929;
-    border-radius:14px;
-    padding:25px;
-    text-align:center;
-    box-shadow:0 15px 50px rgba(0,0,0,.5);
-}
-
-.activation-title{
-    color:#00e5ff;
-    font-size:25px;
-    font-weight:bold;
-    margin-bottom:8px;
-}
-
-.activation-subtitle{
-    color:#999;
-    font-size:13px;
-    margin-bottom:20px;
-}
-
-.qr{
-    width:220px;
-    height:220px;
-    background:#fff;
-    padding:10px;
-    margin:0 auto 20px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
-
-.qr img,
-.qr canvas{
-    max-width:100%;
-    max-height:100%;
-}
-
-.device-label{
-    color:#777;
-    font-size:11px;
-    margin-bottom:6px;
-}
-
-.device-code{
-    color:#fff;
-    font-size:20px;
-    font-weight:bold;
-    letter-spacing:3px;
-    margin-bottom:15px;
-}
-
-.activation-state{
-    padding:12px;
-    border-radius:8px;
-    background:#181818;
-    color:#ffb300;
-    font-size:13px;
-}
-
-.activation-state.active{
-    color:#00e676;
-}
-
-.activation-state.error{
-    color:#ff5252;
-}
-
-.activation-url{
-    margin-top:15px;
-    font-size:10px;
-    color:#555;
-    word-break:break-all;
+.channel.favorite .channel-star{
+    color:#ffc400;
 }
 
 /* EMPTY */
 
 .empty{
     height:100%;
+    min-height:300px;
     display:flex;
-    flex-direction:column;
-    justify-content:center;
     align-items:center;
-    color:#555;
+    justify-content:center;
     text-align:center;
-    padding:30px;
+    color:var(--muted);
 }
 
-.empty i{
+.empty-box i{
     font-size:50px;
     margin-bottom:15px;
+    color:#273548;
 }
 
-.empty h2{
-    color:#888;
-    margin-bottom:8px;
+.empty-box h2{
+    color:#d8dee7;
+    margin-bottom:7px;
 }
 
-.empty p{
-    font-size:13px;
-}
+/* PLAYER */
 
-/* LOADING */
-
-.loading{
+.player-overlay{
     position:fixed;
     inset:0;
-    background:rgba(0,0,0,.8);
-    z-index:500;
+    background:#000;
+    z-index:100;
+    display:none;
+    flex-direction:column;
+}
+
+.player-overlay.show{
+    display:flex;
+}
+
+.player-header{
+    height:56px;
+    min-height:56px;
+    background:#090d14;
+    display:flex;
+    align-items:center;
+    padding:0 14px;
+    gap:12px;
+}
+
+.player-title{
+    flex:1;
+    min-width:0;
+    font-weight:bold;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+
+.video-area{
+    flex:1;
+    min-height:0;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#000;
+}
+
+video{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+}
+
+.player-loading{
+    position:absolute;
+    inset:0;
     display:none;
     align-items:center;
     justify-content:center;
+    flex-direction:column;
+    gap:12px;
+    background:rgba(0,0,0,.55);
 }
 
-.loading.show{
+.player-loading.show{
     display:flex;
-}
-
-.loading-box{
-    background:#151515;
-    padding:25px;
-    border-radius:10px;
-    text-align:center;
 }
 
 .spinner{
     width:40px;
     height:40px;
     border:4px solid #333;
-    border-top-color:#00e5ff;
+    border-top-color:#fff;
     border-radius:50%;
     animation:spin .8s linear infinite;
-    margin:0 auto 12px;
 }
 
 @keyframes spin{
     to{transform:rotate(360deg)}
 }
 
+.player-error{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    text-align:center;
+    display:none;
+    max-width:90%;
+}
+
+.player-error.show{
+    display:block;
+}
+
+.player-error i{
+    font-size:45px;
+    color:var(--primary);
+    margin-bottom:15px;
+}
+
+.player-error p{
+    color:#bbb;
+    margin-top:7px;
+}
+
+/* ACTIVATION */
+
+.activation-overlay{
+    position:fixed;
+    inset:0;
+    z-index:500;
+    background:rgba(2,5,9,.97);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.activation-card{
+    width:min(470px,100%);
+    background:#0d141f;
+    border:1px solid #263448;
+    border-radius:16px;
+    padding:28px;
+    text-align:center;
+    box-shadow:0 25px 80px rgba(0,0,0,.5);
+}
+
+.activation-logo{
+    width:58px;
+    height:58px;
+    margin:0 auto 15px;
+    border-radius:14px;
+    background:var(--primary);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:25px;
+}
+
+.activation-card h1{
+    font-size:24px;
+    margin-bottom:7px;
+}
+
+.activation-card>p{
+    color:#8e9bad;
+    line-height:1.5;
+    font-size:14px;
+}
+
+.qr{
+    width:220px;
+    height:220px;
+    background:#fff;
+    margin:20px auto;
+    padding:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+}
+
+.qr img{
+    max-width:100%;
+}
+
+.device-code{
+    background:#070b11;
+    border:1px solid #273448;
+    border-radius:9px;
+    padding:12px;
+    margin-bottom:12px;
+}
+
+.device-code small{
+    display:block;
+    color:#758399;
+    font-size:11px;
+    margin-bottom:5px;
+}
+
+.device-code strong{
+    font-size:22px;
+    letter-spacing:4px;
+}
+
+.device-id{
+    color:#627188;
+    font-size:10px;
+    word-break:break-all;
+    margin-top:10px;
+}
+
+.activation-status{
+    margin-top:15px;
+    color:#a9b4c3;
+    font-size:13px;
+}
+
+.activation-status.success{
+    color:var(--green);
+}
+
+.activation-status.error{
+    color:#ff5a63;
+}
+
+/* LOAD */
+
+.loading-overlay{
+    position:fixed;
+    inset:0;
+    z-index:450;
+    background:rgba(3,6,10,.88);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:15px;
+}
+
+.loading-overlay.show{
+    display:flex;
+}
+
+.loading-overlay .spinner{
+    width:46px;
+    height:46px;
+}
+
+/* TOAST */
+
+.toast-container{
+    position:fixed;
+    right:18px;
+    bottom:18px;
+    z-index:1000;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.toast{
+    min-width:250px;
+    max-width:380px;
+    background:#111925;
+    border:1px solid #2a394d;
+    border-radius:9px;
+    padding:12px 14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
+    animation:toastIn .2s ease;
+    font-size:13px;
+}
+
+.toast.success{
+    border-left:3px solid var(--green);
+}
+
+.toast.error{
+    border-left:3px solid var(--primary);
+}
+
+@keyframes toastIn{
+    from{opacity:0;transform:translateY(8px)}
+    to{opacity:1;transform:none}
+}
+
 /* MOBILE */
 
-@media(max-width:700px){
+@media(max-width:800px){
 
-    .sidebar{
-        width:70px;
-        min-width:70px;
-    }
-
-    .menu button{
-        text-align:center;
-        font-size:0;
-    }
-
-    .menu button i{
-        font-size:18px;
-    }
-
-    .playlist-info{
-        display:none;
+    .header{
+        padding:0 10px;
+        gap:8px;
     }
 
     .logo{
-        font-size:17px;
+        min-width:auto;
     }
 
-    .grid{
-        grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+    .logo-text{
+        font-size:16px;
+    }
+
+    .logo-icon{
+        width:35px;
+        height:35px;
+    }
+
+    .header-center{
+        display:none;
+    }
+
+    .status-pill{
+        padding:0 8px;
+    }
+
+    .sidebar{
+        width:62px;
+        min-width:62px;
+        padding:10px 6px;
+    }
+
+    .sidebar-title,
+    .nav-btn span,
+    .category-count{
+        display:none;
+    }
+
+    .nav-btn{
+        justify-content:center;
+        padding:0;
+    }
+
+    .nav-btn i{
+        width:auto;
     }
 
     .toolbar{
         flex-wrap:wrap;
+        padding:8px;
     }
 
-    .toolbar input{
+    .url-input{
         width:100%;
-        height:42px;
-        flex:none;
+        flex-basis:100%;
     }
 
-    .toolbar .btn{
-        height:40px;
+    .content{
+        padding:12px;
+    }
+
+    .channels{
+        grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    }
+
+    .channel{
+        padding:10px;
+    }
+
+    .channel-logo{
+        width:48px;
+        height:48px;
+        min-width:48px;
+    }
+
+    .activation-card{
+        padding:20px;
+    }
+
+    .qr{
+        width:190px;
+        height:190px;
+    }
+}
+
+@media(max-width:480px){
+
+    .channels{
+        grid-template-columns:1fr;
+    }
+
+    .header-actions .icon-btn:nth-child(1){
+        display:none;
+    }
+
+    .page-title h1{
+        font-size:18px;
     }
 }
 </style>
@@ -532,121 +814,275 @@ button{
 
 <div class="app">
 
-    <header class="header">
-        <div class="logo">
+<header class="header">
+
+    <div class="logo">
+        <div class="logo-icon">
+            <i class="fa-solid fa-play"></i>
+        </div>
+
+        <div class="logo-text">
             GC <span>PLAY</span> PRO
         </div>
+    </div>
 
-        <div id="status" class="status">
-            <span class="status-dot"></span>
+    <div class="header-center">
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+                id="search"
+                type="search"
+                placeholder="Buscar canal, filme, série..."
+                autocomplete="off">
+        </div>
+    </div>
+
+    <div class="header-actions">
+
+        <div class="status-pill">
+            <span id="statusDot" class="status-dot"></span>
             <span id="statusText">AGUARDANDO</span>
         </div>
-    </header>
 
-    <div class="body">
+        <button
+            class="icon-btn"
+            title="Atualizar lista"
+            onclick="app.atualizarLista()">
+            <i class="fa-solid fa-rotate"></i>
+        </button>
 
-        <aside class="sidebar">
+        <button
+            class="icon-btn"
+            title="Tela cheia"
+            onclick="app.telaCheia()">
+            <i class="fa-solid fa-expand"></i>
+        </button>
 
-            <div class="menu">
+    </div>
 
-                <button id="menuTodos" class="active">
-                    <i class="fa-solid fa-tv"></i>
-                    <span>Todos</span>
-                </button>
+</header>
 
-                <button id="menuAoVivo">
-                    <i class="fa-solid fa-satellite-dish"></i>
-                    <span>TV ao vivo</span>
-                </button>
 
-                <button id="menuFilmes">
-                    <i class="fa-solid fa-film"></i>
-                    <span>Filmes</span>
-                </button>
+<div class="body">
 
-                <button id="menuSeries">
-                    <i class="fa-solid fa-clapperboard"></i>
-                    <span>Séries</span>
-                </button>
+    <aside class="sidebar">
 
-                <button id="menuMusica">
-                    <i class="fa-solid fa-music"></i>
-                    <span>Música</span>
-                </button>
+        <div class="sidebar-title">
+            Biblioteca
+        </div>
 
-            </div>
+        <button
+            class="nav-btn active"
+            data-category="todos"
+            onclick="app.selecionarCategoria('todos',this)">
+            <i class="fa-solid fa-house"></i>
+            <span>Todos</span>
+            <b id="countTodos" class="category-count">0</b>
+        </button>
 
-            <div class="playlist-info">
-                <div>GC PLAY PRO</div>
-                <div id="playlistInfo">Nenhuma lista carregada</div>
-            </div>
+        <button
+            class="nav-btn"
+            data-category="favoritos"
+            onclick="app.selecionarCategoria('favoritos',this)">
+            <i class="fa-solid fa-star"></i>
+            <span>Favoritos</span>
+            <b id="countFavoritos" class="category-count">0</b>
+        </button>
 
-        </aside>
+        <button
+            class="nav-btn"
+            data-category="tv"
+            onclick="app.selecionarCategoria('tv',this)">
+            <i class="fa-solid fa-tv"></i>
+            <span>TV</span>
+            <b id="countTv" class="category-count">0</b>
+        </button>
 
-        <main class="content">
+        <button
+            class="nav-btn"
+            data-category="filmes"
+            onclick="app.selecionarCategoria('filmes',this)">
+            <i class="fa-solid fa-film"></i>
+            <span>Filmes</span>
+            <b id="countFilmes" class="category-count">0</b>
+        </button>
 
-            <div class="toolbar">
+        <button
+            class="nav-btn"
+            data-category="series"
+            onclick="app.selecionarCategoria('series',this)">
+            <i class="fa-solid fa-clapperboard"></i>
+            <span>Séries</span>
+            <b id="countSeries" class="category-count">0</b>
+        </button>
 
-                <input
-                    id="playlistUrl"
-                    type="url"
-                    placeholder="Cole aqui sua URL M3U..."
-                    autocomplete="off"
-                >
+        <button
+            class="nav-btn"
+            data-category="musica"
+            onclick="app.selecionarCategoria('musica',this)">
+            <i class="fa-solid fa-music"></i>
+            <span>Música</span>
+            <b id="countMusica" class="category-count">0</b>
+        </button>
 
-                <button id="loadBtn" class="btn">
-                    <i class="fa-solid fa-download"></i>
-                    Carregar
-                </button>
+        <div class="sidebar-title">
+            Sistema
+        </div>
 
-                <button id="clearBtn" class="btn secondary">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
+        <button
+            class="nav-btn"
+            onclick="app.abrirAtivacao()">
+            <i class="fa-solid fa-qrcode"></i>
+            <span>Ativação</span>
+        </button>
 
-            </div>
+        <button
+            class="nav-btn"
+            onclick="app.limparLista()">
+            <i class="fa-solid fa-trash"></i>
+            <span>Limpar lista</span>
+        </button>
 
-            <div id="channels" class="channels">
+    </aside>
 
-                <div class="empty">
-                    <i class="fa-solid fa-tv"></i>
-                    <h2>GC PLAY PRO</h2>
-                    <p>Carregue uma lista M3U para começar.</p>
+
+    <main class="main">
+
+        <div class="toolbar">
+
+            <input
+                id="playlistUrl"
+                class="url-input"
+                type="url"
+                placeholder="Cole aqui o link da sua lista M3U/M3U8...">
+
+            <button
+                class="action-btn"
+                onclick="app.carregarListaM3U()">
+                <i class="fa-solid fa-cloud-arrow-down"></i>
+                Carregar
+            </button>
+
+            <button
+                class="action-btn secondary"
+                onclick="app.abrirArquivo()">
+                <i class="fa-solid fa-folder-open"></i>
+                Arquivo
+            </button>
+
+            <input
+                id="fileInput"
+                type="file"
+                accept=".m3u,.m3u8,.txt"
+                hidden>
+
+        </div>
+
+
+        <section class="content">
+
+            <div class="page-title">
+
+                <div>
+                    <h1 id="pageTitle">
+                        Todos os canais
+                    </h1>
+
+                    <small id="playlistInfo">
+                        Nenhuma lista carregada
+                    </small>
                 </div>
 
             </div>
 
-        </main>
 
-    </div>
+            <div id="channels" class="channels">
+
+                <div class="empty">
+
+                    <div class="empty-box">
+
+                        <i class="fa-solid fa-tv"></i>
+
+                        <h2>Nenhuma lista carregada</h2>
+
+                        <p>
+                            Cole uma URL M3U acima ou abra um arquivo.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
 
 </div>
 
 
 <!-- PLAYER -->
 
-<div id="player" class="player">
+<div id="playerOverlay" class="player-overlay">
 
-    <video
-        id="video"
-        class="player-video"
-        controls
-        playsinline
-        autoplay
-    ></video>
+    <div class="player-header">
 
-    <div class="player-bar">
+        <button
+            class="icon-btn"
+            onclick="app.fecharPlayer()">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
 
-        <div id="playerTitle" class="player-title">
+        <div
+            id="playerTitle"
+            class="player-title">
             Reproduzindo
         </div>
 
-        <button id="fullscreenBtn" class="player-close">
+        <button
+            class="icon-btn"
+            onclick="app.telaCheiaVideo()">
             <i class="fa-solid fa-expand"></i>
         </button>
 
-        <button id="closePlayer" class="player-close">
-            <i class="fa-solid fa-xmark"></i>
-        </button>
+    </div>
+
+    <div class="video-area">
+
+        <video
+            id="video"
+            controls
+            playsinline
+            autoplay>
+        </video>
+
+        <div
+            id="playerLoading"
+            class="player-loading">
+
+            <div class="spinner"></div>
+
+            <span>Carregando...</span>
+
+        </div>
+
+        <div
+            id="playerError"
+            class="player-error">
+
+            <i class="fa-solid fa-circle-exclamation"></i>
+
+            <h2>Não foi possível reproduzir</h2>
+
+            <p id="playerErrorText">
+                Verifique o endereço do canal.
+            </p>
+
+        </div>
 
     </div>
 
@@ -655,33 +1091,57 @@ button{
 
 <!-- ACTIVATION -->
 
-<div id="activation" class="activation">
+<div id="activationOverlay" class="activation-overlay">
 
-    <div class="activation-box">
+    <div class="activation-card">
 
-        <div class="activation-title">
-            GC PLAY PRO
+        <div class="activation-logo">
+            <i class="fa-solid fa-play"></i>
         </div>
 
-        <div class="activation-subtitle">
-            Ative este dispositivo através do QR Code
-        </div>
+        <h1>Ative seu GC PLAY PRO</h1>
+
+        <p>
+            Escaneie o QR Code com o dispositivo autorizado
+            ou utilize o código de ativação.
+        </p>
 
         <div id="qrcode" class="qr"></div>
 
-        <div class="device-label">
-            CÓDIGO DE ATIVAÇÃO
+        <div class="device-code">
+
+            <small>
+                CÓDIGO DE ATIVAÇÃO
+            </small>
+
+            <strong id="activationCode">
+                ------ 
+            </strong>
+
         </div>
 
-        <div id="deviceCode" class="device-code">
-            ------
+        <button
+            class="action-btn"
+            style="width:100%;justify-content:center"
+            onclick="app.copiarCodigo()">
+
+            <i class="fa-solid fa-copy"></i>
+            Copiar código
+
+        </button>
+
+        <div
+            id="activationStatus"
+            class="activation-status">
+
+            Aguardando ativação...
+
         </div>
 
-        <div id="activationState" class="activation-state">
-            AGUARDANDO ATIVAÇÃO
+        <div
+            id="deviceId"
+            class="device-id">
         </div>
-
-        <div id="activationUrl" class="activation-url"></div>
 
     </div>
 
@@ -690,22 +1150,26 @@ button{
 
 <!-- LOADING -->
 
-<div id="loading" class="loading">
+<div
+    id="loadingOverlay"
+    class="loading-overlay">
 
-    <div class="loading-box">
+    <div class="spinner"></div>
 
-        <div class="spinner"></div>
-
-        <div id="loadingText">
-            Carregando...
-        </div>
-
-    </div>
+    <strong id="loadingText">
+        Carregando...
+    </strong>
 
 </div>
 
 
+<div id="toastContainer" class="toast-container"></div>
+
+
 <script>
+
+"use strict";
+
 
 /* =========================================================
    CONFIGURAÇÃO
@@ -717,19 +1181,16 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
     "sb_publishable_2qV7Uw-99dQlVcXluSuikw_YZGClN13";
 
-/*
- * IMPORTANTE:
- * Este é o endereço REAL do seu connect.html.
- */
+const EDGE_FUNCTION_URL =
+    "https://kuzgdvpdqmocklsgyzvt.supabase.co/functions/v1/activate-device";
+
 const ACTIVATION_BASE_URL =
     "https://caiomendes29546874687.github.io/GC-PLAY-PRO-/connect.html";
 
-
-/*
- * Edge Function.
- */
-const EDGE_FUNCTION_URL =
-    SUPABASE_URL + "/functions/v1/activate-device";
+const CORS_PROXIES = [
+    "https://corsproxy.io/?url=",
+    "https://api.allorigins.win/raw?url="
+];
 
 
 const supabaseClient =
@@ -740,60 +1201,73 @@ const supabaseClient =
 
 
 /* =========================================================
-   APLICAÇÃO
+   APLICATIVO
 ========================================================= */
 
 const app = {
 
-    inicializado:false,
+    lista: [],
 
-    deviceId:null,
+    listaOriginal: [],
 
-    activationCode:null,
+    categoriaAtual: "todos",
 
-    activationPoll:null,
+    dispositivoAtivo: false,
 
-    realtimeChannel:null,
+    deviceId: null,
 
-    hls:null,
+    activationCode: null,
 
-    lista:[],
+    activationPoll: null,
 
-    listaOriginal:[],
+    realtimeChannel: null,
 
-    categoria:"todos",
+    hls: null,
 
-    busca:"",
+    video: null,
+
+    inicializado: false,
+
+    favoritos: new Set(
+        JSON.parse(
+            localStorage.getItem("gcplay_favoritos") || "[]"
+        )
+    ),
 
 
     /* =====================================================
-       INICIALIZAÇÃO
+       INIT
     ===================================================== */
 
     async init(){
 
-        if(this.inicializado) return;
+        if(this.inicializado){
+            return;
+        }
 
         this.inicializado = true;
+
+        this.video =
+            document.getElementById("video");
 
         this.inicializarDispositivo();
 
         this.configurarEventos();
 
+        this.restaurarListaLocal();
+
         this.gerarQRCode();
 
-        this.atualizarStatusAtivacao(
-            "AGUARDANDO ATIVAÇÃO",
+        this.atualizarStatusUI(
+            "AGUARDANDO",
             "waiting"
         );
 
         await this.registrarDispositivo();
 
-        await this.verificarStatusDispositivo();
-
         this.iniciarRealtime();
 
-        this.restaurarListaLocal();
+        this.verificarStatusDispositivo();
 
     },
 
@@ -804,21 +1278,24 @@ const app = {
 
     inicializarDispositivo(){
 
-        let deviceId =
-            localStorage.getItem("gcplay_device_id");
+        let id =
+            localStorage.getItem(
+                "gcplay_device_id"
+            );
 
-        if(!deviceId){
+        if(!id){
 
             if(
                 window.crypto &&
                 typeof crypto.randomUUID === "function"
             ){
 
-                deviceId = crypto.randomUUID();
+                id =
+                    crypto.randomUUID();
 
             }else{
 
-                deviceId =
+                id =
                     "gc-" +
                     Date.now().toString(36) +
                     "-" +
@@ -830,11 +1307,12 @@ const app = {
 
             localStorage.setItem(
                 "gcplay_device_id",
-                deviceId
+                id
             );
+
         }
 
-        this.deviceId = deviceId;
+        this.deviceId = id;
 
 
         let code =
@@ -842,9 +1320,13 @@ const app = {
                 "gcplay_activation_code"
             );
 
-        if(!code){
+        if(
+            !code ||
+            !/^[A-Z0-9]{6}$/.test(code)
+        ){
 
-            code = this.gerarCodigoAtivacao();
+            code =
+                this.gerarCodigoAtivacao();
 
             localStorage.setItem(
                 "gcplay_activation_code",
@@ -853,12 +1335,8 @@ const app = {
 
         }
 
-        this.activationCode = code;
-
-
-        document.getElementById(
-            "deviceCode"
-        ).textContent = code;
+        this.activationCode =
+            code;
 
     },
 
@@ -872,11 +1350,13 @@ const app = {
 
         for(let i=0;i<6;i++){
 
-            result += chars[
-                Math.floor(
-                    Math.random()*chars.length
-                )
-            ];
+            result +=
+                chars.charAt(
+                    Math.floor(
+                        Math.random() *
+                        chars.length
+                    )
+                );
 
         }
 
@@ -886,56 +1366,7 @@ const app = {
 
 
     /* =====================================================
-       QR CODE
-    ===================================================== */
-
-    gerarQRCode(){
-
-        const container =
-            document.getElementById("qrcode");
-
-        container.innerHTML = "";
-
-
-        const qrUrl =
-            ACTIVATION_BASE_URL +
-            "?device=" +
-            encodeURIComponent(
-                this.deviceId || ""
-            ) +
-            "&code=" +
-            encodeURIComponent(
-                this.activationCode || ""
-            );
-
-
-        new QRCode(container,{
-
-            text:qrUrl,
-
-            width:200,
-
-            height:200,
-
-            colorDark:"#000000",
-
-            colorLight:"#ffffff",
-
-            correctLevel:
-                QRCode.CorrectLevel.M
-
-        });
-
-
-        document.getElementById(
-            "activationUrl"
-        ).textContent = qrUrl;
-
-    },
-
-
-    /* =====================================================
-       REGISTRAR DISPOSITIVO
+       REGISTRO VIA EDGE FUNCTION
     ===================================================== */
 
     async registrarDispositivo(){
@@ -950,14 +1381,7 @@ const app = {
 
                         headers:{
                             "Content-Type":
-                                "application/json",
-
-                            "apikey":
-                                SUPABASE_KEY,
-
-                            "Authorization":
-                                "Bearer " +
-                                SUPABASE_KEY
+                                "application/json"
                         },
 
                         body:JSON.stringify({
@@ -982,26 +1406,29 @@ const app = {
             if(!response.ok){
 
                 console.error(
-                    "Erro ao registrar dispositivo:",
+                    "Registro:",
                     data
                 );
 
-                return false;
+                return;
 
             }
 
 
-            return true;
+            if(data.device){
 
+                this.processarAtualizacaoDispositivo(
+                    data.device
+                );
+
+            }
 
         }catch(error){
 
             console.error(
-                "Falha no registro:",
+                "Erro ao registrar:",
                 error
             );
-
-            return false;
 
         }
 
@@ -1014,48 +1441,57 @@ const app = {
 
     async verificarStatusDispositivo(){
 
+        if(!this.deviceId){
+            return;
+        }
+
         try{
 
-            const {data,error} =
-                await supabaseClient
-                    .from("devices")
-                    .select(
-                        "device_id,activation_code,status,playlist_url,expires_at"
-                    )
-                    .eq(
-                        "device_id",
-                        this.deviceId
-                    )
-                    .maybeSingle();
+            const response =
+                await fetch(
+                    EDGE_FUNCTION_URL,
+                    {
+                        method:"POST",
 
+                        headers:{
+                            "Content-Type":
+                                "application/json"
+                        },
 
-            if(error){
+                        body:JSON.stringify({
 
-                console.error(
-                    "Erro status:",
-                    error
+                            action:"status",
+
+                            device_id:
+                                this.deviceId
+
+                        })
+                    }
                 );
 
-                return;
+
+            const data =
+                await response.json();
+
+
+            if(
+                response.ok &&
+                data.success &&
+                data.device
+            ){
+
+                this.processarAtualizacaoDispositivo(
+                    data.device
+                );
 
             }
-
-
-            if(!data){
-
-                return;
-
-            }
-
-
-            this.processarAtualizacaoDispositivo(
-                data
-            );
-
 
         }catch(error){
 
-            console.error(error);
+            console.error(
+                "Status:",
+                error
+            );
 
         }
 
@@ -1068,61 +1504,66 @@ const app = {
 
     iniciarRealtime(){
 
-        if(this.realtimeChannel){
+        try{
 
-            supabaseClient
-                .removeChannel(
-                    this.realtimeChannel
-                );
+            if(this.realtimeChannel){
+
+                supabaseClient
+                    .removeChannel(
+                        this.realtimeChannel
+                    );
+
+            }
+
+
+            this.realtimeChannel =
+                supabaseClient
+                    .channel(
+                        "gcplay-device-" +
+                        this.deviceId
+                    )
+                    .on(
+                        "postgres_changes",
+                        {
+                            event:"*",
+                            schema:"public",
+                            table:"devices",
+                            filter:
+                                "device_id=eq." +
+                                this.deviceId
+                        },
+                        payload => {
+
+                            if(payload.new){
+
+                                this.processarAtualizacaoDispositivo(
+                                    payload.new
+                                );
+
+                            }
+
+                        }
+                    )
+                    .subscribe();
+
+
+        }catch(error){
+
+            console.error(
+                "Realtime:",
+                error
+            );
 
         }
 
 
-        this.realtimeChannel =
-            supabaseClient
-                .channel(
-                    "gcplay-device-" +
-                    this.deviceId
-                )
-                .on(
-                    "postgres_changes",
-                    {
-                        event:"*",
+        if(this.activationPoll){
 
-                        schema:"public",
+            clearInterval(
+                this.activationPoll
+            );
 
-                        table:"devices",
-
-                        filter:
-                            "device_id=eq." +
-                            this.deviceId
-                    },
-                    payload => {
-
-                        console.log(
-                            "Atualização:",
-                            payload
-                        );
-
-                        if(payload.new){
-
-                            this.processarAtualizacaoDispositivo(
-                                payload.new
-                            );
-
-                        }
-
-                    }
-                )
-                .subscribe();
-
-
-        /*
-         * Backup caso o realtime não esteja disponível.
-         */
-        clearInterval(
-            this.activationPoll
-        );
+        }
 
 
         this.activationPoll =
@@ -1142,86 +1583,206 @@ const app = {
        PROCESSAR ATIVAÇÃO
     ===================================================== */
 
-    processarAtualizacaoDispositivo(data){
+    processarAtualizacaoDispositivo(device){
 
-        if(!data) return;
+        if(!device){
+            return;
+        }
 
 
-        if(
-            data.activation_code &&
-            data.activation_code !==
-                this.activationCode
-        ){
+        if(device.activation_code){
 
             this.activationCode =
-                data.activation_code;
+                String(
+                    device.activation_code
+                ).toUpperCase();
 
             localStorage.setItem(
                 "gcplay_activation_code",
                 this.activationCode
             );
 
-            document.getElementById(
-                "deviceCode"
-            ).textContent =
-                this.activationCode;
-
             this.gerarQRCode();
 
         }
 
 
-        if(data.status === "active"){
+        if(device.status === "active"){
 
-            this.atualizarStatusAtivacao(
-                "DISPOSITIVO ATIVADO",
+            this.dispositivoAtivo = true;
+
+            this.atualizarStatusUI(
+                "ATIVO",
                 "active"
             );
 
+            this.fecharAtivacao();
 
-            document
-                .getElementById("activation")
-                .classList.add("hidden");
+            if(device.playlist_url){
 
+                const atual =
+                    localStorage.getItem(
+                        "gcplay_playlist_url"
+                    );
 
-            if(data.playlist_url){
+                if(
+                    atual !==
+                    device.playlist_url
+                ){
 
-                document.getElementById(
-                    "playlistUrl"
-                ).value =
-                    data.playlist_url;
+                    localStorage.setItem(
+                        "gcplay_playlist_url",
+                        device.playlist_url
+                    );
 
-                this.carregarListaM3U(
-                    data.playlist_url
-                );
+                    this.carregarListaM3U(
+                        device.playlist_url
+                    );
+
+                }
 
             }
 
+            return;
+        }
 
-        }else if(data.status === "blocked"){
 
-            this.atualizarStatusAtivacao(
-                "DISPOSITIVO BLOQUEADO",
+        if(device.status === "blocked"){
+
+            this.dispositivoAtivo = false;
+
+            this.atualizarStatusUI(
+                "BLOQUEADO",
                 "blocked"
             );
 
+            this.abrirAtivacao();
 
-            document
-                .getElementById("activation")
-                .classList.remove("hidden");
+            this.mostrarStatusAtivacao(
+                "Este dispositivo está bloqueado.",
+                "error"
+            );
+
+            return;
+        }
 
 
-        }else{
+        if(
+            device.expires_at &&
+            new Date(device.expires_at) <= new Date()
+        ){
 
-            this.atualizarStatusAtivacao(
-                "AGUARDANDO ATIVAÇÃO",
-                "waiting"
+            this.dispositivoAtivo = false;
+
+            this.atualizarStatusUI(
+                "EXPIRADO",
+                "blocked"
+            );
+
+            this.abrirAtivacao();
+
+            this.mostrarStatusAtivacao(
+                "A ativação deste dispositivo expirou.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        this.dispositivoAtivo = false;
+
+        this.atualizarStatusUI(
+            "AGUARDANDO",
+            "waiting"
+        );
+
+    },
+
+
+    /* =====================================================
+       QR CODE
+    ===================================================== */
+
+    gerarQRCode(){
+
+        const container =
+            document.getElementById(
+                "qrcode"
+            );
+
+        if(!container){
+            return;
+        }
+
+        container.innerHTML = "";
+
+
+        const qrUrl =
+            ACTIVATION_BASE_URL +
+            "?device=" +
+            encodeURIComponent(
+                this.deviceId || ""
+            ) +
+            "&code=" +
+            encodeURIComponent(
+                this.activationCode || ""
             );
 
 
-            document
-                .getElementById("activation")
-                .classList.remove("hidden");
+        try{
+
+            new QRCode(
+                container,
+                {
+                    text:qrUrl,
+
+                    width:190,
+
+                    height:190,
+
+                    colorDark:"#000000",
+
+                    colorLight:"#ffffff",
+
+                    correctLevel:
+                        QRCode.CorrectLevel.M
+                }
+            );
+
+        }catch(error){
+
+            console.error(
+                "QR Code:",
+                error
+            );
+
+        }
+
+
+        const codeElement =
+            document.getElementById(
+                "activationCode"
+            );
+
+        if(codeElement){
+
+            codeElement.textContent =
+                this.activationCode || "------";
+
+        }
+
+
+        const idElement =
+            document.getElementById(
+                "deviceId"
+            );
+
+        if(idElement){
+
+            idElement.textContent =
+                "ID: " +
+                this.deviceId;
 
         }
 
@@ -1229,45 +1790,143 @@ const app = {
 
 
     /* =====================================================
-       STATUS VISUAL
+       ATIVAÇÃO UI
     ===================================================== */
 
-    atualizarStatusAtivacao(texto,tipo){
+    abrirAtivacao(){
 
-        const status =
-            document.getElementById("status");
+        document
+            .getElementById(
+                "activationOverlay"
+            )
+            .style.display =
+                "flex";
 
-        const statusText =
+        this.gerarQRCode();
+
+    },
+
+
+    fecharAtivacao(){
+
+        if(!this.dispositivoAtivo){
+            return;
+        }
+
+        document
+            .getElementById(
+                "activationOverlay"
+            )
+            .style.display =
+                "none";
+
+    },
+
+
+    mostrarStatusAtivacao(
+        texto,
+        tipo=""
+    ){
+
+        const el =
+            document.getElementById(
+                "activationStatus"
+            );
+
+        if(!el){
+            return;
+        }
+
+        el.textContent =
+            texto;
+
+        el.className =
+            "activation-status " +
+            tipo;
+
+    },
+
+
+    atualizarStatusUI(
+        texto,
+        tipo
+    ){
+
+        const text =
             document.getElementById(
                 "statusText"
             );
 
-        const state =
+        const dot =
             document.getElementById(
-                "activationState"
+                "statusDot"
             );
 
 
-        status.className =
-            "status " +
-            (tipo || "");
+        if(text){
+
+            text.textContent =
+                texto;
+
+        }
 
 
-        statusText.textContent =
-            texto;
+        if(dot){
+
+            dot.className =
+                "status-dot";
+
+            if(tipo === "active"){
+
+                dot.classList.add(
+                    "active"
+                );
+
+            }
+
+            if(tipo === "blocked"){
+
+                dot.classList.add(
+                    "blocked"
+                );
+
+            }
+
+        }
+
+    },
 
 
-        state.textContent =
-            texto;
+    copiarCodigo(){
+
+        if(!this.activationCode){
+            return;
+        }
 
 
-        state.className =
-            "activation-state " +
-            (tipo === "active"
-                ? "active"
-                : tipo === "blocked"
-                    ? "error"
-                    : "");
+        navigator.clipboard
+            .writeText(
+                this.activationCode
+            )
+            .then(
+                () => {
+
+                    this.toast(
+                        "Código copiado!",
+                        "success"
+                    );
+
+                }
+            )
+            .catch(
+                () => {
+
+                    this.toast(
+                        this.activationCode
+                    );
+
+                }
+            );
 
     },
 
@@ -1278,121 +1937,16 @@ const app = {
 
     configurarEventos(){
 
-        document
-            .getElementById("loadBtn")
-            .addEventListener(
-                "click",
-                () => {
-
-                    const url =
-                        document.getElementById(
-                            "playlistUrl"
-                        ).value.trim();
-
-                    if(url){
-
-                        this.carregarListaM3U(
-                            url
-                        );
-
-                    }
-
-                }
-            );
-
-
-        document
-            .getElementById("playlistUrl")
-            .addEventListener(
-                "keydown",
-                e => {
-
-                    if(e.key === "Enter"){
-
-                        const url =
-                            e.target.value.trim();
-
-                        if(url){
-
-                            this.carregarListaM3U(
-                                url
-                            );
-
-                        }
-
-                    }
-
-                }
-            );
-
-
-        document
-            .getElementById("clearBtn")
-            .addEventListener(
-                "click",
-                () => {
-
-                    localStorage.removeItem(
-                        "gcplay_playlist_url"
-                    );
-
-                    document.getElementById(
-                        "playlistUrl"
-                    ).value = "";
-
-                    this.lista = [];
-
-                    this.listaOriginal = [];
-
-                    this.renderizar();
-
-                }
-            );
-
-
-        document
-            .getElementById("closePlayer")
-            .addEventListener(
-                "click",
-                () => this.fecharPlayer()
-            );
-
-
-        document
-            .getElementById("fullscreenBtn")
-            .addEventListener(
-                "click",
-                () => {
-
-                    const video =
-                        document.getElementById(
-                            "video"
-                        );
-
-                    if(video.requestFullscreen){
-
-                        video.requestFullscreen();
-
-                    }
-
-                }
-            );
-
-
-        const busca =
+        const search =
             document.getElementById(
                 "search"
             );
 
-        if(busca){
+        if(search){
 
-            busca.addEventListener(
+            search.addEventListener(
                 "input",
-                e => {
-
-                    this.busca =
-                        e.target.value
-                            .toLowerCase();
+                () => {
 
                     this.renderizar();
 
@@ -1402,111 +1956,112 @@ const app = {
         }
 
 
-        document
-            .getElementById("menuTodos")
-            .addEventListener(
-                "click",
-                () => this.mudarCategoria("todos")
-            );
-
-
-        document
-            .getElementById("menuAoVivo")
-            .addEventListener(
-                "click",
-                () => this.mudarCategoria("live")
-            );
-
-
-        document
-            .getElementById("menuFilmes")
-            .addEventListener(
-                "click",
-                () => this.mudarCategoria("movie")
-            );
-
-
-        document
-            .getElementById("menuSeries")
-            .addEventListener(
-                "click",
-                () => this.mudarCategoria("series")
-            );
-
-
-        document
-            .getElementById("menuMusica")
-            .addEventListener(
-                "click",
-                () => this.mudarCategoria("music")
-            );
-
-    },
-
-
-    /* =====================================================
-       CATEGORIA
-    ===================================================== */
-
-    mudarCategoria(categoria){
-
-        this.categoria =
-            categoria;
-
-
-        document
-            .querySelectorAll(".menu button")
-            .forEach(btn =>
-                btn.classList.remove("active")
-            );
-
-
-        const map = {
-
-            todos:"menuTodos",
-
-            live:"menuAoVivo",
-
-            movie:"menuFilmes",
-
-            series:"menuSeries",
-
-            music:"menuMusica"
-
-        };
-
-
-        const button =
+        const file =
             document.getElementById(
-                map[categoria]
+                "fileInput"
             );
 
+        if(file){
 
-        if(button){
+            file.addEventListener(
+                "change",
+                event => {
 
-            button.classList.add(
-                "active"
+                    const selected =
+                        event.target.files[0];
+
+                    if(selected){
+
+                        this.lerArquivo(
+                            selected
+                        );
+
+                    }
+
+                }
             );
 
         }
 
 
-        this.renderizar();
+        document.addEventListener(
+            "keydown",
+            event => {
+
+                this.tecladoTV(event);
+
+            }
+        );
+
+    },
+
+
+    abrirArquivo(){
+
+        document
+            .getElementById(
+                "fileInput"
+            )
+            .click();
 
     },
 
 
     /* =====================================================
-       CARREGAR M3U
+       M3U
     ===================================================== */
 
-    async carregarListaM3U(url){
+    async carregarListaM3U(urlManual=null){
 
-        if(!url) return;
+        let url =
+            urlManual ||
+            document
+                .getElementById(
+                    "playlistUrl"
+                )
+                .value
+                .trim();
+
+
+        if(!url){
+
+            url =
+                localStorage.getItem(
+                    "gcplay_playlist_url"
+                ) || "";
+
+        }
+
+
+        if(!url){
+
+            this.toast(
+                "Informe uma URL M3U.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        if(
+            !/^https?:\/\//i.test(url)
+        ){
+
+            this.toast(
+                "URL da playlist inválida.",
+                "error"
+            );
+
+            return;
+
+        }
 
 
         this.mostrarLoading(
-            "Baixando lista M3U..."
+            true,
+            "Baixando lista..."
         );
 
 
@@ -1514,71 +2069,72 @@ const app = {
 
             let texto = null;
 
+            let erroOriginal = null;
 
-            /*
-             * Primeiro tenta diretamente.
-             */
+
             try{
 
                 const response =
                     await fetch(
                         url,
                         {
-                            method:"GET",
-                            cache:"no-store"
+                            method:"GET"
                         }
                     );
 
+                if(!response.ok){
 
-                if(response.ok){
-
-                    texto =
-                        await response.text();
+                    throw new Error(
+                        "HTTP " +
+                        response.status
+                    );
 
                 }
 
-            }catch(e){
+                texto =
+                    await response.text();
 
-                console.log(
-                    "Fetch direto falhou."
-                );
+            }catch(error){
+
+                erroOriginal =
+                    error;
 
             }
 
 
-            /*
-             * Depois tenta proxies.
-             */
             if(!texto){
 
-                const proxies = [
-
-                    "https://corsproxy.io/?url=",
-
-                    "https://api.allorigins.win/raw?url="
-
-                ];
-
-
                 for(
-                    const proxy of proxies
+                    const proxy
+                    of CORS_PROXIES
                 ){
 
                     try{
 
-                        const response =
-                            await fetch(
-                                proxy +
-                                encodeURIComponent(url)
+                        const proxyUrl =
+                            proxy +
+                            encodeURIComponent(
+                                url
                             );
 
 
-                        if(response.ok){
+                        const response =
+                            await fetch(
+                                proxyUrl
+                            );
 
-                            texto =
+
+                        if(
+                            response.ok
+                        ){
+
+                            const data =
                                 await response.text();
 
-                            if(texto){
+                            if(data){
+
+                                texto =
+                                    data;
 
                                 break;
 
@@ -1586,11 +2142,11 @@ const app = {
 
                         }
 
-                    }catch(e){
+                    }catch(error){
 
-                        console.log(
+                        console.warn(
                             "Proxy falhou:",
-                            proxy
+                            error
                         );
 
                     }
@@ -1602,34 +2158,37 @@ const app = {
 
             if(!texto){
 
-                throw new Error(
-                    "Não foi possível baixar a lista M3U."
+                throw (
+                    erroOriginal ||
+                    new Error(
+                        "Não foi possível baixar a lista."
+                    )
                 );
 
             }
 
 
-            const lista =
+            const canais =
                 this.parseM3U(
                     texto,
                     url
                 );
 
 
-            if(!lista.length){
+            if(!canais.length){
 
                 throw new Error(
-                    "Nenhum canal encontrado."
+                    "Nenhum canal encontrado na lista."
                 );
 
             }
 
 
             this.lista =
-                lista;
+                canais;
 
             this.listaOriginal =
-                lista.slice();
+                [...canais];
 
 
             localStorage.setItem(
@@ -1638,34 +2197,134 @@ const app = {
             );
 
 
-            document.getElementById(
-                "playlistUrl"
-            ).value = url;
+            localStorage.setItem(
+                "gcplay_playlist_cache",
+                JSON.stringify(
+                    canais
+                )
+            );
 
 
-            document.getElementById(
-                "playlistInfo"
-            ).textContent =
-                lista.length +
-                " canais";
+            document
+                .getElementById(
+                    "playlistUrl"
+                )
+                .value =
+                    url;
 
+
+            this.categoriaAtual =
+                "todos";
+
+
+            this.atualizarContadores();
 
             this.renderizar();
 
 
+            this.toast(
+                canais.length +
+                " itens carregados.",
+                "success"
+            );
+
+
         }catch(error){
 
-            console.error(error);
+            console.error(
+                "M3U:",
+                error
+            );
 
-
-            this.mostrarErro(
-                error.message ||
-                "Erro ao carregar lista."
+            this.toast(
+                "Erro ao carregar lista: " +
+                error.message,
+                "error"
             );
 
         }finally{
 
-            this.esconderLoading();
+            this.mostrarLoading(
+                false
+            );
+
+        }
+
+    },
+
+
+    /* =====================================================
+       ARQUIVO
+    ===================================================== */
+
+    async lerArquivo(file){
+
+        this.mostrarLoading(
+            true,
+            "Lendo arquivo..."
+        );
+
+        try{
+
+            const texto =
+                await file.text();
+
+
+            const canais =
+                this.parseM3U(
+                    texto,
+                    ""
+                );
+
+
+            if(!canais.length){
+
+                throw new Error(
+                    "Nenhum item encontrado."
+                );
+
+            }
+
+
+            this.lista =
+                canais;
+
+            this.listaOriginal =
+                [...canais];
+
+
+            localStorage.setItem(
+                "gcplay_playlist_cache",
+                JSON.stringify(
+                    canais
+                )
+            );
+
+
+            this.atualizarContadores();
+
+            this.renderizar();
+
+
+            this.toast(
+                canais.length +
+                " itens carregados.",
+                "success"
+            );
+
+        }catch(error){
+
+            this.toast(
+                "Erro: " +
+                error.message,
+                "error"
+            );
+
+        }finally{
+
+            this.mostrarLoading(
+                false
+            );
 
         }
 
@@ -1676,13 +2335,12 @@ const app = {
        PARSER M3U
     ===================================================== */
 
-    parseM3U(texto,baseUrl){
+    parseM3U(texto, baseUrl=""){
 
         texto =
-            texto
+            String(texto || "")
                 .replace(/^\uFEFF/,"")
-                .replace(/\r\n/g,"\n")
-                .replace(/\r/g,"\n");
+                .replace(/\r/g,"");
 
 
         const linhas =
@@ -1691,7 +2349,10 @@ const app = {
 
         const resultado = [];
 
-        let atual = null;
+        let infoAtual = null;
+
+        const vistos =
+            new Set();
 
 
         for(
@@ -1704,89 +2365,20 @@ const app = {
                 linhas[i].trim();
 
 
-            if(!linha) continue;
+            if(!linha){
+                continue;
+            }
 
 
             if(
-                linha.startsWith(
-                    "#EXTINF:"
-                )
+                linha.toUpperCase()
+                    .startsWith("#EXTINF")
             ){
 
-                const info =
-                    linha;
-
-
-                const nomeMatch =
-                    info.match(
-                        /,(.*)$/
+                infoAtual =
+                    this.parseExtinf(
+                        linha
                     );
-
-
-                const nome =
-                    nomeMatch
-                        ? nomeMatch[1].trim()
-                        : "Sem nome";
-
-
-                const attrs = {};
-
-
-                const regex =
-                    /([a-zA-Z0-9_-]+)="([^"]*)"/g;
-
-
-                let match;
-
-
-                while(
-                    (match =
-                        regex.exec(info))
-                ){
-
-                    attrs[
-                        match[1].toLowerCase()
-                    ] =
-                        match[2];
-
-                }
-
-
-                const group =
-                    attrs["group-title"] ||
-                    "";
-
-
-                const logo =
-                    attrs["tvg-logo"] ||
-                    "";
-
-
-                const tvgId =
-                    attrs["tvg-id"] ||
-                    "";
-
-
-                atual = {
-
-                    name:nome,
-
-                    group:group,
-
-                    logo:logo,
-
-                    tvgId:tvgId,
-
-                    url:"",
-
-                    category:
-                        this.classificar(
-                            nome,
-                            group
-                        )
-
-                };
-
 
                 continue;
 
@@ -1794,37 +2386,127 @@ const app = {
 
 
             if(
-                !linha.startsWith("#") &&
-                atual
+                linha.startsWith("#")
             ){
 
-                let streamUrl =
-                    linha;
+                continue;
 
+            }
+
+
+            let url =
+                linha;
+
+
+            if(
+                baseUrl &&
+                !/^https?:\/\//i.test(url) &&
+                !/^rtmp:\/\//i.test(url) &&
+                !/^rtsp:\/\//i.test(url)
+            ){
 
                 try{
 
-                    streamUrl =
+                    url =
                         new URL(
-                            streamUrl,
+                            url,
                             baseUrl
                         ).href;
 
-                }catch(e){}
-
-
-                atual.url =
-                    streamUrl;
-
-
-                resultado.push(
-                    atual
-                );
-
-
-                atual = null;
+                }catch{}
 
             }
+
+
+            if(!infoAtual){
+
+                infoAtual = {
+
+                    name:url,
+
+                    group:"Outros",
+
+                    logo:"",
+
+                    tvgId:"",
+
+                    tvgName:"",
+
+                    tvgCountry:"",
+
+                    tvgLanguage:""
+
+                };
+
+            }
+
+
+            const chave =
+                (
+                    infoAtual.name +
+                    "|" +
+                    url
+                ).toLowerCase();
+
+
+            if(vistos.has(chave)){
+
+                infoAtual = null;
+
+                continue;
+
+            }
+
+
+            vistos.add(chave);
+
+
+            const item = {
+
+                id:
+                    "ch-" +
+                    resultado.length +
+                    "-" +
+                    Date.now(),
+
+                name:
+                    infoAtual.name ||
+                    "Sem nome",
+
+                url:url,
+
+                logo:
+                    infoAtual.logo || "",
+
+                group:
+                    infoAtual.group ||
+                    "Outros",
+
+                tvgId:
+                    infoAtual.tvgId || "",
+
+                tvgName:
+                    infoAtual.tvgName || "",
+
+                tvgCountry:
+                    infoAtual.tvgCountry || "",
+
+                tvgLanguage:
+                    infoAtual.tvgLanguage || "",
+
+                category:
+                    this.classificar(
+                        infoAtual.name,
+                        infoAtual.group,
+                        url
+                    )
+
+            };
+
+
+            resultado.push(item);
+
+            infoAtual = null;
 
         }
 
@@ -1834,30 +2516,163 @@ const app = {
     },
 
 
+    parseExtinf(line){
+
+        const result = {
+
+            name:"",
+
+            group:"Outros",
+
+            logo:"",
+
+            tvgId:"",
+
+            tvgName:"",
+
+            tvgCountry:"",
+
+            tvgLanguage:""
+
+        };
+
+
+        const attrs = [
+
+            "tvg-id",
+            "tvg-name",
+            "tvg-logo",
+            "tvg-country",
+            "tvg-language",
+            "group-title",
+            "group"
+
+        ];
+
+
+        for(
+            const attr
+            of attrs
+        ){
+
+            const regex =
+                new RegExp(
+                    attr +
+                    '\\s*=\\s*"([^"]*)"',
+                    "i"
+                );
+
+
+            const match =
+                line.match(regex);
+
+
+            if(match){
+
+                const value =
+                    match[1];
+
+                switch(attr){
+
+                    case "tvg-id":
+                        result.tvgId =
+                            value;
+                        break;
+
+                    case "tvg-name":
+                        result.tvgName =
+                            value;
+                        break;
+
+                    case "tvg-logo":
+                        result.logo =
+                            value;
+                        break;
+
+                    case "tvg-country":
+                        result.tvgCountry =
+                            value;
+                        break;
+
+                    case "tvg-language":
+                        result.tvgLanguage =
+                            value;
+                        break;
+
+                    case "group-title":
+                    case "group":
+                        result.group =
+                            value;
+                        break;
+
+                }
+
+            }
+
+        }
+
+
+        const comma =
+            line.indexOf(",");
+
+
+        if(comma >= 0){
+
+            result.name =
+                line.substring(
+                    comma + 1
+                ).trim();
+
+        }
+
+
+        if(!result.name){
+
+            result.name =
+                result.tvgName ||
+                "Sem nome";
+
+        }
+
+
+        return result;
+
+    },
+
+
     /* =====================================================
        CLASSIFICAÇÃO
     ===================================================== */
 
-    classificar(nome,grupo){
+    classificar(
+        nome,
+        grupo,
+        url
+    ){
 
         const texto =
             (
-                nome +
+                String(nome) +
                 " " +
-                grupo
+                String(grupo) +
+                " " +
+                String(url)
             ).toLowerCase();
 
 
         if(
-            /s\d{1,2}e\d{1,2}/i
-                .test(texto) ||
-            /t\d{1,2}e\d{1,2}/i
-                .test(texto) ||
-            /\d{1,2}x\d{1,2}/i
-                .test(texto) ||
-            /temporada/i.test(texto) ||
-            /epis[oó]dio/i.test(texto) ||
-            /series?/i.test(texto)
+            /s\d{1,2}e\d{1,2}/i.test(
+                texto
+            ) ||
+            /t\d{1,2}e\d{1,2}/i.test(
+                texto
+            ) ||
+            /\b\d{1,2}x\d{1,2}\b/i.test(
+                texto
+            ) ||
+            /temporada|epis[oó]dio/i.test(
+                texto
+            )
         ){
 
             return "series";
@@ -1866,26 +2681,98 @@ const app = {
 
 
         if(
-            /filme|movie|cinema|vod/i
-                .test(texto)
+            /filme|movie|cinema|vod/i.test(
+                texto
+            )
         ){
 
-            return "movie";
+            return "filmes";
 
         }
 
 
         if(
-            /music|m[uú]sica|radio|rádio/i
-                .test(texto)
+            /music|m[uú]sica|radio|rádio|radio/i.test(
+                texto
+            )
         ){
 
-            return "music";
+            return "musica";
 
         }
 
 
-        return "live";
+        return "tv";
+
+    },
+
+
+    /* =====================================================
+       RESTAURAR LISTA
+    ===================================================== */
+
+    restaurarListaLocal(){
+
+        try{
+
+            const cache =
+                localStorage.getItem(
+                    "gcplay_playlist_cache"
+                );
+
+
+            const url =
+                localStorage.getItem(
+                    "gcplay_playlist_url"
+                );
+
+
+            if(cache){
+
+                const lista =
+                    JSON.parse(cache);
+
+
+                if(
+                    Array.isArray(lista) &&
+                    lista.length
+                ){
+
+                    this.lista =
+                        lista;
+
+                    this.listaOriginal =
+                        [...lista];
+
+
+                    if(url){
+
+                        document
+                            .getElementById(
+                                "playlistUrl"
+                            )
+                            .value =
+                                url;
+
+                    }
+
+
+                    this.atualizarContadores();
+
+                    this.renderizar();
+
+                }
+
+            }
+
+        }catch(error){
+
+            console.error(
+                "Cache:",
+                error
+            );
+
+        }
 
     },
 
@@ -1902,63 +2789,130 @@ const app = {
             );
 
 
-        let lista =
-            this.listaOriginal
-                .slice();
+        const search =
+            document
+                .getElementById(
+                    "search"
+                )
+                .value
+                .trim()
+                .toLowerCase();
+
+
+        let dados =
+            [...this.lista];
 
 
         if(
-            this.categoria !==
+            this.categoriaAtual ===
+            "favoritos"
+        ){
+
+            dados =
+                dados.filter(
+                    item =>
+                        this.favoritos.has(
+                            item.id
+                        )
+                );
+
+        }else if(
+            this.categoriaAtual !==
             "todos"
         ){
 
-            lista =
-                lista.filter(
+            dados =
+                dados.filter(
                     item =>
                         item.category ===
-                        this.categoria
+                        this.categoriaAtual
                 );
 
         }
 
 
-        if(this.busca){
+        if(search){
 
-            lista =
-                lista.filter(
-                    item => {
-
-                        const texto =
-                            (
-                                item.name +
-                                " " +
-                                item.group
-                            ).toLowerCase();
-
-                        return texto.includes(
-                            this.busca
-                        );
-
-                    }
+            dados =
+                dados.filter(
+                    item =>
+                        (
+                            item.name +
+                            " " +
+                            item.group
+                        )
+                        .toLowerCase()
+                        .includes(search)
                 );
 
         }
 
 
-        if(!lista.length){
+        const title =
+            document.getElementById(
+                "pageTitle"
+            );
+
+
+        if(title){
+
+            const nomes = {
+
+                todos:"Todos os canais",
+
+                favoritos:"Favoritos",
+
+                tv:"TV",
+
+                filmes:"Filmes",
+
+                series:"Séries",
+
+                musica:"Música"
+
+            };
+
+            title.textContent =
+                nomes[
+                    this.categoriaAtual
+                ] ||
+                "Canais";
+
+        }
+
+
+        const info =
+            document.getElementById(
+                "playlistInfo"
+            );
+
+
+        if(info){
+
+            info.textContent =
+                dados.length +
+                " item(ns)";
+
+        }
+
+
+        if(!dados.length){
 
             container.innerHTML = `
 
                 <div class="empty">
 
-                    <i class="fa-solid fa-tv"></i>
+                    <div class="empty-box">
 
-                    <h2>Nenhum canal</h2>
+                        <i class="fa-solid fa-magnifying-glass"></i>
 
-                    <p>
-                        Não existem itens
-                        para esta categoria.
-                    </p>
+                        <h2>Nenhum item encontrado</h2>
+
+                        <p>
+                            Tente outra categoria ou busca.
+                        </p>
+
+                    </div>
 
                 </div>
 
@@ -1969,131 +2923,260 @@ const app = {
         }
 
 
-        const grid =
-            document.createElement(
-                "div"
+        container.innerHTML =
+            dados.map(
+                item =>
+                    this.criarCard(item)
+            ).join("");
+
+    },
+
+
+    criarCard(item){
+
+        const favorito =
+            this.favoritos.has(
+                item.id
             );
 
 
-        grid.className = "grid";
+        const logo =
+            item.logo ||
+            "data:image/svg+xml," +
+            encodeURIComponent(`
+
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     width="100"
+                     height="100">
+
+                    <rect width="100"
+                          height="100"
+                          fill="#101722"/>
+
+                    <text x="50"
+                          y="58"
+                          text-anchor="middle"
+                          fill="#66758a"
+                          font-size="38">
+                        ▶
+                    </text>
+
+                </svg>
+
+            `);
 
 
-        lista.forEach(
-            item => {
+        return `
 
-                const card =
-                    document.createElement(
-                        "div"
-                    );
+            <div
+                class="channel ${favorito ? "favorite":""}"
+                tabindex="0"
+                data-id="${this.escapeHtml(item.id)}"
+                onclick="app.reproduzir('${this.escapeJs(item.id)}')"
+                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();app.reproduzir('${this.escapeJs(item.id)}')}">
 
+                <img
+                    class="channel-logo"
+                    src="${this.escapeHtml(logo)}"
+                    alt=""
+                    loading="lazy"
+                    onerror="this.style.visibility='hidden'">
 
-                card.className =
-                    "channel";
+                <div class="channel-info">
 
+                    <div class="channel-name">
+                        ${this.escapeHtml(item.name)}
+                    </div>
 
-                card.tabIndex = 0;
+                    <div class="channel-group">
+                        ${this.escapeHtml(item.group)}
+                    </div>
 
+                    <div
+                        class="channel-star"
+                        onclick="event.stopPropagation();app.toggleFavorito('${this.escapeJs(item.id)}')">
 
-                let logoHtml;
+                        <i class="fa-${favorito ? "solid":"regular"} fa-star"></i>
 
-
-                if(item.logo){
-
-                    logoHtml = `
-
-                        <img
-                            class="channel-logo"
-                            src="${this.escapeAttr(item.logo)}"
-                            loading="lazy"
-                            onerror="this.style.display='none'"
-                        >
-
-                    `;
-
-                }else{
-
-                    logoHtml = `
-
-                        <div class="channel-no-logo">
-                            <i class="fa-solid fa-tv"></i>
-                        </div>
-
-                    `;
-
-                }
-
-
-                card.innerHTML = `
-
-                    ${logoHtml}
-
-                    <div class="channel-info">
-
-                        <div class="channel-name">
-                            ${this.escapeHtml(item.name)}
-                        </div>
-
-                        <div class="channel-group">
-                            ${this.escapeHtml(item.group || item.category)}
-                        </div>
+                        ${favorito ? " Favorito":""}
 
                     </div>
 
-                `;
+                </div>
 
+            </div>
 
-                card.addEventListener(
-                    "click",
-                    () => this.reproduzir(item)
-                );
-
-
-                card.addEventListener(
-                    "keydown",
-                    e => {
-
-                        if(
-                            e.key === "Enter" ||
-                            e.key === " "
-                        ){
-
-                            e.preventDefault();
-
-                            this.reproduzir(
-                                item
-                            );
-
-                        }
-
-                    }
-                );
-
-
-                grid.appendChild(card);
-
-            }
-        );
-
-
-        container.innerHTML = "";
-
-        container.appendChild(
-            grid
-        );
+        `;
 
     },
 
 
     /* =====================================================
-       REPRODUÇÃO
+       CATEGORIAS
     ===================================================== */
 
-    reproduzir(item){
+    selecionarCategoria(
+        categoria,
+        elemento
+    ){
 
-        if(!item || !item.url){
+        this.categoriaAtual =
+            categoria;
 
-            this.mostrarErro(
-                "URL do canal inválida."
+
+        document
+            .querySelectorAll(
+                ".nav-btn[data-category]"
+            )
+            .forEach(
+                el =>
+                    el.classList.remove(
+                        "active"
+                    )
+            );
+
+
+        if(elemento){
+
+            elemento.classList.add(
+                "active"
+            );
+
+        }else{
+
+            const btn =
+                document.querySelector(
+                    `.nav-btn[data-category="${categoria}"]`
+                );
+
+            if(btn){
+
+                btn.classList.add(
+                    "active"
+                );
+
+            }
+
+        }
+
+
+        this.renderizar();
+
+    },
+
+
+    atualizarContadores(){
+
+        const total =
+            this.lista.length;
+
+        const favoritos =
+            this.lista.filter(
+                item =>
+                    this.favoritos.has(
+                        item.id
+                    )
+            ).length;
+
+        const tv =
+            this.lista.filter(
+                item =>
+                    item.category === "tv"
+            ).length;
+
+        const filmes =
+            this.lista.filter(
+                item =>
+                    item.category === "filmes"
+            ).length;
+
+        const series =
+            this.lista.filter(
+                item =>
+                    item.category === "series"
+            ).length;
+
+        const musica =
+            this.lista.filter(
+                item =>
+                    item.category === "musica"
+            ).length;
+
+
+        document.getElementById(
+            "countTodos"
+        ).textContent = total;
+
+        document.getElementById(
+            "countFavoritos"
+        ).textContent = favoritos;
+
+        document.getElementById(
+            "countTv"
+        ).textContent = tv;
+
+        document.getElementById(
+            "countFilmes"
+        ).textContent = filmes;
+
+        document.getElementById(
+            "countSeries"
+        ).textContent = series;
+
+        document.getElementById(
+            "countMusica"
+        ).textContent = musica;
+
+    },
+
+
+    /* =====================================================
+       FAVORITOS
+    ===================================================== */
+
+    toggleFavorito(id){
+
+        if(
+            this.favoritos.has(id)
+        ){
+
+            this.favoritos.delete(id);
+
+        }else{
+
+            this.favoritos.add(id);
+
+        }
+
+
+        localStorage.setItem(
+            "gcplay_favoritos",
+            JSON.stringify(
+                [...this.favoritos]
+            )
+        );
+
+
+        this.atualizarContadores();
+
+        this.renderizar();
+
+    },
+
+
+    /* =====================================================
+       PLAYER
+    ===================================================== */
+
+    async reproduzir(id){
+
+        if(!this.dispositivoAtivo){
+
+            this.abrirAtivacao();
+
+            this.toast(
+                "Ative o dispositivo primeiro.",
+                "error"
             );
 
             return;
@@ -2101,124 +3184,123 @@ const app = {
         }
 
 
-        const video =
-            document.getElementById(
-                "video"
+        const item =
+            this.lista.find(
+                channel =>
+                    channel.id === id
             );
 
 
-        document.getElementById(
-            "playerTitle"
-        ).textContent =
+        if(!item){
+            return;
+        }
+
+
+        const overlay =
+            document.getElementById(
+                "playerOverlay"
+            );
+
+
+        const title =
+            document.getElementById(
+                "playerTitle"
+            );
+
+
+        const error =
+            document.getElementById(
+                "playerError"
+            );
+
+
+        const errorText =
+            document.getElementById(
+                "playerErrorText"
+            );
+
+
+        overlay.classList.add(
+            "show"
+        );
+
+
+        title.textContent =
             item.name;
+
+
+        error.classList.remove(
+            "show"
+        );
+
+
+        this.mostrarPlayerLoading(
+            true
+        );
 
 
         this.pararPlayer();
 
 
-        document
-            .getElementById("player")
-            .classList.add("show");
+        try{
 
+            await this.iniciarVideo(
+                item.url
+            );
 
-        const url =
-            item.url;
+        }catch(err){
 
-
-        /*
-         * HLS.js
-         */
-        if(
-            window.Hls &&
-            Hls.isSupported() &&
-            (
-                /\.m3u8($|\?)/i.test(url) ||
-                !video.canPlayType(
-                    "application/vnd.apple.mpegurl"
-                )
-            )
-        ){
-
-            this.hls =
-                new Hls({
-                    enableWorker:true,
-                    lowLatencyMode:false
-                });
-
-
-            this.hls.loadSource(
-                url
+            console.error(
+                "Player:",
+                err
             );
 
 
-            this.hls.attachMedia(
-                video
+            errorText.textContent =
+                err.message ||
+                "Erro ao reproduzir.";
+
+
+            error.classList.add(
+                "show"
             );
 
+        }finally{
 
-            this.hls.on(
-                Hls.Events.MANIFEST_PARSED,
-                () => {
-
-                    video.play()
-                        .catch(
-                            () => {}
-                        );
-
-                }
+            this.mostrarPlayerLoading(
+                false
             );
-
-
-            this.hls.on(
-                Hls.Events.ERROR,
-                (event,data) => {
-
-                    if(
-                        data.fatal
-                    ){
-
-                        console.error(
-                            "HLS error:",
-                            data
-                        );
-
-                    }
-
-                }
-            );
-
-
-        }else{
-
-            video.src = url;
-
-            video.play()
-                .catch(
-                    () => {}
-                );
 
         }
 
     },
 
 
-    pararPlayer(){
+    async iniciarVideo(url){
 
         const video =
-            document.getElementById(
-                "video"
+            this.video;
+
+
+        if(!video){
+
+            throw new Error(
+                "Player indisponível."
             );
 
+        }
 
-        if(this.hls){
+
+        if(
+            this.hls
+        ){
 
             try{
-
                 this.hls.destroy();
+            }catch{}
 
-            }catch(e){}
-
-            this.hls = null;
+            this.hls =
+                null;
 
         }
 
@@ -2231,6 +3313,152 @@ const app = {
 
         video.load();
 
+
+        const isHLS =
+            /\.m3u8($|\?)/i.test(
+                url
+            );
+
+
+        if(
+            isHLS &&
+            Hls.isSupported()
+        ){
+
+            await new Promise(
+                (
+                    resolve,
+                    reject
+                ) => {
+
+                    const hls =
+                        new Hls({
+                            enableWorker:true,
+                            lowLatencyMode:true
+                        });
+
+
+                    this.hls =
+                        hls;
+
+
+                    hls.loadSource(
+                        url
+                    );
+
+
+                    hls.attachMedia(
+                        video
+                    );
+
+
+                    hls.on(
+                        Hls.Events.MANIFEST_PARSED,
+                        () => {
+
+                            video.play()
+                                .then(resolve)
+                                .catch(resolve);
+
+                        }
+                    );
+
+
+                    hls.on(
+                        Hls.Events.ERROR,
+                        (
+                            event,
+                            data
+                        ) => {
+
+                            if(
+                                data.fatal
+                            ){
+
+                                reject(
+                                    new Error(
+                                        "Erro HLS: " +
+                                        (
+                                            data.details ||
+                                            "stream inválido"
+                                        )
+                                    )
+                                );
+
+                            }
+
+                        }
+                    );
+
+                }
+            );
+
+
+            return;
+
+        }
+
+
+        if(
+            video.canPlayType(
+                "application/vnd.apple.mpegurl"
+            ) ||
+            isHLS
+        ){
+
+            video.src =
+                url;
+
+            await video.play()
+                .catch(
+                    () => {}
+                );
+
+            return;
+
+        }
+
+
+        video.src =
+            url;
+
+
+        await video.play()
+            .catch(
+                () => {}
+            );
+
+    },
+
+
+    pararPlayer(){
+
+        if(this.hls){
+
+            try{
+
+                this.hls.destroy();
+
+            }catch{}
+
+            this.hls =
+                null;
+
+        }
+
+
+        if(this.video){
+
+            this.video.pause();
+
+            this.video.removeAttribute(
+                "src"
+            );
+
+            this.video.load();
+
+        }
+
     },
 
 
@@ -2239,17 +3467,72 @@ const app = {
         this.pararPlayer();
 
         document
-            .getElementById("player")
-            .classList.remove("show");
+            .getElementById(
+                "playerOverlay"
+            )
+            .classList.remove(
+                "show"
+            );
+
+    },
+
+
+    telaCheiaVideo(){
+
+        const video =
+            this.video;
+
+
+        if(!video){
+            return;
+        }
+
+
+        if(
+            video.requestFullscreen
+        ){
+
+            video.requestFullscreen();
+
+        }else if(
+            video.webkitEnterFullscreen
+        ){
+
+            video.webkitEnterFullscreen();
+
+        }
+
+    },
+
+
+    telaCheia(){
+
+        const element =
+            document.documentElement;
+
+
+        if(
+            document.fullscreenElement
+        ){
+
+            document.exitFullscreen();
+
+        }else if(
+            element.requestFullscreen
+        ){
+
+            element.requestFullscreen();
+
+        }
 
     },
 
 
     /* =====================================================
-       LISTA LOCAL
+       LISTA
     ===================================================== */
 
-    restaurarListaLocal(){
+    atualizarLista(){
 
         const url =
             localStorage.getItem(
@@ -2259,44 +3542,126 @@ const app = {
 
         if(url){
 
-            document.getElementById(
+            this.carregarListaM3U(
+                url
+            );
+
+        }else{
+
+            this.toast(
+                "Nenhuma lista configurada.",
+                "error"
+            );
+
+        }
+
+    },
+
+
+    limparLista(){
+
+        if(
+            !confirm(
+                "Deseja limpar a lista salva?"
+            )
+        ){
+
+            return;
+
+        }
+
+
+        this.lista = [];
+
+        this.listaOriginal = [];
+
+
+        localStorage.removeItem(
+            "gcplay_playlist_cache"
+        );
+
+        localStorage.removeItem(
+            "gcplay_playlist_url"
+        );
+
+
+        document
+            .getElementById(
                 "playlistUrl"
-            ).value = url;
+            )
+            .value = "";
 
-            /*
-             * Só carrega automaticamente
-             * depois que o dispositivo estiver
-             * ativado.
-             */
 
-            supabaseClient
-                .from("devices")
-                .select(
-                    "status,playlist_url"
-                )
-                .eq(
-                    "device_id",
-                    this.deviceId
-                )
-                .maybeSingle()
-                .then(
-                    ({data}) => {
+        this.atualizarContadores();
 
-                        if(
-                            data &&
-                            data.status ===
-                            "active"
-                        ){
+        this.renderizar();
 
-                            this.carregarListaM3U(
-                                data.playlist_url ||
-                                url
-                            );
 
-                        }
+        this.toast(
+            "Lista removida.",
+            "success"
+        );
 
-                    }
-                );
+    },
+
+
+    /* =====================================================
+       LOADING
+    ===================================================== */
+
+    mostrarLoading(
+        mostrar,
+        texto="Carregando..."
+    ){
+
+        const overlay =
+            document.getElementById(
+                "loadingOverlay"
+            );
+
+
+        const text =
+            document.getElementById(
+                "loadingText"
+            );
+
+
+        if(text){
+
+            text.textContent =
+                texto;
+
+        }
+
+
+        if(overlay){
+
+            overlay.classList.toggle(
+                "show",
+                mostrar
+            );
+
+        }
+
+    },
+
+
+    mostrarPlayerLoading(
+        mostrar
+    ){
+
+        const el =
+            document.getElementById(
+                "playerLoading"
+            );
+
+
+        if(el){
+
+            el.classList.toggle(
+                "show",
+                mostrar
+            );
 
         }
 
@@ -2304,42 +3669,271 @@ const app = {
 
 
     /* =====================================================
-       UTILIDADES
+       TOAST
     ===================================================== */
 
-    mostrarLoading(texto){
+    toast(
+        mensagem,
+        tipo=""
+    ){
 
-        document.getElementById(
-            "loadingText"
-        ).textContent =
-            texto || "Carregando...";
-
-
-        document
-            .getElementById("loading")
-            .classList.add("show");
-
-    },
+        const container =
+            document.getElementById(
+                "toastContainer"
+            );
 
 
-    esconderLoading(){
-
-        document
-            .getElementById("loading")
-            .classList.remove("show");
-
-    },
+        const toast =
+            document.createElement(
+                "div"
+            );
 
 
-    mostrarErro(texto){
+        toast.className =
+            "toast " +
+            tipo;
 
-        alert(
-            texto ||
-            "Ocorreu um erro."
+
+        toast.textContent =
+            mensagem;
+
+
+        container.appendChild(
+            toast
+        );
+
+
+        setTimeout(
+            () => {
+
+                toast.style.opacity =
+                    "0";
+
+                toast.style.transform =
+                    "translateY(8px)";
+
+                setTimeout(
+                    () => toast.remove(),
+                    200
+                );
+
+            },
+            3500
         );
 
     },
 
+
+    /* =====================================================
+       TECLADO / TV
+    ===================================================== */
+
+    tecladoTV(event){
+
+        const player =
+            document
+                .getElementById(
+                    "playerOverlay"
+                );
+
+
+        if(
+            player.classList.contains(
+                "show"
+            )
+        ){
+
+            if(
+                event.key === "Escape"
+            ){
+
+                this.fecharPlayer();
+
+            }
+
+            return;
+
+        }
+
+
+        const active =
+            document.activeElement;
+
+
+        if(
+            active &&
+            (
+                active.tagName ===
+                "INPUT" ||
+                active.tagName ===
+                "TEXTAREA"
+            )
+        ){
+
+            if(
+                event.key === "Escape"
+            ){
+
+                active.blur();
+
+            }
+
+            return;
+
+        }
+
+
+        const cards =
+            [
+                ...document.querySelectorAll(
+                    ".channel"
+                )
+            ];
+
+
+        if(!cards.length){
+            return;
+        }
+
+
+        let index =
+            cards.indexOf(
+                document.activeElement
+            );
+
+
+        if(event.key === "ArrowRight"){
+
+            event.preventDefault();
+
+            index =
+                Math.min(
+                    index + 1,
+                    cards.length - 1
+                );
+
+            cards[index].focus();
+
+        }
+
+
+        if(event.key === "ArrowLeft"){
+
+            event.preventDefault();
+
+            index =
+                Math.max(
+                    index - 1,
+                    0
+                );
+
+            cards[index].focus();
+
+        }
+
+
+        if(event.key === "ArrowDown"){
+
+            event.preventDefault();
+
+            const columns =
+                this.obterColunas();
+
+            index =
+                Math.min(
+                    index + columns,
+                    cards.length - 1
+                );
+
+            cards[index].focus();
+
+        }
+
+
+        if(event.key === "ArrowUp"){
+
+            event.preventDefault();
+
+            const columns =
+                this.obterColunas();
+
+            index =
+                Math.max(
+                    index - columns,
+                    0
+                );
+
+            cards[index].focus();
+
+        }
+
+
+        if(
+            event.key === "Enter" &&
+            index >= 0
+        ){
+
+            cards[index].click();
+
+        }
+
+    },
+
+
+    obterColunas(){
+
+        const cards =
+            document.querySelectorAll(
+                ".channel"
+            );
+
+
+        if(cards.length < 2){
+            return 1;
+        }
+
+
+        const firstTop =
+            cards[0].getBoundingClientRect().top;
+
+
+        let columns = 0;
+
+
+        for(
+            const card
+            of cards
+        ){
+
+            if(
+                Math.abs(
+                    card.getBoundingClientRect().top -
+                    firstTop
+                ) < 5
+            ){
+
+                columns++;
+
+            }else{
+
+                break;
+
+            }
+
+        }
+
+
+        return Math.max(
+            columns,
+            1
+        );
+
+    },
+
+
+    /* =====================================================
+       SEGURANÇA HTML
+    ===================================================== */
 
     escapeHtml(value){
 
@@ -2370,10 +3964,18 @@ const app = {
     },
 
 
-    escapeAttr(value){
+    escapeJs(value){
 
-        return this.escapeHtml(
-            value
+        return String(
+            value ?? ""
+        )
+        .replace(
+            /\\/g,
+            "\\\\"
+        )
+        .replace(
+            /'/g,
+            "\\'"
         );
 
     }
@@ -2382,11 +3984,11 @@ const app = {
 
 
 /* =========================================================
-   START
+   INICIAR
 ========================================================= */
 
-window.addEventListener(
-    "load",
+document.addEventListener(
+    "DOMContentLoaded",
     () => {
 
         app.init();
