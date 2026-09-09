@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#050805">
+<meta name="apple-mobile-web-app-capable" content="yes">
 
 <title>GC PLAY PRO</title>
 
@@ -20,27 +22,24 @@
     padding:0;
 }
 
-:root{
-    --bg:#070b12;
-    --panel:#0d131d;
-    --panel2:#121a26;
-    --border:#1e2a3a;
-    --text:#fff;
-    --muted:#8b98aa;
-    --primary:#e50914;
-    --primary2:#ff3340;
-    --green:#18c964;
-    --yellow:#ffb020;
-    --blue:#1683ff;
-}
-
 html,body{
     width:100%;
     height:100%;
-    overflow:hidden;
-    background:var(--bg);
-    color:var(--text);
+    background:#030503;
+    color:#fff;
     font-family:Arial,Helvetica,sans-serif;
+    overflow:hidden;
+}
+
+:root{
+    --green:#00ff66;
+    --green2:#00c853;
+    --dark:#030503;
+    --panel:#071008;
+    --panel2:#0a150b;
+    --border:rgba(0,255,102,.22);
+    --text:#fff;
+    --muted:#7f9184;
 }
 
 button,
@@ -49,67 +48,77 @@ input{
 }
 
 button{
-    border:0;
     cursor:pointer;
 }
 
-.app{
+.hidden{
+    display:none!important;
+}
+
+/* =========================
+   APP
+========================= */
+
+#app{
     width:100%;
     height:100%;
     display:flex;
     flex-direction:column;
+    background:
+        radial-gradient(circle at 50% -20%,rgba(0,255,102,.08),transparent 35%),
+        #030503;
 }
 
-/* HEADER */
+/* =========================
+   HEADER
+========================= */
 
-.header{
+header{
     height:64px;
     min-height:64px;
-    background:#090e17;
-    border-bottom:1px solid var(--border);
     display:flex;
     align-items:center;
+    gap:15px;
     padding:0 18px;
-    gap:18px;
-    z-index:20;
+    background:#050905;
+    border-bottom:1px solid var(--border);
+    box-shadow:0 0 20px rgba(0,255,102,.05);
+    z-index:10;
 }
 
 .logo{
     display:flex;
     align-items:center;
-    gap:10px;
-    min-width:210px;
+    gap:9px;
+    min-width:max-content;
 }
 
 .logo-icon{
-    width:40px;
-    height:40px;
+    width:36px;
+    height:36px;
+    border:2px solid var(--green);
     border-radius:10px;
-    background:var(--primary);
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:18px;
+    color:var(--green);
+    box-shadow:0 0 14px rgba(0,255,102,.25);
 }
 
 .logo-text{
-    font-size:20px;
+    font-size:19px;
     font-weight:900;
-    letter-spacing:.5px;
+    letter-spacing:1px;
 }
 
 .logo-text span{
-    color:var(--primary);
-}
-
-.header-center{
-    flex:1;
-    display:flex;
-    justify-content:center;
+    color:var(--green);
 }
 
 .search-box{
-    width:min(500px,100%);
+    flex:1;
+    max-width:520px;
+    margin:auto;
     position:relative;
 }
 
@@ -118,144 +127,115 @@ button{
     left:14px;
     top:50%;
     transform:translateY(-50%);
-    color:var(--muted);
+    color:#6e8173;
 }
 
 .search-box input{
     width:100%;
     height:40px;
-    background:#111925;
-    border:1px solid var(--border);
-    border-radius:10px;
+    border-radius:20px;
+    border:1px solid #17251a;
+    background:#091009;
     color:#fff;
-    padding:0 14px 0 42px;
+    padding:0 15px 0 40px;
     outline:none;
 }
 
 .search-box input:focus{
-    border-color:var(--primary);
+    border-color:var(--green);
+    box-shadow:0 0 12px rgba(0,255,102,.12);
 }
 
-.header-actions{
+.status-box{
     display:flex;
     align-items:center;
     gap:8px;
-}
-
-.icon-btn{
-    width:40px;
-    height:40px;
-    border-radius:9px;
-    background:#111925;
-    color:#fff;
-    border:1px solid var(--border);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
-
-.icon-btn:hover,
-.icon-btn:focus{
-    background:#1a2433;
-    border-color:#40506a;
-    outline:none;
-}
-
-.status-pill{
-    height:34px;
-    padding:0 12px;
-    border-radius:20px;
-    display:flex;
-    align-items:center;
-    gap:7px;
-    background:#111925;
-    border:1px solid var(--border);
+    color:#9cac9f;
     font-size:12px;
-    white-space:nowrap;
+    min-width:max-content;
 }
 
 .status-dot{
-    width:8px;
-    height:8px;
+    width:9px;
+    height:9px;
     border-radius:50%;
-    background:var(--yellow);
+    background:#777;
 }
 
 .status-dot.active{
     background:var(--green);
+    box-shadow:0 0 10px var(--green);
 }
 
-.status-dot.blocked{
-    background:var(--primary);
-}
+/* =========================
+   BODY
+========================= */
 
-/* BODY */
-
-.body{
+.main{
     flex:1;
-    min-height:0;
     display:flex;
+    min-height:0;
 }
 
-/* SIDEBAR */
+/* =========================
+   SIDEBAR
+========================= */
 
 .sidebar{
-    width:230px;
-    min-width:230px;
-    background:#090e17;
+    width:220px;
+    min-width:220px;
+    background:#050905;
     border-right:1px solid var(--border);
-    padding:15px 10px;
+    padding:14px 10px;
     overflow-y:auto;
 }
 
-.sidebar-title{
-    color:#66758a;
+.side-title{
+    color:#607166;
     font-size:11px;
-    font-weight:bold;
     text-transform:uppercase;
-    padding:10px 10px 7px;
+    letter-spacing:1.5px;
+    padding:10px;
 }
 
-.nav-btn{
+.category-btn{
     width:100%;
     height:42px;
+    border:0;
+    background:transparent;
+    color:#a9b7ad;
+    border-radius:9px;
     display:flex;
     align-items:center;
     gap:12px;
-    padding:0 12px;
-    background:transparent;
-    color:#aab5c4;
-    border-radius:8px;
-    margin-bottom:3px;
+    padding:0 13px;
+    margin-bottom:4px;
     text-align:left;
 }
 
-.nav-btn i{
-    width:18px;
+.category-btn i{
+    width:20px;
     text-align:center;
 }
 
-.nav-btn:hover,
-.nav-btn:focus,
-.nav-btn.active{
-    background:#171f2c;
-    color:#fff;
-    outline:none;
-}
-
-.nav-btn.active{
-    border-left:3px solid var(--primary);
+.category-btn:hover,
+.category-btn.active{
+    color:#000;
+    background:var(--green);
+    box-shadow:0 0 14px rgba(0,255,102,.15);
 }
 
 .category-count{
     margin-left:auto;
-    color:#657387;
     font-size:11px;
+    opacity:.65;
 }
 
-/* MAIN */
+/* =========================
+   CONTENT
+========================= */
 
-.main{
+.content{
     flex:1;
     min-width:0;
     display:flex;
@@ -265,217 +245,237 @@ button{
 
 .toolbar{
     min-height:58px;
-    padding:9px 14px;
-    border-bottom:1px solid var(--border);
     display:flex;
-    gap:8px;
     align-items:center;
-    background:#0b111a;
+    gap:8px;
+    padding:9px 14px;
+    border-bottom:1px solid rgba(0,255,102,.1);
+    background:#050905;
 }
 
 .url-input{
     flex:1;
-    height:40px;
     min-width:100px;
+    height:39px;
+    background:#091009;
+    border:1px solid #17251a;
     border-radius:8px;
-    background:#111925;
     color:#fff;
-    border:1px solid var(--border);
-    padding:0 13px;
     outline:none;
+    padding:0 12px;
 }
 
 .url-input:focus{
-    border-color:var(--primary);
+    border-color:var(--green);
 }
 
-.action-btn{
-    height:40px;
-    padding:0 15px;
+.btn{
+    height:39px;
     border-radius:8px;
-    background:var(--primary);
-    color:#fff;
-    font-weight:bold;
+    border:1px solid rgba(0,255,102,.35);
+    background:#071007;
+    color:var(--green);
+    padding:0 14px;
+    font-weight:700;
     display:flex;
     align-items:center;
+    justify-content:center;
     gap:7px;
 }
 
-.action-btn:hover,
-.action-btn:focus{
-    background:var(--primary2);
-    outline:none;
+.btn:hover,
+.btn:focus{
+    background:var(--green);
+    color:#000;
 }
 
-.action-btn.secondary{
-    background:#151e2b;
-    border:1px solid var(--border);
+.btn-primary{
+    background:var(--green);
+    color:#000;
 }
 
-.action-btn.secondary:hover{
-    background:#202c3d;
+.btn-primary:hover{
+    background:#39ff83;
 }
 
-/* CONTENT */
+/* =========================
+   CHANNEL AREA
+========================= */
 
-.content{
+.channel-area{
     flex:1;
     min-height:0;
     overflow-y:auto;
-    padding:18px;
+    padding:16px;
 }
 
-.page-title{
+.section-head{
     display:flex;
-    justify-content:space-between;
     align-items:center;
-    margin-bottom:17px;
+    justify-content:space-between;
+    margin-bottom:14px;
 }
 
-.page-title h1{
-    font-size:22px;
+.section-title{
+    font-size:18px;
+    font-weight:800;
 }
 
-.page-title small{
-    color:var(--muted);
+.section-title span{
+    color:var(--green);
 }
 
-.channels{
+.channel-count{
+    color:#607166;
+    font-size:12px;
+}
+
+.channel-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
-    gap:12px;
+    grid-template-columns:repeat(auto-fill,minmax(185px,1fr));
+    gap:10px;
 }
 
-.channel{
-    min-height:100px;
-    background:linear-gradient(145deg,#111925,#0c121c);
-    border:1px solid var(--border);
+.channel-card{
+    min-height:94px;
+    position:relative;
+    border:1px solid #152117;
+    background:
+        linear-gradient(145deg,#091109,#050805);
     border-radius:10px;
-    padding:13px;
+    padding:12px;
     display:flex;
-    gap:12px;
+    flex-direction:column;
+    justify-content:center;
     cursor:pointer;
     transition:.15s;
-    outline:none;
-}
-
-.channel:hover,
-.channel:focus{
-    border-color:#46566e;
-    transform:translateY(-1px);
-    background:#151e2b;
-}
-
-.channel.favorite{
-    border-color:#5b2830;
-}
-
-.channel-logo{
-    width:58px;
-    height:58px;
-    min-width:58px;
-    border-radius:8px;
-    background:#070b11;
-    border:1px solid #1c2736;
-    object-fit:contain;
-    padding:4px;
-}
-
-.channel-info{
-    min-width:0;
-    flex:1;
-}
-
-.channel-name{
-    font-size:14px;
-    font-weight:bold;
-    line-height:1.3;
-    display:-webkit-box;
-    -webkit-line-clamp:2;
-    -webkit-box-orient:vertical;
     overflow:hidden;
 }
 
-.channel-group{
-    margin-top:7px;
-    color:#7f8da0;
-    font-size:11px;
+.channel-card:hover,
+.channel-card.focused{
+    border-color:var(--green);
+    transform:translateY(-2px);
+    box-shadow:0 0 16px rgba(0,255,102,.12);
+}
+
+.channel-card.active{
+    border-color:var(--green);
+    box-shadow:inset 3px 0 0 var(--green);
+}
+
+.channel-icon{
+    width:40px;
+    height:40px;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#0d190e;
+    color:var(--green);
+    margin-bottom:8px;
+}
+
+.channel-name{
+    font-size:13px;
+    font-weight:700;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
 }
 
-.channel-star{
-    color:#526075;
-    margin-top:7px;
-    font-size:12px;
+.channel-group{
+    color:#65766a;
+    font-size:10px;
+    margin-top:4px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 
-.channel.favorite .channel-star{
-    color:#ffc400;
+.favorite{
+    position:absolute;
+    top:8px;
+    right:9px;
+    color:#415047;
 }
 
-/* EMPTY */
+.favorite.active{
+    color:var(--green);
+}
 
 .empty{
-    height:100%;
-    min-height:300px;
+    min-height:260px;
     display:flex;
-    align-items:center;
+    flex-direction:column;
     justify-content:center;
+    align-items:center;
     text-align:center;
-    color:var(--muted);
+    color:#627166;
+    gap:12px;
 }
 
-.empty-box i{
-    font-size:50px;
-    margin-bottom:15px;
-    color:#273548;
+.empty i{
+    font-size:42px;
+    color:#26362b;
 }
 
-.empty-box h2{
-    color:#d8dee7;
-    margin-bottom:7px;
+.empty strong{
+    color:#a0afa4;
 }
 
-/* PLAYER */
+/* =========================
+   PLAYER
+========================= */
 
-.player-overlay{
+#playerModal{
     position:fixed;
     inset:0;
-    background:#000;
     z-index:100;
+    background:#000;
     display:none;
     flex-direction:column;
 }
 
-.player-overlay.show{
+#playerModal.show{
     display:flex;
 }
 
 .player-header{
-    height:56px;
-    min-height:56px;
-    background:#090d14;
+    height:54px;
+    min-height:54px;
     display:flex;
     align-items:center;
     padding:0 14px;
-    gap:12px;
+    background:#050805;
+    border-bottom:1px solid rgba(0,255,102,.18);
 }
 
 .player-title{
     flex:1;
-    min-width:0;
-    font-weight:bold;
-    overflow:hidden;
     white-space:nowrap;
+    overflow:hidden;
     text-overflow:ellipsis;
+    font-weight:700;
 }
 
-.video-area{
+.player-close{
+    width:38px;
+    height:38px;
+    border:1px solid #203123;
+    background:#091009;
+    color:#fff;
+    border-radius:8px;
+}
+
+.player-close:hover{
+    background:var(--green);
+    color:#000;
+}
+
+.video-wrap{
     flex:1;
     min-height:0;
-    position:relative;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -488,26 +488,167 @@ video{
     object-fit:contain;
 }
 
-.player-loading{
-    position:absolute;
+/* =========================
+   ACTIVATION
+========================= */
+
+#activationOverlay{
+    position:fixed;
     inset:0;
+    z-index:1000;
+    background:
+        radial-gradient(circle at center,rgba(0,255,102,.08),transparent 45%),
+        rgba(1,4,2,.98);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+#activationOverlay.show{
+    display:flex;
+}
+
+.activation-box{
+    width:min(460px,100%);
+    max-height:95vh;
+    overflow:auto;
+    background:#071008;
+    border:1px solid rgba(0,255,102,.35);
+    border-radius:16px;
+    padding:25px;
+    text-align:center;
+    box-shadow:0 0 40px rgba(0,255,102,.1);
+}
+
+.activation-logo{
+    width:58px;
+    height:58px;
+    margin:0 auto 13px;
+    border:2px solid var(--green);
+    border-radius:15px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--green);
+    font-size:24px;
+    box-shadow:0 0 20px rgba(0,255,102,.15);
+}
+
+.activation-box h1{
+    font-size:23px;
+    margin-bottom:5px;
+}
+
+.activation-box h1 span{
+    color:var(--green);
+}
+
+.activation-sub{
+    color:#7e8f83;
+    font-size:13px;
+    margin-bottom:20px;
+}
+
+.qr-wrap{
+    width:220px;
+    height:220px;
+    background:#fff;
+    padding:10px;
+    border-radius:10px;
+    margin:0 auto 18px;
+}
+
+#qrcode{
+    width:200px;
+    height:200px;
+}
+
+.activation-code-label{
+    color:#68796e;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.activation-code{
+    font-size:28px;
+    font-weight:900;
+    letter-spacing:5px;
+    color:var(--green);
+    margin:4px 0 15px;
+}
+
+.device-id{
+    background:#030603;
+    border:1px solid #172318;
+    border-radius:7px;
+    padding:9px;
+    color:#68786d;
+    font-size:10px;
+    word-break:break-all;
+    margin-bottom:15px;
+}
+
+.activation-box input{
+    width:100%;
+    height:43px;
+    background:#030603;
+    color:#fff;
+    border:1px solid #172318;
+    border-radius:8px;
+    outline:none;
+    padding:0 12px;
+    margin-bottom:9px;
+}
+
+.activation-box input:focus{
+    border-color:var(--green);
+}
+
+.activation-message{
+    min-height:20px;
+    margin-top:12px;
+    font-size:12px;
+}
+
+.activation-message.success{
+    color:var(--green);
+}
+
+.activation-message.error{
+    color:#ff7474;
+}
+
+.activation-message.waiting{
+    color:#9da99f;
+}
+
+/* =========================
+   LOADING
+========================= */
+
+#loading{
+    position:fixed;
+    inset:0;
+    z-index:2000;
+    background:rgba(0,0,0,.82);
     display:none;
     align-items:center;
     justify-content:center;
     flex-direction:column;
-    gap:12px;
-    background:rgba(0,0,0,.55);
+    gap:15px;
 }
 
-.player-loading.show{
+#loading.show{
     display:flex;
 }
 
 .spinner{
-    width:40px;
-    height:40px;
-    border:4px solid #333;
-    border-top-color:#fff;
+    width:44px;
+    height:44px;
+    border:3px solid #172319;
+    border-top-color:var(--green);
     border-radius:50%;
     animation:spin .8s linear infinite;
 }
@@ -516,295 +657,137 @@ video{
     to{transform:rotate(360deg)}
 }
 
-.player-error{
-    position:absolute;
-    left:50%;
-    top:50%;
-    transform:translate(-50%,-50%);
-    text-align:center;
-    display:none;
-    max-width:90%;
-}
-
-.player-error.show{
-    display:block;
-}
-
-.player-error i{
-    font-size:45px;
-    color:var(--primary);
-    margin-bottom:15px;
-}
-
-.player-error p{
-    color:#bbb;
-    margin-top:7px;
-}
-
-/* ACTIVATION */
-
-.activation-overlay{
-    position:fixed;
-    inset:0;
-    z-index:500;
-    background:rgba(2,5,9,.97);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:20px;
-}
-
-.activation-card{
-    width:min(470px,100%);
-    background:#0d141f;
-    border:1px solid #263448;
-    border-radius:16px;
-    padding:28px;
-    text-align:center;
-    box-shadow:0 25px 80px rgba(0,0,0,.5);
-}
-
-.activation-logo{
-    width:58px;
-    height:58px;
-    margin:0 auto 15px;
-    border-radius:14px;
-    background:var(--primary);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:25px;
-}
-
-.activation-card h1{
-    font-size:24px;
-    margin-bottom:7px;
-}
-
-.activation-card>p{
-    color:#8e9bad;
-    line-height:1.5;
-    font-size:14px;
-}
-
-.qr{
-    width:220px;
-    height:220px;
-    background:#fff;
-    margin:20px auto;
-    padding:10px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:10px;
-}
-
-.qr img{
-    max-width:100%;
-}
-
-.device-code{
-    background:#070b11;
-    border:1px solid #273448;
-    border-radius:9px;
-    padding:12px;
-    margin-bottom:12px;
-}
-
-.device-code small{
-    display:block;
-    color:#758399;
-    font-size:11px;
-    margin-bottom:5px;
-}
-
-.device-code strong{
-    font-size:22px;
-    letter-spacing:4px;
-}
-
-.device-id{
-    color:#627188;
-    font-size:10px;
-    word-break:break-all;
-    margin-top:10px;
-}
-
-.activation-status{
-    margin-top:15px;
-    color:#a9b4c3;
+.loading-text{
+    color:#9baa9e;
     font-size:13px;
 }
 
-.activation-status.success{
-    color:var(--green);
-}
+/* =========================
+   TOAST
+========================= */
 
-.activation-status.error{
-    color:#ff5a63;
-}
-
-/* LOAD */
-
-.loading-overlay{
-    position:fixed;
-    inset:0;
-    z-index:450;
-    background:rgba(3,6,10,.88);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    flex-direction:column;
-    gap:15px;
-}
-
-.loading-overlay.show{
-    display:flex;
-}
-
-.loading-overlay .spinner{
-    width:46px;
-    height:46px;
-}
-
-/* TOAST */
-
-.toast-container{
+#toast{
     position:fixed;
     right:18px;
     bottom:18px;
-    z-index:1000;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-}
-
-.toast{
-    min-width:250px;
-    max-width:380px;
-    background:#111925;
-    border:1px solid #2a394d;
+    z-index:3000;
+    max-width:360px;
+    padding:13px 16px;
+    background:#091009;
+    border:1px solid var(--green);
     border-radius:9px;
-    padding:12px 14px;
-    box-shadow:0 10px 30px rgba(0,0,0,.35);
-    animation:toastIn .2s ease;
+    color:#fff;
+    box-shadow:0 0 20px rgba(0,255,102,.12);
+    display:none;
     font-size:13px;
 }
 
-.toast.success{
-    border-left:3px solid var(--green);
+#toast.show{
+    display:block;
 }
 
-.toast.error{
-    border-left:3px solid var(--primary);
-}
-
-@keyframes toastIn{
-    from{opacity:0;transform:translateY(8px)}
-    to{opacity:1;transform:none}
-}
-
-/* MOBILE */
+/* =========================
+   MOBILE
+========================= */
 
 @media(max-width:800px){
 
-    .header{
+    header{
         padding:0 10px;
-        gap:8px;
-    }
-
-    .logo{
-        min-width:auto;
+        gap:9px;
     }
 
     .logo-text{
-        font-size:16px;
+        font-size:15px;
     }
 
     .logo-icon{
-        width:35px;
-        height:35px;
+        width:31px;
+        height:31px;
     }
 
-    .header-center{
+    .search-box{
+        max-width:none;
+    }
+
+    .status-box{
         display:none;
-    }
-
-    .status-pill{
-        padding:0 8px;
     }
 
     .sidebar{
-        width:62px;
-        min-width:62px;
-        padding:10px 6px;
+        width:64px;
+        min-width:64px;
+        padding:8px 5px;
     }
 
-    .sidebar-title,
-    .nav-btn span,
-    .category-count{
+    .side-title{
         display:none;
     }
 
-    .nav-btn{
+    .category-btn{
+        height:45px;
         justify-content:center;
         padding:0;
     }
 
-    .nav-btn i{
-        width:auto;
-    }
-
-    .toolbar{
-        flex-wrap:wrap;
-        padding:8px;
-    }
-
-    .url-input{
-        width:100%;
-        flex-basis:100%;
-    }
-
-    .content{
-        padding:12px;
-    }
-
-    .channels{
-        grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
-    }
-
-    .channel{
-        padding:10px;
-    }
-
-    .channel-logo{
-        width:48px;
-        height:48px;
-        min-width:48px;
-    }
-
-    .activation-card{
-        padding:20px;
-    }
-
-    .qr{
-        width:190px;
-        height:190px;
-    }
-}
-
-@media(max-width:480px){
-
-    .channels{
-        grid-template-columns:1fr;
-    }
-
-    .header-actions .icon-btn:nth-child(1){
+    .category-btn span,
+    .category-count{
         display:none;
     }
 
-    .page-title h1{
-        font-size:18px;
+    .toolbar{
+        padding:7px;
+    }
+
+    .toolbar .btn span{
+        display:none;
+    }
+
+    .toolbar .btn{
+        width:42px;
+        padding:0;
+    }
+
+    .channel-area{
+        padding:10px;
+    }
+
+    .channel-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:7px;
+    }
+
+    .channel-card{
+        min-height:90px;
+    }
+}
+
+@media(max-width:450px){
+
+    .logo-text{
+        display:none;
+    }
+
+    .search-box input{
+        height:36px;
+    }
+
+    .channel-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .activation-box{
+        padding:18px;
+    }
+
+    .qr-wrap{
+        width:200px;
+        height:200px;
+    }
+
+    #qrcode{
+        width:180px;
+        height:180px;
     }
 }
 </style>
@@ -812,205 +795,169 @@ video{
 
 <body>
 
-<div class="app">
+<div id="app">
 
-<header class="header">
+    <header>
 
-    <div class="logo">
-        <div class="logo-icon">
-            <i class="fa-solid fa-play"></i>
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fa-solid fa-play"></i>
+            </div>
+
+            <div class="logo-text">
+                GC <span>PLAY PRO</span>
+            </div>
         </div>
 
-        <div class="logo-text">
-            GC <span>PLAY</span> PRO
-        </div>
-    </div>
-
-    <div class="header-center">
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input
-                id="search"
-                type="search"
+                id="searchInput"
+                type="text"
                 placeholder="Buscar canal, filme, série..."
                 autocomplete="off">
         </div>
-    </div>
 
-    <div class="header-actions">
-
-        <div class="status-pill">
-            <span id="statusDot" class="status-dot"></span>
+        <div class="status-box">
+            <div id="statusDot" class="status-dot"></div>
             <span id="statusText">AGUARDANDO</span>
         </div>
 
-        <button
-            class="icon-btn"
-            title="Atualizar lista"
-            onclick="app.atualizarLista()">
-            <i class="fa-solid fa-rotate"></i>
-        </button>
+    </header>
 
-        <button
-            class="icon-btn"
-            title="Tela cheia"
-            onclick="app.telaCheia()">
-            <i class="fa-solid fa-expand"></i>
-        </button>
+    <div class="main">
 
-    </div>
+        <aside class="sidebar">
 
-</header>
+            <div class="side-title">
+                Categorias
+            </div>
 
-
-<div class="body">
-
-    <aside class="sidebar">
-
-        <div class="sidebar-title">
-            Biblioteca
-        </div>
-
-        <button
-            class="nav-btn active"
-            data-category="todos"
-            onclick="app.selecionarCategoria('todos',this)">
-            <i class="fa-solid fa-house"></i>
-            <span>Todos</span>
-            <b id="countTodos" class="category-count">0</b>
-        </button>
-
-        <button
-            class="nav-btn"
-            data-category="favoritos"
-            onclick="app.selecionarCategoria('favoritos',this)">
-            <i class="fa-solid fa-star"></i>
-            <span>Favoritos</span>
-            <b id="countFavoritos" class="category-count">0</b>
-        </button>
-
-        <button
-            class="nav-btn"
-            data-category="tv"
-            onclick="app.selecionarCategoria('tv',this)">
-            <i class="fa-solid fa-tv"></i>
-            <span>TV</span>
-            <b id="countTv" class="category-count">0</b>
-        </button>
-
-        <button
-            class="nav-btn"
-            data-category="filmes"
-            onclick="app.selecionarCategoria('filmes',this)">
-            <i class="fa-solid fa-film"></i>
-            <span>Filmes</span>
-            <b id="countFilmes" class="category-count">0</b>
-        </button>
-
-        <button
-            class="nav-btn"
-            data-category="series"
-            onclick="app.selecionarCategoria('series',this)">
-            <i class="fa-solid fa-clapperboard"></i>
-            <span>Séries</span>
-            <b id="countSeries" class="category-count">0</b>
-        </button>
-
-        <button
-            class="nav-btn"
-            data-category="musica"
-            onclick="app.selecionarCategoria('musica',this)">
-            <i class="fa-solid fa-music"></i>
-            <span>Música</span>
-            <b id="countMusica" class="category-count">0</b>
-        </button>
-
-        <div class="sidebar-title">
-            Sistema
-        </div>
-
-        <button
-            class="nav-btn"
-            onclick="app.abrirAtivacao()">
-            <i class="fa-solid fa-qrcode"></i>
-            <span>Ativação</span>
-        </button>
-
-        <button
-            class="nav-btn"
-            onclick="app.limparLista()">
-            <i class="fa-solid fa-trash"></i>
-            <span>Limpar lista</span>
-        </button>
-
-    </aside>
-
-
-    <main class="main">
-
-        <div class="toolbar">
-
-            <input
-                id="playlistUrl"
-                class="url-input"
-                type="url"
-                placeholder="Cole aqui o link da sua lista M3U/M3U8...">
-
-            <button
-                class="action-btn"
-                onclick="app.carregarListaM3U()">
-                <i class="fa-solid fa-cloud-arrow-down"></i>
-                Carregar
+            <button class="category-btn active"
+                    data-category="all">
+                <i class="fa-solid fa-house"></i>
+                <span>Todos</span>
+                <small class="category-count"
+                       id="countAll">0</small>
             </button>
 
-            <button
-                class="action-btn secondary"
-                onclick="app.abrirArquivo()">
-                <i class="fa-solid fa-folder-open"></i>
-                Arquivo
+            <button class="category-btn"
+                    data-category="live">
+                <i class="fa-solid fa-tv"></i>
+                <span>TV ao vivo</span>
+                <small class="category-count"
+                       id="countLive">0</small>
             </button>
 
-            <input
-                id="fileInput"
-                type="file"
-                accept=".m3u,.m3u8,.txt"
-                hidden>
+            <button class="category-btn"
+                    data-category="movies">
+                <i class="fa-solid fa-film"></i>
+                <span>Filmes</span>
+                <small class="category-count"
+                       id="countMovies">0</small>
+            </button>
 
-        </div>
+            <button class="category-btn"
+                    data-category="series">
+                <i class="fa-solid fa-clapperboard"></i>
+                <span>Séries</span>
+                <small class="category-count"
+                       id="countSeries">0</small>
+            </button>
 
+            <button class="category-btn"
+                    data-category="music">
+                <i class="fa-solid fa-music"></i>
+                <span>Música</span>
+                <small class="category-count"
+                       id="countMusic">0</small>
+            </button>
+
+            <button class="category-btn"
+                    data-category="adult">
+                <i class="fa-solid fa-lock"></i>
+                <span>Adulto</span>
+                <small class="category-count"
+                       id="countAdult">0</small>
+            </button>
+
+            <button class="category-btn"
+                    data-category="favorites">
+                <i class="fa-solid fa-star"></i>
+                <span>Favoritos</span>
+                <small class="category-count"
+                       id="countFavorites">0</small>
+            </button>
+
+        </aside>
 
         <section class="content">
 
-            <div class="page-title">
+            <div class="toolbar">
 
-                <div>
-                    <h1 id="pageTitle">
-                        Todos os canais
-                    </h1>
+                <input
+                    id="playlistInput"
+                    class="url-input"
+                    type="url"
+                    placeholder="Cole aqui a URL da sua playlist M3U">
 
-                    <small id="playlistInfo">
-                        Nenhuma lista carregada
-                    </small>
-                </div>
+                <button
+                    id="loadPlaylistBtn"
+                    class="btn btn-primary">
+                    <i class="fa-solid fa-cloud-arrow-down"></i>
+                    <span>Carregar</span>
+                </button>
+
+                <button
+                    id="activationBtn"
+                    class="btn"
+                    title="Ativação">
+                    <i class="fa-solid fa-qrcode"></i>
+                    <span>Ativação</span>
+                </button>
+
+                <button
+                    id="reloadBtn"
+                    class="btn"
+                    title="Atualizar">
+                    <i class="fa-solid fa-rotate"></i>
+                </button>
 
             </div>
 
+            <div class="channel-area">
 
-            <div id="channels" class="channels">
+                <div class="section-head">
 
-                <div class="empty">
-
-                    <div class="empty-box">
-
-                        <i class="fa-solid fa-tv"></i>
-
-                        <h2>Nenhuma lista carregada</h2>
-
-                        <p>
-                            Cole uma URL M3U acima ou abra um arquivo.
-                        </p>
-
+                    <div class="section-title">
+                        <span id="sectionTitle">Todos</span>
                     </div>
+
+                    <div class="channel-count"
+                         id="channelCount">
+                        0 itens
+                    </div>
+
+                </div>
+
+                <div
+                    id="channelGrid"
+                    class="channel-grid">
+                </div>
+
+                <div
+                    id="emptyState"
+                    class="empty">
+
+                    <i class="fa-solid fa-tv"></i>
+
+                    <strong>
+                        Nenhuma playlist carregada
+                    </strong>
+
+                    <span>
+                        Cole uma URL M3U acima para começar.
+                    </span>
 
                 </div>
 
@@ -1018,40 +965,36 @@ video{
 
         </section>
 
-    </main>
+    </div>
 
 </div>
 
-</div>
 
+<!-- =========================
+     PLAYER
+========================= -->
 
-<!-- PLAYER -->
-
-<div id="playerOverlay" class="player-overlay">
+<div id="playerModal">
 
     <div class="player-header">
-
-        <button
-            class="icon-btn"
-            onclick="app.fecharPlayer()">
-            <i class="fa-solid fa-arrow-left"></i>
-        </button>
 
         <div
             id="playerTitle"
             class="player-title">
-            Reproduzindo
+            GC PLAY PRO
         </div>
 
         <button
-            class="icon-btn"
-            onclick="app.telaCheiaVideo()">
-            <i class="fa-solid fa-expand"></i>
+            id="playerClose"
+            class="player-close">
+
+            <i class="fa-solid fa-xmark"></i>
+
         </button>
 
     </div>
 
-    <div class="video-area">
+    <div class="video-wrap">
 
         <video
             id="video"
@@ -1060,87 +1003,70 @@ video{
             autoplay>
         </video>
 
-        <div
-            id="playerLoading"
-            class="player-loading">
-
-            <div class="spinner"></div>
-
-            <span>Carregando...</span>
-
-        </div>
-
-        <div
-            id="playerError"
-            class="player-error">
-
-            <i class="fa-solid fa-circle-exclamation"></i>
-
-            <h2>Não foi possível reproduzir</h2>
-
-            <p id="playerErrorText">
-                Verifique o endereço do canal.
-            </p>
-
-        </div>
-
     </div>
 
 </div>
 
 
-<!-- ACTIVATION -->
+<!-- =========================
+     ACTIVATION
+========================= -->
 
-<div id="activationOverlay" class="activation-overlay">
+<div id="activationOverlay">
 
-    <div class="activation-card">
+    <div class="activation-box">
 
         <div class="activation-logo">
-            <i class="fa-solid fa-play"></i>
+            <i class="fa-solid fa-qrcode"></i>
         </div>
 
-        <h1>Ative seu GC PLAY PRO</h1>
+        <h1>
+            GC <span>PLAY PRO</span>
+        </h1>
 
-        <p>
-            Escaneie o QR Code com o dispositivo autorizado
-            ou utilize o código de ativação.
-        </p>
-
-        <div id="qrcode" class="qr"></div>
-
-        <div class="device-code">
-
-            <small>
-                CÓDIGO DE ATIVAÇÃO
-            </small>
-
-            <strong id="activationCode">
-                ------ 
-            </strong>
-
+        <div class="activation-sub">
+            Ative este dispositivo para liberar o aplicativo
         </div>
 
-        <button
-            class="action-btn"
-            style="width:100%;justify-content:center"
-            onclick="app.copiarCodigo()">
+        <div class="qr-wrap">
+            <div id="qrcode"></div>
+        </div>
 
-            <i class="fa-solid fa-copy"></i>
-            Copiar código
-
-        </button>
+        <div class="activation-code-label">
+            Código de ativação
+        </div>
 
         <div
-            id="activationStatus"
-            class="activation-status">
-
-            Aguardando ativação...
-
+            id="activationCode"
+            class="activation-code">
+            ------
         </div>
 
         <div
             id="deviceId"
             class="device-id">
+            --
+        </div>
+
+        <input
+            id="activationPlaylist"
+            type="url"
+            placeholder="URL da playlist M3U">
+
+        <button
+            id="sendActivationBtn"
+            class="btn btn-primary"
+            style="width:100%;">
+
+            <i class="fa-solid fa-unlock"></i>
+            Ativar dispositivo
+
+        </button>
+
+        <div
+            id="activationMessage"
+            class="activation-message waiting">
+            Aguardando ativação...
         </div>
 
     </div>
@@ -1148,32 +1074,32 @@ video{
 </div>
 
 
-<!-- LOADING -->
+<!-- =========================
+     LOADING
+========================= -->
 
-<div
-    id="loadingOverlay"
-    class="loading-overlay">
+<div id="loading">
 
     <div class="spinner"></div>
 
-    <strong id="loadingText">
+    <div
+        id="loadingText"
+        class="loading-text">
         Carregando...
-    </strong>
+    </div>
 
 </div>
 
 
-<div id="toastContainer" class="toast-container"></div>
+<div id="toast"></div>
 
 
 <script>
-
 "use strict";
 
-
-/* =========================================================
+/* ============================================================
    CONFIGURAÇÃO
-========================================================= */
+============================================================ */
 
 const SUPABASE_URL =
     "https://kuzgdvpdqmocklsgyzvt.supabase.co";
@@ -1192,7 +1118,6 @@ const CORS_PROXIES = [
     "https://api.allorigins.win/raw?url="
 ];
 
-
 const supabaseClient =
     window.supabase.createClient(
         SUPABASE_URL,
@@ -1200,44 +1125,183 @@ const supabaseClient =
     );
 
 
-/* =========================================================
-   APLICATIVO
-========================================================= */
+/* ============================================================
+   UTILITÁRIOS
+============================================================ */
 
-const app = {
+function $(id){
+    return document.getElementById(id);
+}
 
-    lista: [],
+function showLoading(text){
+    $("loadingText").textContent = text || "Carregando...";
+    $("loading").classList.add("show");
+}
 
-    listaOriginal: [],
+function hideLoading(){
+    $("loading").classList.remove("show");
+}
 
-    categoriaAtual: "todos",
+function toast(message){
+    const el = $("toast");
 
-    dispositivoAtivo: false,
+    el.textContent = message;
+    el.classList.add("show");
 
-    deviceId: null,
+    clearTimeout(window.__toastTimer);
 
-    activationCode: null,
+    window.__toastTimer =
+        setTimeout(() => {
+            el.classList.remove("show");
+        }, 3500);
+}
 
-    activationPoll: null,
+function validUUID(value){
 
-    realtimeChannel: null,
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+        .test(value);
 
-    hls: null,
-
-    video: null,
-
-    inicializado: false,
-
-    favoritos: new Set(
-        JSON.parse(
-            localStorage.getItem("gcplay_favoritos") || "[]"
-        )
-    ),
+}
 
 
-    /* =====================================================
+/* ============================================================
+   UUID COMPATÍVEL COM APARELHOS ANTIGOS
+============================================================ */
+
+function gerarUUIDFallback(){
+
+    const bytes =
+        new Uint8Array(16);
+
+    if(
+        window.crypto &&
+        typeof window.crypto.getRandomValues === "function"
+    ){
+
+        window.crypto.getRandomValues(bytes);
+
+    }else{
+
+        for(
+            let i = 0;
+            i < 16;
+            i++
+        ){
+
+            bytes[i] =
+                Math.floor(
+                    Math.random() * 256
+                );
+
+        }
+
+    }
+
+    bytes[6] =
+        (bytes[6] & 0x0f) | 0x40;
+
+    bytes[8] =
+        (bytes[8] & 0x3f) | 0x80;
+
+    const hex =
+        Array.from(bytes)
+            .map(
+                b =>
+                    b.toString(16)
+                        .padStart(2,"0")
+            )
+            .join("");
+
+    return (
+        hex.substring(0,8) + "-" +
+        hex.substring(8,12) + "-" +
+        hex.substring(12,16) + "-" +
+        hex.substring(16,20) + "-" +
+        hex.substring(20,32)
+    );
+}
+
+
+function gerarUUID(){
+
+    try{
+
+        if(
+            window.crypto &&
+            typeof window.crypto.randomUUID === "function"
+        ){
+
+            return window.crypto.randomUUID();
+
+        }
+
+    }catch(e){}
+
+    return gerarUUIDFallback();
+}
+
+
+/* ============================================================
+   CÓDIGO DE ATIVAÇÃO
+============================================================ */
+
+function gerarCodigoAtivacao(){
+
+    const chars =
+        "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+    let result = "";
+
+    for(let i = 0; i < 6; i++){
+
+        result +=
+            chars.charAt(
+                Math.floor(
+                    Math.random() *
+                    chars.length
+                )
+            );
+
+    }
+
+    return result;
+}
+
+
+/* ============================================================
+   ESTADO DO APP
+============================================================ */
+
+const App = {
+
+    inicializado:false,
+
+    deviceId:null,
+
+    activationCode:null,
+
+    activationChannel:null,
+
+    activationPoll:null,
+
+    playlistUrl:null,
+
+    canais:[],
+
+    canaisFiltrados:[],
+
+    favoritos:new Set(),
+
+    categoriaAtual:"all",
+
+    hls:null,
+
+    currentChannel:null,
+
+
+    /* ========================================================
        INIT
-    ===================================================== */
+    ======================================================== */
 
     async init(){
 
@@ -1247,19 +1311,20 @@ const app = {
 
         this.inicializado = true;
 
-        this.video =
-            document.getElementById("video");
+        this.carregarFavoritos();
 
         this.inicializarDispositivo();
 
         this.configurarEventos();
 
+        this.configurarTeclado();
+
         this.restaurarListaLocal();
 
         this.gerarQRCode();
 
-        this.atualizarStatusUI(
-            "AGUARDANDO",
+        this.atualizarStatusAtivacao(
+            "AGUARDANDO ATIVAÇÃO",
             "waiting"
         );
 
@@ -1267,14 +1332,16 @@ const app = {
 
         this.iniciarRealtime();
 
-        this.verificarStatusDispositivo();
+        this.atualizarCategorias();
+
+        this.renderizar();
 
     },
 
 
-    /* =====================================================
+    /* ========================================================
        DISPOSITIVO
-    ===================================================== */
+    ======================================================== */
 
     inicializarDispositivo(){
 
@@ -1283,27 +1350,9 @@ const app = {
                 "gcplay_device_id"
             );
 
-        if(!id){
+        if(!validUUID(id || "")){
 
-            if(
-                window.crypto &&
-                typeof crypto.randomUUID === "function"
-            ){
-
-                id =
-                    crypto.randomUUID();
-
-            }else{
-
-                id =
-                    "gc-" +
-                    Date.now().toString(36) +
-                    "-" +
-                    Math.random()
-                        .toString(36)
-                        .substring(2,10);
-
-            }
+            id = gerarUUID();
 
             localStorage.setItem(
                 "gcplay_device_id",
@@ -1313,7 +1362,6 @@ const app = {
         }
 
         this.deviceId = id;
-
 
         let code =
             localStorage.getItem(
@@ -1326,7 +1374,7 @@ const app = {
         ){
 
             code =
-                this.gerarCodigoAtivacao();
+                gerarCodigoAtivacao();
 
             localStorage.setItem(
                 "gcplay_activation_code",
@@ -1336,89 +1384,165 @@ const app = {
         }
 
         this.activationCode =
-            code;
+            code.toUpperCase();
 
     },
 
 
-    gerarCodigoAtivacao(){
+    /* ========================================================
+       QR CODE
+    ======================================================== */
 
-        const chars =
-            "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    gerarQRCode(){
 
-        let result = "";
+        const qr =
+            $("qrcode");
 
-        for(let i=0;i<6;i++){
+        qr.innerHTML = "";
 
-            result +=
-                chars.charAt(
-                    Math.floor(
-                        Math.random() *
-                        chars.length
-                    )
-                );
+        const url =
+            ACTIVATION_BASE_URL +
+            "?device=" +
+            encodeURIComponent(
+                this.deviceId
+            ) +
+            "&code=" +
+            encodeURIComponent(
+                this.activationCode
+            );
+
+        new QRCode(
+            qr,
+            {
+                text:url,
+                width:200,
+                height:200,
+                colorDark:"#000000",
+                colorLight:"#ffffff",
+                correctLevel:
+                    QRCode.CorrectLevel.M
+            }
+        );
+
+        $("activationCode").textContent =
+            this.activationCode;
+
+        $("deviceId").textContent =
+            this.deviceId;
+
+    },
+
+
+    /* ========================================================
+       EDGE FUNCTION
+    ======================================================== */
+
+    async edgeFunction(body){
+
+        const response =
+            await fetch(
+                EDGE_FUNCTION_URL,
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify(body)
+                }
+            );
+
+        let data = null;
+
+        try{
+            data =
+                await response.json();
+        }catch(e){}
+
+        if(!response.ok){
+
+            throw new Error(
+                data &&
+                data.error
+                    ? data.error
+                    : "Erro no servidor."
+            );
 
         }
 
-        return result;
+        return data;
 
     },
 
 
-    /* =====================================================
-       REGISTRO VIA EDGE FUNCTION
-    ===================================================== */
+    /* ========================================================
+       REGISTRAR DISPOSITIVO
+    ======================================================== */
 
     async registrarDispositivo(){
 
+        if(!validUUID(this.deviceId)){
+
+            console.error(
+                "UUID inválido:",
+                this.deviceId
+            );
+
+            this.inicializarDispositivo();
+
+        }
+
         try{
 
-            const response =
-                await fetch(
-                    EDGE_FUNCTION_URL,
+            const data =
+                await this.edgeFunction(
                     {
-                        method:"POST",
+                        action:"register",
 
-                        headers:{
-                            "Content-Type":
-                                "application/json"
-                        },
+                        device_id:
+                            this.deviceId,
 
-                        body:JSON.stringify({
-
-                            action:"register",
-
-                            device_id:
-                                this.deviceId,
-
-                            activation_code:
-                                this.activationCode
-
-                        })
+                        activation_code:
+                            this.activationCode
                     }
                 );
 
+            if(
+                data &&
+                data.device &&
+                data.device.activation_code
+            ){
 
-            const data =
-                await response.json();
+                this.activationCode =
+                    String(
+                        data.device.activation_code
+                    ).toUpperCase();
 
-
-            if(!response.ok){
-
-                console.error(
-                    "Registro:",
-                    data
+                localStorage.setItem(
+                    "gcplay_activation_code",
+                    this.activationCode
                 );
 
-                return;
+                this.gerarQRCode();
 
             }
 
-
-            if(data.device){
+            if(
+                data.status === "active"
+            ){
 
                 this.processarAtualizacaoDispositivo(
                     data.device
+                );
+
+            }else{
+
+                this.atualizarStatusAtivacao(
+                    "AGUARDANDO ATIVAÇÃO",
+                    "waiting"
                 );
 
             }
@@ -1426,8 +1550,13 @@ const app = {
         }catch(error){
 
             console.error(
-                "Erro ao registrar:",
+                "Erro ao registrar dispositivo:",
                 error
+            );
+
+            this.atualizarStatusAtivacao(
+                "AGUARDANDO SERVIDOR",
+                "waiting"
             );
 
         }
@@ -1435,48 +1564,30 @@ const app = {
     },
 
 
-    /* =====================================================
+    /* ========================================================
        STATUS
-    ===================================================== */
+    ======================================================== */
 
     async verificarStatusDispositivo(){
 
-        if(!this.deviceId){
+        if(!validUUID(this.deviceId)){
             return;
         }
 
         try{
 
-            const response =
-                await fetch(
-                    EDGE_FUNCTION_URL,
+            const data =
+                await this.edgeFunction(
                     {
-                        method:"POST",
+                        action:"status",
 
-                        headers:{
-                            "Content-Type":
-                                "application/json"
-                        },
-
-                        body:JSON.stringify({
-
-                            action:"status",
-
-                            device_id:
-                                this.deviceId
-
-                        })
+                        device_id:
+                            this.deviceId
                     }
                 );
 
-
-            const data =
-                await response.json();
-
-
             if(
-                response.ok &&
-                data.success &&
+                data &&
                 data.device
             ){
 
@@ -1488,7 +1599,7 @@ const app = {
 
         }catch(error){
 
-            console.error(
+            console.warn(
                 "Status:",
                 error
             );
@@ -1498,97 +1609,15 @@ const app = {
     },
 
 
-    /* =====================================================
-       REALTIME
-    ===================================================== */
-
-    iniciarRealtime(){
-
-        try{
-
-            if(this.realtimeChannel){
-
-                supabaseClient
-                    .removeChannel(
-                        this.realtimeChannel
-                    );
-
-            }
-
-
-            this.realtimeChannel =
-                supabaseClient
-                    .channel(
-                        "gcplay-device-" +
-                        this.deviceId
-                    )
-                    .on(
-                        "postgres_changes",
-                        {
-                            event:"*",
-                            schema:"public",
-                            table:"devices",
-                            filter:
-                                "device_id=eq." +
-                                this.deviceId
-                        },
-                        payload => {
-
-                            if(payload.new){
-
-                                this.processarAtualizacaoDispositivo(
-                                    payload.new
-                                );
-
-                            }
-
-                        }
-                    )
-                    .subscribe();
-
-
-        }catch(error){
-
-            console.error(
-                "Realtime:",
-                error
-            );
-
-        }
-
-
-        if(this.activationPoll){
-
-            clearInterval(
-                this.activationPoll
-            );
-
-        }
-
-
-        this.activationPoll =
-            setInterval(
-                () => {
-
-                    this.verificarStatusDispositivo();
-
-                },
-                15000
-            );
-
-    },
-
-
-    /* =====================================================
-       PROCESSAR ATIVAÇÃO
-    ===================================================== */
+    /* ========================================================
+       PROCESSAR STATUS
+    ======================================================== */
 
     processarAtualizacaoDispositivo(device){
 
         if(!device){
             return;
         }
-
 
         if(device.activation_code){
 
@@ -1606,345 +1635,410 @@ const app = {
 
         }
 
-
         if(device.status === "active"){
 
-            this.dispositivoAtivo = true;
-
-            this.atualizarStatusUI(
+            this.atualizarStatusAtivacao(
                 "ATIVO",
                 "active"
             );
 
-            this.fecharAtivacao();
+            if(
+                device.playlist_url &&
+                device.playlist_url !==
+                    this.playlistUrl
+            ){
 
-            if(device.playlist_url){
+                this.playlistUrl =
+                    device.playlist_url;
 
-                const atual =
-                    localStorage.getItem(
-                        "gcplay_playlist_url"
-                    );
-
-                if(
-                    atual !==
+                localStorage.setItem(
+                    "gcplay_playlist_url",
                     device.playlist_url
-                ){
+                );
 
-                    localStorage.setItem(
-                        "gcplay_playlist_url",
-                        device.playlist_url
-                    );
-
-                    this.carregarListaM3U(
-                        device.playlist_url
-                    );
-
-                }
+                this.carregarListaM3U(
+                    device.playlist_url,
+                    false
+                );
 
             }
 
-            return;
-        }
-
-
-        if(device.status === "blocked"){
-
-            this.dispositivoAtivo = false;
-
-            this.atualizarStatusUI(
-                "BLOQUEADO",
-                "blocked"
-            );
-
-            this.abrirAtivacao();
-
-            this.mostrarStatusAtivacao(
-                "Este dispositivo está bloqueado.",
-                "error"
-            );
-
-            return;
-        }
-
-
-        if(
-            device.expires_at &&
-            new Date(device.expires_at) <= new Date()
+        }else if(
+            device.status === "blocked"
         ){
 
-            this.dispositivoAtivo = false;
-
-            this.atualizarStatusUI(
-                "EXPIRADO",
-                "blocked"
-            );
-
-            this.abrirAtivacao();
-
-            this.mostrarStatusAtivacao(
-                "A ativação deste dispositivo expirou.",
+            this.atualizarStatusAtivacao(
+                "DISPOSITIVO BLOQUEADO",
                 "error"
             );
 
-            return;
+            toast(
+                "Este dispositivo está bloqueado."
+            );
+
+        }else{
+
+            this.atualizarStatusAtivacao(
+                "AGUARDANDO ATIVAÇÃO",
+                "waiting"
+            );
+
         }
-
-
-        this.dispositivoAtivo = false;
-
-        this.atualizarStatusUI(
-            "AGUARDANDO",
-            "waiting"
-        );
 
     },
 
 
-    /* =====================================================
-       QR CODE
-    ===================================================== */
+    /* ========================================================
+       REALTIME + POLLING
+    ======================================================== */
 
-    gerarQRCode(){
-
-        const container =
-            document.getElementById(
-                "qrcode"
-            );
-
-        if(!container){
-            return;
-        }
-
-        container.innerHTML = "";
-
-
-        const qrUrl =
-            ACTIVATION_BASE_URL +
-            "?device=" +
-            encodeURIComponent(
-                this.deviceId || ""
-            ) +
-            "&code=" +
-            encodeURIComponent(
-                this.activationCode || ""
-            );
-
+    iniciarRealtime(){
 
         try{
 
-            new QRCode(
-                container,
-                {
-                    text:qrUrl,
+            if(this.activationChannel){
 
-                    width:190,
+                supabaseClient
+                    .removeChannel(
+                        this.activationChannel
+                    );
 
-                    height:190,
+            }
 
-                    colorDark:"#000000",
+            this.activationChannel =
+                supabaseClient
+                    .channel(
+                        "gcplay-device-" +
+                        this.deviceId
+                    )
+                    .on(
+                        "postgres_changes",
+                        {
+                            event:"*",
+                            schema:"public",
+                            table:"devices",
+                            filter:
+                                "device_id=eq." +
+                                this.deviceId
+                        },
+                        payload => {
 
-                    colorLight:"#ffffff",
+                            if(
+                                payload &&
+                                payload.new
+                            ){
 
-                    correctLevel:
-                        QRCode.CorrectLevel.M
-                }
-            );
+                                this.processarAtualizacaoDispositivo(
+                                    payload.new
+                                );
+
+                            }
+
+                        }
+                    )
+                    .subscribe();
 
         }catch(error){
 
-            console.error(
-                "QR Code:",
+            console.warn(
+                "Realtime:",
                 error
             );
 
         }
 
 
-        const codeElement =
-            document.getElementById(
-                "activationCode"
+        clearInterval(
+            this.activationPoll
+        );
+
+        this.activationPoll =
+            setInterval(
+                () => {
+                    this.verificarStatusDispositivo();
+                },
+                15000
             );
-
-        if(codeElement){
-
-            codeElement.textContent =
-                this.activationCode || "------";
-
-        }
-
-
-        const idElement =
-            document.getElementById(
-                "deviceId"
-            );
-
-        if(idElement){
-
-            idElement.textContent =
-                "ID: " +
-                this.deviceId;
-
-        }
 
     },
 
 
-    /* =====================================================
-       ATIVAÇÃO UI
-    ===================================================== */
+    /* ========================================================
+       STATUS VISUAL
+    ======================================================== */
+
+    atualizarStatusAtivacao(
+        texto,
+        tipo
+    ){
+
+        $("statusText").textContent =
+            texto;
+
+        const dot =
+            $("statusDot");
+
+        dot.classList.remove(
+            "active"
+        );
+
+        if(tipo === "active"){
+
+            dot.classList.add(
+                "active"
+            );
+
+        }
+
+        const msg =
+            $("activationMessage");
+
+        msg.textContent =
+            texto;
+
+        msg.className =
+            "activation-message " +
+            (
+                tipo === "active"
+                    ? "success"
+                    : tipo === "error"
+                        ? "error"
+                        : "waiting"
+            );
+
+    },
+
+
+    /* ========================================================
+       ABRIR ATIVAÇÃO
+    ======================================================== */
 
     abrirAtivacao(){
 
-        document
-            .getElementById(
-                "activationOverlay"
-            )
-            .style.display =
-                "flex";
-
         this.gerarQRCode();
+
+        $("activationPlaylist").value =
+            this.playlistUrl ||
+            localStorage.getItem(
+                "gcplay_playlist_url"
+            ) ||
+            "";
+
+        $("activationOverlay")
+            .classList.add("show");
 
     },
 
 
     fecharAtivacao(){
 
-        if(!this.dispositivoAtivo){
-            return;
-        }
-
-        document
-            .getElementById(
-                "activationOverlay"
-            )
-            .style.display =
-                "none";
+        $("activationOverlay")
+            .classList.remove("show");
 
     },
 
 
-    mostrarStatusAtivacao(
-        texto,
-        tipo=""
-    ){
+    /* ========================================================
+       ATIVAÇÃO DIRETA
+    ======================================================== */
 
-        const el =
-            document.getElementById(
-                "activationStatus"
-            );
+    async ativarDispositivo(){
 
-        if(!el){
+        const playlist =
+            $("activationPlaylist")
+                .value
+                .trim();
+
+        if(!playlist){
+
+            $("activationMessage").textContent =
+                "Informe a URL da playlist M3U.";
+
+            $("activationMessage").className =
+                "activation-message error";
+
             return;
+
         }
 
-        el.textContent =
-            texto;
+        let parsed;
 
-        el.className =
-            "activation-status " +
-            tipo;
+        try{
 
-    },
+            parsed =
+                new URL(playlist);
 
+            if(
+                parsed.protocol !== "http:" &&
+                parsed.protocol !== "https:"
+            ){
 
-    atualizarStatusUI(
-        texto,
-        tipo
-    ){
+                throw new Error();
 
-        const text =
-            document.getElementById(
-                "statusText"
-            );
+            }
 
-        const dot =
-            document.getElementById(
-                "statusDot"
-            );
+        }catch(e){
 
+            $("activationMessage").textContent =
+                "URL da playlist inválida.";
 
-        if(text){
+            $("activationMessage").className =
+                "activation-message error";
 
-            text.textContent =
-                texto;
+            return;
 
         }
 
 
-        if(dot){
+        showLoading(
+            "Ativando dispositivo..."
+        );
 
-            dot.className =
-                "status-dot";
+        try{
 
-            if(tipo === "active"){
+            const data =
+                await this.edgeFunction(
+                    {
+                        action:"activate",
 
-                dot.classList.add(
-                    "active"
+                        device_id:
+                            this.deviceId,
+
+                        activation_code:
+                            this.activationCode,
+
+                        playlist_url:
+                            playlist
+                    }
+                );
+
+            if(
+                data.success &&
+                data.device
+            ){
+
+                localStorage.setItem(
+                    "gcplay_playlist_url",
+                    playlist
+                );
+
+                this.playlistUrl =
+                    playlist;
+
+                this.processarAtualizacaoDispositivo(
+                    data.device
+                );
+
+                $("activationMessage").textContent =
+                    "Dispositivo ativado com sucesso!";
+
+                $("activationMessage").className =
+                    "activation-message success";
+
+                toast(
+                    "Dispositivo ativado."
+                );
+
+                setTimeout(
+                    () => {
+                        this.fecharAtivacao();
+                    },
+                    1200
+                );
+
+                await this.carregarListaM3U(
+                    playlist,
+                    true
+                );
+
+            }else{
+
+                throw new Error(
+                    data.error ||
+                    "Não foi possível ativar."
                 );
 
             }
 
-            if(tipo === "blocked"){
+        }catch(error){
 
-                dot.classList.add(
-                    "blocked"
-                );
-
-            }
-
-        }
-
-    },
-
-
-    copiarCodigo(){
-
-        if(!this.activationCode){
-            return;
-        }
-
-
-        navigator.clipboard
-            .writeText(
-                this.activationCode
-            )
-            .then(
-                () => {
-
-                    this.toast(
-                        "Código copiado!",
-                        "success"
-                    );
-
-                }
-            )
-            .catch(
-                () => {
-
-                    this.toast(
-                        this.activationCode
-                    );
-
-                }
+            console.error(
+                error
             );
 
+            $("activationMessage").textContent =
+                error.message ||
+                "Erro ao ativar dispositivo.";
+
+            $("activationMessage").className =
+                "activation-message error";
+
+        }finally{
+
+            hideLoading();
+
+        }
+
     },
 
 
-    /* =====================================================
+    /* ========================================================
        EVENTOS
-    ===================================================== */
+    ======================================================== */
 
     configurarEventos(){
 
-        const search =
-            document.getElementById(
-                "search"
+        $("loadPlaylistBtn")
+            .addEventListener(
+                "click",
+                () => {
+
+                    const url =
+                        $("playlistInput")
+                            .value
+                            .trim();
+
+                    if(!url){
+
+                        toast(
+                            "Digite uma URL M3U."
+                        );
+
+                        return;
+
+                    }
+
+                    this.carregarListaM3U(
+                        url,
+                        true
+                    );
+
+                }
             );
 
-        if(search){
 
-            search.addEventListener(
+        $("playlistInput")
+            .addEventListener(
+                "keydown",
+                event => {
+
+                    if(
+                        event.key === "Enter"
+                    ){
+
+                        event.preventDefault();
+
+                        $("loadPlaylistBtn")
+                            .click();
+
+                    }
+
+                }
+            );
+
+
+        $("searchInput")
+            .addEventListener(
                 "input",
                 () => {
 
@@ -1953,440 +2047,450 @@ const app = {
                 }
             );
 
-        }
 
+        document
+            .querySelectorAll(
+                ".category-btn"
+            )
+            .forEach(
+                btn => {
 
-        const file =
-            document.getElementById(
-                "fileInput"
+                    btn.addEventListener(
+                        "click",
+                        () => {
+
+                            document
+                                .querySelectorAll(
+                                    ".category-btn"
+                                )
+                                .forEach(
+                                    x =>
+                                        x.classList.remove(
+                                            "active"
+                                        )
+                                );
+
+                            btn.classList.add(
+                                "active"
+                            );
+
+                            this.categoriaAtual =
+                                btn.dataset.category;
+
+                            this.renderizar();
+
+                        }
+                    );
+
+                }
             );
 
-        if(file){
 
-            file.addEventListener(
-                "change",
-                event => {
+        $("activationBtn")
+            .addEventListener(
+                "click",
+                () => {
+                    this.abrirAtivacao();
+                }
+            );
 
-                    const selected =
-                        event.target.files[0];
 
-                    if(selected){
+        $("sendActivationBtn")
+            .addEventListener(
+                "click",
+                () => {
+                    this.ativarDispositivo();
+                }
+            );
 
-                        this.lerArquivo(
-                            selected
+
+        $("reloadBtn")
+            .addEventListener(
+                "click",
+                () => {
+
+                    if(this.playlistUrl){
+
+                        this.carregarListaM3U(
+                            this.playlistUrl,
+                            true
                         );
+
+                    }else{
+
+                        this.verificarStatusDispositivo();
 
                     }
 
                 }
             );
 
-        }
 
+        $("playerClose")
+            .addEventListener(
+                "click",
+                () => {
+                    this.fecharPlayer();
+                }
+            );
+
+
+        window.addEventListener(
+            "beforeunload",
+            () => {
+
+                if(this.hls){
+
+                    try{
+                        this.hls.destroy();
+                    }catch(e){}
+
+                }
+
+            }
+        );
+
+    },
+
+
+    /* ========================================================
+       TECLADO / TV
+    ======================================================== */
+
+    configurarTeclado(){
 
         document.addEventListener(
             "keydown",
             event => {
 
-                this.tecladoTV(event);
+                if(
+                    event.key === "Escape" &&
+                    $("playerModal")
+                        .classList.contains("show")
+                ){
 
-            }
-        );
+                    this.fecharPlayer();
 
-    },
-
-
-    abrirArquivo(){
-
-        document
-            .getElementById(
-                "fileInput"
-            )
-            .click();
-
-    },
-
-
-    /* =====================================================
-       M3U
-    ===================================================== */
-
-    async carregarListaM3U(urlManual=null){
-
-        let url =
-            urlManual ||
-            document
-                .getElementById(
-                    "playlistUrl"
-                )
-                .value
-                .trim();
-
-
-        if(!url){
-
-            url =
-                localStorage.getItem(
-                    "gcplay_playlist_url"
-                ) || "";
-
-        }
-
-
-        if(!url){
-
-            this.toast(
-                "Informe uma URL M3U.",
-                "error"
-            );
-
-            return;
-
-        }
-
-
-        if(
-            !/^https?:\/\//i.test(url)
-        ){
-
-            this.toast(
-                "URL da playlist inválida.",
-                "error"
-            );
-
-            return;
-
-        }
-
-
-        this.mostrarLoading(
-            true,
-            "Baixando lista..."
-        );
-
-
-        try{
-
-            let texto = null;
-
-            let erroOriginal = null;
-
-
-            try{
-
-                const response =
-                    await fetch(
-                        url,
-                        {
-                            method:"GET"
-                        }
-                    );
-
-                if(!response.ok){
-
-                    throw new Error(
-                        "HTTP " +
-                        response.status
-                    );
+                    return;
 
                 }
 
-                texto =
-                    await response.text();
-
-            }catch(error){
-
-                erroOriginal =
-                    error;
-
-            }
-
-
-            if(!texto){
-
-                for(
-                    const proxy
-                    of CORS_PROXIES
+                if(
+                    event.key === "Enter" &&
+                    document.activeElement
                 ){
 
-                    try{
+                    const el =
+                        document.activeElement;
 
-                        const proxyUrl =
-                            proxy +
-                            encodeURIComponent(
-                                url
-                            );
+                    if(
+                        el.classList.contains(
+                            "channel-card"
+                        )
+                    ){
 
-
-                        const response =
-                            await fetch(
-                                proxyUrl
-                            );
-
-
-                        if(
-                            response.ok
-                        ){
-
-                            const data =
-                                await response.text();
-
-                            if(data){
-
-                                texto =
-                                    data;
-
-                                break;
-
-                            }
-
-                        }
-
-                    }catch(error){
-
-                        console.warn(
-                            "Proxy falhou:",
-                            error
-                        );
+                        el.click();
 
                     }
 
                 }
 
             }
-
-
-            if(!texto){
-
-                throw (
-                    erroOriginal ||
-                    new Error(
-                        "Não foi possível baixar a lista."
-                    )
-                );
-
-            }
-
-
-            const canais =
-                this.parseM3U(
-                    texto,
-                    url
-                );
-
-
-            if(!canais.length){
-
-                throw new Error(
-                    "Nenhum canal encontrado na lista."
-                );
-
-            }
-
-
-            this.lista =
-                canais;
-
-            this.listaOriginal =
-                [...canais];
-
-
-            localStorage.setItem(
-                "gcplay_playlist_url",
-                url
-            );
-
-
-            localStorage.setItem(
-                "gcplay_playlist_cache",
-                JSON.stringify(
-                    canais
-                )
-            );
-
-
-            document
-                .getElementById(
-                    "playlistUrl"
-                )
-                .value =
-                    url;
-
-
-            this.categoriaAtual =
-                "todos";
-
-
-            this.atualizarContadores();
-
-            this.renderizar();
-
-
-            this.toast(
-                canais.length +
-                " itens carregados.",
-                "success"
-            );
-
-
-        }catch(error){
-
-            console.error(
-                "M3U:",
-                error
-            );
-
-            this.toast(
-                "Erro ao carregar lista: " +
-                error.message,
-                "error"
-            );
-
-        }finally{
-
-            this.mostrarLoading(
-                false
-            );
-
-        }
+        );
 
     },
 
 
-    /* =====================================================
-       ARQUIVO
-    ===================================================== */
+    /* ========================================================
+       FAVORITOS
+    ======================================================== */
 
-    async lerArquivo(file){
-
-        this.mostrarLoading(
-            true,
-            "Lendo arquivo..."
-        );
+    carregarFavoritos(){
 
         try{
 
-            const texto =
-                await file.text();
-
-
-            const canais =
-                this.parseM3U(
-                    texto,
-                    ""
+            const saved =
+                JSON.parse(
+                    localStorage.getItem(
+                        "gcplay_favorites"
+                    ) || "[]"
                 );
 
+            this.favoritos =
+                new Set(saved);
 
-            if(!canais.length){
+        }catch(e){
 
-                throw new Error(
-                    "Nenhum item encontrado."
-                );
-
-            }
-
-
-            this.lista =
-                canais;
-
-            this.listaOriginal =
-                [...canais];
-
-
-            localStorage.setItem(
-                "gcplay_playlist_cache",
-                JSON.stringify(
-                    canais
-                )
-            );
-
-
-            this.atualizarContadores();
-
-            this.renderizar();
-
-
-            this.toast(
-                canais.length +
-                " itens carregados.",
-                "success"
-            );
-
-        }catch(error){
-
-            this.toast(
-                "Erro: " +
-                error.message,
-                "error"
-            );
-
-        }finally{
-
-            this.mostrarLoading(
-                false
-            );
+            this.favoritos =
+                new Set();
 
         }
 
     },
 
 
-    /* =====================================================
+    salvarFavoritos(){
+
+        localStorage.setItem(
+            "gcplay_favorites",
+            JSON.stringify(
+                Array.from(
+                    this.favoritos
+                )
+            )
+        );
+
+    },
+
+
+    alternarFavorito(index){
+
+        const canal =
+            this.canais[index];
+
+        if(!canal){
+            return;
+        }
+
+        const key =
+            canal.url +
+            "|" +
+            canal.name;
+
+        if(
+            this.favoritos.has(key)
+        ){
+
+            this.favoritos.delete(key);
+
+        }else{
+
+            this.favoritos.add(key);
+
+        }
+
+        this.salvarFavoritos();
+
+        this.atualizarCategorias();
+
+        this.renderizar();
+
+    },
+
+
+    /* ========================================================
+       CLASSIFICAÇÃO
+    ======================================================== */
+
+    classificarCanal(
+        name,
+        group,
+        url
+    ){
+
+        const text =
+            (
+                name +
+                " " +
+                group +
+                " " +
+                url
+            ).toLowerCase();
+
+
+        if(
+            /adult|xxx|18\+|porn|sex/.test(
+                text
+            )
+        ){
+
+            return "adult";
+
+        }
+
+
+        if(
+            /music|música|musica|radio|rádio|fm/.test(
+                text
+            )
+        ){
+
+            return "music";
+
+        }
+
+
+        if(
+            /series|séries|serie|temporada|season|epis[oó]dio|s\d{1,2}e\d{1,2}/i
+                .test(text)
+        ){
+
+            return "series";
+
+        }
+
+
+        if(
+            /movie|filme|cinema|vod|film/.test(
+                text
+            )
+        ){
+
+            return "movies";
+
+        }
+
+
+        return "live";
+
+    },
+
+
+    /* ========================================================
        PARSER M3U
-    ===================================================== */
+    ======================================================== */
 
-    parseM3U(texto, baseUrl=""){
+    parseM3U(text){
 
-        texto =
-            String(texto || "")
-                .replace(/^\uFEFF/,"")
-                .replace(/\r/g,"");
+        text =
+            String(text || "")
+                .replace(/^\uFEFF/, "");
+
+        const lines =
+            text.replace(
+                /\r\n/g,
+                "\n"
+            ).replace(
+                /\r/g,
+                "\n"
+            ).split("\n");
 
 
-        const linhas =
-            texto.split("\n");
+        const result = [];
 
-
-        const resultado = [];
-
-        let infoAtual = null;
-
-        const vistos =
-            new Set();
-
+        let current = null;
 
         for(
-            let i=0;
-            i<linhas.length;
+            let i = 0;
+            i < lines.length;
             i++
         ){
 
-            const linha =
-                linhas[i].trim();
+            const raw =
+                lines[i];
 
+            const line =
+                raw.trim();
 
-            if(!linha){
+            if(!line){
                 continue;
             }
 
 
             if(
-                linha.toUpperCase()
-                    .startsWith("#EXTINF")
+                line.toUpperCase()
+                    .startsWith(
+                        "#EXTINF:"
+                    )
             ){
 
-                infoAtual =
-                    this.parseExtinf(
-                        linha
+                const info =
+                    line.substring(
+                        8
                     );
 
+                let title =
+                    info;
+
+                const comma =
+                    info.indexOf(",");
+
+                if(comma >= 0){
+
+                    title =
+                        info.substring(
+                            comma + 1
+                        ).trim();
+
+                }
+
+
+                const attrs = {};
+
+                const attrRegex =
+                    /([A-Za-z0-9_-]+)="([^"]*)"/g;
+
+                let match;
+
+                while(
+                    (match =
+                        attrRegex.exec(info))
+                ){
+
+                    attrs[
+                        match[1].toLowerCase()
+                    ] =
+                        match[2];
+
+                }
+
+
+                current = {
+
+                    name:
+                        title ||
+                        "Sem nome",
+
+                    group:
+                        attrs["group-title"] ||
+                        attrs["group"] ||
+                        "Sem categoria",
+
+                    logo:
+                        attrs["tvg-logo"] ||
+                        attrs["logo"] ||
+                        "",
+
+                    tvgId:
+                        attrs["tvg-id"] ||
+                        "",
+
+                    tvgName:
+                        attrs["tvg-name"] ||
+                        "",
+
+                    url:"",
+
+                    category:"live"
+
+                };
+
                 continue;
 
             }
 
 
             if(
-                linha.startsWith("#")
+                line.startsWith("#EXTGRP:")
+            ){
+
+                if(current){
+
+                    current.group =
+                        line.substring(
+                            8
+                        ).trim() ||
+                        current.group;
+
+                }
+
+                continue;
+
+            }
+
+
+            if(
+                line.startsWith("#")
             ){
 
                 continue;
@@ -2394,216 +2498,180 @@ const app = {
             }
 
 
-            let url =
-                linha;
+            if(current){
+
+                current.url =
+                    line;
+
+                current.category =
+                    this.classificarCanal(
+                        current.name,
+                        current.group,
+                        current.url
+                    );
+
+                result.push(
+                    current
+                );
+
+                current = null;
+
+            }
+
+        }
 
 
-            if(
-                baseUrl &&
-                !/^https?:\/\//i.test(url) &&
-                !/^rtmp:\/\//i.test(url) &&
-                !/^rtsp:\/\//i.test(url)
+        const seen =
+            new Set();
+
+        return result.filter(
+            channel => {
+
+                if(!channel.url){
+                    return false;
+                }
+
+                const key =
+                    channel.name +
+                    "|" +
+                    channel.url;
+
+                if(seen.has(key)){
+                    return false;
+                }
+
+                seen.add(key);
+
+                return true;
+
+            }
+        );
+
+    },
+
+
+    /* ========================================================
+       CARREGAR M3U
+    ======================================================== */
+
+    async carregarListaM3U(
+        url,
+        mostrarLoading = true
+    ){
+
+        if(!url){
+            return;
+        }
+
+        if(mostrarLoading){
+
+            showLoading(
+                "Baixando playlist..."
+            );
+
+        }
+
+        let text = null;
+
+        let lastError = null;
+
+
+        /* tentativa direta */
+
+        try{
+
+            const response =
+                await fetch(
+                    url,
+                    {
+                        method:"GET",
+                        cache:"no-store"
+                    }
+                );
+
+            if(!response.ok){
+
+                throw new Error(
+                    "HTTP " +
+                    response.status
+                );
+
+            }
+
+            text =
+                await response.text();
+
+        }catch(error){
+
+            lastError =
+                error;
+
+        }
+
+
+        /* tentativa via proxies */
+
+        if(
+            !text
+        ){
+
+            for(
+                const proxy of CORS_PROXIES
             ){
 
                 try{
 
-                    url =
-                        new URL(
-                            url,
-                            baseUrl
-                        ).href;
+                    if(mostrarLoading){
 
-                }catch{}
+                        $("loadingText")
+                            .textContent =
+                            "Tentando conexão alternativa...";
 
-            }
+                    }
 
+                    const proxyUrl =
+                        proxy +
+                        encodeURIComponent(
+                            url
+                        );
 
-            if(!infoAtual){
+                    const response =
+                        await fetch(
+                            proxyUrl,
+                            {
+                                method:"GET",
+                                cache:"no-store"
+                            }
+                        );
 
-                infoAtual = {
+                    if(!response.ok){
 
-                    name:url,
+                        throw new Error(
+                            "HTTP " +
+                            response.status
+                        );
 
-                    group:"Outros",
+                    }
 
-                    logo:"",
+                    const candidate =
+                        await response.text();
 
-                    tvgId:"",
+                    if(
+                        candidate &&
+                        candidate.length > 10
+                    ){
 
-                    tvgName:"",
+                        text =
+                            candidate;
 
-                    tvgCountry:"",
-
-                    tvgLanguage:""
-
-                };
-
-            }
-
-
-            const chave =
-                (
-                    infoAtual.name +
-                    "|" +
-                    url
-                ).toLowerCase();
-
-
-            if(vistos.has(chave)){
-
-                infoAtual = null;
-
-                continue;
-
-            }
-
-
-            vistos.add(chave);
-
-
-            const item = {
-
-                id:
-                    "ch-" +
-                    resultado.length +
-                    "-" +
-                    Date.now(),
-
-                name:
-                    infoAtual.name ||
-                    "Sem nome",
-
-                url:url,
-
-                logo:
-                    infoAtual.logo || "",
-
-                group:
-                    infoAtual.group ||
-                    "Outros",
-
-                tvgId:
-                    infoAtual.tvgId || "",
-
-                tvgName:
-                    infoAtual.tvgName || "",
-
-                tvgCountry:
-                    infoAtual.tvgCountry || "",
-
-                tvgLanguage:
-                    infoAtual.tvgLanguage || "",
-
-                category:
-                    this.classificar(
-                        infoAtual.name,
-                        infoAtual.group,
-                        url
-                    )
-
-            };
-
-
-            resultado.push(item);
-
-            infoAtual = null;
-
-        }
-
-
-        return resultado;
-
-    },
-
-
-    parseExtinf(line){
-
-        const result = {
-
-            name:"",
-
-            group:"Outros",
-
-            logo:"",
-
-            tvgId:"",
-
-            tvgName:"",
-
-            tvgCountry:"",
-
-            tvgLanguage:""
-
-        };
-
-
-        const attrs = [
-
-            "tvg-id",
-            "tvg-name",
-            "tvg-logo",
-            "tvg-country",
-            "tvg-language",
-            "group-title",
-            "group"
-
-        ];
-
-
-        for(
-            const attr
-            of attrs
-        ){
-
-            const regex =
-                new RegExp(
-                    attr +
-                    '\\s*=\\s*"([^"]*)"',
-                    "i"
-                );
-
-
-            const match =
-                line.match(regex);
-
-
-            if(match){
-
-                const value =
-                    match[1];
-
-                switch(attr){
-
-                    case "tvg-id":
-                        result.tvgId =
-                            value;
                         break;
 
-                    case "tvg-name":
-                        result.tvgName =
-                            value;
-                        break;
+                    }
 
-                    case "tvg-logo":
-                        result.logo =
-                            value;
-                        break;
+                }catch(error){
 
-                    case "tvg-country":
-                        result.tvgCountry =
-                            value;
-                        break;
-
-                    case "tvg-language":
-                        result.tvgLanguage =
-                            value;
-                        break;
-
-                    case "group-title":
-                    case "group":
-                        result.group =
-                            value;
-                        break;
+                    lastError =
+                        error;
 
                 }
 
@@ -2612,25 +2680,184 @@ const app = {
         }
 
 
-        const comma =
-            line.indexOf(",");
+        if(!text){
 
+            if(mostrarLoading){
+                hideLoading();
+            }
 
-        if(comma >= 0){
+            toast(
+                "Não foi possível carregar a playlist."
+            );
 
-            result.name =
-                line.substring(
-                    comma + 1
-                ).trim();
+            console.error(
+                lastError
+            );
+
+            return;
 
         }
 
 
-        if(!result.name){
+        const canais =
+            this.parseM3U(
+                text
+            );
 
-            result.name =
-                result.tvgName ||
-                "Sem nome";
+
+        if(!canais.length){
+
+            if(mostrarLoading){
+                hideLoading();
+            }
+
+            toast(
+                "Nenhum canal encontrado na playlist."
+            );
+
+            return;
+
+        }
+
+
+        this.canais =
+            canais;
+
+        this.playlistUrl =
+            url;
+
+
+        localStorage.setItem(
+            "gcplay_playlist_url",
+            url
+        );
+
+
+        $("playlistInput").value =
+            url;
+
+
+        this.atualizarCategorias();
+
+        this.renderizar();
+
+
+        if(mostrarLoading){
+
+            hideLoading();
+
+        }
+
+
+        toast(
+            canais.length +
+            " itens carregados."
+        );
+
+    },
+
+
+    /* ========================================================
+       RESTAURAR PLAYLIST
+    ======================================================== */
+
+    restaurarListaLocal(){
+
+        const url =
+            localStorage.getItem(
+                "gcplay_playlist_url"
+            );
+
+        if(url){
+
+            this.playlistUrl =
+                url;
+
+            $("playlistInput").value =
+                url;
+
+            /* não bloqueia o início */
+
+            this.carregarListaM3U(
+                url,
+                false
+            );
+
+        }
+
+    },
+
+
+    /* ========================================================
+       FILTRO
+    ======================================================== */
+
+    obterCanaisFiltrados(){
+
+        let result =
+            this.canais.slice();
+
+
+        if(
+            this.categoriaAtual ===
+            "favorites"
+        ){
+
+            result =
+                result.filter(
+                    channel => {
+
+                        const key =
+                            channel.url +
+                            "|" +
+                            channel.name;
+
+                        return this.favoritos
+                            .has(key);
+
+                    }
+                );
+
+        }else if(
+            this.categoriaAtual !==
+            "all"
+        ){
+
+            result =
+                result.filter(
+                    channel =>
+                        channel.category ===
+                        this.categoriaAtual
+                );
+
+        }
+
+
+        const query =
+            $("searchInput")
+                .value
+                .trim()
+                .toLowerCase();
+
+
+        if(query){
+
+            result =
+                result.filter(
+                    channel => {
+
+                        return (
+                            channel.name
+                                .toLowerCase()
+                                .includes(query)
+                            ||
+                            channel.group
+                                .toLowerCase()
+                                .includes(query)
+                        );
+
+                    }
+                );
 
         }
 
@@ -2640,664 +2867,296 @@ const app = {
     },
 
 
-    /* =====================================================
-       CLASSIFICAÇÃO
-    ===================================================== */
-
-    classificar(
-        nome,
-        grupo,
-        url
-    ){
-
-        const texto =
-            (
-                String(nome) +
-                " " +
-                String(grupo) +
-                " " +
-                String(url)
-            ).toLowerCase();
-
-
-        if(
-            /s\d{1,2}e\d{1,2}/i.test(
-                texto
-            ) ||
-            /t\d{1,2}e\d{1,2}/i.test(
-                texto
-            ) ||
-            /\b\d{1,2}x\d{1,2}\b/i.test(
-                texto
-            ) ||
-            /temporada|epis[oó]dio/i.test(
-                texto
-            )
-        ){
-
-            return "series";
-
-        }
-
-
-        if(
-            /filme|movie|cinema|vod/i.test(
-                texto
-            )
-        ){
-
-            return "filmes";
-
-        }
-
-
-        if(
-            /music|m[uú]sica|radio|rádio|radio/i.test(
-                texto
-            )
-        ){
-
-            return "musica";
-
-        }
-
-
-        return "tv";
-
-    },
-
-
-    /* =====================================================
-       RESTAURAR LISTA
-    ===================================================== */
-
-    restaurarListaLocal(){
-
-        try{
-
-            const cache =
-                localStorage.getItem(
-                    "gcplay_playlist_cache"
-                );
-
-
-            const url =
-                localStorage.getItem(
-                    "gcplay_playlist_url"
-                );
-
-
-            if(cache){
-
-                const lista =
-                    JSON.parse(cache);
-
-
-                if(
-                    Array.isArray(lista) &&
-                    lista.length
-                ){
-
-                    this.lista =
-                        lista;
-
-                    this.listaOriginal =
-                        [...lista];
-
-
-                    if(url){
-
-                        document
-                            .getElementById(
-                                "playlistUrl"
-                            )
-                            .value =
-                                url;
-
-                    }
-
-
-                    this.atualizarContadores();
-
-                    this.renderizar();
-
-                }
-
-            }
-
-        }catch(error){
-
-            console.error(
-                "Cache:",
-                error
-            );
-
-        }
-
-    },
-
-
-    /* =====================================================
+    /* ========================================================
        RENDER
-    ===================================================== */
+    ======================================================== */
 
     renderizar(){
 
-        const container =
-            document.getElementById(
-                "channels"
+        const grid =
+            $("channelGrid");
+
+        const empty =
+            $("emptyState");
+
+        grid.innerHTML = "";
+
+        const canais =
+            this.obterCanaisFiltrados();
+
+        this.canaisFiltrados =
+            canais;
+
+
+        $("channelCount")
+            .textContent =
+            canais.length +
+            (
+                canais.length === 1
+                    ? " item"
+                    : " itens"
             );
 
 
-        const search =
-            document
-                .getElementById(
-                    "search"
-                )
-                .value
-                .trim()
-                .toLowerCase();
+        const titles = {
+
+            all:"Todos",
+
+            live:"TV ao vivo",
+
+            movies:"Filmes",
+
+            series:"Séries",
+
+            music:"Música",
+
+            adult:"Adulto",
+
+            favorites:"Favoritos"
+
+        };
 
 
-        let dados =
-            [...this.lista];
+        $("sectionTitle")
+            .textContent =
+            titles[
+                this.categoriaAtual
+            ] || "Todos";
 
 
-        if(
-            this.categoriaAtual ===
-            "favoritos"
-        ){
+        if(!canais.length){
 
-            dados =
-                dados.filter(
-                    item =>
-                        this.favoritos.has(
-                            item.id
-                        )
-                );
-
-        }else if(
-            this.categoriaAtual !==
-            "todos"
-        ){
-
-            dados =
-                dados.filter(
-                    item =>
-                        item.category ===
-                        this.categoriaAtual
-                );
-
-        }
-
-
-        if(search){
-
-            dados =
-                dados.filter(
-                    item =>
-                        (
-                            item.name +
-                            " " +
-                            item.group
-                        )
-                        .toLowerCase()
-                        .includes(search)
-                );
-
-        }
-
-
-        const title =
-            document.getElementById(
-                "pageTitle"
-            );
-
-
-        if(title){
-
-            const nomes = {
-
-                todos:"Todos os canais",
-
-                favoritos:"Favoritos",
-
-                tv:"TV",
-
-                filmes:"Filmes",
-
-                series:"Séries",
-
-                musica:"Música"
-
-            };
-
-            title.textContent =
-                nomes[
-                    this.categoriaAtual
-                ] ||
-                "Canais";
-
-        }
-
-
-        const info =
-            document.getElementById(
-                "playlistInfo"
-            );
-
-
-        if(info){
-
-            info.textContent =
-                dados.length +
-                " item(ns)";
-
-        }
-
-
-        if(!dados.length){
-
-            container.innerHTML = `
-
-                <div class="empty">
-
-                    <div class="empty-box">
-
-                        <i class="fa-solid fa-magnifying-glass"></i>
-
-                        <h2>Nenhum item encontrado</h2>
-
-                        <p>
-                            Tente outra categoria ou busca.
-                        </p>
-
-                    </div>
-
-                </div>
-
-            `;
+            empty.style.display =
+                "flex";
 
             return;
 
         }
 
 
-        container.innerHTML =
-            dados.map(
-                item =>
-                    this.criarCard(item)
-            ).join("");
-
-    },
+        empty.style.display =
+            "none";
 
 
-    criarCard(item){
+        canais.forEach(
+            (channel, index) => {
 
-        const favorito =
-            this.favoritos.has(
-                item.id
-            );
-
-
-        const logo =
-            item.logo ||
-            "data:image/svg+xml," +
-            encodeURIComponent(`
-
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     width="100"
-                     height="100">
-
-                    <rect width="100"
-                          height="100"
-                          fill="#101722"/>
-
-                    <text x="50"
-                          y="58"
-                          text-anchor="middle"
-                          fill="#66758a"
-                          font-size="38">
-                        ▶
-                    </text>
-
-                </svg>
-
-            `);
+                const originalIndex =
+                    this.canais.indexOf(
+                        channel
+                    );
 
 
-        return `
+                const card =
+                    document.createElement(
+                        "div"
+                    );
 
-            <div
-                class="channel ${favorito ? "favorite":""}"
-                tabindex="0"
-                data-id="${this.escapeHtml(item.id)}"
-                onclick="app.reproduzir('${this.escapeJs(item.id)}')"
-                onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();app.reproduzir('${this.escapeJs(item.id)}')}">
+                card.className =
+                    "channel-card";
 
-                <img
-                    class="channel-logo"
-                    src="${this.escapeHtml(logo)}"
-                    alt=""
-                    loading="lazy"
-                    onerror="this.style.visibility='hidden'">
+                card.tabIndex = 0;
 
-                <div class="channel-info">
+
+                if(
+                    this.currentChannel ===
+                    channel
+                ){
+
+                    card.classList.add(
+                        "active"
+                    );
+
+                }
+
+
+                const key =
+                    channel.url +
+                    "|" +
+                    channel.name;
+
+
+                const isFavorite =
+                    this.favoritos.has(
+                        key
+                    );
+
+
+                card.innerHTML = `
+
+                    <div class="channel-icon">
+
+                        ${
+                            channel.logo
+                            ?
+                            `<img
+                                src="${this.escapeAttr(channel.logo)}"
+                                style="width:100%;height:100%;object-fit:contain;border-radius:7px"
+                                onerror="this.style.display='none'">`
+                            :
+                            `<i class="fa-solid fa-tv"></i>`
+                        }
+
+                    </div>
 
                     <div class="channel-name">
-                        ${this.escapeHtml(item.name)}
+                        ${this.escapeHtml(channel.name)}
                     </div>
 
                     <div class="channel-group">
-                        ${this.escapeHtml(item.group)}
+                        ${this.escapeHtml(channel.group)}
                     </div>
 
                     <div
-                        class="channel-star"
-                        onclick="event.stopPropagation();app.toggleFavorito('${this.escapeJs(item.id)}')">
+                        class="favorite ${isFavorite ? "active" : ""}"
+                        title="Favorito">
 
-                        <i class="fa-${favorito ? "solid":"regular"} fa-star"></i>
-
-                        ${favorito ? " Favorito":""}
+                        <i class="fa-solid fa-star"></i>
 
                     </div>
-
-                </div>
-
-            </div>
-
-        `;
-
-    },
+                `;
 
 
-    /* =====================================================
-       CATEGORIAS
-    ===================================================== */
+                card.addEventListener(
+                    "click",
+                    event => {
 
-    selecionarCategoria(
-        categoria,
-        elemento
-    ){
+                        if(
+                            event.target.closest(
+                                ".favorite"
+                            )
+                        ){
 
-        this.categoriaAtual =
-            categoria;
+                            this.alternarFavorito(
+                                originalIndex
+                            );
 
+                            return;
 
-        document
-            .querySelectorAll(
-                ".nav-btn[data-category]"
-            )
-            .forEach(
-                el =>
-                    el.classList.remove(
-                        "active"
-                    )
-            );
+                        }
 
+                        this.tocarCanal(
+                            channel
+                        );
 
-        if(elemento){
-
-            elemento.classList.add(
-                "active"
-            );
-
-        }else{
-
-            const btn =
-                document.querySelector(
-                    `.nav-btn[data-category="${categoria}"]`
+                    }
                 );
 
-            if(btn){
 
-                btn.classList.add(
-                    "active"
+                card.addEventListener(
+                    "keydown",
+                    event => {
+
+                        if(
+                            event.key === "Enter"
+                        ){
+
+                            this.tocarCanal(
+                                channel
+                            );
+
+                        }
+
+                    }
+                );
+
+
+                grid.appendChild(
+                    card
                 );
 
             }
-
-        }
-
-
-        this.renderizar();
+        );
 
     },
 
 
-    atualizarContadores(){
+    /* ========================================================
+       CATEGORIAS
+    ======================================================== */
 
-        const total =
-            this.lista.length;
+    atualizarCategorias(){
 
-        const favoritos =
-            this.lista.filter(
-                item =>
+        const count = category =>
+
+            this.canais.filter(
+                c =>
+                    c.category ===
+                    category
+            ).length;
+
+
+        $("countAll")
+            .textContent =
+            this.canais.length;
+
+        $("countLive")
+            .textContent =
+            count("live");
+
+        $("countMovies")
+            .textContent =
+            count("movies");
+
+        $("countSeries")
+            .textContent =
+            count("series");
+
+        $("countMusic")
+            .textContent =
+            count("music");
+
+        $("countAdult")
+            .textContent =
+            count("adult");
+
+        $("countFavorites")
+            .textContent =
+            this.canais.filter(
+                c =>
                     this.favoritos.has(
-                        item.id
+                        c.url +
+                        "|" +
+                        c.name
                     )
             ).length;
 
-        const tv =
-            this.lista.filter(
-                item =>
-                    item.category === "tv"
-            ).length;
-
-        const filmes =
-            this.lista.filter(
-                item =>
-                    item.category === "filmes"
-            ).length;
-
-        const series =
-            this.lista.filter(
-                item =>
-                    item.category === "series"
-            ).length;
-
-        const musica =
-            this.lista.filter(
-                item =>
-                    item.category === "musica"
-            ).length;
-
-
-        document.getElementById(
-            "countTodos"
-        ).textContent = total;
-
-        document.getElementById(
-            "countFavoritos"
-        ).textContent = favoritos;
-
-        document.getElementById(
-            "countTv"
-        ).textContent = tv;
-
-        document.getElementById(
-            "countFilmes"
-        ).textContent = filmes;
-
-        document.getElementById(
-            "countSeries"
-        ).textContent = series;
-
-        document.getElementById(
-            "countMusica"
-        ).textContent = musica;
-
     },
 
 
-    /* =====================================================
-       FAVORITOS
-    ===================================================== */
-
-    toggleFavorito(id){
-
-        if(
-            this.favoritos.has(id)
-        ){
-
-            this.favoritos.delete(id);
-
-        }else{
-
-            this.favoritos.add(id);
-
-        }
-
-
-        localStorage.setItem(
-            "gcplay_favoritos",
-            JSON.stringify(
-                [...this.favoritos]
-            )
-        );
-
-
-        this.atualizarContadores();
-
-        this.renderizar();
-
-    },
-
-
-    /* =====================================================
+    /* ========================================================
        PLAYER
-    ===================================================== */
+    ======================================================== */
 
-    async reproduzir(id){
+    async tocarCanal(channel){
 
-        if(!this.dispositivoAtivo){
-
-            this.abrirAtivacao();
-
-            this.toast(
-                "Ative o dispositivo primeiro.",
-                "error"
-            );
-
-            return;
-
-        }
-
-
-        const item =
-            this.lista.find(
-                channel =>
-                    channel.id === id
-            );
-
-
-        if(!item){
+        if(!channel || !channel.url){
             return;
         }
 
+        this.currentChannel =
+            channel;
 
-        const overlay =
-            document.getElementById(
-                "playerOverlay"
-            );
-
-
-        const title =
-            document.getElementById(
-                "playerTitle"
-            );
+        $("playerTitle")
+            .textContent =
+            channel.name;
 
 
-        const error =
-            document.getElementById(
-                "playerError"
-            );
-
-
-        const errorText =
-            document.getElementById(
-                "playerErrorText"
-            );
-
-
-        overlay.classList.add(
-            "show"
-        );
-
-
-        title.textContent =
-            item.name;
-
-
-        error.classList.remove(
-            "show"
-        );
-
-
-        this.mostrarPlayerLoading(
-            true
-        );
-
-
-        this.pararPlayer();
-
-
-        try{
-
-            await this.iniciarVideo(
-                item.url
-            );
-
-        }catch(err){
-
-            console.error(
-                "Player:",
-                err
-            );
-
-
-            errorText.textContent =
-                err.message ||
-                "Erro ao reproduzir.";
-
-
-            error.classList.add(
+        $("playerModal")
+            .classList.add(
                 "show"
             );
 
-        }finally{
-
-            this.mostrarPlayerLoading(
-                false
-            );
-
-        }
-
-    },
-
-
-    async iniciarVideo(url){
 
         const video =
-            this.video;
+            $("video");
 
 
-        if(!video){
-
-            throw new Error(
-                "Player indisponível."
-            );
-
-        }
-
-
-        if(
-            this.hls
-        ){
+        if(this.hls){
 
             try{
                 this.hls.destroy();
-            }catch{}
+            }catch(e){}
 
             this.hls =
                 null;
@@ -3314,148 +3173,84 @@ const app = {
         video.load();
 
 
-        const isHLS =
+        const url =
+            channel.url;
+
+
+        const isHls =
             /\.m3u8($|\?)/i.test(
                 url
             );
 
 
         if(
-            isHLS &&
+            isHls &&
+            window.Hls &&
             Hls.isSupported()
         ){
 
-            await new Promise(
-                (
-                    resolve,
-                    reject
-                ) => {
-
-                    const hls =
-                        new Hls({
-                            enableWorker:true,
-                            lowLatencyMode:true
-                        });
+            this.hls =
+                new Hls(
+                    {
+                        enableWorker:true,
+                        lowLatencyMode:false
+                    }
+                );
 
 
-                    this.hls =
-                        hls;
+            this.hls.loadSource(
+                url
+            );
+
+            this.hls.attachMedia(
+                video
+            );
 
 
-                    hls.loadSource(
-                        url
-                    );
+            this.hls.on(
+                Hls.Events.MANIFEST_PARSED,
+                () => {
 
-
-                    hls.attachMedia(
-                        video
-                    );
-
-
-                    hls.on(
-                        Hls.Events.MANIFEST_PARSED,
-                        () => {
-
-                            video.play()
-                                .then(resolve)
-                                .catch(resolve);
-
-                        }
-                    );
-
-
-                    hls.on(
-                        Hls.Events.ERROR,
-                        (
-                            event,
-                            data
-                        ) => {
-
-                            if(
-                                data.fatal
-                            ){
-
-                                reject(
-                                    new Error(
-                                        "Erro HLS: " +
-                                        (
-                                            data.details ||
-                                            "stream inválido"
-                                        )
-                                    )
-                                );
-
-                            }
-
-                        }
-                    );
+                    video.play()
+                        .catch(
+                            () => {}
+                        );
 
                 }
             );
 
 
-            return;
+            this.hls.on(
+                Hls.Events.ERROR,
+                (
+                    event,
+                    data
+                ) => {
 
-        }
+                    console.warn(
+                        "HLS:",
+                        data
+                    );
 
+                }
+            );
 
-        if(
-            video.canPlayType(
-                "application/vnd.apple.mpegurl"
-            ) ||
-            isHLS
-        ){
+        }else{
 
             video.src =
                 url;
 
-            await video.play()
-                .catch(
-                    () => {}
-                );
-
-            return;
-
-        }
-
-
-        video.src =
-            url;
-
-
-        await video.play()
-            .catch(
-                () => {}
-            );
-
-    },
-
-
-    pararPlayer(){
-
-        if(this.hls){
-
             try{
 
-                this.hls.destroy();
+                await video.play();
 
-            }catch{}
+            }catch(e){
 
-            this.hls =
-                null;
+                console.warn(
+                    e
+                );
 
-        }
-
-
-        if(this.video){
-
-            this.video.pause();
-
-            this.video.removeAttribute(
-                "src"
-            );
-
-            this.video.load();
+            }
 
         }
 
@@ -3464,481 +3259,54 @@ const app = {
 
     fecharPlayer(){
 
-        this.pararPlayer();
+        const video =
+            $("video");
 
-        document
-            .getElementById(
-                "playerOverlay"
-            )
+        try{
+            video.pause();
+        }catch(e){}
+
+
+        if(this.hls){
+
+            try{
+                this.hls.destroy();
+            }catch(e){}
+
+            this.hls =
+                null;
+
+        }
+
+
+        video.removeAttribute(
+            "src"
+        );
+
+        video.load();
+
+
+        $("playerModal")
             .classList.remove(
                 "show"
             );
 
-    },
-
-
-    telaCheiaVideo(){
-
-        const video =
-            this.video;
-
-
-        if(!video){
-            return;
-        }
-
-
-        if(
-            video.requestFullscreen
-        ){
-
-            video.requestFullscreen();
-
-        }else if(
-            video.webkitEnterFullscreen
-        ){
-
-            video.webkitEnterFullscreen();
-
-        }
-
-    },
-
-
-    telaCheia(){
-
-        const element =
-            document.documentElement;
-
-
-        if(
-            document.fullscreenElement
-        ){
-
-            document.exitFullscreen();
-
-        }else if(
-            element.requestFullscreen
-        ){
-
-            element.requestFullscreen();
-
-        }
-
-    },
-
-
-    /* =====================================================
-       LISTA
-    ===================================================== */
-
-    atualizarLista(){
-
-        const url =
-            localStorage.getItem(
-                "gcplay_playlist_url"
-            );
-
-
-        if(url){
-
-            this.carregarListaM3U(
-                url
-            );
-
-        }else{
-
-            this.toast(
-                "Nenhuma lista configurada.",
-                "error"
-            );
-
-        }
-
-    },
-
-
-    limparLista(){
-
-        if(
-            !confirm(
-                "Deseja limpar a lista salva?"
-            )
-        ){
-
-            return;
-
-        }
-
-
-        this.lista = [];
-
-        this.listaOriginal = [];
-
-
-        localStorage.removeItem(
-            "gcplay_playlist_cache"
-        );
-
-        localStorage.removeItem(
-            "gcplay_playlist_url"
-        );
-
-
-        document
-            .getElementById(
-                "playlistUrl"
-            )
-            .value = "";
-
-
-        this.atualizarContadores();
+        this.currentChannel =
+            null;
 
         this.renderizar();
 
-
-        this.toast(
-            "Lista removida.",
-            "success"
-        );
-
     },
 
 
-    /* =====================================================
-       LOADING
-    ===================================================== */
-
-    mostrarLoading(
-        mostrar,
-        texto="Carregando..."
-    ){
-
-        const overlay =
-            document.getElementById(
-                "loadingOverlay"
-            );
-
-
-        const text =
-            document.getElementById(
-                "loadingText"
-            );
-
-
-        if(text){
-
-            text.textContent =
-                texto;
-
-        }
-
-
-        if(overlay){
-
-            overlay.classList.toggle(
-                "show",
-                mostrar
-            );
-
-        }
-
-    },
-
-
-    mostrarPlayerLoading(
-        mostrar
-    ){
-
-        const el =
-            document.getElementById(
-                "playerLoading"
-            );
-
-
-        if(el){
-
-            el.classList.toggle(
-                "show",
-                mostrar
-            );
-
-        }
-
-    },
-
-
-    /* =====================================================
-       TOAST
-    ===================================================== */
-
-    toast(
-        mensagem,
-        tipo=""
-    ){
-
-        const container =
-            document.getElementById(
-                "toastContainer"
-            );
-
-
-        const toast =
-            document.createElement(
-                "div"
-            );
-
-
-        toast.className =
-            "toast " +
-            tipo;
-
-
-        toast.textContent =
-            mensagem;
-
-
-        container.appendChild(
-            toast
-        );
-
-
-        setTimeout(
-            () => {
-
-                toast.style.opacity =
-                    "0";
-
-                toast.style.transform =
-                    "translateY(8px)";
-
-                setTimeout(
-                    () => toast.remove(),
-                    200
-                );
-
-            },
-            3500
-        );
-
-    },
-
-
-    /* =====================================================
-       TECLADO / TV
-    ===================================================== */
-
-    tecladoTV(event){
-
-        const player =
-            document
-                .getElementById(
-                    "playerOverlay"
-                );
-
-
-        if(
-            player.classList.contains(
-                "show"
-            )
-        ){
-
-            if(
-                event.key === "Escape"
-            ){
-
-                this.fecharPlayer();
-
-            }
-
-            return;
-
-        }
-
-
-        const active =
-            document.activeElement;
-
-
-        if(
-            active &&
-            (
-                active.tagName ===
-                "INPUT" ||
-                active.tagName ===
-                "TEXTAREA"
-            )
-        ){
-
-            if(
-                event.key === "Escape"
-            ){
-
-                active.blur();
-
-            }
-
-            return;
-
-        }
-
-
-        const cards =
-            [
-                ...document.querySelectorAll(
-                    ".channel"
-                )
-            ];
-
-
-        if(!cards.length){
-            return;
-        }
-
-
-        let index =
-            cards.indexOf(
-                document.activeElement
-            );
-
-
-        if(event.key === "ArrowRight"){
-
-            event.preventDefault();
-
-            index =
-                Math.min(
-                    index + 1,
-                    cards.length - 1
-                );
-
-            cards[index].focus();
-
-        }
-
-
-        if(event.key === "ArrowLeft"){
-
-            event.preventDefault();
-
-            index =
-                Math.max(
-                    index - 1,
-                    0
-                );
-
-            cards[index].focus();
-
-        }
-
-
-        if(event.key === "ArrowDown"){
-
-            event.preventDefault();
-
-            const columns =
-                this.obterColunas();
-
-            index =
-                Math.min(
-                    index + columns,
-                    cards.length - 1
-                );
-
-            cards[index].focus();
-
-        }
-
-
-        if(event.key === "ArrowUp"){
-
-            event.preventDefault();
-
-            const columns =
-                this.obterColunas();
-
-            index =
-                Math.max(
-                    index - columns,
-                    0
-                );
-
-            cards[index].focus();
-
-        }
-
-
-        if(
-            event.key === "Enter" &&
-            index >= 0
-        ){
-
-            cards[index].click();
-
-        }
-
-    },
-
-
-    obterColunas(){
-
-        const cards =
-            document.querySelectorAll(
-                ".channel"
-            );
-
-
-        if(cards.length < 2){
-            return 1;
-        }
-
-
-        const firstTop =
-            cards[0].getBoundingClientRect().top;
-
-
-        let columns = 0;
-
-
-        for(
-            const card
-            of cards
-        ){
-
-            if(
-                Math.abs(
-                    card.getBoundingClientRect().top -
-                    firstTop
-                ) < 5
-            ){
-
-                columns++;
-
-            }else{
-
-                break;
-
-            }
-
-        }
-
-
-        return Math.max(
-            columns,
-            1
-        );
-
-    },
-
-
-    /* =====================================================
-       SEGURANÇA HTML
-    ===================================================== */
+    /* ========================================================
+       ESCAPE HTML
+    ======================================================== */
 
     escapeHtml(value){
 
         return String(
-            value ?? ""
+            value || ""
         )
         .replace(
             /&/g,
@@ -3964,18 +3332,10 @@ const app = {
     },
 
 
-    escapeJs(value){
+    escapeAttr(value){
 
-        return String(
-            value ?? ""
-        )
-        .replace(
-            /\\/g,
-            "\\\\"
-        )
-        .replace(
-            /'/g,
-            "\\'"
+        return this.escapeHtml(
+            value
         );
 
     }
@@ -3983,19 +3343,18 @@ const app = {
 };
 
 
-/* =========================================================
-   INICIAR
-========================================================= */
+/* ============================================================
+   INICIALIZAÇÃO
+============================================================ */
 
 document.addEventListener(
     "DOMContentLoaded",
     () => {
 
-        app.init();
+        App.init();
 
     }
 );
-
 </script>
 
 </body>
