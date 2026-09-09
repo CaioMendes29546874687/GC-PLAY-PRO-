@@ -1,1518 +1,1270 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-
 <meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0,
+               maximum-scale=1.0, user-scalable=no">
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
->
-
-<meta name="theme-color" content="#000000">
-
-<meta
-    http-equiv="Cache-Control"
-    content="no-cache, no-store, must-revalidate"
->
-
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
+<meta name="theme-color" content="#050505">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 
 <title>GC PLAY PRO</title>
 
-<link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
->
-
 <style>
 
-:root {
-    --black:#000;
-    --black-1:#050505;
-    --black-2:#090909;
-    --black-3:#111;
-    --black-4:#171717;
-    --green:#39ff14;
-    --green-2:#00ff66;
-    --green-dark:#0b6b25;
-    --white:#fff;
-    --gray:#888;
-    --gray2:#555;
-    --red:#ff4040;
-}
-
-* {
+*{
     box-sizing:border-box;
     margin:0;
     padding:0;
 }
 
 html,
-body {
+body{
     width:100%;
     height:100%;
-    overflow:hidden;
-    background:#000;
+    background:#050505;
     color:#fff;
     font-family:Arial,Helvetica,sans-serif;
-}
-
-body {
-    background:
-        radial-gradient(
-            circle at top right,
-            rgba(57,255,20,.04),
-            transparent 35%
-        ),
-        #000;
+    overflow:hidden;
 }
 
 button,
-input {
+input{
     font-family:inherit;
 }
 
-button {
+button{
     cursor:pointer;
 }
 
-button:focus,
-input:focus {
-    outline:none;
+:root{
+    --green:#00ff66;
+    --green2:#00cc55;
+    --dark:#050505;
+    --panel:#0c0c0c;
+    --panel2:#111;
+    --border:#1c1c1c;
+    --text:#fff;
+    --muted:#888;
+    --danger:#ff3b3b;
 }
 
+/* =========================
+   SCROLLBAR
+========================= */
 
-/* =========================================================
+::-webkit-scrollbar{
+    width:7px;
+    height:7px;
+}
+
+::-webkit-scrollbar-track{
+    background:#080808;
+}
+
+::-webkit-scrollbar-thumb{
+    background:#1e1e1e;
+    border-radius:10px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+    background:#333;
+}
+
+/* =========================
    APP
-========================================================= */
+========================= */
 
-.app {
+#app{
     width:100%;
-    height:100vh;
+    height:100%;
     display:flex;
     flex-direction:column;
-    background:linear-gradient(180deg,#000,#030303);
 }
 
-
-/* =========================================================
+/* =========================
    HEADER
-========================================================= */
+========================= */
 
-.header {
-    height:64px;
-    min-height:64px;
+.header{
+    height:65px;
+    min-height:65px;
+    background:#080808;
+    border-bottom:1px solid #191919;
     display:flex;
     align-items:center;
+    gap:15px;
     padding:0 18px;
-    border-bottom:1px solid rgba(57,255,20,.18);
-    background:rgba(0,0,0,.98);
     z-index:20;
-    box-shadow:0 1px 15px rgba(57,255,20,.04);
 }
 
-.logo {
-    min-width:210px;
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
-
-.logo-icon {
-    width:39px;
-    height:39px;
-    border-radius:10px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:#071007;
-    border:1px solid var(--green);
+.logo{
     color:var(--green);
-    font-size:18px;
-    box-shadow:0 0 12px rgba(57,255,20,.25);
-}
-
-.logo-text {
-    font-size:18px;
+    font-size:22px;
     font-weight:900;
     letter-spacing:1px;
+    white-space:nowrap;
+    text-shadow:0 0 12px rgba(0,255,102,.25);
 }
 
-.logo-text span {
-    color:var(--green);
-    text-shadow:0 0 8px rgba(57,255,20,.35);
+.logo span{
+    color:#fff;
 }
 
-.header-center {
+.search-box{
     flex:1;
-    display:flex;
-    justify-content:center;
-    padding:0 15px;
-}
-
-.search-box {
-    width:100%;
-    max-width:520px;
+    max-width:550px;
     position:relative;
 }
 
-.search-box i {
-    position:absolute;
-    left:14px;
-    top:50%;
-    transform:translateY(-50%);
-    color:var(--gray);
-}
-
-.search-box input {
+.search-box input{
     width:100%;
     height:40px;
-    border:1px solid #202020;
-    border-radius:9px;
-    background:#080808;
+    border:1px solid #222;
+    border-radius:8px;
+    background:#101010;
     color:#fff;
-    padding:0 14px 0 42px;
+    padding:0 15px;
+    outline:none;
 }
 
-.search-box input:focus {
+.search-box input:focus{
     border-color:var(--green);
-    box-shadow:0 0 8px rgba(57,255,20,.12);
+    box-shadow:0 0 10px rgba(0,255,102,.12);
 }
 
-.header-right {
-    min-width:220px;
-    display:flex;
-    align-items:center;
-    justify-content:flex-end;
-}
-
-.connection-status {
+.header-buttons{
+    margin-left:auto;
     display:flex;
     align-items:center;
     gap:8px;
-    color:#aaa;
-    font-size:12px;
 }
 
-.status-dot {
+.btn{
+    height:38px;
+    border-radius:7px;
+    border:1px solid #292929;
+    background:#111;
+    color:#fff;
+    padding:0 14px;
+    font-weight:bold;
+}
+
+.btn:hover{
+    border-color:#444;
+}
+
+.btn-green{
+    background:var(--green);
+    border-color:var(--green);
+    color:#000;
+}
+
+.btn-green:hover{
+    background:#00e65c;
+}
+
+.status-mini{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    font-size:12px;
+    color:#aaa;
+    white-space:nowrap;
+}
+
+.status-dot{
     width:9px;
     height:9px;
     border-radius:50%;
-    background:#555;
+    background:#888;
 }
 
-.status-dot.active {
+.status-dot.active{
     background:var(--green);
     box-shadow:0 0 10px var(--green);
 }
 
-.status-dot.waiting {
-    background:#aaff00;
+.status-dot.pending{
+    background:#ffc400;
 }
 
-.status-dot.error {
-    background:#ff3030;
+.status-dot.blocked{
+    background:#ff3333;
 }
 
+/* =========================
+   MAIN
+========================= */
 
-/* =========================================================
-   BODY
-========================================================= */
-
-.body {
+.main{
     flex:1;
     min-height:0;
     display:flex;
 }
 
-
-/* =========================================================
+/* =========================
    SIDEBAR
-========================================================= */
+========================= */
 
-.sidebar {
-    width:230px;
-    min-width:230px;
-    border-right:1px solid rgba(57,255,20,.10);
-    background:#030303;
+.sidebar{
+    width:220px;
+    min-width:220px;
+    background:#080808;
+    border-right:1px solid #181818;
     padding:15px 10px;
     overflow-y:auto;
 }
 
-.sidebar-title {
+.menu-title{
     color:#555;
     font-size:10px;
+    font-weight:bold;
+    margin:7px 10px 10px;
     text-transform:uppercase;
-    letter-spacing:1.5px;
-    padding:8px 12px;
-    margin-bottom:5px;
+    letter-spacing:1px;
 }
 
-.menu-item {
+.menu-item{
     width:100%;
-    height:43px;
     border:0;
-    border-radius:8px;
     background:transparent;
-    color:#888;
-    display:flex;
-    align-items:center;
-    gap:12px;
-    padding:0 13px;
-    margin-bottom:4px;
+    color:#aaa;
     text-align:left;
+    padding:11px 12px;
+    border-radius:7px;
+    margin-bottom:3px;
+    font-size:13px;
 }
 
-.menu-item i {
-    width:20px;
-    text-align:center;
+.menu-item:hover{
+    background:#111;
+    color:#fff;
 }
 
-.menu-item:hover,
-.menu-item:focus,
-.menu-item.active {
-    background:rgba(57,255,20,.08);
+.menu-item.active{
+    background:#102216;
     color:var(--green);
-    box-shadow:inset 2px 0 0 var(--green);
 }
 
-.category-list {
-    margin-top:5px;
+.menu-item .icon{
+    display:inline-block;
+    width:24px;
 }
 
+/* =========================
+   CONTENT
+========================= */
 
-/* =========================================================
-   MAIN
-========================================================= */
-
-.main {
+.content{
     flex:1;
     min-width:0;
+    min-height:0;
     display:flex;
     flex-direction:column;
-    overflow:hidden;
+    background:#050505;
 }
 
-.toolbar {
-    min-height:62px;
-    padding:11px 15px;
+.toolbar{
+    min-height:58px;
+    padding:10px 15px;
+    border-bottom:1px solid #171717;
     display:flex;
-    gap:10px;
-    border-bottom:1px solid rgba(57,255,20,.08);
-    background:#020202;
-}
-
-.url-input {
-    flex:1;
-    min-width:0;
-    height:40px;
-    border:1px solid #222;
-    border-radius:8px;
-    background:#090909;
-    color:#fff;
-    padding:0 13px;
-}
-
-.url-input:focus {
-    border-color:var(--green);
-}
-
-.btn {
-    height:40px;
-    padding:0 15px;
-    border-radius:8px;
-    border:1px solid #292929;
-    background:#0b0b0b;
-    color:#ddd;
-    display:inline-flex;
     align-items:center;
-    justify-content:center;
     gap:8px;
 }
 
-.btn:hover,
-.btn:focus {
+.playlist-input{
+    flex:1;
+    min-width:100px;
+    height:40px;
+    border:1px solid #252525;
+    border-radius:7px;
+    background:#0d0d0d;
+    color:#fff;
+    padding:0 13px;
+    outline:none;
+}
+
+.playlist-input:focus{
     border-color:var(--green);
-    color:var(--green);
 }
 
-.btn-primary {
-    background:#071007;
-    border:1px solid var(--green);
-    color:var(--green);
-    box-shadow:0 0 8px rgba(57,255,20,.08);
-}
-
-.btn-danger {
-    border-color:#442020;
-    color:#ff6868;
-}
-
-.btn-danger:hover {
-    border-color:#ff4040;
-    color:#ff4040;
-}
-
-.content {
+.channels-area{
     flex:1;
     min-height:0;
     overflow-y:auto;
     padding:15px;
 }
 
-
-/* =========================================================
-   SECTION
-========================================================= */
-
-.section-header {
+.channel-header{
     display:flex;
-    justify-content:space-between;
     align-items:center;
-    margin-bottom:14px;
+    justify-content:space-between;
+    margin-bottom:15px;
 }
 
-.section-title {
-    font-size:18px;
-    font-weight:800;
+.channel-title{
+    font-size:17px;
+    font-weight:bold;
 }
 
-.section-count {
-    color:#555;
+.channel-count{
+    color:#777;
     font-size:12px;
 }
 
-
-/* =========================================================
+/* =========================
    GRID
-========================================================= */
+========================= */
 
-.channel-grid {
+.channel-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+    grid-template-columns:repeat(auto-fill,minmax(170px,1fr));
     gap:12px;
 }
 
-.channel-card {
-    min-height:105px;
-    border-radius:10px;
-    border:1px solid #181818;
-    background:linear-gradient(145deg,#111,#050505);
-    overflow:hidden;
+.channel-card{
     position:relative;
-    transition:.15s ease;
+    min-height:145px;
+    background:#0b0b0b;
+    border:1px solid #181818;
+    border-radius:9px;
+    overflow:hidden;
+    transition:.15s;
 }
 
-.channel-card:hover,
-.channel-card:focus {
-    transform:translateY(-2px);
-    border-color:rgba(57,255,20,.7);
-    box-shadow:0 0 15px rgba(57,255,20,.07);
+.channel-card:hover{
+    border-color:#2c2c2c;
+    transform:translateY(-1px);
 }
 
-.channel-card-inner {
-    padding:12px;
-    height:100%;
-    display:flex;
-    gap:12px;
-    align-items:center;
-}
-
-.channel-logo,
-.channel-logo-fallback {
-    width:58px;
-    height:58px;
-    flex-shrink:0;
-    border-radius:8px;
-}
-
-.channel-logo {
-    background:#151515;
-    object-fit:contain;
-}
-
-.channel-logo-fallback {
+.channel-logo{
+    height:95px;
     display:flex;
     align-items:center;
     justify-content:center;
-    background:#101010;
-    color:#555;
+    background:#111;
+    padding:10px;
 }
 
-.channel-info {
-    min-width:0;
-    flex:1;
+.channel-logo img{
+    max-width:100%;
+    max-height:75px;
+    object-fit:contain;
 }
 
-.channel-name {
-    font-size:14px;
-    font-weight:700;
-    line-height:1.3;
+.no-logo{
+    color:#333;
+    font-size:25px;
+    font-weight:bold;
 }
 
-.channel-group {
-    margin-top:6px;
-    font-size:11px;
-    color:#555;
+.channel-info{
+    padding:9px 10px 11px;
+}
+
+.channel-name{
+    font-size:13px;
+    font-weight:bold;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
 }
 
-.favorite-btn {
+.channel-group{
+    margin-top:4px;
+    color:#666;
+    font-size:10px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.favorite-btn{
     position:absolute;
-    right:8px;
-    top:8px;
+    top:7px;
+    right:7px;
     width:28px;
     height:28px;
     border:0;
     border-radius:50%;
-    background:rgba(0,0,0,.65);
-    color:#555;
+    background:rgba(0,0,0,.75);
+    color:#777;
+    font-size:17px;
+    z-index:2;
 }
 
-.favorite-btn.active {
+.favorite-btn.active{
     color:var(--green);
-    text-shadow:0 0 7px var(--green);
 }
 
-
-/* =========================================================
+/* =========================
    EMPTY
-========================================================= */
+========================= */
 
-.empty {
-    min-height:260px;
+.empty{
+    min-height:250px;
     display:flex;
+    flex-direction:column;
     align-items:center;
     justify-content:center;
     text-align:center;
     color:#555;
+    padding:30px;
 }
 
-.empty-box i {
-    font-size:42px;
+.empty-icon{
+    font-size:45px;
     margin-bottom:15px;
 }
 
-.empty-box h3 {
-    color:#888;
-    margin-bottom:8px;
+.empty strong{
+    color:#777;
+    font-size:16px;
 }
 
+.empty p{
+    margin-top:7px;
+    font-size:12px;
+    max-width:500px;
+    line-height:1.5;
+}
 
-/* =========================================================
+/* =========================
+   MODALS
+========================= */
+
+.overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.88);
+    z-index:100;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:15px;
+}
+
+.overlay.show{
+    display:flex;
+}
+
+.modal{
+    width:100%;
+    max-width:500px;
+    max-height:92vh;
+    overflow-y:auto;
+    background:#0b0b0b;
+    border:1px solid #252525;
+    border-radius:12px;
+    box-shadow:0 0 40px rgba(0,0,0,.7);
+}
+
+.modal-header{
+    padding:18px;
+    border-bottom:1px solid #1b1b1b;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.modal-header h2{
+    color:var(--green);
+    font-size:18px;
+}
+
+.close-btn{
+    width:34px;
+    height:34px;
+    border:0;
+    border-radius:6px;
+    background:#151515;
+    color:#aaa;
+    font-size:20px;
+}
+
+.close-btn:hover{
+    color:#fff;
+}
+
+.modal-body{
+    padding:20px;
+}
+
+.field{
+    margin-bottom:15px;
+}
+
+.field label{
+    display:block;
+    color:#777;
+    font-size:11px;
+    margin-bottom:7px;
+}
+
+.field input{
+    width:100%;
+    height:42px;
+    border:1px solid #272727;
+    border-radius:7px;
+    background:#080808;
+    color:#fff;
+    padding:0 12px;
+    outline:none;
+}
+
+.field input:focus{
+    border-color:var(--green);
+}
+
+.modal-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.modal-actions .btn{
+    flex:1;
+    min-width:120px;
+}
+
+/* =========================
+   ACTIVATION
+========================= */
+
+.activation{
+    text-align:center;
+}
+
+.activation-logo{
+    font-size:27px;
+    font-weight:900;
+    color:var(--green);
+    margin-bottom:5px;
+}
+
+.activation-sub{
+    color:#777;
+    font-size:12px;
+    margin-bottom:18px;
+}
+
+.qr-box{
+    width:220px;
+    height:220px;
+    background:#fff;
+    margin:0 auto 18px;
+    padding:10px;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+#qrcode{
+    width:200px;
+    height:200px;
+}
+
+.activation-code{
+    background:#111;
+    border:1px solid #222;
+    border-radius:8px;
+    padding:15px;
+    margin-bottom:12px;
+}
+
+.activation-code small{
+    display:block;
+    color:#666;
+    font-size:10px;
+    margin-bottom:5px;
+}
+
+.activation-code strong{
+    color:var(--green);
+    font-size:27px;
+    letter-spacing:5px;
+}
+
+.device-id-box{
+    background:#080808;
+    border:1px solid #1c1c1c;
+    border-radius:7px;
+    padding:10px;
+    word-break:break-all;
+    color:#777;
+    font-size:10px;
+    margin-bottom:12px;
+}
+
+.activation-status{
+    font-size:12px;
+    color:#888;
+    margin-top:12px;
+}
+
+.activation-status.active{
+    color:var(--green);
+}
+
+.activation-status.error{
+    color:#ff4444;
+}
+
+.activation-status.waiting{
+    color:#ffc400;
+}
+
+/* =========================
    PLAYER
-========================================================= */
+========================= */
 
-.player-overlay {
+.player-overlay{
     position:fixed;
     inset:0;
     background:#000;
-    z-index:100;
+    z-index:300;
     display:none;
     flex-direction:column;
 }
 
-.player-overlay.show {
+.player-overlay.show{
     display:flex;
 }
 
-.player-top {
-    height:58px;
-    min-height:58px;
-    background:#050505;
-    border-bottom:1px solid #171717;
+.player-top{
+    height:55px;
+    min-height:55px;
     display:flex;
     align-items:center;
-    padding:0 15px;
-    gap:12px;
+    gap:10px;
+    padding:0 12px;
+    background:#090909;
+    border-bottom:1px solid #1b1b1b;
 }
 
-.player-title {
+.player-title{
     flex:1;
     min-width:0;
-    font-weight:700;
+    color:#fff;
+    font-size:14px;
+    font-weight:bold;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
 }
 
-.player-video-wrap {
+.player-btn{
+    width:38px;
+    height:38px;
+    border:1px solid #242424;
+    border-radius:6px;
+    background:#111;
+    color:#fff;
+}
+
+.player-btn:hover{
+    border-color:var(--green);
+    color:var(--green);
+}
+
+.video-container{
     flex:1;
     min-height:0;
     display:flex;
     align-items:center;
     justify-content:center;
     background:#000;
-    position:relative;
 }
 
-#videoPlayer {
+#videoPlayer{
     width:100%;
     height:100%;
     object-fit:contain;
 }
 
-.player-error {
-    position:absolute;
-    left:50%;
-    top:50%;
-    transform:translate(-50%,-50%);
-    width:90%;
-    max-width:450px;
-    text-align:center;
-    background:#0b0b0b;
-    border:1px solid #202020;
-    padding:25px;
-    border-radius:12px;
-    display:none;
-}
-
-.player-error.show {
-    display:block;
-}
-
-.player-error i {
-    font-size:35px;
-    color:#ff5c5c;
-    margin-bottom:12px;
-}
-
-
-/* =========================================================
-   ATIVAÇÃO
-========================================================= */
-
-.activation-overlay,
-.login-overlay {
-    position:fixed;
-    inset:0;
-    z-index:500;
-    background:
-        radial-gradient(
-            circle at center,
-            #071007 0,
-            #020202 45%,
-            #000 100%
-        );
-    display:none;
-    align-items:center;
-    justify-content:center;
-    padding:20px;
-}
-
-.activation-overlay.show,
-.login-overlay.show {
-    display:flex;
-}
-
-.activation-box,
-.login-box {
-    width:100%;
-    max-width:760px;
-    max-height:95vh;
-    overflow-y:auto;
-    border-radius:18px;
-    border:1px solid rgba(57,255,20,.25);
-    background:#050505;
-    padding:28px;
-    box-shadow:0 0 50px rgba(57,255,20,.06);
-}
-
-.activation-header,
-.login-header {
-    text-align:center;
-    margin-bottom:25px;
-}
-
-.activation-header .brand,
-.login-header .brand {
-    font-size:26px;
-    font-weight:900;
-    color:var(--green);
-    letter-spacing:1px;
-    text-shadow:0 0 10px rgba(57,255,20,.3);
-}
-
-.activation-header p,
-.login-header p {
-    color:#666;
-    font-size:13px;
-    margin-top:7px;
-}
-
-.activation-content {
-    display:grid;
-    grid-template-columns:270px 1fr;
-    gap:28px;
-}
-
-.qr-area {
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-}
-
-#qrcode {
-    width:220px;
-    height:220px;
-    padding:10px;
-    background:#fff;
-    border-radius:12px;
-}
-
-.activation-code-label {
-    margin-top:15px;
-    color:#555;
-    font-size:10px;
-    text-transform:uppercase;
-    letter-spacing:1px;
-}
-
-.activation-code {
-    margin-top:5px;
-    font-size:27px;
-    font-weight:900;
-    letter-spacing:5px;
-    color:var(--green);
-    text-shadow:0 0 10px rgba(57,255,20,.4);
-}
-
-
-/* =========================================================
-   DEVICE
-========================================================= */
-
-.device-id-box {
-    background:#000;
-    border:1px solid rgba(57,255,20,.35);
-    border-radius:10px;
-    padding:14px;
-    margin-bottom:12px;
-}
-
-.device-id-title {
-    color:var(--green);
-    font-size:10px;
-    font-weight:700;
-    text-transform:uppercase;
-    letter-spacing:1px;
-    margin-bottom:8px;
-}
-
-.device-id-value {
-    display:block;
-    width:100%;
-    color:#fff;
-    font-size:14px;
-    font-family:monospace;
-    line-height:1.5;
-    word-break:break-all;
-    user-select:text;
-}
-
-.device-debug {
-    margin-top:8px;
-    color:#444;
-    font-size:9px;
-}
-
-
-/* =========================================================
-   STEPS
-========================================================= */
-
-.step {
-    display:flex;
-    gap:10px;
-    margin-bottom:11px;
-    color:#999;
-    font-size:13px;
-    line-height:1.4;
-}
-
-.step-number {
-    width:23px;
-    height:23px;
-    min-width:23px;
-    border-radius:50%;
-    background:#071007;
-    border:1px solid var(--green);
-    color:var(--green);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:11px;
-    font-weight:700;
-}
-
-
-/* =========================================================
-   ACTIVATION STATUS
-========================================================= */
-
-.activation-status {
-    margin-top:15px;
-    min-height:38px;
-    border-radius:8px;
-    padding:10px;
-    font-size:12px;
-    display:none;
-}
-
-.activation-status.show {
-    display:block;
-}
-
-.activation-status.success {
-    background:rgba(57,255,20,.08);
-    border:1px solid rgba(57,255,20,.2);
-    color:var(--green);
-}
-
-.activation-status.error {
-    background:rgba(255,40,40,.08);
-    border:1px solid rgba(255,40,40,.2);
-    color:#ff6565;
-}
-
-.activation-status.waiting {
-    background:rgba(57,255,20,.05);
-    border:1px solid rgba(57,255,20,.12);
-    color:#aaff80;
-}
-
-
-/* =========================================================
-   LOGIN / CONFIGURAÇÃO M3U
-========================================================= */
-
-.login-field {
-    margin-bottom:14px;
-}
-
-.login-field label {
-    display:block;
-    color:#777;
-    font-size:11px;
-    text-transform:uppercase;
-    letter-spacing:1px;
-    margin-bottom:7px;
-}
-
-.login-field input {
-    width:100%;
-    height:45px;
-    border:1px solid #242424;
-    border-radius:9px;
-    background:#090909;
-    color:#fff;
-    padding:0 13px;
-}
-
-.login-field input:focus {
-    border-color:var(--green);
-    box-shadow:0 0 8px rgba(57,255,20,.1);
-}
-
-.login-actions {
-    display:flex;
-    gap:10px;
-    margin-top:18px;
-}
-
-.login-actions .btn {
-    flex:1;
-}
-
-.login-message {
-    margin-top:14px;
-    padding:11px;
-    border-radius:8px;
-    font-size:12px;
-    display:none;
-}
-
-.login-message.show {
-    display:block;
-}
-
-.login-message.success {
-    color:var(--green);
-    background:rgba(57,255,20,.06);
-    border:1px solid rgba(57,255,20,.15);
-}
-
-.login-message.error {
-    color:#ff6565;
-    background:rgba(255,40,40,.06);
-    border:1px solid rgba(255,40,40,.15);
-}
-
-.login-message.waiting {
-    color:#aaff80;
-    background:rgba(57,255,20,.04);
-    border:1px solid rgba(57,255,20,.1);
-}
-
-
-/* =========================================================
+/* =========================
    LOADING
-========================================================= */
+========================= */
 
-.loading-overlay {
+.loading-overlay{
     position:fixed;
     inset:0;
-    z-index:700;
-    background:rgba(0,0,0,.92);
+    background:rgba(0,0,0,.85);
+    z-index:500;
     display:none;
     align-items:center;
     justify-content:center;
-}
-
-.loading-overlay.show {
-    display:flex;
-}
-
-.loading-box {
     text-align:center;
 }
 
-.spinner {
-    width:45px;
-    height:45px;
+.loading-overlay.show{
+    display:flex;
+}
+
+.loading-box{
+    width:300px;
+    max-width:90%;
+    background:#0b0b0b;
+    border:1px solid #222;
+    border-radius:10px;
+    padding:25px;
+}
+
+.spinner{
+    width:42px;
+    height:42px;
+    margin:0 auto 15px;
     border:4px solid #222;
     border-top-color:var(--green);
     border-radius:50%;
-    animation:spin 1s linear infinite;
-    margin:auto auto 15px;
+    animation:spin .8s linear infinite;
 }
 
-@keyframes spin {
-    to {
+@keyframes spin{
+    to{
         transform:rotate(360deg);
     }
 }
 
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
-
-@media(max-width:800px) {
-
-    .sidebar {
-        width:70px;
-        min-width:70px;
-    }
-
-    .sidebar-title,
-    .menu-item span {
-        display:none;
-    }
-
-    .menu-item {
-        justify-content:center;
-        padding:0;
-    }
-
-    .logo {
-        min-width:auto;
-    }
-
-    .logo-text {
-        display:none;
-    }
-
-    .header-right {
-        min-width:auto;
-    }
-
-    .connection-status span {
-        display:none;
-    }
-
-    .activation-content {
-        grid-template-columns:1fr;
-    }
-
-    .qr-area {
-        order:1;
-    }
-
-    .activation-info {
-        order:2;
-    }
+.loading-text{
+    color:#aaa;
+    font-size:13px;
 }
 
-@media(max-width:500px) {
+.loading-error{
+    color:#ff4444;
+    margin-top:10px;
+    font-size:12px;
+}
 
-    .header {
-        padding:0 10px;
-    }
+/* =========================
+   TOAST
+========================= */
 
-    .header-center {
-        padding:0 7px;
-    }
+.toast{
+    position:fixed;
+    left:50%;
+    bottom:25px;
+    transform:translateX(-50%) translateY(100px);
+    z-index:600;
+    background:#111;
+    border:1px solid #292929;
+    border-radius:8px;
+    padding:12px 18px;
+    color:#fff;
+    font-size:12px;
+    transition:.25s;
+    max-width:90%;
+    text-align:center;
+}
 
-    .channel-grid {
-        grid-template-columns:repeat(2,minmax(0,1fr));
-    }
+.toast.show{
+    transform:translateX(-50%) translateY(0);
+}
 
-    .channel-card {
-        min-height:90px;
-    }
+.toast.success{
+    border-color:var(--green);
+}
 
-    .channel-logo,
-    .channel-logo-fallback {
-        width:45px;
-        height:45px;
-    }
+.toast.error{
+    border-color:#ff3333;
+}
 
-    .activation-box,
-    .login-box {
-        padding:18px;
-    }
+/* =========================
+   RESPONSIVE
+========================= */
 
-    .toolbar {
+@media(max-width:800px){
+
+    .header{
+        height:auto;
+        min-height:60px;
+        padding:10px;
         flex-wrap:wrap;
     }
 
-    .url-input {
-        width:100%;
+    .logo{
+        font-size:19px;
+    }
+
+    .search-box{
+        order:5;
+        flex-basis:100%;
+        max-width:none;
+    }
+
+    .header-buttons{
+        gap:5px;
+    }
+
+    .header-buttons .btn{
+        padding:0 9px;
+        font-size:11px;
+    }
+
+    .status-mini{
+        display:none;
+    }
+
+    .sidebar{
+        width:62px;
+        min-width:62px;
+        padding:10px 6px;
+    }
+
+    .menu-title{
+        display:none;
+    }
+
+    .menu-item{
+        text-align:center;
+        padding:12px 2px;
+    }
+
+    .menu-item .icon{
+        width:auto;
+        font-size:17px;
+    }
+
+    .menu-item .label{
+        display:none;
+    }
+
+    .toolbar{
+        flex-wrap:wrap;
+        padding:9px;
+    }
+
+    .playlist-input{
         flex-basis:100%;
     }
 
-}
-
-
-/* =========================================================
-   TV / CONTROLE
-========================================================= */
-
-@media(min-width:801px) {
-
-    button:focus,
-    input:focus,
-    .channel-card:focus {
-        outline:2px solid rgba(57,255,20,.45);
-        outline-offset:2px;
+    .toolbar .btn{
+        flex:1;
     }
 
+    .channel-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:8px;
+    }
+
+    .channel-card{
+        min-height:130px;
+    }
+
+    .channel-logo{
+        height:80px;
+    }
+}
+
+@media(max-width:430px){
+
+    .header-buttons .btn{
+        font-size:10px;
+        padding:0 7px;
+    }
+
+    .channel-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+
+    .qr-box{
+        width:190px;
+        height:190px;
+    }
+
+    #qrcode{
+        width:170px;
+        height:170px;
+    }
 }
 
 </style>
-
 </head>
 
 <body>
 
+<div id="app">
 
-<div class="app">
+    <!-- ================= HEADER ================= -->
 
+    <header class="header">
 
-<header class="header">
-
-    <div class="logo">
-
-        <div class="logo-icon">
-            <i class="fas fa-play"></i>
-        </div>
-
-        <div class="logo-text">
+        <div class="logo">
             GC <span>PLAY PRO</span>
         </div>
 
-    </div>
-
-
-    <div class="header-center">
-
         <div class="search-box">
-
-            <i class="fas fa-search"></i>
-
             <input
                 id="searchInput"
-                type="text"
+                type="search"
                 placeholder="Pesquisar canais..."
-                autocomplete="off"
-            >
-
+                autocomplete="off">
         </div>
 
-    </div>
+        <div class="header-buttons">
 
-
-    <div class="header-right">
-
-        <div class="connection-status">
-
-            <div
-                id="statusDot"
-                class="status-dot waiting"
-            ></div>
-
-            <span id="statusText">
-                Aguardando ativação
-            </span>
-
-        </div>
-
-    </div>
-
-</header>
-
-
-
-<div class="body">
-
-
-<aside class="sidebar">
-
-    <div class="sidebar-title">
-        Menu
-    </div>
-
-    <button class="menu-item active" data-category="all">
-        <i class="fas fa-tv"></i>
-        <span>Todos</span>
-    </button>
-
-    <button class="menu-item" data-category="favorites">
-        <i class="fas fa-star"></i>
-        <span>Favoritos</span>
-    </button>
-
-    <button class="menu-item" data-category="live">
-        <i class="fas fa-broadcast-tower"></i>
-        <span>TV ao Vivo</span>
-    </button>
-
-    <button class="menu-item" data-category="movies">
-        <i class="fas fa-film"></i>
-        <span>Filmes</span>
-    </button>
-
-    <button class="menu-item" data-category="series">
-        <i class="fas fa-clapperboard"></i>
-        <span>Séries</span>
-    </button>
-
-    <button class="menu-item" data-category="music">
-        <i class="fas fa-music"></i>
-        <span>Música</span>
-    </button>
-
-    <div class="sidebar-title">
-        Categorias
-    </div>
-
-    <div
-        id="dynamicCategories"
-        class="category-list"
-    ></div>
-
-</aside>
-
-
-
-<main class="main">
-
-
-    <div class="toolbar">
-
-        <input
-            id="playlistUrl"
-            class="url-input"
-            type="text"
-            placeholder="Cole aqui a URL da sua lista M3U..."
-            autocomplete="off"
-        >
-
-        <button
-            id="loadPlaylistBtn"
-            class="btn btn-primary"
-        >
-            <i class="fas fa-download"></i>
-            Carregar
-        </button>
-
-        <button
-            id="loginM3UBtn"
-            class="btn"
-        >
-            <i class="fas fa-right-to-bracket"></i>
-            Entrar
-        </button>
-
-        <button
-            id="activationBtn"
-            class="btn"
-        >
-            <i class="fas fa-qrcode"></i>
-            Ativação
-        </button>
-
-    </div>
-
-
-
-    <div class="content">
-
-        <div class="section-header">
-
-            <div class="section-title">
-                Canais
+            <div class="status-mini">
+                <span id="statusDot" class="status-dot pending"></span>
+                <span id="statusMiniText">Pendente</span>
             </div>
 
-            <div
-                id="channelCount"
-                class="section-count"
-            >
-                0 canais
-            </div>
+            <button
+                id="enterBtn"
+                class="btn btn-green">
+                ENTRAR
+            </button>
+
+            <button
+                id="activationBtn"
+                class="btn">
+                ATIVAÇÃO
+            </button>
 
         </div>
 
+    </header>
 
-        <div
-            id="channelGrid"
-            class="channel-grid"
-        ></div>
+    <!-- ================= MAIN ================= -->
 
+    <main class="main">
 
-        <div
-            id="emptyState"
-            class="empty"
-        >
+        <!-- SIDEBAR -->
 
-            <div class="empty-box">
+        <aside class="sidebar">
 
-                <i class="fas fa-tv"></i>
+            <div class="menu-title">
+                Biblioteca
+            </div>
 
-                <h3>
-                    Nenhuma lista carregada
-                </h3>
+            <button
+                class="menu-item active"
+                data-category="all">
+                <span class="icon">▦</span>
+                <span class="label">Todos</span>
+            </button>
 
-                <p>
-                    Informe sua URL M3U e pressione Carregar.
-                </p>
+            <button
+                class="menu-item"
+                data-category="favorites">
+                <span class="icon">★</span>
+                <span class="label">Favoritos</span>
+            </button>
+
+            <button
+                class="menu-item"
+                data-category="live">
+                <span class="icon">TV</span>
+                <span class="label">TV ao Vivo</span>
+            </button>
+
+            <button
+                class="menu-item"
+                data-category="movie">
+                <span class="icon">▶</span>
+                <span class="label">Filmes</span>
+            </button>
+
+            <button
+                class="menu-item"
+                data-category="series">
+                <span class="icon">▤</span>
+                <span class="label">Séries</span>
+            </button>
+
+            <button
+                class="menu-item"
+                data-category="music">
+                <span class="icon">♫</span>
+                <span class="label">Música</span>
+            </button>
+
+            <div id="dynamicCategories"></div>
+
+        </aside>
+
+        <!-- CONTENT -->
+
+        <section class="content">
+
+            <div class="toolbar">
+
+                <input
+                    id="playlistUrl"
+                    class="playlist-input"
+                    type="text"
+                    placeholder="Cole aqui sua URL M3U..."
+                    autocomplete="off">
+
+                <button
+                    id="loadPlaylistBtn"
+                    class="btn btn-green">
+                    CARREGAR
+                </button>
+
+                <button
+                    id="configPlaylistBtn"
+                    class="btn">
+                    ⚙
+                </button>
 
             </div>
 
-        </div>
+            <div class="channels-area">
 
-    </div>
+                <div class="channel-header">
 
+                    <div class="channel-title">
+                        Canais
+                    </div>
 
-</main>
+                    <div
+                        id="channelCount"
+                        class="channel-count">
+                        0 canais
+                    </div>
 
+                </div>
 
-</div>
+                <div
+                    id="channelGrid"
+                    class="channel-grid">
+                </div>
+
+                <div
+                    id="emptyState"
+                    class="empty">
+
+                    <div class="empty-icon">
+                        ▦
+                    </div>
+
+                    <strong>
+                        Nenhuma lista carregada
+                    </strong>
+
+                    <p>
+                        Cole uma URL M3U acima e clique em
+                        <b>CARREGAR</b>.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
 
 </div>
 
 
+<!-- ================= ACTIVATION MODAL ================= -->
 
-<!-- =====================================================
-     PLAYER
-===================================================== -->
+<div
+    id="activationOverlay"
+    class="overlay">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2>
+                Ativação do dispositivo
+            </h2>
+
+            <button
+                id="closeActivationBtn"
+                class="close-btn">
+                ×
+            </button>
+
+        </div>
+
+        <div class="modal-body activation">
+
+            <div class="activation-logo">
+                GC PLAY PRO
+            </div>
+
+            <div class="activation-sub">
+                Use o código abaixo para ativar este dispositivo.
+            </div>
+
+            <div class="qr-box">
+                <div id="qrcode"></div>
+            </div>
+
+            <div class="activation-code">
+
+                <small>
+                    CÓDIGO DE ATIVAÇÃO
+                </small>
+
+                <strong id="activationCode">
+                    ------
+                </strong>
+
+            </div>
+
+            <div class="device-id-box">
+                <span id="deviceId">
+                    Carregando...
+                </span>
+            </div>
+
+            <button
+                id="copyDeviceBtn"
+                class="btn"
+                style="width:100%;">
+                COPIAR ID DO DISPOSITIVO
+            </button>
+
+            <div
+                id="activationStatus"
+                class="activation-status waiting">
+                Verificando dispositivo...
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= PLAYLIST CONFIG ================= -->
+
+<div
+    id="playlistOverlay"
+    class="overlay">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <h2>
+                Configurar M3U
+            </h2>
+
+            <button
+                id="closePlaylistBtn"
+                class="close-btn">
+                ×
+            </button>
+
+        </div>
+
+        <div class="modal-body">
+
+            <div class="field">
+
+                <label>
+                    URL DA PLAYLIST M3U
+                </label>
+
+                <input
+                    id="playlistModalInput"
+                    type="text"
+                    placeholder="http://servidor/get.php?...">
+
+            </div>
+
+            <div class="modal-actions">
+
+                <button
+                    id="savePlaylistBtn"
+                    class="btn">
+                    SALVAR
+                </button>
+
+                <button
+                    id="saveLoadPlaylistBtn"
+                    class="btn btn-green">
+                    SALVAR E CARREGAR
+                </button>
+
+                <button
+                    id="clearPlaylistBtn"
+                    class="btn">
+                    LIMPAR
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================= PLAYER ================= -->
 
 <div
     id="playerOverlay"
-    class="player-overlay"
->
+    class="player-overlay">
 
     <div class="player-top">
 
         <button
             id="closePlayerBtn"
-            class="btn"
-        >
-            <i class="fas fa-arrow-left"></i>
+            class="player-btn">
+            ←
         </button>
 
         <div
             id="playerTitle"
-            class="player-title"
-        >
-            Reproduzindo
+            class="player-title">
+            GC PLAY PRO
         </div>
 
         <button
             id="fullscreenBtn"
-            class="btn"
-        >
-            <i class="fas fa-expand"></i>
+            class="player-btn">
+            ⛶
         </button>
 
     </div>
 
-
-    <div class="player-video-wrap">
+    <div class="video-container">
 
         <video
             id="videoPlayer"
             controls
-            autoplay
             playsinline
-        ></video>
-
-
-        <div
-            id="playerError"
-            class="player-error"
-        >
-
-            <i class="fas fa-triangle-exclamation"></i>
-
-            <h3>
-                Não foi possível reproduzir
-            </h3>
-
-            <p id="playerErrorText">
-                Verifique a URL do canal.
-            </p>
-
-        </div>
+            autoplay>
+        </video>
 
     </div>
 
 </div>
 
 
-
-<!-- =====================================================
-     ATIVAÇÃO
-===================================================== -->
-
-<div
-    id="activationOverlay"
-    class="activation-overlay"
->
-
-<div class="activation-box">
-
-    <div class="activation-header">
-
-        <div class="brand">
-            GC PLAY PRO
-        </div>
-
-        <p>
-            Ativação do dispositivo
-        </p>
-
-    </div>
-
-
-    <div class="activation-content">
-
-
-        <div class="qr-area">
-
-            <div id="qrcode"></div>
-
-            <div class="activation-code-label">
-                Código de ativação
-            </div>
-
-            <div
-                id="activationCodeDisplay"
-                class="activation-code"
-            >
-                ------
-            </div>
-
-        </div>
-
-
-        <div class="activation-info">
-
-            <h3>
-                Ative seu dispositivo
-            </h3>
-
-            <br>
-
-            <div class="step">
-                <div class="step-number">1</div>
-                <div>Escaneie o QR Code com o celular.</div>
-            </div>
-
-            <div class="step">
-                <div class="step-number">2</div>
-                <div>Informe a URL da sua playlist M3U.</div>
-            </div>
-
-            <div class="step">
-                <div class="step-number">3</div>
-                <div>Confirme a ativação.</div>
-            </div>
-
-            <div class="step">
-                <div class="step-number">4</div>
-                <div>O GC PLAY PRO reconhecerá automaticamente a ativação.</div>
-            </div>
-
-
-            <div class="device-id-box">
-
-                <div class="device-id-title">
-                    <i class="fas fa-fingerprint"></i>
-                    ID DO DISPOSITIVO
-                </div>
-
-                <div
-                    id="deviceIdDisplay"
-                    class="device-id-value"
-                >
-                    GERANDO ID...
-                </div>
-
-                <div class="device-debug">
-                    Este é o identificador exclusivo deste aparelho.
-                </div>
-
-            </div>
-
-
-            <button
-                id="copyDeviceBtn"
-                class="btn"
-                style="width:100%;"
-            >
-                <i class="fas fa-copy"></i>
-                Copiar ID do dispositivo
-            </button>
-
-
-            <div
-                id="activationStatus"
-                class="activation-status"
-            ></div>
-
-        </div>
-
-    </div>
-
-</div>
-
-</div>
-
-
-
-<!-- =====================================================
-     LOGIN / M3U
-===================================================== -->
-
-<div
-    id="loginM3UOverlay"
-    class="login-overlay"
->
-
-<div class="login-box">
-
-    <div class="login-header">
-
-        <div class="brand">
-            GC PLAY PRO
-        </div>
-
-        <p>
-            Entrar / Configurar playlist
-        </p>
-
-    </div>
-
-
-    <div class="login-field">
-
-        <label>
-            URL da playlist M3U
-        </label>
-
-        <input
-            id="loginM3UUrl"
-            type="text"
-            placeholder="http:// ou https://..."
-            autocomplete="off"
-        >
-
-    </div>
-
-
-    <div class="login-actions">
-
-        <button
-            id="saveM3UBtn"
-            class="btn btn-primary"
-        >
-            <i class="fas fa-save"></i>
-            Salvar
-        </button>
-
-        <button
-            id="loadM3UFromLoginBtn"
-            class="btn"
-        >
-            <i class="fas fa-play"></i>
-            Salvar e Carregar
-        </button>
-
-    </div>
-
-
-    <div class="login-actions">
-
-        <button
-            id="clearM3UBtn"
-            class="btn btn-danger"
-        >
-            <i class="fas fa-trash"></i>
-            Limpar
-        </button>
-
-        <button
-            id="closeLoginM3UBtn"
-            class="btn"
-        >
-            Fechar
-        </button>
-
-    </div>
-
-
-    <div
-        id="loginM3UMessage"
-        class="login-message"
-    ></div>
-
-</div>
-
-</div>
-
-
-
-<!-- =====================================================
-     LOADING
-===================================================== -->
+<!-- ================= LOADING ================= -->
 
 <div
     id="loadingOverlay"
-    class="loading-overlay"
->
+    class="loading-overlay">
 
     <div class="loading-box">
 
         <div class="spinner"></div>
 
-        <div id="loadingText">
+        <div
+            id="loadingText"
+            class="loading-text">
             Carregando...
+        </div>
+
+        <div
+            id="loadingError"
+            class="loading-error">
         </div>
 
     </div>
@@ -1520,6 +1272,15 @@ input:focus {
 </div>
 
 
+<!-- ================= TOAST ================= -->
+
+<div
+    id="toast"
+    class="toast">
+</div>
+
+
+<!-- ================= LIBRARIES ================= -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -1528,12 +1289,18 @@ input:focus {
 
 <script>
 
+/* =========================================================
+   GC PLAY PRO
+   ========================================================= */
+
+(function(){
+
 "use strict";
 
 
 /* =========================================================
    CONFIGURAÇÃO
-========================================================= */
+   ========================================================= */
 
 var EDGE_FUNCTION_URL =
     "https://kuzgdvpdqmocklsgyzvt.supabase.co/functions/v1/activate-device";
@@ -1541,140 +1308,68 @@ var EDGE_FUNCTION_URL =
 var ACTIVATION_BASE_URL =
     "https://caiomendes29546874687.github.io/GC-PLAY-PRO-/connect.html";
 
-var CORS_PROXIES = [
-    "https://corsproxy.io/?url=",
-    "https://api.allorigins.win/raw?url="
-];
-
 
 /* =========================================================
-   UUID
-========================================================= */
+   HELPERS
+   ========================================================= */
 
-function gerarUUID() {
-
-    try {
-
-        if (
-            window.crypto &&
-            typeof window.crypto.randomUUID === "function"
-        ) {
-            return window.crypto.randomUUID();
-        }
-
-    } catch (e) {}
-
-
-    var bytes = new Uint8Array(16);
-
-    try {
-
-        if (
-            window.crypto &&
-            typeof window.crypto.getRandomValues === "function"
-        ) {
-
-            window.crypto.getRandomValues(bytes);
-
-        } else {
-
-            throw new Error("crypto indisponível");
-
-        }
-
-    } catch (e) {
-
-        for (
-            var i = 0;
-            i < 16;
-            i++
-        ) {
-
-            bytes[i] =
-                Math.floor(
-                    Math.random() * 256
-                );
-
-        }
-
-    }
-
-
-    bytes[6] =
-        (bytes[6] & 15) | 64;
-
-    bytes[8] =
-        (bytes[8] & 63) | 128;
-
-
-    var hex = "";
-
-
-    for (
-        var j = 0;
-        j < bytes.length;
-        j++
-    ) {
-
-        var h =
-            bytes[j].toString(16);
-
-        if (h.length === 1) {
-            h = "0" + h;
-        }
-
-        hex += h;
-
-    }
-
-
-    return (
-        hex.substring(0,8) + "-" +
-        hex.substring(8,12) + "-" +
-        hex.substring(12,16) + "-" +
-        hex.substring(16,20) + "-" +
-        hex.substring(20,32)
-    );
-
+function $(id){
+    return document.getElementById(id);
 }
 
+function gerarUUID(){
 
-/* =========================================================
-   VALIDAR UUID
-========================================================= */
-
-function validarUUID(id) {
-
-    if (
-        !id ||
-        typeof id !== "string"
-    ) {
-        return false;
+    if(window.crypto && crypto.randomUUID){
+        return crypto.randomUUID();
     }
 
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+    var d = new Date().getTime();
 
+    var d2 =
+        (performance &&
+         performance.now &&
+         performance.now() * 1000) || 0;
+
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
+        .replace(/[xy]/g,function(c){
+
+            var r =
+                Math.random() * 16;
+
+            if(d > 0){
+                r =
+                    (d + r) % 16 | 0;
+
+                d =
+                    Math.floor(d / 16);
+            }else{
+
+                r =
+                    (d2 + r) % 16 | 0;
+
+                d2 =
+                    Math.floor(d2 / 16);
+            }
+
+            return (
+                c === "x"
+                    ? r
+                    : (r & 0x3 | 0x8)
+            ).toString(16);
+
+        });
 }
 
-
-/* =========================================================
-   GERAR CÓDIGO
-========================================================= */
-
-function gerarCodigo() {
+function gerarCodigo(){
 
     var chars =
         "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
-    var codigo = "";
+    var resultado = "";
 
-    for (
-        var i = 0;
-        i < 6;
-        i++
-    ) {
+    for(var i = 0; i < 6; i++){
 
-        codigo +=
+        resultado +=
             chars.charAt(
                 Math.floor(
                     Math.random() * chars.length
@@ -1683,2085 +1378,1403 @@ function gerarCodigo() {
 
     }
 
-    return codigo;
+    return resultado;
+}
 
+function escapeHTML(text){
+
+    return String(text)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
 }
 
 
 /* =========================================================
    CLASSE PRINCIPAL
-========================================================= */
+   ========================================================= */
 
-class GCPlayPro {
+function GCPlayPro(){
 
-    constructor() {
+    this.deviceId = "";
+    this.activationCode = "";
 
-        this.initialized = false;
+    this.activationPoll = null;
 
-        this.deviceId = "";
+    this.playlist = [];
+    this.filteredPlaylist = [];
 
-        this.activationCode = "";
+    this.favorites = {};
 
-        this.deviceStatus = "pending";
+    this.currentCategory = "all";
+    this.searchTerm = "";
 
-        this.activationPoll = null;
+    this.currentChannel = null;
 
-        this.statusRequestRunning = false;
+    this.playlistLoading = false;
+    this.playlistLoaded = false;
+    this.playlistLoadAttempted = false;
 
-        this.hls = null;
+    this.lastPlaylistUrl = "";
 
-        this.playlist = [];
+    this.initialized = false;
 
-        this.filteredPlaylist = [];
+    this.deviceStatus = "pending";
 
-        this.favorites = {};
+    this.statusRequestRunning = false;
 
-        this.currentCategory = "all";
-
-        this.searchTerm = "";
-
-        this.currentChannel = null;
-
-        this.playlistLoading = false;
-
-        this.playlistLoaded = false;
-
-        this.playlistLoadAttempted = false;
-
-        this.lastPlaylistUrl = "";
-
-    }
+}
 
 
-    /* =====================================================
-       DISPOSITIVO
-    ===================================================== */
+/* =========================================================
+   INICIALIZAÇÃO DO DISPOSITIVO
+   ========================================================= */
 
-    inicializarDispositivo() {
+GCPlayPro.prototype.inicializarDispositivo =
+function(){
 
-        var id = "";
+    try{
 
-        try {
+        this.deviceId =
+            localStorage.getItem(
+                "gcplay_device_id"
+            ) || "";
 
-            id =
-                localStorage.getItem(
-                    "gcplay_device_id"
-                ) || "";
+        if(!this.deviceId){
 
-        } catch (e) {}
+            this.deviceId =
+                gerarUUID();
 
-
-        if (!validarUUID(id)) {
-
-            id = gerarUUID();
-
-            try {
-
-                localStorage.setItem(
-                    "gcplay_device_id",
-                    id
-                );
-
-            } catch (e) {}
+            localStorage.setItem(
+                "gcplay_device_id",
+                this.deviceId
+            );
 
         }
-
-
-        this.deviceId = id;
-
-
-        var codigo = "";
-
-        try {
-
-            codigo =
-                localStorage.getItem(
-                    "gcplay_activation_code"
-                ) || "";
-
-        } catch (e) {}
-
-
-        if (!/^[A-Z0-9]{6}$/.test(codigo)) {
-
-            codigo = gerarCodigo();
-
-            try {
-
-                localStorage.setItem(
-                    "gcplay_activation_code",
-                    codigo
-                );
-
-            } catch (e) {}
-
-        }
-
 
         this.activationCode =
-            codigo.toUpperCase();
-
-
-        this.mostrarDeviceId();
-
-        this.mostrarCodigo();
-
-
-        console.log(
-            "[GC PLAY PRO] DEVICE ID:",
-            this.deviceId
-        );
-
-        console.log(
-            "[GC PLAY PRO] ACTIVATION CODE:",
-            this.activationCode
-        );
-
-    }
-
-
-    mostrarDeviceId() {
-
-        var elemento =
-            document.getElementById(
-                "deviceIdDisplay"
-            );
-
-        if (!elemento) {
-            return;
-        }
-
-
-        elemento.textContent =
-            this.deviceId || "ERRO AO GERAR ID";
-
-    }
-
-
-    mostrarCodigo() {
-
-        var elemento =
-            document.getElementById(
-                "activationCodeDisplay"
-            );
-
-        if (elemento) {
-
-            elemento.textContent =
-                this.activationCode || "------";
-
-        }
-
-    }
-
-
-    /* =====================================================
-       QR
-    ===================================================== */
-
-    gerarQRCode() {
-
-        var container =
-            document.getElementById("qrcode");
-
-        if (!container) {
-            return;
-        }
-
-
-        container.innerHTML = "";
-
-
-        var qrUrl =
-            ACTIVATION_BASE_URL +
-            "?device=" +
-            encodeURIComponent(this.deviceId) +
-            "&code=" +
-            encodeURIComponent(this.activationCode);
-
-
-        console.log(
-            "[GC PLAY PRO] QR:",
-            qrUrl
-        );
-
-
-        if (
-            typeof QRCode === "undefined"
-        ) {
-
-            console.error(
-                "[GC PLAY PRO] QRCode não carregado."
-            );
-
-            return;
-
-        }
-
-
-        try {
-
-            new QRCode(
-                container,
-                {
-                    text:qrUrl,
-                    width:200,
-                    height:200,
-                    colorDark:"#000000",
-                    colorLight:"#ffffff",
-                    correctLevel:QRCode.CorrectLevel.M
-                }
-            );
-
-        } catch (e) {
-
-            console.error(
-                "[GC PLAY PRO] Erro QR:",
-                e
-            );
-
-        }
-
-    }
-
-
-    /* =====================================================
-       REGISTER
-    ===================================================== */
-
-    async registrarDispositivo() {
-
-        if (
-            !validarUUID(this.deviceId)
-        ) {
-            return false;
-        }
-
-
-        try {
-
-            var resposta =
-                await fetch(
-                    EDGE_FUNCTION_URL,
-                    {
-                        method:"POST",
-                        mode:"cors",
-                        cache:"no-store",
-                        headers:{
-                            "Content-Type":
-                                "application/json"
-                        },
-                        body:JSON.stringify({
-                            action:"register",
-                            device_id:this.deviceId,
-                            activation_code:this.activationCode
-                        })
-                    }
-                );
-
-
-            var texto =
-                await resposta.text();
-
-
-            var dados = null;
-
-            try {
-                dados = JSON.parse(texto);
-            } catch (e) {}
-
-
-            console.log(
-                "[GC PLAY PRO] REGISTER:",
-                resposta.status,
-                dados
-            );
-
-
-            if (
-                !resposta.ok ||
-                !dados ||
-                dados.success !== true
-            ) {
-
-                return false;
-
-            }
-
-
-            if (dados.device) {
-
-                this.processarDispositivo(
-                    dados.device
-                );
-
-            }
-
-
-            return true;
-
-
-        } catch (erro) {
-
-            console.error(
-                "[GC PLAY PRO] REGISTER ERROR:",
-                erro
-            );
-
-            return false;
-
-        }
-
-    }
-
-
-    /* =====================================================
-       STATUS
-    ===================================================== */
-
-    async verificarStatus() {
-
-        if (
-            !validarUUID(this.deviceId)
-        ) {
-            return;
-        }
-
-
-        if (
-            this.statusRequestRunning
-        ) {
-            return;
-        }
-
-
-        this.statusRequestRunning = true;
-
-
-        try {
-
-            var resposta =
-                await fetch(
-                    EDGE_FUNCTION_URL,
-                    {
-                        method:"POST",
-                        mode:"cors",
-                        cache:"no-store",
-                        headers:{
-                            "Content-Type":
-                                "application/json"
-                        },
-                        body:JSON.stringify({
-                            action:"status",
-                            device_id:this.deviceId
-                        })
-                    }
-                );
-
-
-            var texto =
-                await resposta.text();
-
-
-            var dados = null;
-
-            try {
-                dados = JSON.parse(texto);
-            } catch (e) {}
-
-
-            if (
-                dados &&
-                dados.success &&
-                dados.device
-            ) {
-
-                this.processarDispositivo(
-                    dados.device
-                );
-
-            }
-
-
-        } catch (erro) {
-
-            console.log(
-                "[GC PLAY PRO] Status indisponível."
-            );
-
-        } finally {
-
-            this.statusRequestRunning =
-                false;
-
-        }
-
-    }
-
-
-    /* =====================================================
-       PROCESSAR DISPOSITIVO
-       
-       IMPORTANTE:
-       NÃO CARREGA M3U AUTOMATICAMENTE.
-    ===================================================== */
-
-    processarDispositivo(device) {
-
-        if (!device) {
-            return;
-        }
-
-
-        if (device.activation_code) {
+            localStorage.getItem(
+                "gcplay_activation_code"
+            ) || "";
+
+        if(!this.activationCode){
 
             this.activationCode =
-                String(
-                    device.activation_code
-                )
-                .trim()
-                .toUpperCase();
+                gerarCodigo();
 
-
-            try {
-
-                localStorage.setItem(
-                    "gcplay_activation_code",
-                    this.activationCode
-                );
-
-            } catch (e) {}
-
-
-            this.mostrarCodigo();
-
-        }
-
-
-        var status =
-            String(
-                device.status || ""
-            )
-            .toLowerCase();
-
-
-        this.deviceStatus =
-            status || "pending";
-
-
-        /* ================================================
-           ATIVO
-        ================================================= */
-
-        if (status === "active") {
-
-            this.atualizarStatus(
-                "DISPOSITIVO ATIVO",
-                "active"
+            localStorage.setItem(
+                "gcplay_activation_code",
+                this.activationCode
             );
 
-
-            this.fecharAtivacao();
-
-
-            /*
-             * MUITO IMPORTANTE:
-             * para definitivamente o polling.
-             */
-
-            this.pararPolling();
-
-
-            /*
-             * Se o servidor possuir uma M3U,
-             * apenas coloca no campo.
-             *
-             * NÃO CARREGA.
-             */
-
-            if (device.playlist_url) {
-
-                var playlistUrl =
-                    String(
-                        device.playlist_url
-                    ).trim();
-
-
-                try {
-
-                    localStorage.setItem(
-                        "gcplay_playlist_url",
-                        playlistUrl
-                    );
-
-                } catch (e) {}
-
-
-                var input =
-                    document.getElementById(
-                        "playlistUrl"
-                    );
-
-
-                if (input) {
-
-                    input.value =
-                        playlistUrl;
-
-                }
-
-
-                var loginInput =
-                    document.getElementById(
-                        "loginM3UUrl"
-                    );
-
-
-                if (loginInput) {
-
-                    loginInput.value =
-                        playlistUrl;
-
-                }
-
-            }
-
-
-            /*
-             * NÃO existe:
-             *
-             * this.carregarListaM3U(...)
-             *
-             * aqui.
-             *
-             * A playlist será carregada SOMENTE
-             * quando o usuário clicar em CARREGAR.
-             */
-
-
-            return;
-
         }
 
+    }catch(e){
 
-        /* ================================================
-           BLOQUEADO
-        ================================================= */
+        this.deviceId =
+            gerarUUID();
 
-        if (status === "blocked") {
+        this.activationCode =
+            gerarCodigo();
 
-            this.atualizarStatus(
-                "DISPOSITIVO BLOQUEADO",
-                "error"
+    }
+
+    if($("deviceId")){
+        $("deviceId").textContent =
+            this.deviceId;
+    }
+
+    if($("activationCode")){
+        $("activationCode").textContent =
+            this.activationCode;
+    }
+
+};
+
+
+/* =========================================================
+   QR CODE
+   ========================================================= */
+
+GCPlayPro.prototype.gerarQRCode =
+function(){
+
+    var container =
+        $("qrcode");
+
+    if(!container){
+        return;
+    }
+
+    container.innerHTML = "";
+
+    var qrUrl =
+        ACTIVATION_BASE_URL +
+        "?device=" +
+        encodeURIComponent(this.deviceId) +
+        "&code=" +
+        encodeURIComponent(this.activationCode);
+
+    try{
+
+        new QRCode(container,{
+
+            text:qrUrl,
+
+            width:200,
+            height:200,
+
+            colorDark:"#000000",
+            colorLight:"#ffffff",
+
+            correctLevel:
+                QRCode.CorrectLevel.M
+
+        });
+
+    }catch(e){
+
+        console.error(
+            "Erro QR Code:",
+            e
+        );
+
+    }
+
+};
+
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+GCPlayPro.prototype.toast =
+function(message,type){
+
+    var toast =
+        $("toast");
+
+    if(!toast){
+        return;
+    }
+
+    toast.textContent =
+        message;
+
+    toast.className =
+        "toast show " +
+        (type || "");
+
+    clearTimeout(
+        this.toastTimer
+    );
+
+    this.toastTimer =
+        setTimeout(function(){
+
+            toast.className =
+                "toast";
+
+        },3500);
+
+};
+
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+GCPlayPro.prototype.mostrarLoading =
+function(text){
+
+    $("loadingText").textContent =
+        text || "Carregando...";
+
+    $("loadingError").textContent =
+        "";
+
+    $("loadingOverlay")
+        .classList.add("show");
+
+};
+
+GCPlayPro.prototype.esconderLoading =
+function(){
+
+    $("loadingOverlay")
+        .classList.remove("show");
+
+};
+
+
+/* =========================================================
+   ATUALIZA STATUS
+   ========================================================= */
+
+GCPlayPro.prototype.atualizarStatus =
+function(text,type){
+
+    var dot =
+        $("statusDot");
+
+    var mini =
+        $("statusMiniText");
+
+    var status =
+        $("activationStatus");
+
+    if(dot){
+
+        dot.className =
+            "status-dot " +
+            (type || "pending");
+
+    }
+
+    if(mini){
+
+        mini.textContent =
+            text;
+
+    }
+
+    if(status){
+
+        status.textContent =
+            text;
+
+        status.className =
+            "activation-status " +
+            (type === "active"
+                ? "active"
+                : type === "blocked"
+                    ? "error"
+                    : "waiting");
+
+    }
+
+};
+
+
+/* =========================================================
+   MODAL ATIVAÇÃO
+   ========================================================= */
+
+GCPlayPro.prototype.abrirAtivacao =
+function(){
+
+    $("activationOverlay")
+        .classList.add("show");
+
+    this.gerarQRCode();
+
+};
+
+GCPlayPro.prototype.fecharAtivacao =
+function(){
+
+    $("activationOverlay")
+        .classList.remove("show");
+
+};
+
+
+/* =========================================================
+   REGISTRAR DISPOSITIVO
+   ========================================================= */
+
+GCPlayPro.prototype.registrarDispositivo =
+async function(){
+
+    try{
+
+        var resposta =
+            await fetch(
+                EDGE_FUNCTION_URL,
+                {
+                    method:"POST",
+
+                    mode:"cors",
+
+                    cache:"no-store",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        action:"register",
+
+                        device_id:
+                            this.deviceId,
+
+                        activation_code:
+                            this.activationCode
+
+                    })
+                }
             );
 
+        var texto =
+            await resposta.text();
 
-            this.pararPolling();
+        var dados;
 
-            this.abrirAtivacao();
+        try{
 
-            return;
+            dados =
+                JSON.parse(texto);
+
+        }catch(e){
+
+            throw new Error(
+                "Resposta inválida do servidor."
+            );
 
         }
 
+        if(!resposta.ok ||
+           !dados.success){
 
-        /* ================================================
-           PENDENTE
-        ================================================= */
+            throw new Error(
+                dados.error ||
+                "Não foi possível registrar o dispositivo."
+            );
+
+        }
+
+        if(dados.device){
+
+            this.processarDispositivo(
+                dados.device
+            );
+
+        }
+
+    }catch(e){
+
+        console.error(
+            "Erro ao registrar:",
+            e
+        );
 
         this.atualizarStatus(
-            "AGUARDANDO ATIVAÇÃO",
-            "waiting"
+            "Aguardando ativação",
+            "pending"
         );
 
     }
 
-
-    /* =====================================================
-       POLLING
-    ===================================================== */
-
-    iniciarPolling() {
-
-        this.pararPolling();
+};
 
 
-        /*
-         * Se já estiver ativo,
-         * não cria intervalo.
-         */
+/* =========================================================
+   VERIFICAR STATUS
+   ========================================================= */
 
-        if (
-            this.deviceStatus === "active"
-        ) {
+GCPlayPro.prototype.verificarStatus =
+async function(){
 
-            console.log(
-                "[GC PLAY PRO] Polling NÃO iniciado: dispositivo ativo."
+    if(
+        this.statusRequestRunning ||
+        this.deviceStatus === "active"
+    ){
+
+        return;
+
+    }
+
+    this.statusRequestRunning =
+        true;
+
+    try{
+
+        var resposta =
+            await fetch(
+                EDGE_FUNCTION_URL,
+                {
+                    method:"POST",
+
+                    mode:"cors",
+
+                    cache:"no-store",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        action:"status",
+
+                        device_id:
+                            this.deviceId
+
+                    })
+                }
             );
 
-            return;
+        var texto =
+            await resposta.text();
+
+        var dados;
+
+        try{
+
+            dados =
+                JSON.parse(texto);
+
+        }catch(e){
+
+            throw new Error(
+                "Resposta inválida."
+            );
 
         }
 
+        if(!resposta.ok ||
+           !dados.success){
 
-        this.activationPoll =
-            setInterval(
-                function() {
-
-                    if (
-                        this.deviceStatus === "active"
-                    ) {
-
-                        this.pararPolling();
-
-                        return;
-
-                    }
-
-
-                    this.verificarStatus();
-
-                }.bind(this),
-                15000
+            throw new Error(
+                dados.error ||
+                "Erro ao consultar status."
             );
 
+        }
 
-        console.log(
-            "[GC PLAY PRO] Polling iniciado."
+        if(dados.device){
+
+            this.processarDispositivo(
+                dados.device
+            );
+
+        }
+
+    }catch(e){
+
+        console.error(
+            "Status:",
+            e
         );
 
-    }
+    }finally{
 
-
-    pararPolling() {
-
-        if (
-            this.activationPoll
-        ) {
-
-            clearInterval(
-                this.activationPoll
-            );
-
-            this.activationPoll =
-                null;
-
-            console.log(
-                "[GC PLAY PRO] Polling parado."
-            );
-
-        }
+        this.statusRequestRunning =
+            false;
 
     }
 
-
-    /* =====================================================
-       STATUS VISUAL
-    ===================================================== */
-
-    atualizarStatus(
-        texto,
-        tipo
-    ) {
-
-        var text =
-            document.getElementById(
-                "statusText"
-            );
-
-        var dot =
-            document.getElementById(
-                "statusDot"
-            );
+};
 
 
-        if (text) {
-            text.textContent = texto;
-        }
+/* =========================================================
+   PROCESSAR DISPOSITIVO
+   ========================================================= */
 
+GCPlayPro.prototype.processarDispositivo =
+function(device){
 
-        if (dot) {
-            dot.className =
-                "status-dot " + tipo;
-        }
-
+    if(!device){
+        return;
     }
 
+    if(device.activation_code){
 
-    /* =====================================================
-       ATIVAÇÃO
-    ===================================================== */
+        this.activationCode =
+            String(
+                device.activation_code
+            ).toUpperCase();
 
-    abrirAtivacao() {
+        try{
 
-        var overlay =
-            document.getElementById(
-                "activationOverlay"
+            localStorage.setItem(
+                "gcplay_activation_code",
+                this.activationCode
             );
 
+        }catch(e){}
 
-        if (overlay) {
+        if($("activationCode")){
 
-            overlay.classList.add("show");
+            $("activationCode")
+                .textContent =
+                this.activationCode;
 
         }
-
-
-        this.mostrarDeviceId();
-
-        this.mostrarCodigo();
 
         this.gerarQRCode();
 
     }
 
+    var status =
+        String(
+            device.status || "pending"
+        ).toLowerCase();
 
-    fecharAtivacao() {
+    this.deviceStatus =
+        status;
 
-        var overlay =
-            document.getElementById(
-                "activationOverlay"
-            );
+    if(status === "active"){
 
+        this.atualizarStatus(
+            "DISPOSITIVO ATIVO",
+            "active"
+        );
 
-        if (overlay) {
+        this.fecharAtivacao();
 
-            overlay.classList.remove("show");
+        /*
+         * IMPORTANTE:
+         * NÃO carregar a M3U automaticamente.
+         * Isso evita o loop.
+         */
 
-        }
+        this.pararPolling();
 
-    }
+        if(device.playlist_url){
 
+            try{
 
-    mostrarStatus(
-        texto,
-        tipo
-    ) {
-
-        var elemento =
-            document.getElementById(
-                "activationStatus"
-            );
-
-
-        if (!elemento) {
-            return;
-        }
-
-
-        elemento.className =
-            "activation-status show " + tipo;
-
-
-        elemento.textContent =
-            texto;
-
-    }
-
-
-    /* =====================================================
-       COPIAR ID
-    ===================================================== */
-
-    copiarID() {
-
-        var id =
-            this.deviceId;
-
-
-        if (!id) {
-            return;
-        }
-
-
-        if (
-            navigator.clipboard &&
-            navigator.clipboard.writeText
-        ) {
-
-            navigator.clipboard
-                .writeText(id)
-                .then(
-                    function() {
-
-                        this.mostrarStatus(
-                            "ID copiado com sucesso.",
-                            "success"
-                        );
-
-                    }.bind(this)
-                )
-                .catch(
-                    function() {
-                        alert(id);
-                    }
+                localStorage.setItem(
+                    "gcplay_playlist_url",
+                    device.playlist_url
                 );
 
-        } else {
+            }catch(e){}
 
-            alert(id);
+            if($("playlistUrl")){
 
-        }
+                $("playlistUrl")
+                    .value =
+                    device.playlist_url;
 
-    }
-
-
-    /* =====================================================
-       RESTAURAR M3U
-    ===================================================== */
-
-    restaurarPlaylist() {
-
-        var url = "";
-
-        try {
-
-            url =
-                localStorage.getItem(
-                    "gcplay_playlist_url"
-                ) || "";
-
-        } catch (e) {}
-
-
-        var input =
-            document.getElementById(
-                "playlistUrl"
-            );
-
-
-        var loginInput =
-            document.getElementById(
-                "loginM3UUrl"
-            );
-
-
-        if (input) {
-            input.value = url;
-        }
-
-
-        if (loginInput) {
-            loginInput.value = url;
-        }
-
-    }
-
-
-    /* =====================================================
-       ABRIR CONFIGURAÇÃO M3U
-    ===================================================== */
-
-    abrirLoginM3U() {
-
-        var overlay =
-            document.getElementById(
-                "loginM3UOverlay"
-            );
-
-
-        var input =
-            document.getElementById(
-                "loginM3UUrl"
-            );
-
-
-        try {
-
-            var url =
-                localStorage.getItem(
-                    "gcplay_playlist_url"
-                ) || "";
-
-
-            if (input && url) {
-                input.value = url;
             }
 
-        } catch (e) {}
-
-
-        if (overlay) {
-            overlay.classList.add("show");
         }
 
+        return;
+    }
 
-        if (input) {
+    if(status === "blocked"){
 
-            setTimeout(
-                function() {
-                    try {
-                        input.focus();
-                    } catch (e) {}
-                },
-                100
+        this.atualizarStatus(
+            "DISPOSITIVO BLOQUEADO",
+            "blocked"
+        );
+
+        this.abrirAtivacao();
+
+        this.pararPolling();
+
+        return;
+    }
+
+    this.atualizarStatus(
+        "AGUARDANDO ATIVAÇÃO",
+        "pending"
+    );
+
+};
+
+
+/* =========================================================
+   POLLING
+========================================================= */
+
+GCPlayPro.prototype.iniciarPolling =
+function(){
+
+    this.pararPolling();
+
+    this.activationPoll =
+        setInterval(function(){
+
+            if(
+                this.deviceStatus === "active"
+            ){
+
+                this.pararPolling();
+
+                return;
+
+            }
+
+            if(this.playlistLoading){
+                return;
+            }
+
+            this.verificarStatus();
+
+        }.bind(this),15000);
+
+};
+
+GCPlayPro.prototype.pararPolling =
+function(){
+
+    if(this.activationPoll){
+
+        clearInterval(
+            this.activationPoll
+        );
+
+        this.activationPoll =
+            null;
+
+    }
+
+};
+
+
+/* =========================================================
+   BUSCAR M3U PELO SUPABASE
+   ========================================================= */
+
+GCPlayPro.prototype.baixarM3U =
+async function(url){
+
+    var TIMEOUT =
+        25000;
+
+    var controller =
+        null;
+
+    var timer =
+        null;
+
+    /*
+     * AbortController pode não existir
+     * em Smart TVs muito antigas.
+     */
+
+    if(window.AbortController){
+
+        controller =
+            new AbortController();
+
+        timer =
+            setTimeout(function(){
+
+                try{
+
+                    controller.abort();
+
+                }catch(e){}
+
+            },TIMEOUT);
+
+    }
+
+    try{
+
+        var options = {
+
+            method:"POST",
+
+            mode:"cors",
+
+            cache:"no-store",
+
+            headers:{
+                "Content-Type":
+                    "application/json"
+            },
+
+            body:JSON.stringify({
+
+                action:"playlist",
+
+                device_id:
+                    this.deviceId,
+
+                activation_code:
+                    this.activationCode,
+
+                playlist_url:
+                    url
+
+            })
+
+        };
+
+        if(controller){
+
+            options.signal =
+                controller.signal;
+
+        }
+
+        var resposta =
+            await fetch(
+                EDGE_FUNCTION_URL,
+                options
             );
+
+        var textoResposta =
+            await resposta.text();
+
+        var dados = null;
+
+        try{
+
+            dados =
+                JSON.parse(
+                    textoResposta
+                );
+
+        }catch(e){
+
+            throw new Error(
+                "O servidor retornou uma resposta inválida."
+            );
+
+        }
+
+        if(!resposta.ok){
+
+            throw new Error(
+                dados &&
+                dados.error
+                    ? dados.error
+                    : "Erro HTTP " +
+                      resposta.status
+            );
+
+        }
+
+        if(
+            !dados ||
+            dados.success !== true
+        ){
+
+            throw new Error(
+                dados &&
+                dados.error
+                    ? dados.error
+                    : "O servidor não conseguiu obter a playlist."
+            );
+
+        }
+
+        if(
+            !dados.content ||
+            String(dados.content).length < 5
+        ){
+
+            throw new Error(
+                "O servidor retornou a playlist vazia."
+            );
+
+        }
+
+        return dados.content;
+
+    }catch(erro){
+
+        if(
+            erro &&
+            erro.name === "AbortError"
+        ){
+
+            throw new Error(
+                "Tempo limite ao buscar a playlist."
+            );
+
+        }
+
+        throw erro;
+
+    }finally{
+
+        if(timer){
+
+            clearTimeout(timer);
 
         }
 
     }
 
-
-    fecharLoginM3U() {
-
-        var overlay =
-            document.getElementById(
-                "loginM3UOverlay"
-            );
+};
 
 
-        if (overlay) {
-            overlay.classList.remove("show");
-        }
+/* =========================================================
+   VALIDAR URL M3U
+   ========================================================= */
+
+GCPlayPro.prototype.validarURL =
+function(url){
+
+    if(!url){
+        throw new Error(
+            "Informe a URL da playlist."
+        );
+    }
+
+    var valor =
+        String(url).trim();
+
+    if(
+        valor.indexOf("http://") !== 0 &&
+        valor.indexOf("https://") !== 0
+    ){
+
+        throw new Error(
+            "A URL deve começar com http:// ou https://"
+        );
 
     }
 
+    return valor;
 
-    mostrarMensagemM3U(
-        texto,
-        tipo
-    ) {
-
-        var elemento =
-            document.getElementById(
-                "loginM3UMessage"
-            );
+};
 
 
-        if (!elemento) {
-            return;
-        }
+/* =========================================================
+   CARREGAR PLAYLIST
+   ========================================================= */
 
+GCPlayPro.prototype.carregarListaM3U =
+async function(url){
 
-        elemento.className =
-            "login-message show " + tipo;
+    if(this.playlistLoading){
 
+        this.toast(
+            "Já existe uma playlist sendo carregada.",
+            "error"
+        );
 
-        elemento.textContent =
-            texto;
+        return;
 
     }
 
+    try{
 
-    salvarM3U() {
+        url =
+            this.validarURL(url);
 
-        var input =
-            document.getElementById(
-                "loginM3UUrl"
+    }catch(e){
+
+        this.toast(
+            e.message,
+            "error"
+        );
+
+        return;
+
+    }
+
+    if(this.deviceStatus !== "active"){
+
+        this.abrirAtivacao();
+
+        this.toast(
+            "Ative o dispositivo antes de carregar a playlist.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    this.playlistLoading =
+        true;
+
+    this.playlistLoadAttempted =
+        true;
+
+    this.mostrarLoading(
+        "Buscando playlist M3U..."
+    );
+
+    try{
+
+        var conteudo =
+            await this.baixarM3U(url);
+
+        this.mostrarLoading(
+            "Processando canais..."
+        );
+
+        var lista =
+            this.parseM3U(
+                conteudo,
+                url
             );
 
+        if(!lista.length){
 
-        var url =
-            input
-                ? input.value.trim()
-                : "";
-
-
-        if (!url) {
-
-            this.mostrarMensagemM3U(
-                "Informe a URL da playlist M3U.",
-                "error"
+            throw new Error(
+                "Nenhum canal foi encontrado na playlist."
             );
-
-            return false;
 
         }
 
+        this.playlist =
+            lista;
 
-        if (
-            url.indexOf("http://") !== 0 &&
-            url.indexOf("https://") !== 0
-        ) {
+        this.lastPlaylistUrl =
+            url;
 
-            this.mostrarMensagemM3U(
-                "A URL precisa começar com http:// ou https://",
-                "error"
-            );
+        this.playlistLoaded =
+            true;
 
-            return false;
-
-        }
-
-
-        try {
+        try{
 
             localStorage.setItem(
                 "gcplay_playlist_url",
                 url
             );
 
-        } catch (e) {
+        }catch(e){}
 
-            this.mostrarMensagemM3U(
-                "Não foi possível salvar a URL neste aparelho.",
-                "error"
-            );
-
-            return false;
-
-        }
-
-
-        var mainInput =
-            document.getElementById(
-                "playlistUrl"
-            );
-
-
-        if (mainInput) {
-            mainInput.value = url;
-        }
-
-
-        this.mostrarMensagemM3U(
-            "Playlist salva neste aparelho.",
-            "success"
-        );
-
-
-        return true;
-
-    }
-
-
-    limparM3U() {
-
-        try {
-
-            localStorage.removeItem(
-                "gcplay_playlist_url"
-            );
-
-        } catch (e) {}
-
-
-        var input =
-            document.getElementById(
-                "loginM3UUrl"
-            );
-
-
-        var mainInput =
-            document.getElementById(
-                "playlistUrl"
-            );
-
-
-        if (input) {
-            input.value = "";
-        }
-
-
-        if (mainInput) {
-            mainInput.value = "";
-        }
-
-
-        this.playlist = [];
-
-        this.filteredPlaylist = [];
-
-        this.playlistLoaded = false;
-
-        this.playlistLoadAttempted = false;
-
-        this.lastPlaylistUrl = "";
-
+        $("playlistUrl").value =
+            url;
 
         this.renderizarCategorias();
 
-        this.aplicarFiltros();
+        this.aplicarFiltro();
 
-
-        this.mostrarMensagemM3U(
-            "Playlist removida deste aparelho.",
+        this.toast(
+            lista.length +
+            " canais carregados com sucesso.",
             "success"
         );
 
-    }
-
-
-    /* =====================================================
-       XHR COM TIMEOUT REAL
-       
-       Melhor para Smart TVs antigas.
-    ===================================================== */
-
-    baixarComXHR(
-        url,
-        timeout
-    ) {
-
-        return new Promise(
-            function(
-                resolve,
-                reject
-            ) {
-
-                var xhr =
-                    new XMLHttpRequest();
-
-                var terminou =
-                    false;
-
-
-                var timer =
-                    setTimeout(
-                        function() {
-
-                            if (terminou) {
-                                return;
-                            }
-
-
-                            terminou = true;
-
-
-                            try {
-                                xhr.abort();
-                            } catch (e) {}
-
-
-                            reject(
-                                new Error(
-                                    "Tempo limite excedido."
-                                )
-                            );
-
-                        },
-                        timeout
-                    );
-
-
-                xhr.onreadystatechange =
-                    function() {
-
-                        if (
-                            xhr.readyState !== 4 ||
-                            terminou
-                        ) {
-                            return;
-                        }
-
-
-                        terminou = true;
-
-                        clearTimeout(timer);
-
-
-                        if (
-                            xhr.status >= 200 &&
-                            xhr.status < 300
-                        ) {
-
-                            resolve(
-                                xhr.responseText
-                            );
-
-                        } else {
-
-                            reject(
-                                new Error(
-                                    "HTTP " +
-                                    xhr.status
-                                )
-                            );
-
-                        }
-
-                    };
-
-
-                xhr.onerror =
-                    function() {
-
-                        if (terminou) {
-                            return;
-                        }
-
-
-                        terminou = true;
-
-                        clearTimeout(timer);
-
-
-                        reject(
-                            new Error(
-                                "Erro de rede ou CORS."
-                            )
-                        );
-
-                    };
-
-
-                xhr.ontimeout =
-                    function() {
-
-                        if (terminou) {
-                            return;
-                        }
-
-
-                        terminou = true;
-
-                        clearTimeout(timer);
-
-
-                        reject(
-                            new Error(
-                                "Tempo limite excedido."
-                            )
-                        );
-
-                    };
-
-
-                try {
-
-                    xhr.open(
-                        "GET",
-                        url,
-                        true
-                    );
-
-
-                    xhr.timeout =
-                        timeout;
-
-
-                    xhr.setRequestHeader(
-                        "Cache-Control",
-                        "no-cache"
-                    );
-
-
-                    xhr.send();
-
-                } catch (erro) {
-
-                    if (!terminou) {
-
-                        terminou = true;
-
-                        clearTimeout(timer);
-
-                        reject(erro);
-
-                    }
-
-                }
-
-            }
+    }catch(e){
+
+        console.error(
+            "Erro M3U:",
+            e
         );
+
+        $("loadingError").textContent =
+            e.message ||
+            "Erro ao carregar playlist.";
+
+        this.toast(
+            e.message ||
+            "Erro ao carregar playlist.",
+            "error"
+        );
+
+    }finally{
+
+        this.playlistLoading =
+            false;
+
+        setTimeout(function(){
+
+            this.esconderLoading();
+
+        }.bind(this),300);
 
     }
 
-
-    /* =====================================================
-       BAIXAR M3U
-    ===================================================== */
-
-    async baixarM3U(url) {
-
-        var TIMEOUT =
-            15000;
+};
 
 
-        /*
-         * 1 — ACESSO DIRETO
-         */
+/* =========================================================
+   PARSER M3U
+   ========================================================= */
 
-        try {
+GCPlayPro.prototype.parseM3U =
+function(texto,baseUrl){
 
-            console.log(
-                "[GC PLAY PRO] Tentativa direta..."
-            );
+    var linhas =
+        String(texto)
+            .replace(/\r/g,"")
+            .split("\n");
 
+    var lista = [];
 
-            var texto =
-                await this.baixarComXHR(
-                    url,
-                    TIMEOUT
-                );
+    var atual = null;
 
+    for(var i=0;i<linhas.length;i++){
 
-            if (
-                texto &&
-                texto.length > 0
-            ) {
+        var linha =
+            linhas[i].trim();
 
-                console.log(
-                    "[GC PLAY PRO] M3U baixada diretamente."
-                );
-
-
-                return texto;
-
-            }
-
-        } catch (erro) {
-
-            console.log(
-                "[GC PLAY PRO] Direto falhou:",
-                erro.message
-            );
-
+        if(!linha){
+            continue;
         }
 
+        if(
+            linha.indexOf("#EXTINF:") === 0
+        ){
 
-        /*
-         * 2 — PROXIES
-         */
+            atual = {
 
-        for (
-            var i = 0;
-            i < CORS_PROXIES.length;
-            i++
-        ) {
+                name:"Canal",
 
-            try {
+                url:"",
 
-                var proxyUrl =
-                    CORS_PROXIES[i] +
-                    encodeURIComponent(url);
+                group:"Outros",
 
+                logo:"",
 
-                console.log(
-                    "[GC PLAY PRO] Tentando proxy:",
-                    i + 1
-                );
+                type:"live"
 
+            };
 
-                var textoProxy =
-                    await this.baixarComXHR(
-                        proxyUrl,
-                        TIMEOUT
+            var info =
+                linha.substring(8);
+
+            var comma =
+                info.indexOf(",");
+
+            if(comma >= 0){
+
+                atual.name =
+                    info.substring(
+                        comma + 1
+                    ).trim();
+
+                var attrs =
+                    info.substring(
+                        0,
+                        comma
                     );
 
-
-                if (
-                    textoProxy &&
-                    textoProxy.length > 0
-                ) {
-
-                    console.log(
-                        "[GC PLAY PRO] M3U baixada pelo proxy."
-                    );
-
-
-                    return textoProxy;
-
-                }
-
-            } catch (erro) {
-
-                console.log(
-                    "[GC PLAY PRO] Proxy " +
-                    (i + 1) +
-                    " falhou:",
-                    erro.message
-                );
-
-            }
-
-        }
-
-
-        throw new Error(
-            "Não foi possível baixar a playlist. Verifique a URL, CORS ou disponibilidade do servidor."
-        );
-
-    }
-
-
-    /* =====================================================
-       CARREGAR M3U
-    ===================================================== */
-
-    async carregarListaM3U(url) {
-
-        url =
-            String(
-                url || ""
-            ).trim();
-
-
-        if (!url) {
-
-            alert(
-                "Informe a URL da playlist M3U."
-            );
-
-            return;
-
-        }
-
-
-        if (
-            this.playlistLoading
-        ) {
-
-            console.log(
-                "[GC PLAY PRO] Já existe um carregamento em andamento."
-            );
-
-            return;
-
-        }
-
-
-        /*
-         * Permite nova tentativa manual.
-         */
-
-        this.playlistLoading = true;
-
-        this.playlistLoadAttempted = true;
-
-        this.lastPlaylistUrl = url;
-
-
-        mostrarLoading(
-            "Baixando playlist..."
-        );
-
-
-        this.atualizarStatus(
-            "CARREGANDO PLAYLIST",
-            "waiting"
-        );
-
-
-        try {
-
-            var texto =
-                await this.baixarM3U(url);
-
-
-            if (
-                !texto ||
-                texto.length < 5
-            ) {
-
-                throw new Error(
-                    "A playlist retornou vazia."
-                );
-
-            }
-
-
-            console.log(
-                "[GC PLAY PRO] Bytes recebidos:",
-                texto.length
-            );
-
-
-            var lista =
-                this.parseM3U(
-                    texto,
-                    url
-                );
-
-
-            console.log(
-                "[GC PLAY PRO] Canais encontrados:",
-                lista.length
-            );
-
-
-            if (!lista.length) {
-
-                throw new Error(
-                    "Nenhum canal foi encontrado na playlist."
-                );
-
-            }
-
-
-            this.playlist =
-                lista;
-
-            this.filteredPlaylist =
-                lista.slice();
-
-            this.playlistLoaded =
-                true;
-
-
-            try {
-
-                localStorage.setItem(
-                    "gcplay_playlist_url",
-                    url
-                );
-
-            } catch (e) {}
-
-
-            var loginInput =
-                document.getElementById(
-                    "loginM3UUrl"
-                );
-
-
-            if (loginInput) {
-                loginInput.value = url;
-            }
-
-
-            this.renderizarCategorias();
-
-            this.aplicarFiltros();
-
-
-            this.atualizarStatus(
-                "DISPOSITIVO ATIVO",
-                "active"
-            );
-
-
-            console.log(
-                "[GC PLAY PRO] PLAYLIST CARREGADA COM SUCESSO."
-            );
-
-
-        } catch (erro) {
-
-            console.error(
-                "[GC PLAY PRO] ERRO M3U:",
-                erro
-            );
-
-
-            this.playlistLoaded =
-                false;
-
-
-            this.atualizarStatus(
-                "ERRO NA PLAYLIST",
-                "error"
-            );
-
-
-            var mensagem =
-                erro &&
-                erro.message
-                    ? erro.message
-                    : "Erro desconhecido.";
-
-
-            alert(
-                "NÃO FOI POSSÍVEL CARREGAR A PLAYLIST\n\n" +
-                mensagem
-            );
-
-
-        } finally {
-
-            /*
-             * SEMPRE libera o carregamento.
-             *
-             * Isso impede o overlay de ficar preso.
-             */
-
-            this.playlistLoading =
-                false;
-
-
-            esconderLoading();
-
-        }
-
-    }
-
-
-    /* =====================================================
-       PARSER M3U
-    ===================================================== */
-
-    parseM3U(
-        texto,
-        baseUrl
-    ) {
-
-        texto =
-            String(texto || "")
-            .replace(/^\uFEFF/, "")
-            .replace(/\r\n/g, "\n")
-            .replace(/\r/g, "\n");
-
-
-        var linhas =
-            texto.split("\n");
-
-
-        var lista = [];
-
-        var atual = null;
-
-
-        for (
-            var i = 0;
-            i < linhas.length;
-            i++
-        ) {
-
-            var linha =
-                linhas[i].trim();
-
-
-            if (!linha) {
-                continue;
-            }
-
-
-            if (
-                linha
-                    .toUpperCase()
-                    .indexOf("#EXTINF:") === 0
-            ) {
-
-                atual = {
-                    name:"Canal",
-                    url:"",
-                    logo:"",
-                    group:"",
-                    type:"live"
-                };
-
-
-                var comma =
-                    linha.indexOf(",");
-
-
-                if (comma >= 0) {
-
-                    atual.name =
-                        linha
-                            .substring(comma + 1)
-                            .trim() ||
-                        "Canal";
-
-                }
-
-
-                var group =
-                    linha.match(
+                var groupMatch =
+                    attrs.match(
                         /group-title="([^"]*)"/i
                     );
 
+                if(groupMatch){
 
-                if (group) {
-                    atual.group = group[1];
+                    atual.group =
+                        groupMatch[1].trim();
+
                 }
 
-
-                var logo =
-                    linha.match(
+                var logoMatch =
+                    attrs.match(
                         /tvg-logo="([^"]*)"/i
                     );
 
+                if(logoMatch){
 
-                if (logo) {
-                    atual.logo = logo[1];
-                }
-
-
-                continue;
-
-            }
-
-
-            if (
-                linha.charAt(0) === "#"
-            ) {
-                continue;
-            }
-
-
-            if (atual) {
-
-                try {
-
-                    if (
-                        typeof URL !== "undefined"
-                    ) {
-
-                        atual.url =
-                            new URL(
-                                linha,
-                                baseUrl
-                            ).href;
-
-                    } else {
-
-                        atual.url =
-                            linha;
-
-                    }
-
-                } catch (e) {
-
-                    atual.url = linha;
+                    atual.logo =
+                        logoMatch[1].trim();
 
                 }
 
+            }
 
-                atual.type =
-                    this.classificar(atual);
+            continue;
+        }
 
+        if(linha.charAt(0) === "#"){
+            continue;
+        }
 
-                if (atual.url) {
+        if(atual){
 
-                    lista.push(atual);
+            atual.url =
+                linha;
 
-                }
+            if(
+                !/^https?:\/\//i.test(
+                    atual.url
+                )
+            ){
 
+                try{
 
-                atual = null;
+                    atual.url =
+                        new URL(
+                            atual.url,
+                            baseUrl
+                        ).href;
+
+                }catch(e){}
 
             }
 
+            atual.type =
+                this.classificar(
+                    atual.name,
+                    atual.group
+                );
+
+            lista.push(
+                atual
+            );
+
+            atual = null;
         }
-
-
-        /*
-         * Remover duplicados.
-         */
-
-        var resultado = [];
-
-        var usados = {};
-
-
-        for (
-            var j = 0;
-            j < lista.length;
-            j++
-        ) {
-
-            var item = lista[j];
-
-
-            if (
-                !item.url ||
-                usados[item.url]
-            ) {
-                continue;
-            }
-
-
-            usados[item.url] = true;
-
-            resultado.push(item);
-
-        }
-
-
-        return resultado;
 
     }
 
+    /*
+     * Remove URLs duplicadas.
+     */
 
-    /* =====================================================
-       CLASSIFICAR
-    ===================================================== */
+    var mapa = {};
+    var resultado = [];
 
-    classificar(item) {
+    for(
+        var j=0;
+        j<lista.length;
+        j++
+    ){
 
-        var nome =
-            String(item.name || "")
-            .toLowerCase();
+        var item =
+            lista[j];
 
-
-        var grupo =
-            String(item.group || "")
-            .toLowerCase();
-
-
-        if (
-            grupo.indexOf("filme") >= 0 ||
-            grupo.indexOf("movie") >= 0
-        ) {
-
-            return "movies";
-
+        if(!item.url){
+            continue;
         }
 
-
-        if (
-            grupo.indexOf("serie") >= 0 ||
-            grupo.indexOf("series") >= 0 ||
-            /\bS\d{1,2}E\d{1,2}\b/i.test(
-                item.name
-            )
-        ) {
-
-            return "series";
-
+        if(mapa[item.url]){
+            continue;
         }
 
+        mapa[item.url] = true;
 
-        if (
-            grupo.indexOf("music") >= 0 ||
-            grupo.indexOf("musica") >= 0
-        ) {
-
-            return "music";
-
-        }
-
-
-        return "live";
+        resultado.push(item);
 
     }
 
+    return resultado;
 
-    /* =====================================================
-       FILTROS
-    ===================================================== */
-
-    aplicarFiltros() {
-
-        var lista =
-            this.playlist.slice();
+};
 
 
-        if (
-            this.currentCategory ===
-            "favorites"
-        ) {
+/* =========================================================
+   CLASSIFICAR
+   ========================================================= */
 
-            lista =
-                lista.filter(
-                    function(item) {
+GCPlayPro.prototype.classificar =
+function(name,group){
 
-                        return this.favorites[
-                            item.url
-                        ];
+    var texto =
+        (
+            String(name) +
+            " " +
+            String(group)
+        ).toLowerCase();
 
-                    }.bind(this)
-                );
+    if(
+        texto.indexOf("filme") >= 0 ||
+        texto.indexOf("movie") >= 0 ||
+        texto.indexOf("cinema") >= 0
+    ){
 
-        } else if (
-            this.currentCategory !== "all" &&
-            this.currentCategory !== "favorites"
-        ) {
-
-            lista =
-                lista.filter(
-                    function(item) {
-
-                        return (
-                            item.type ===
-                            this.currentCategory
-                        );
-
-                    }
-                );
-
-        }
-
-
-        if (this.searchTerm) {
-
-            var busca =
-                this.searchTerm.toLowerCase();
-
-
-            lista =
-                lista.filter(
-                    function(item) {
-
-                        return (
-                            String(item.name)
-                                .toLowerCase()
-                                .indexOf(busca) >= 0
-                        );
-
-                    }
-                );
-
-        }
-
-
-        this.filteredPlaylist =
-            lista;
-
-
-        this.renderizarCanais();
+        return "movie";
 
     }
 
+    if(
+        texto.indexOf("serie") >= 0 ||
+        texto.indexOf("série") >= 0 ||
+        texto.indexOf("series") >= 0 ||
+        texto.indexOf("season") >= 0
+    ){
 
-    /* =====================================================
-       RENDERIZAR CANAIS
-    ===================================================== */
+        return "series";
 
-    renderizarCanais() {
+    }
 
-        var grid =
-            document.getElementById(
-                "channelGrid"
-            );
+    if(
+        texto.indexOf("music") >= 0 ||
+        texto.indexOf("música") >= 0 ||
+        texto.indexOf("musica") >= 0 ||
+        texto.indexOf("radio") >= 0
+    ){
 
-        var empty =
-            document.getElementById(
-                "emptyState"
-            );
+        return "music";
 
-        var count =
-            document.getElementById(
-                "channelCount"
-            );
+    }
 
+    return "live";
 
-        if (!grid) {
-            return;
-        }
-
-
-        grid.innerHTML = "";
+};
 
 
-        if (count) {
+/* =========================================================
+   FILTRO
+   ========================================================= */
 
-            count.textContent =
-                this.filteredPlaylist.length +
+GCPlayPro.prototype.aplicarFiltro =
+function(){
+
+    var lista =
+        this.playlist.slice();
+
+    if(
+        this.currentCategory ===
+        "favorites"
+    ){
+
+        lista =
+            lista.filter(function(item){
+
+                return !!this.favorites[
+                    item.url
+                ];
+
+            }.bind(this));
+
+    }else if(
+        this.currentCategory !== "all" &&
+        this.currentCategory !== "favorites"
+    ){
+
+        lista =
+            lista.filter(function(item){
+
+                return item.type ===
+                    this.currentCategory;
+
+            }.bind(this));
+
+    }
+
+    if(this.searchTerm){
+
+        var termo =
+            this.searchTerm
+                .toLowerCase();
+
+        lista =
+            lista.filter(function(item){
+
+                return (
+                    String(item.name)
+                        .toLowerCase()
+                        .indexOf(termo) >= 0
+                    ||
+                    String(item.group)
+                        .toLowerCase()
+                        .indexOf(termo) >= 0
+                );
+
+            });
+
+    }
+
+    this.filteredPlaylist =
+        lista;
+
+    this.renderizarCanais();
+
+};
+
+
+/* =========================================================
+   RENDERIZAR CANAIS
+   ========================================================= */
+
+GCPlayPro.prototype.renderizarCanais =
+function(){
+
+    var grid =
+        $("channelGrid");
+
+    var empty =
+        $("emptyState");
+
+    grid.innerHTML = "";
+
+    $("channelCount").textContent =
+        this.filteredPlaylist.length +
+        (
+            this.filteredPlaylist.length === 1
+                ? " canal"
+                : " canais"
+        );
+
+    if(!this.filteredPlaylist.length){
+
+        empty.style.display =
+            "flex";
+
+        return;
+
+    }
+
+    empty.style.display =
+        "none";
+
+    var fragment =
+        document.createDocumentFragment();
+
+    for(
+        var i=0;
+        i<this.filteredPlaylist.length;
+        i++
+    ){
+
+        var item =
+            this.filteredPlaylist[i];
+
+        var card =
+            document.createElement("div");
+
+        card.className =
+            "channel-card";
+
+        var favorito =
+            !!this.favorites[
+                item.url
+            ];
+
+        var logoHTML =
+            item.logo
+                ? '<img src="' +
+                  escapeHTML(item.logo) +
+                  '" onerror="this.style.display=\'none\';this.parentNode.querySelector(\'.no-logo\').style.display=\'block\';">'
+                : "";
+
+        card.innerHTML =
+
+            '<button class="favorite-btn ' +
+            (favorito ? "active" : "") +
+            '" title="Favorito">' +
+            (favorito ? "★" : "☆") +
+            '</button>' +
+
+            '<div class="channel-logo">' +
+
+                logoHTML +
+
+                '<div class="no-logo" style="' +
                 (
-                    this.filteredPlaylist.length === 1
-                        ? " canal"
-                        : " canais"
-                );
+                    item.logo
+                        ? "display:none"
+                        : ""
+                ) +
+                '">TV</div>' +
 
-        }
+            '</div>' +
 
+            '<div class="channel-info">' +
 
-        if (
-            !this.filteredPlaylist.length
-        ) {
-
-            if (empty) {
-                empty.style.display = "flex";
-            }
-
-            return;
-
-        }
-
-
-        if (empty) {
-            empty.style.display = "none";
-        }
-
-
-        for (
-            var i = 0;
-            i < this.filteredPlaylist.length;
-            i++
-        ) {
-
-            var item =
-                this.filteredPlaylist[i];
-
-
-            var card =
-                document.createElement("div");
-
-
-            card.className =
-                "channel-card";
-
-
-            card.tabIndex = 0;
-
-
-            var logo = "";
-
-
-            if (item.logo) {
-
-                logo =
-                    '<img class="channel-logo" src="' +
-                    escapar(item.logo) +
-                    '" onerror="this.style.display=\'none\';">';
-
-            } else {
-
-                logo =
-                    '<div class="channel-logo-fallback">' +
-                    '<i class="fas fa-tv"></i>' +
-                    '</div>';
-
-            }
-
-
-            var fav =
-                this.favorites[item.url] === true;
-
-
-            card.innerHTML =
-                '<div class="channel-card-inner">' +
-                    logo +
-                    '<div class="channel-info">' +
-                        '<div class="channel-name">' +
-                            escapar(item.name) +
-                        '</div>' +
-                        '<div class="channel-group">' +
-                            escapar(
-                                item.group || item.type
-                            ) +
-                        '</div>' +
-                    '</div>' +
+                '<div class="channel-name">' +
+                    escapeHTML(item.name) +
                 '</div>' +
 
-                '<button class="favorite-btn ' +
-                    (fav ? "active" : "") +
-                '">' +
-                    '<i class="' +
-                        (fav ? "fas" : "far") +
-                        ' fa-star"></i>' +
-                '</button>';
+                '<div class="channel-group">' +
+                    escapeHTML(item.group || "Outros") +
+                '</div>' +
 
+            '</div>';
 
-            card.onclick =
-                function(
-                    channel,
-                    event
-                ) {
+        (function(channel,element){
 
-                    if (
-                        event.target &&
-                        event.target.closest &&
-                        event.target.closest(
-                            ".favorite-btn"
-                        )
-                    ) {
-                        return;
-                    }
-
-
-                    this.abrirPlayer(
-                        channel
-                    );
-
-                }.bind(this,item);
-
-
-            var favoriteButton =
-                card.querySelector(
+            element
+                .querySelector(
                     ".favorite-btn"
-                );
-
-
-            if (favoriteButton) {
-
-                favoriteButton.onclick =
-                    function(
-                        channel,
-                        event
-                    ) {
+                )
+                .addEventListener(
+                    "click",
+                    function(event){
 
                         event.stopPropagation();
 
@@ -3769,1226 +2782,1156 @@ class GCPlayPro {
                             channel
                         );
 
-                    }.bind(this,item);
+                    }.bind(this)
+                );
 
-            }
+            element.addEventListener(
+                "click",
+                function(){
 
-
-            grid.appendChild(card);
-
-        }
-
-    }
-
-
-    /* =====================================================
-       FAVORITOS
-    ===================================================== */
-
-    alternarFavorito(item) {
-
-        if (this.favorites[item.url]) {
-
-            delete this.favorites[item.url];
-
-        } else {
-
-            this.favorites[item.url] = true;
-
-        }
-
-
-        try {
-
-            localStorage.setItem(
-                "gcplay_favorites",
-                JSON.stringify(this.favorites)
-            );
-
-        } catch (e) {}
-
-
-        this.aplicarFiltros();
-
-    }
-
-
-    /* =====================================================
-       CATEGORIAS
-    ===================================================== */
-
-    renderizarCategorias() {
-
-        var container =
-            document.getElementById(
-                "dynamicCategories"
-            );
-
-
-        if (!container) {
-            return;
-        }
-
-
-        container.innerHTML = "";
-
-
-        var grupos = {};
-
-
-        for (
-            var i = 0;
-            i < this.playlist.length;
-            i++
-        ) {
-
-            var grupo =
-                this.playlist[i].group ||
-                "Outros";
-
-
-            grupos[grupo] = true;
-
-        }
-
-
-        var nomes =
-            Object.keys(grupos);
-
-
-        nomes.sort();
-
-
-        for (
-            var j = 0;
-            j < nomes.length;
-            j++
-        ) {
-
-            var button =
-                document.createElement("button");
-
-
-            button.className =
-                "menu-item";
-
-
-            button.textContent =
-                nomes[j];
-
-
-            button.onclick =
-                function(grupo) {
-
-                    this.playlistFiltradaPorGrupo(
-                        grupo
+                    this.abrirPlayer(
+                        channel
                     );
-
-                }.bind(this,nomes[j]);
-
-
-            container.appendChild(button);
-
-        }
-
-    }
-
-
-    playlistFiltradaPorGrupo(grupo) {
-
-        var lista =
-            this.playlist.filter(
-                function(item) {
-
-                    return item.group === grupo;
-
-                }
-            );
-
-
-        this.filteredPlaylist =
-            lista;
-
-
-        this.renderizarCanais();
-
-    }
-
-
-    /* =====================================================
-       PLAYER
-    ===================================================== */
-
-    abrirPlayer(item) {
-
-        if (!item || !item.url) {
-            return;
-        }
-
-
-        this.currentChannel =
-            item;
-
-
-        var overlay =
-            document.getElementById(
-                "playerOverlay"
-            );
-
-
-        var title =
-            document.getElementById(
-                "playerTitle"
-            );
-
-
-        var errorBox =
-            document.getElementById(
-                "playerError"
-            );
-
-
-        if (errorBox) {
-            errorBox.classList.remove("show");
-        }
-
-
-        if (title) {
-            title.textContent = item.name;
-        }
-
-
-        if (overlay) {
-            overlay.classList.add("show");
-        }
-
-
-        this.pararPlayer();
-
-
-        var video =
-            document.getElementById(
-                "videoPlayer"
-            );
-
-
-        if (!video) {
-            return;
-        }
-
-
-        var urlLower =
-            item.url.toLowerCase();
-
-
-        if (
-            urlLower.indexOf(".m3u8") >= 0
-        ) {
-
-            if (
-                window.Hls &&
-                Hls.isSupported()
-            ) {
-
-                this.hls =
-                    new Hls({
-                        enableWorker:true
-                    });
-
-
-                this.hls.loadSource(
-                    item.url
-                );
-
-
-                this.hls.attachMedia(
-                    video
-                );
-
-
-                this.hls.on(
-                    Hls.Events.MANIFEST_PARSED,
-                    function() {
-
-                        video.play()
-                            .catch(
-                                function(){}
-                            );
-
-                    }
-                );
-
-
-                this.hls.on(
-                    Hls.Events.ERROR,
-                    function(
-                        event,
-                        data
-                    ) {
-
-                        console.error(
-                            "[GC PLAY PRO] HLS:",
-                            data
-                        );
-
-
-                        if (
-                            data &&
-                            data.fatal
-                        ) {
-
-                            var erro =
-                                document.getElementById(
-                                    "playerError"
-                                );
-
-
-                            var texto =
-                                document.getElementById(
-                                    "playerErrorText"
-                                );
-
-
-                            if (texto) {
-
-                                texto.textContent =
-                                    "O canal não pôde ser reproduzido.";
-
-                            }
-
-
-                            if (erro) {
-
-                                erro.classList.add(
-                                    "show"
-                                );
-
-                            }
-
-                        }
-
-                    }
-                );
-
-
-            } else {
-
-                video.src =
-                    item.url;
-
-                video.play()
-                    .catch(
-                        function(){}
-                    );
-
-            }
-
-        } else {
-
-            video.src =
-                item.url;
-
-            video.play()
-                .catch(
-                    function(){}
-                );
-
-        }
-
-    }
-
-
-    pararPlayer() {
-
-        if (this.hls) {
-
-            try {
-                this.hls.destroy();
-            } catch (e) {}
-
-            this.hls = null;
-
-        }
-
-
-        var video =
-            document.getElementById(
-                "videoPlayer"
-            );
-
-
-        if (video) {
-
-            try {
-                video.pause();
-            } catch (e) {}
-
-
-            video.removeAttribute("src");
-
-
-            try {
-                video.load();
-            } catch (e) {}
-
-        }
-
-    }
-
-
-    fecharPlayer() {
-
-        this.pararPlayer();
-
-
-        var overlay =
-            document.getElementById(
-                "playerOverlay"
-            );
-
-
-        if (overlay) {
-
-            overlay.classList.remove(
-                "show"
-            );
-
-        }
-
-    }
-
-
-    /* =====================================================
-       EVENTOS
-    ===================================================== */
-
-    configurarEventos() {
-
-        var load =
-            document.getElementById(
-                "loadPlaylistBtn"
-            );
-
-
-        var input =
-            document.getElementById(
-                "playlistUrl"
-            );
-
-
-        var activation =
-            document.getElementById(
-                "activationBtn"
-            );
-
-
-        var loginButton =
-            document.getElementById(
-                "loginM3UBtn"
-            );
-
-
-        var close =
-            document.getElementById(
-                "closePlayerBtn"
-            );
-
-
-        var fullscreen =
-            document.getElementById(
-                "fullscreenBtn"
-            );
-
-
-        var search =
-            document.getElementById(
-                "searchInput"
-            );
-
-
-        var copy =
-            document.getElementById(
-                "copyDeviceBtn"
-            );
-
-
-        /* ================================================
-           CARREGAR
-        ================================================= */
-
-        if (load) {
-
-            load.onclick =
-                function() {
-
-                    var url =
-                        input
-                            ? input.value.trim()
-                            : "";
-
-
-                    if (!url) {
-
-                        alert(
-                            "Informe a URL da playlist M3U."
-                        );
-
-                        return;
-
-                    }
-
-
-                    this.playlistLoadAttempted =
-                        false;
-
-
-                    this.playlistLoaded =
-                        false;
-
-
-                    this.carregarListaM3U(
-                        url
-                    );
-
-                }.bind(this);
-
-        }
-
-
-        /* ================================================
-           ENTER
-        ================================================= */
-
-        if (input) {
-
-            input.addEventListener(
-                "keydown",
-                function(e) {
-
-                    if (
-                        e.key === "Enter" ||
-                        e.keyCode === 13
-                    ) {
-
-                        e.preventDefault();
-
-
-                        var url =
-                            input.value.trim();
-
-
-                        if (!url) {
-                            return;
-                        }
-
-
-                        this.playlistLoadAttempted =
-                            false;
-
-
-                        this.playlistLoaded =
-                            false;
-
-
-                        this.carregarListaM3U(
-                            url
-                        );
-
-                    }
 
                 }.bind(this)
             );
 
-        }
+        }.bind(this))(item,card);
 
-
-        /* ================================================
-           ABRIR LOGIN M3U
-        ================================================= */
-
-        if (loginButton) {
-
-            loginButton.onclick =
-                function() {
-
-                    this.abrirLoginM3U();
-
-                }.bind(this);
-
-        }
-
-
-        /* ================================================
-           ATIVAÇÃO
-        ================================================= */
-
-        if (activation) {
-
-            activation.onclick =
-                function() {
-
-                    this.abrirAtivacao();
-
-                }.bind(this);
-
-        }
-
-
-        /* ================================================
-           PLAYER
-        ================================================= */
-
-        if (close) {
-
-            close.onclick =
-                function() {
-
-                    this.fecharPlayer();
-
-                }.bind(this);
-
-        }
-
-
-        if (fullscreen) {
-
-            fullscreen.onclick =
-                function() {
-
-                    var overlay =
-                        document.getElementById(
-                            "playerOverlay"
-                        );
-
-
-                    try {
-
-                        if (
-                            overlay &&
-                            overlay.requestFullscreen
-                        ) {
-
-                            overlay.requestFullscreen();
-
-                        } else if (
-                            document.documentElement.requestFullscreen
-                        ) {
-
-                            document.documentElement.requestFullscreen();
-
-                        }
-
-                    } catch (e) {}
-
-                };
-
-        }
-
-
-        /* ================================================
-           COPIAR ID
-        ================================================= */
-
-        if (copy) {
-
-            copy.onclick =
-                function() {
-
-                    this.copiarID();
-
-                }.bind(this);
-
-        }
-
-
-        /* ================================================
-           PESQUISA
-        ================================================= */
-
-        if (search) {
-
-            search.addEventListener(
-                "input",
-                function() {
-
-                    this.searchTerm =
-                        search.value;
-
-
-                    this.aplicarFiltros();
-
-                }.bind(this)
-            );
-
-        }
-
-
-        /* ================================================
-           MENU
-        ================================================= */
-
-        var menus =
-            document.querySelectorAll(
-                ".menu-item[data-category]"
-            );
-
-
-        for (
-            var i = 0;
-            i < menus.length;
-            i++
-        ) {
-
-            menus[i].onclick =
-                function(e) {
-
-                    var categoria =
-                        e.currentTarget.getAttribute(
-                            "data-category"
-                        );
-
-
-                    if (!categoria) {
-                        return;
-                    }
-
-
-                    this.currentCategory =
-                        categoria;
-
-
-                    this.aplicarFiltros();
-
-
-                    var todos =
-                        document.querySelectorAll(
-                            ".menu-item[data-category]"
-                        );
-
-
-                    for (
-                        var j = 0;
-                        j < todos.length;
-                        j++
-                    ) {
-
-                        todos[j]
-                            .classList
-                            .remove("active");
-
-                    }
-
-
-                    e.currentTarget
-                        .classList
-                        .add("active");
-
-                }.bind(this);
-
-        }
-
-
-        /* ================================================
-           LOGIN M3U
-        ================================================= */
-
-        var saveM3U =
-            document.getElementById(
-                "saveM3UBtn"
-            );
-
-
-        var loadM3U =
-            document.getElementById(
-                "loadM3UFromLoginBtn"
-            );
-
-
-        var clearM3U =
-            document.getElementById(
-                "clearM3UBtn"
-            );
-
-
-        var closeLogin =
-            document.getElementById(
-                "closeLoginM3UBtn"
-            );
-
-
-        var loginInput =
-            document.getElementById(
-                "loginM3UUrl"
-            );
-
-
-        if (saveM3U) {
-
-            saveM3U.onclick =
-                function() {
-
-                    this.salvarM3U();
-
-                }.bind(this);
-
-        }
-
-
-        if (loadM3U) {
-
-            loadM3U.onclick =
-                function() {
-
-                    if (
-                        !this.salvarM3U()
-                    ) {
-                        return;
-                    }
-
-
-                    var url =
-                        loginInput
-                            ? loginInput.value.trim()
-                            : "";
-
-
-                    this.fecharLoginM3U();
-
-
-                    this.playlistLoadAttempted =
-                        false;
-
-
-                    this.playlistLoaded =
-                        false;
-
-
-                    this.carregarListaM3U(
-                        url
-                    );
-
-                }.bind(this);
-
-        }
-
-
-        if (clearM3U) {
-
-            clearM3U.onclick =
-                function() {
-
-                    this.limparM3U();
-
-                }.bind(this);
-
-        }
-
-
-        if (closeLogin) {
-
-            closeLogin.onclick =
-                function() {
-
-                    this.fecharLoginM3U();
-
-                }.bind(this);
-
-        }
-
-
-        if (loginInput) {
-
-            loginInput.addEventListener(
-                "keydown",
-                function(e) {
-
-                    if (
-                        e.key === "Enter" ||
-                        e.keyCode === 13
-                    ) {
-
-                        e.preventDefault();
-
-
-                        if (this.salvarM3U()) {
-
-                            var url =
-                                loginInput.value.trim();
-
-
-                            this.fecharLoginM3U();
-
-
-                            this.playlistLoadAttempted =
-                                false;
-
-
-                            this.playlistLoaded =
-                                false;
-
-
-                            this.carregarListaM3U(
-                                url
-                            );
-
-                        }
-
-                    }
-
-                }.bind(this)
-            );
-
-        }
-
-    }
-
-
-    /* =====================================================
-       INIT
-    ===================================================== */
-
-    async init() {
-
-        /*
-         * PROTEÇÃO CONTRA DUPLO INIT
-         */
-
-        if (this.initialized) {
-
-            console.warn(
-                "[GC PLAY PRO] init() já executado."
-            );
-
-            return;
-
-        }
-
-
-        this.initialized = true;
-
-
-        console.log(
-            "======================================"
-        );
-
-        console.log(
-            "GC PLAY PRO — ANTI LOOP"
-        );
-
-        console.log(
-            "======================================"
-        );
-
-
-        /*
-         * ID
-         */
-
-        this.inicializarDispositivo();
-
-
-        /*
-         * EVENTOS
-         */
-
-        this.configurarEventos();
-
-
-        /*
-         * FAVORITOS
-         */
-
-        try {
-
-            var fav =
-                localStorage.getItem(
-                    "gcplay_favorites"
-                );
-
-
-            if (fav) {
-
-                this.favorites =
-                    JSON.parse(fav) || {};
-
-            }
-
-        } catch (e) {
-
-            this.favorites = {};
-
-        }
-
-
-        /*
-         * RESTAURAR M3U
-         *
-         * Somente preenche o campo.
-         *
-         * NÃO CARREGA.
-         */
-
-        this.restaurarPlaylist();
-
-
-        /*
-         * QR
-         */
-
-        this.gerarQRCode();
-
-
-        /*
-         * Ativação
-         */
-
-        this.abrirAtivacao();
-
-
-        /*
-         * REGISTER
-         */
-
-        await this.registrarDispositivo();
-
-
-        /*
-         * STATUS
-         */
-
-        await this.verificarStatus();
-
-
-        /*
-         * POLLING
-         *
-         * Só será criado se ainda estiver
-         * pendente.
-         */
-
-        this.iniciarPolling();
-
-
-        console.log(
-            "[GC PLAY PRO] Inicialização concluída."
+        fragment.appendChild(
+            card
         );
 
     }
 
-}
+    grid.appendChild(
+        fragment
+    );
+
+};
 
 
 /* =========================================================
-   ESCAPAR HTML
-========================================================= */
+   FAVORITOS
+   ========================================================= */
 
-function escapar(texto) {
+GCPlayPro.prototype.carregarFavoritos =
+function(){
 
-    var div =
+    try{
+
+        var dados =
+            localStorage.getItem(
+                "gcplay_favorites"
+            );
+
+        if(dados){
+
+            this.favorites =
+                JSON.parse(dados) || {};
+
+        }
+
+    }catch(e){
+
+        this.favorites = {};
+
+    }
+
+};
+
+GCPlayPro.prototype.salvarFavoritos =
+function(){
+
+    try{
+
+        localStorage.setItem(
+            "gcplay_favorites",
+            JSON.stringify(
+                this.favorites
+            )
+        );
+
+    }catch(e){}
+
+};
+
+GCPlayPro.prototype.alternarFavorito =
+function(channel){
+
+    if(this.favorites[channel.url]){
+
+        delete this.favorites[
+            channel.url
+        ];
+
+        this.toast(
+            "Removido dos favoritos."
+        );
+
+    }else{
+
+        this.favorites[
+            channel.url
+        ] = true;
+
+        this.toast(
+            "Adicionado aos favoritos.",
+            "success"
+        );
+
+    }
+
+    this.salvarFavoritos();
+
+    this.aplicarFiltro();
+
+};
+
+
+/* =========================================================
+   CATEGORIAS
+   ========================================================= */
+
+GCPlayPro.prototype.renderizarCategorias =
+function(){
+
+    var container =
+        $("dynamicCategories");
+
+    container.innerHTML = "";
+
+    var grupos = {};
+
+    for(
+        var i=0;
+        i<this.playlist.length;
+        i++
+    ){
+
+        var grupo =
+            this.playlist[i].group ||
+            "Outros";
+
+        grupos[grupo] =
+            (grupos[grupo] || 0) + 1;
+
+    }
+
+    var nomes =
+        Object.keys(grupos)
+            .sort(function(a,b){
+
+                return a.localeCompare(
+                    b,
+                    "pt-BR"
+                );
+
+            });
+
+    if(!nomes.length){
+        return;
+    }
+
+    var titulo =
         document.createElement("div");
 
+    titulo.className =
+        "menu-title";
 
-    div.textContent =
-        texto == null
-            ? ""
-            : String(texto);
+    titulo.textContent =
+        "Categorias";
 
+    container.appendChild(
+        titulo
+    );
 
-    return div.innerHTML;
+    for(
+        var j=0;
+        j<nomes.length;
+        j++
+    ){
 
-}
+        var grupo =
+            nomes[j];
+
+        var button =
+            document.createElement("button");
+
+        button.className =
+            "menu-item";
+
+        button.innerHTML =
+            '<span class="icon">•</span>' +
+            '<span class="label">' +
+            escapeHTML(grupo) +
+            '</span>';
+
+        (function(g){
+
+            button.addEventListener(
+                "click",
+                function(){
+
+                    this.selecionarCategoriaGrupo(
+                        g
+                    );
+
+                }.bind(this)
+            );
+
+        }.bind(this))(grupo);
+
+        container.appendChild(
+            button
+        );
+
+    }
+
+};
+
+GCPlayPro.prototype.selecionarCategoriaGrupo =
+function(grupo){
+
+    this.currentCategory =
+        "group:" + grupo;
+
+    var buttons =
+        document.querySelectorAll(
+            ".menu-item"
+        );
+
+    for(
+        var i=0;
+        i<buttons.length;
+        i++
+    ){
+
+        buttons[i]
+            .classList.remove(
+                "active"
+            );
+
+    }
+
+    this.playlistFiltradaPorGrupo(
+        grupo
+    );
+
+};
+
+GCPlayPro.prototype.playlistFiltradaPorGrupo =
+function(grupo){
+
+    var lista =
+        this.playlist.filter(
+            function(item){
+
+                return (
+                    String(item.group) ===
+                    String(grupo)
+                );
+
+            }
+        );
+
+    if(this.searchTerm){
+
+        var termo =
+            this.searchTerm.toLowerCase();
+
+        lista =
+            lista.filter(function(item){
+
+                return (
+                    item.name
+                        .toLowerCase()
+                        .indexOf(termo) >= 0
+                );
+
+            });
+
+    }
+
+    this.filteredPlaylist =
+        lista;
+
+    this.renderizarCanais();
+
+};
 
 
 /* =========================================================
-   LOADING
-========================================================= */
+   PLAYER
+   ========================================================= */
 
-function mostrarLoading(texto) {
+GCPlayPro.prototype.abrirPlayer =
+function(channel){
 
-    var overlay =
-        document.getElementById(
-            "loadingOverlay"
+    this.currentChannel =
+        channel;
+
+    $("playerTitle").textContent =
+        channel.name;
+
+    $("playerOverlay")
+        .classList.add("show");
+
+    this.reproduzir(channel.url);
+
+};
+
+GCPlayPro.prototype.fecharPlayer =
+function(){
+
+    this.pararPlayer();
+
+    $("playerOverlay")
+        .classList.remove("show");
+
+    this.currentChannel =
+        null;
+
+};
+
+GCPlayPro.prototype.pararPlayer =
+function(){
+
+    try{
+
+        if(this.hls){
+
+            this.hls.destroy();
+
+            this.hls =
+                null;
+
+        }
+
+    }catch(e){}
+
+    var video =
+        $("videoPlayer");
+
+    try{
+
+        video.pause();
+
+        video.removeAttribute(
+            "src"
         );
 
+        video.load();
 
-    var label =
-        document.getElementById(
-            "loadingText"
+    }catch(e){}
+
+};
+
+GCPlayPro.prototype.reproduzir =
+function(url){
+
+    this.pararPlayer();
+
+    var video =
+        $("videoPlayer");
+
+    if(
+        typeof Hls !== "undefined" &&
+        Hls.isSupported() &&
+        (
+            /\.m3u8/i.test(url) ||
+            url.indexOf(".m3u8") >= 0
+        )
+    ){
+
+        this.hls =
+            new Hls({
+                enableWorker:true,
+                lowLatencyMode:false
+            });
+
+        this.hls.loadSource(
+            url
         );
 
+        this.hls.attachMedia(
+            video
+        );
 
-    if (label) {
+        this.hls.on(
+            Hls.Events.MANIFEST_PARSED,
+            function(){
 
-        label.textContent =
-            texto || "Carregando...";
+                video.play()
+                    .catch(function(){});
+
+            }
+        );
+
+        this.hls.on(
+            Hls.Events.ERROR,
+            function(event,data){
+
+                if(
+                    data &&
+                    data.fatal
+                ){
+
+                    this.toast(
+                        "Erro ao reproduzir o canal.",
+                        "error"
+                    );
+
+                }
+
+            }.bind(this)
+        );
+
+    }else{
+
+        video.src =
+            url;
+
+        video.play()
+            .catch(function(){});
 
     }
 
-
-    if (overlay) {
-
-        overlay.classList.add("show");
-
-    }
-
-}
-
-
-function esconderLoading() {
-
-    var overlay =
-        document.getElementById(
-            "loadingOverlay"
-        );
-
-
-    if (overlay) {
-
-        overlay.classList.remove("show");
-
-    }
-
-}
+};
 
 
 /* =========================================================
-   INIT GLOBAL
-========================================================= */
+   FULLSCREEN
+   ========================================================= */
 
-var gcplay =
-    new GCPlayPro();
+GCPlayPro.prototype.fullscreen =
+function(){
+
+    var video =
+        $("videoPlayer");
+
+    var area =
+        $("playerOverlay");
+
+    try{
+
+        if(
+            document.fullscreenElement
+        ){
+
+            document.exitFullscreen();
+
+            return;
+
+        }
+
+        if(
+            area.requestFullscreen
+        ){
+
+            area.requestFullscreen();
+
+        }else if(
+            video.webkitEnterFullscreen
+        ){
+
+            video.webkitEnterFullscreen();
+
+        }
+
+    }catch(e){}
+
+};
 
 
-window.gcplay =
-    gcplay;
+/* =========================================================
+   SALVAR PLAYLIST
+   ========================================================= */
 
+GCPlayPro.prototype.salvarPlaylist =
+function(){
 
-function iniciarGCPlayUmaVez() {
+    var url =
+        $("playlistModalInput")
+            .value
+            .trim();
 
-    if (
-        window.__GCPLAY_INIT_DONE
-    ) {
+    if(!url){
 
-        console.warn(
-            "[GC PLAY PRO] Inicialização duplicada bloqueada."
+        this.toast(
+            "Digite uma URL M3U.",
+            "error"
         );
 
         return;
 
     }
 
+    try{
 
-    window.__GCPLAY_INIT_DONE =
+        url =
+            this.validarURL(url);
+
+        localStorage.setItem(
+            "gcplay_playlist_url",
+            url
+        );
+
+        $("playlistUrl").value =
+            url;
+
+        this.toast(
+            "URL salva.",
+            "success"
+        );
+
+    }catch(e){
+
+        this.toast(
+            e.message,
+            "error"
+        );
+
+    }
+
+};
+
+GCPlayPro.prototype.limparPlaylist =
+function(){
+
+    try{
+
+        localStorage.removeItem(
+            "gcplay_playlist_url"
+        );
+
+    }catch(e){}
+
+    $("playlistUrl").value =
+        "";
+
+    $("playlistModalInput").value =
+        "";
+
+    this.playlist = [];
+
+    this.filteredPlaylist = [];
+
+    this.playlistLoaded =
+        false;
+
+    this.playlistLoadAttempted =
+        false;
+
+    this.renderizarCanais();
+
+    this.toast(
+        "Playlist removida."
+    );
+
+};
+
+
+/* =========================================================
+   EVENTOS
+   ========================================================= */
+
+GCPlayPro.prototype.configurarEventos =
+function(){
+
+    /* CARREGAR */
+
+    $("loadPlaylistBtn")
+        .addEventListener(
+            "click",
+            function(){
+
+                this.carregarListaM3U(
+                    $("playlistUrl").value
+                );
+
+            }.bind(this)
+        );
+
+
+    /* ENTER NO CAMPO */
+
+    $("playlistUrl")
+        .addEventListener(
+            "keydown",
+            function(event){
+
+                if(event.key === "Enter"){
+
+                    this.carregarListaM3U(
+                        $("playlistUrl").value
+                    );
+
+                }
+
+            }.bind(this)
+        );
+
+
+    /* PESQUISA */
+
+    $("searchInput")
+        .addEventListener(
+            "input",
+            function(){
+
+                this.searchTerm =
+                    $("searchInput")
+                        .value
+                        .trim();
+
+                this.aplicarFiltro();
+
+            }.bind(this)
+        );
+
+
+    /* ATIVAÇÃO */
+
+    $("activationBtn")
+        .addEventListener(
+            "click",
+            function(){
+
+                this.abrirAtivacao();
+
+            }.bind(this)
+        );
+
+
+    /* FECHAR ATIVAÇÃO */
+
+    $("closeActivationBtn")
+        .addEventListener(
+            "click",
+            function(){
+
+                this.fecharAtivacao();
+
+            }.bind(this)
+        );
+
+
+    /* COPIAR ID */
+
+    $("copyDeviceBtn")
+        .addEventListener(
+            "click",
+            function(){
+
+                var id =
+                    this.deviceId;
+
+                if(
+                    navigator.clipboard &&
+                    navigator.clipboard.writeText
+                ){
+
+                    navigator.clipboard
+                        .writeText(id)
+                        .then(function(){
+
+                            this.toast(
+                                "ID copiado.",
+                                "success"
+                            );
+
+                        }.bind(this))
+                        .catch(function(){
+
+                            this.toast(
+                                id
+                            );
+
+                        }.bind(this));
+
+                }else{
+
+                    this.toast(id);
+
+                }
+
+            }.bind(this)
+        );
+
+
+    /* ENTRAR */
+
+    $("enterBtn")
+        .addEventListener(
+            "click",
+            function(){
+
+                if(
+                    this.deviceStatus !==
+                    "active"
+                ){
+
+                    this.abrirAtivacao();
+
+                    this.toast(
+                        "Ative o dispositivo primeiro.",
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+                this.abrirConfigPlaylist();
+
+            }.bind(this)
+        );
+
+
+    /* CONFIG M3U */
+
+    $("configPlaylistBtn")
+        .addEventListener(
+            "click",
+            function(){
+
+                this.abrirConfigPlaylist();
+
+            }.bind(this)
+        );
+
+
+    /* FECHAR M3U */
+
+    $("closePlaylistBtn")
+        .addEventListener(
+            "click",
+            function(){
+
+                this.fecharConfigPlaylist();
+
+            }.bind(this)
+        );
+
+
+    /* SALVAR */
+
+    $("savePlaylistBtn")
+        .addEventListener(
+            "click",
+            function(){
+
+                this.salvarPlaylist();
+
+            }.bind(this)
+        );
+
+
+    /* SALVAR E CARREGAR */
+
+    $("saveLoadPlaylistBtn")
+        .addEventListener(
+            "click",
+            function(){
+
+                var url =
+                    $("playlistModalInput")
+                        .value
+                        .trim();
+
+                if(!url){
+
+                    this.toast(
+                        "Digite a URL M3U.",
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+                try{
+
+                    url =
+                        this.validarURL(
+                            url
+                        );
+
+                }catch(e){
+
+                    this.toast(
+                        e.message,
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+                try{
+
+                    localStorage.setItem(
+                        "gcplay_playlist_url",
+                        url
+                    );
+
+                }catch(e){}
+
+                $("playlistUrl").value =
+                    url;
+
+                this.fecharConfigPlaylist();
+
+                this.carregarListaM3U(
+                    url
+                );
+
+            }.bind(this)
+        );
+
+
+    /* LIMPAR */
+
+    $("clearPlaylistBtn")
+        .addEventListener(
+            "click",
+            function(){
+
+                this.limparPlaylist();
+
+            }.bind(this)
+        );
+
+
+    /* PLAYER */
+
+    $("closePlayerBtn")
+        .addEventListener(
+            "click",
+            function(){
+
+                this.fecharPlayer();
+
+            }.bind(this)
+        );
+
+
+    $("fullscreenBtn")
+        .addEventListener(
+            "click",
+            function(){
+
+                this.fullscreen();
+
+            }.bind(this)
+        );
+
+
+    /* MENU */
+
+    var menuButtons =
+        document.querySelectorAll(
+            ".menu-item[data-category]"
+        );
+
+    for(
+        var i=0;
+        i<menuButtons.length;
+        i++
+    ){
+
+        menuButtons[i]
+            .addEventListener(
+                "click",
+                function(){
+
+                    var categoria =
+                        this.getAttribute(
+                            "data-category"
+                        );
+
+                    gcplay.selecionarCategoria(
+                        categoria,
+                        this
+                    );
+
+                }
+            );
+
+    }
+
+
+    /* ESC */
+
+    document.addEventListener(
+        "keydown",
+        function(event){
+
+            if(event.key === "Escape"){
+
+                if(
+                    $("playerOverlay")
+                        .classList.contains(
+                            "show"
+                        )
+                ){
+
+                    this.fecharPlayer();
+
+                }
+
+            }
+
+        }.bind(this)
+    );
+
+};
+
+
+/* =========================================================
+   SELECIONAR CATEGORIA
+   ========================================================= */
+
+GCPlayPro.prototype.selecionarCategoria =
+function(categoria,button){
+
+    this.currentCategory =
+        categoria;
+
+    var buttons =
+        document.querySelectorAll(
+            ".menu-item"
+        );
+
+    for(
+        var i=0;
+        i<buttons.length;
+        i++
+    ){
+
+        buttons[i]
+            .classList.remove(
+                "active"
+            );
+
+    }
+
+    if(button){
+
+        button.classList.add(
+            "active"
+        );
+
+    }
+
+    this.aplicarFiltro();
+
+};
+
+
+/* =========================================================
+   MODAL PLAYLIST
+   ========================================================= */
+
+GCPlayPro.prototype.abrirConfigPlaylist =
+function(){
+
+    var url =
+        $("playlistUrl")
+            .value
+            .trim();
+
+    if(!url){
+
+        try{
+
+            url =
+                localStorage.getItem(
+                    "gcplay_playlist_url"
+                ) || "";
+
+        }catch(e){}
+
+    }
+
+    $("playlistModalInput").value =
+        url;
+
+    $("playlistOverlay")
+        .classList.add("show");
+
+};
+
+GCPlayPro.prototype.fecharConfigPlaylist =
+function(){
+
+    $("playlistOverlay")
+        .classList.remove("show");
+
+};
+
+
+/* =========================================================
+   INIT
+   ========================================================= */
+
+GCPlayPro.prototype.init =
+async function(){
+
+    if(this.initialized){
+        return;
+    }
+
+    this.initialized =
         true;
 
+    this.inicializarDispositivo();
+
+    this.carregarFavoritos();
+
+    this.configurarEventos();
+
+    /*
+     * Restaurar URL apenas no campo.
+     * NÃO carregar automaticamente.
+     */
+
+    try{
+
+        var url =
+            localStorage.getItem(
+                "gcplay_playlist_url"
+            ) || "";
+
+        if(url){
+
+            $("playlistUrl").value =
+                url;
+
+        }
+
+    }catch(e){}
+
+    this.gerarQRCode();
+
+    this.atualizarStatus(
+        "Verificando dispositivo...",
+        "pending"
+    );
+
+    await this.registrarDispositivo();
+
+    await this.verificarStatus();
+
+    /*
+     * Se ainda não estiver ativo,
+     * continua verificando a cada 15s.
+     */
+
+    if(
+        this.deviceStatus !== "active"
+    ){
+
+        this.iniciarPolling();
+
+    }
+
+};
+
+
+/* =========================================================
+   DEBUG
+   ========================================================= */
+
+window.GCPLAY_DEBUG =
+function(){
+
+    console.log(
+        "========== GC PLAY PRO =========="
+    );
+
+    console.log(
+        "Device ID:",
+        gcplay.deviceId
+    );
+
+    console.log(
+        "Activation Code:",
+        gcplay.activationCode
+    );
+
+    console.log(
+        "Status:",
+        gcplay.deviceStatus
+    );
+
+    console.log(
+        "Playlist:",
+        gcplay.lastPlaylistUrl
+    );
+
+    console.log(
+        "Canais:",
+        gcplay.playlist.length
+    );
+
+    console.log(
+        "Edge Function:",
+        EDGE_FUNCTION_URL
+    );
+
+    console.log(
+        "QR:",
+        ACTIVATION_BASE_URL +
+        "?device=" +
+        encodeURIComponent(
+            gcplay.deviceId
+        ) +
+        "&code=" +
+        encodeURIComponent(
+            gcplay.activationCode
+        )
+    );
+
+    console.log(
+        "================================"
+    );
+
+};
+
+
+/* =========================================================
+   INICIALIZAÇÃO ÚNICA
+   ========================================================= */
+
+var gcplay =
+    new GCPlayPro();
+
+window.gcplay =
+    gcplay;
+
+if(
+    document.readyState ===
+    "loading"
+){
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function(){
+
+            gcplay.init();
+
+        }
+    );
+
+}else{
 
     gcplay.init();
 
 }
 
-
-if (
-    document.readyState === "loading"
-) {
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        iniciarGCPlayUmaVez
-    );
-
-} else {
-
-    iniciarGCPlayUmaVez();
-
-}
-
-
-/* =========================================================
-   DEBUG
-========================================================= */
-
-window.GCPLAY_DEBUG =
-    function() {
-
-        console.log(
-            "======================================"
-        );
-
-        console.log(
-            "GC PLAY PRO DEBUG"
-        );
-
-        console.log(
-            "DEVICE ID:",
-            gcplay.deviceId
-        );
-
-        console.log(
-            "CÓDIGO:",
-            gcplay.activationCode
-        );
-
-        console.log(
-            "DEVICE STATUS:",
-            gcplay.deviceStatus
-        );
-
-        console.log(
-            "PLAYLIST LOADED:",
-            gcplay.playlistLoaded
-        );
-
-        console.log(
-            "PLAYLIST LOADING:",
-            gcplay.playlistLoading
-        );
-
-        console.log(
-            "PLAYLIST ATTEMPTED:",
-            gcplay.playlistLoadAttempted
-        );
-
-        console.log(
-            "PLAYLIST URL:",
-            gcplay.lastPlaylistUrl
-        );
-
-        console.log(
-            "CANAIS:",
-            gcplay.playlist.length
-        );
-
-        console.log(
-            "POLLING:",
-            gcplay.activationPoll
-                ? "ATIVO"
-                : "PARADO"
-        );
-
-        console.log(
-            "EDGE FUNCTION:",
-            EDGE_FUNCTION_URL
-        );
-
-        console.log(
-            "QR:",
-            ACTIVATION_BASE_URL +
-            "?device=" +
-            encodeURIComponent(
-                gcplay.deviceId
-            ) +
-            "&code=" +
-            encodeURIComponent(
-                gcplay.activationCode
-            )
-        );
-
-        console.log(
-            "======================================"
-        );
-
-    };
-
+})();
 
 </script>
 
