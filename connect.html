@@ -3,173 +3,213 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 
-<title>Ativar GC PLAY PRO</title>
+<title>GC PLAY PRO - Ativação</title>
 
 <style>
 *{
     box-sizing:border-box;
 }
 
-html,body{
+html,
+body{
     margin:0;
+    padding:0;
     min-height:100%;
     font-family:Arial,Helvetica,sans-serif;
-    background:#070b12;
-    color:#fff;
+    background:#050805;
+    color:#ffffff;
 }
 
 body{
+    min-height:100vh;
     display:flex;
-    align-items:center;
     justify-content:center;
+    align-items:center;
     padding:20px;
 }
 
 .card{
-    width:min(440px,100%);
-    background:#0e151f;
-    border:1px solid #263447;
-    border-radius:18px;
+    width:100%;
+    max-width:480px;
+    background:#090d09;
+    border:1px solid #1cff4f;
+    border-radius:20px;
     padding:28px;
-    text-align:center;
-    box-shadow:0 20px 70px rgba(0,0,0,.5);
+    box-shadow:
+        0 0 20px rgba(28,255,79,.12),
+        0 20px 60px rgba(0,0,0,.7);
 }
 
 .logo{
-    width:62px;
-    height:62px;
+    width:68px;
+    height:68px;
     margin:0 auto 16px;
-    border-radius:15px;
-    background:#e50914;
+    border-radius:16px;
+    background:#050805;
+    border:2px solid #1cff4f;
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:28px;
-    font-weight:900;
+    color:#1cff4f;
+    font-size:30px;
+    font-weight:bold;
+    box-shadow:0 0 20px rgba(28,255,79,.25);
 }
 
 h1{
-    margin:0 0 8px;
-    font-size:25px;
+    margin:0;
+    text-align:center;
+    font-size:27px;
+    letter-spacing:1px;
 }
 
 .subtitle{
-    margin:0 0 22px;
-    color:#8c9aab;
+    margin:8px 0 25px;
+    text-align:center;
+    color:#8fa194;
     font-size:14px;
-    line-height:1.5;
 }
 
-.device{
-    background:#080d14;
-    border:1px solid #263447;
-    border-radius:10px;
-    padding:13px;
-    margin-bottom:15px;
+.info-box{
+    background:#050805;
+    border:1px solid #1c2e20;
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:14px;
 }
 
-.device small{
-    display:block;
-    color:#748399;
-    font-size:10px;
-    margin-bottom:6px;
+.info-title{
+    color:#1cff4f;
+    font-size:11px;
+    font-weight:bold;
+    margin-bottom:9px;
+    letter-spacing:1px;
 }
 
-.device strong{
-    display:block;
-    font-size:20px;
-    letter-spacing:3px;
+.device-id{
+    color:#ffffff;
+    font-size:13px;
+    line-height:1.6;
+    word-break:break-all;
+    user-select:text;
+}
+
+.activation-code{
+    color:#1cff4f;
+    font-size:25px;
+    font-weight:bold;
+    letter-spacing:5px;
+    text-align:center;
 }
 
 label{
     display:block;
-    text-align:left;
-    color:#9aa7b8;
-    font-size:12px;
-    margin:15px 0 7px;
+    color:#9ca99e;
+    font-size:13px;
+    margin:18px 0 8px;
 }
 
 input{
     width:100%;
-    height:45px;
-    padding:0 13px;
-    border-radius:9px;
-    border:1px solid #29394d;
-    background:#111a26;
-    color:#fff;
+    height:50px;
+    padding:0 14px;
+    border-radius:10px;
+    border:1px solid #26382a;
+    background:#0d130e;
+    color:#ffffff;
     outline:none;
     font-size:14px;
 }
 
 input:focus{
-    border-color:#e50914;
+    border-color:#1cff4f;
+    box-shadow:0 0 0 2px rgba(28,255,79,.08);
 }
 
 button{
     width:100%;
-    height:46px;
+    min-height:50px;
     margin-top:18px;
-    border:0;
-    border-radius:9px;
-    background:#e50914;
-    color:#fff;
+    border:1px solid #1cff4f;
+    border-radius:10px;
+    background:#1cff4f;
+    color:#020602;
     font-size:14px;
     font-weight:bold;
     cursor:pointer;
 }
 
 button:hover{
-    background:#ff2530;
+    background:#5dff80;
 }
 
 button:disabled{
-    opacity:.55;
+    opacity:.45;
     cursor:not-allowed;
+}
+
+.copy-button{
+    margin-top:10px;
+    background:#0b120c;
+    color:#1cff4f;
+    border:1px solid #1cff4f;
+}
+
+.copy-button:hover{
+    background:#101d12;
 }
 
 .status{
     margin-top:18px;
-    min-height:20px;
+    min-height:24px;
+    text-align:center;
     font-size:13px;
     line-height:1.5;
 }
 
+.status.waiting{
+    color:#9ca99e;
+}
+
 .status.success{
-    color:#19d36b;
+    color:#1cff4f;
 }
 
 .status.error{
-    color:#ff5c65;
+    color:#ff5c5c;
 }
 
-.status.waiting{
-    color:#a7b2c1;
-}
-
-.spinner{
-    width:18px;
-    height:18px;
+.loading{
     display:inline-block;
-    vertical-align:middle;
+    width:16px;
+    height:16px;
     margin-right:7px;
-    border:2px solid #4a5666;
-    border-top-color:#fff;
+    vertical-align:-3px;
+    border:2px solid #29402e;
+    border-top-color:#1cff4f;
     border-radius:50%;
-    animation:spin .7s linear infinite;
+    animation:girar .7s linear infinite;
 }
 
-@keyframes spin{
+@keyframes girar{
     to{
         transform:rotate(360deg);
     }
 }
 
 .footer{
-    margin-top:22px;
-    color:#536174;
+    margin-top:24px;
+    text-align:center;
+    color:#526056;
     font-size:10px;
-    line-height:1.5;
+}
+
+.hidden{
+    display:none;
 }
 </style>
 </head>
@@ -182,22 +222,49 @@ button:disabled{
 
     <h1>GC PLAY PRO</h1>
 
-    <p class="subtitle">
+    <div class="subtitle">
         Ativação do dispositivo
-    </p>
+    </div>
 
-    <div class="device">
+    <!-- ID -->
+    <div class="info-box">
 
-        <small>
-            CÓDIGO DO DISPOSITIVO
-        </small>
+        <div class="info-title">
+            ID DO DISPOSITIVO
+        </div>
 
-        <strong id="code">
-            --------
-        </strong>
+        <div
+            id="deviceId"
+            class="device-id">
+            Identificando dispositivo...
+        </div>
+
+        <button
+            id="copyIdButton"
+            class="copy-button"
+            type="button"
+            onclick="copiarID()">
+            COPIAR ID
+        </button>
 
     </div>
 
+    <!-- CÓDIGO -->
+    <div class="info-box">
+
+        <div class="info-title">
+            CÓDIGO DE ATIVAÇÃO
+        </div>
+
+        <div
+            id="activationCode"
+            class="activation-code">
+            ------
+        </div>
+
+    </div>
+
+    <!-- PLAYLIST -->
     <label for="playlist">
         URL da sua playlist M3U
     </label>
@@ -211,14 +278,17 @@ button:disabled{
 
     <button
         id="activateButton"
-        onclick="ativar()">
+        type="button"
+        onclick="ativar()"
+        disabled>
         ATIVAR DISPOSITIVO
     </button>
 
     <div
         id="status"
         class="status waiting">
-        Aguardando dados do QR Code...
+        <span class="loading"></span>
+        Identificando dispositivo...
     </div>
 
     <div class="footer">
@@ -227,17 +297,14 @@ button:disabled{
 
 </div>
 
-
 <script>
-
 "use strict";
-
 
 /* =========================================================
    CONFIGURAÇÃO
 ========================================================= */
 
-const EDGE_FUNCTION_URL =
+var EDGE_FUNCTION_URL =
     "https://kuzgdvpdqmocklsgyzvt.supabase.co/functions/v1/activate-device";
 
 
@@ -245,50 +312,41 @@ const EDGE_FUNCTION_URL =
    ELEMENTOS
 ========================================================= */
 
-const codeElement =
-    document.getElementById("code");
+var deviceIdElement =
+    document.getElementById("deviceId");
 
-const playlistElement =
+var activationCodeElement =
+    document.getElementById("activationCode");
+
+var playlistElement =
     document.getElementById("playlist");
 
-const buttonElement =
+var activateButton =
     document.getElementById("activateButton");
 
-const statusElement =
+var statusElement =
     document.getElementById("status");
 
-
-/* =========================================================
-   LER QR CODE
-========================================================= */
-
-const params =
-    new URLSearchParams(
-        window.location.search
-    );
-
-
-const deviceId =
-    (
-        params.get("device") ||
-        ""
-    ).trim();
-
-
-const activationCode =
-    (
-        params.get("code") ||
-        ""
-    )
-    .trim()
-    .toUpperCase();
+var copyIdButton =
+    document.getElementById("copyIdButton");
 
 
 /* =========================================================
-   VALIDAÇÕES
+   VARIÁVEIS
 ========================================================= */
 
-function validUUID(value){
+var deviceId = "";
+
+var activationCode = "";
+
+var dispositivoEncontrado = false;
+
+
+/* =========================================================
+   VALIDAR UUID
+========================================================= */
+
+function validarUUID(value){
 
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
         .test(value);
@@ -296,20 +354,26 @@ function validUUID(value){
 }
 
 
-function validCode(value){
+/* =========================================================
+   VALIDAR CÓDIGO
+========================================================= */
 
-    return /^[A-Z0-9]{6}$/.test(
-        value
-    );
+function validarCodigo(value){
+
+    return /^[A-Z0-9]{6}$/.test(value);
 
 }
 
 
-function validPlaylistURL(value){
+/* =========================================================
+   VALIDAR URL
+========================================================= */
+
+function validarURL(value){
 
     try{
 
-        const url =
+        var url =
             new URL(value);
 
         return (
@@ -317,7 +381,7 @@ function validPlaylistURL(value){
             url.protocol === "https:"
         );
 
-    }catch{
+    }catch(error){
 
         return false;
 
@@ -327,71 +391,28 @@ function validPlaylistURL(value){
 
 
 /* =========================================================
-   INICIALIZAÇÃO
+   STATUS
 ========================================================= */
 
-function inicializar(){
+function mostrarStatus(
+    mensagem,
+    tipo,
+    usarHTML
+){
 
-    if(
-        !validUUID(deviceId)
-    ){
+    statusElement.className =
+        "status " +
+        (tipo || "waiting");
 
-        codeElement.textContent =
-            "INVÁLIDO";
+    if(usarHTML){
 
-        mostrarStatus(
-            "Este QR Code não possui um ID de dispositivo válido.",
-            "error"
-        );
+        statusElement.innerHTML =
+            mensagem;
 
-        buttonElement.disabled =
-            true;
+    }else{
 
-        return;
-
-    }
-
-
-    if(
-        !validCode(activationCode)
-    ){
-
-        codeElement.textContent =
-            "INVÁLIDO";
-
-        mostrarStatus(
-            "Este QR Code não possui um código de ativação válido.",
-            "error"
-        );
-
-        buttonElement.disabled =
-            true;
-
-        return;
-
-    }
-
-
-    codeElement.textContent =
-        activationCode;
-
-
-    mostrarStatus(
-        "Dispositivo identificado. Informe a URL da sua playlist.",
-        "waiting"
-    );
-
-
-    const savedPlaylist =
-        localStorage.getItem(
-            "gcplay_playlist_url"
-        );
-
-
-    if(savedPlaylist){
-
-        playlistElement.value =
-            savedPlaylist;
+        statusElement.textContent =
+            mensagem;
 
     }
 
@@ -399,17 +420,452 @@ function inicializar(){
 
 
 /* =========================================================
-   ATIVAÇÃO
+   LER PARÂMETROS DO QR
+========================================================= */
+
+function lerParametros(){
+
+    var params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    /*
+       Aceita:
+
+       ?device=UUID
+
+       ?device_id=UUID
+
+       ?device=UUID&code=ABC123
+    */
+
+    var id =
+        params.get("device");
+
+    if(!id){
+
+        id =
+            params.get("device_id");
+
+    }
+
+    var code =
+        params.get("code");
+
+    if(!code){
+
+        code =
+            params.get("activation_code");
+
+    }
+
+    deviceId =
+        (id || "").trim();
+
+    activationCode =
+        (code || "")
+        .trim()
+        .toUpperCase();
+
+}
+
+
+/* =========================================================
+   MOSTRAR ID
+========================================================= */
+
+function mostrarID(){
+
+    if(validarUUID(deviceId)){
+
+        deviceIdElement.textContent =
+            deviceId;
+
+    }else{
+
+        deviceIdElement.textContent =
+            "ID NÃO IDENTIFICADO";
+
+    }
+
+}
+
+
+/* =========================================================
+   BUSCAR DADOS NO SERVIDOR
+========================================================= */
+
+async function consultarDispositivo(){
+
+    if(!validarUUID(deviceId)){
+
+        mostrarStatus(
+            "O QR Code não contém um ID de dispositivo válido.",
+            "error"
+        );
+
+        activateButton.disabled =
+            true;
+
+        return false;
+
+    }
+
+    mostrarID();
+
+    mostrarStatus(
+        '<span class="loading"></span>Consultando dispositivo...',
+        "waiting",
+        true
+    );
+
+    try{
+
+        /*
+           Mesmo que o QR não tenha o código,
+           buscamos o código pelo ID.
+        */
+
+        var response =
+            await fetch(
+                EDGE_FUNCTION_URL,
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        action:"status",
+
+                        device_id:
+                            deviceId
+
+                    })
+                }
+            );
+
+
+        var data = null;
+
+        try{
+
+            data =
+                await response.json();
+
+        }catch(error){
+
+            data = null;
+
+        }
+
+
+        if(
+            !response.ok ||
+            !data ||
+            !data.success
+        ){
+
+            throw new Error(
+                (
+                    data &&
+                    data.error
+                ) ||
+                "Dispositivo não encontrado."
+            );
+
+        }
+
+
+        if(
+            !data.device
+        ){
+
+            throw new Error(
+                "O servidor não retornou os dados do dispositivo."
+            );
+
+        }
+
+
+        /*
+           Se o QR já trouxe um código válido,
+           podemos conferir com o servidor.
+
+           Se não trouxe, usamos o código do servidor.
+        */
+
+        var codigoServidor =
+            String(
+                data.device.activation_code ||
+                ""
+            )
+            .trim()
+            .toUpperCase();
+
+
+        if(
+            !validarCodigo(codigoServidor)
+        ){
+
+            throw new Error(
+                "O dispositivo foi encontrado, mas o código de ativação cadastrado é inválido."
+            );
+
+        }
+
+
+        activationCode =
+            codigoServidor;
+
+
+        activationCodeElement.textContent =
+            activationCode;
+
+
+        dispositivoEncontrado =
+            true;
+
+
+        /*
+           Se estiver bloqueado, não permite ativar.
+        */
+
+        if(
+            String(data.device.status)
+                .toLowerCase() ===
+            "blocked"
+        ){
+
+            mostrarStatus(
+                "Este dispositivo está bloqueado.",
+                "error"
+            );
+
+            activateButton.disabled =
+                true;
+
+            return false;
+
+        }
+
+
+        /*
+           Se estiver expirado.
+        */
+
+        if(
+            data.device.expires_at
+        ){
+
+            var expiracao =
+                new Date(
+                    data.device.expires_at
+                );
+
+            if(
+                expiracao <= new Date()
+            ){
+
+                mostrarStatus(
+                    "A ativação deste dispositivo expirou.",
+                    "error"
+                );
+
+                activateButton.disabled =
+                    true;
+
+                return false;
+
+            }
+
+        }
+
+
+        /*
+           Se já estiver ativo, mostra isso,
+           mas ainda permite atualizar a playlist.
+        */
+
+        if(
+            String(data.device.status)
+                .toLowerCase() ===
+            "active"
+        ){
+
+            mostrarStatus(
+                "Dispositivo já está ativo. Você pode atualizar a playlist.",
+                "success"
+            );
+
+        }else{
+
+            mostrarStatus(
+                "Dispositivo identificado. Informe a URL da playlist.",
+                "waiting"
+            );
+
+        }
+
+
+        activateButton.disabled =
+            false;
+
+
+        /*
+           Se já houver playlist cadastrada,
+           coloca no campo.
+        */
+
+        if(
+            data.device.playlist_url &&
+            !playlistElement.value
+        ){
+
+            playlistElement.value =
+                data.device.playlist_url;
+
+        }
+
+
+        return true;
+
+
+    }catch(error){
+
+        console.error(
+            "Erro ao consultar dispositivo:",
+            error
+        );
+
+        activationCodeElement.textContent =
+            "------";
+
+        mostrarStatus(
+            error.message ||
+            "Não foi possível identificar o dispositivo.",
+            "error"
+        );
+
+        activateButton.disabled =
+            true;
+
+        return false;
+
+    }
+
+}
+
+
+/* =========================================================
+   COPIAR ID
+========================================================= */
+
+function copiarID(){
+
+    if(!validarUUID(deviceId)){
+
+        return;
+
+    }
+
+
+    if(
+        navigator.clipboard &&
+        navigator.clipboard.writeText
+    ){
+
+        navigator.clipboard.writeText(
+            deviceId
+        ).then(function(){
+
+            copyIdButton.textContent =
+                "ID COPIADO";
+
+            setTimeout(
+                function(){
+
+                    copyIdButton.textContent =
+                        "COPIAR ID";
+
+                },
+                1800
+            );
+
+        }).catch(function(){
+
+            copiarIDFallback();
+
+        });
+
+    }else{
+
+        copiarIDFallback();
+
+    }
+
+}
+
+
+/* =========================================================
+   COPIAR FALLBACK
+========================================================= */
+
+function copiarIDFallback(){
+
+    var campo =
+        document.createElement("textarea");
+
+    campo.value =
+        deviceId;
+
+    document.body.appendChild(
+        campo
+    );
+
+    campo.select();
+
+    try{
+
+        document.execCommand(
+            "copy"
+        );
+
+        copyIdButton.textContent =
+            "ID COPIADO";
+
+    }catch(error){
+
+        alert(
+            "ID do dispositivo:\n\n" +
+            deviceId
+        );
+
+    }
+
+    document.body.removeChild(
+        campo
+    );
+
+}
+
+
+/* =========================================================
+   ATIVAR
 ========================================================= */
 
 async function ativar(){
 
-    const playlist =
+    var playlist =
         playlistElement.value.trim();
 
 
     if(
-        !validUUID(deviceId)
+        !validarUUID(deviceId)
     ){
 
         mostrarStatus(
@@ -422,26 +878,33 @@ async function ativar(){
     }
 
 
+    /*
+       Se por algum motivo o código ainda não
+       foi carregado, consulta novamente.
+    */
+
     if(
-        !validCode(activationCode)
+        !validarCodigo(activationCode)
     ){
 
-        mostrarStatus(
-            "Código de ativação inválido.",
-            "error"
-        );
+        var encontrou =
+            await consultarDispositivo();
 
-        return;
+        if(!encontrou){
+
+            return;
+
+        }
 
     }
 
 
     if(
-        !validPlaylistURL(playlist)
+        !validarURL(playlist)
     ){
 
         mostrarStatus(
-            "Digite uma URL válida da playlist M3U.",
+            "Digite uma URL HTTP ou HTTPS válida da playlist M3U.",
             "error"
         );
 
@@ -452,12 +915,12 @@ async function ativar(){
     }
 
 
-    buttonElement.disabled =
+    activateButton.disabled =
         true;
 
 
     mostrarStatus(
-        '<span class="spinner"></span>Ativando dispositivo...',
+        '<span class="loading"></span>Ativando dispositivo...',
         "waiting",
         true
     );
@@ -465,7 +928,7 @@ async function ativar(){
 
     try{
 
-        const response =
+        var response =
             await fetch(
                 EDGE_FUNCTION_URL,
                 {
@@ -494,15 +957,14 @@ async function ativar(){
             );
 
 
-        let data = null;
-
+        var data = null;
 
         try{
 
             data =
                 await response.json();
 
-        }catch{
+        }catch(error){
 
             data = null;
 
@@ -526,23 +988,27 @@ async function ativar(){
         }
 
 
-        localStorage.setItem(
-            "gcplay_playlist_url",
-            playlist
-        );
+        try{
+
+            localStorage.setItem(
+                "gcplay_playlist_url",
+                playlist
+            );
+
+        }catch(error){}
 
 
         mostrarStatus(
-            "✓ Dispositivo ativado com sucesso! Você já pode voltar ao GC PLAY PRO.",
+            "✓ DISPOSITIVO ATIVADO COM SUCESSO! Você já pode voltar ao GC PLAY PRO.",
             "success"
         );
 
 
-        buttonElement.textContent =
+        activateButton.textContent =
             "DISPOSITIVO ATIVADO";
 
 
-        buttonElement.disabled =
+        activateButton.disabled =
             true;
 
 
@@ -556,12 +1022,12 @@ async function ativar(){
 
         mostrarStatus(
             error.message ||
-            "Erro ao ativar o dispositivo.",
+            "Erro ao ativar dispositivo.",
             "error"
         );
 
 
-        buttonElement.disabled =
+        activateButton.disabled =
             false;
 
     }
@@ -570,42 +1036,12 @@ async function ativar(){
 
 
 /* =========================================================
-   STATUS
-========================================================= */
-
-function mostrarStatus(
-    mensagem,
-    tipo="waiting",
-    html=false
-){
-
-    statusElement.className =
-        "status " +
-        tipo;
-
-
-    if(html){
-
-        statusElement.innerHTML =
-            mensagem;
-
-    }else{
-
-        statusElement.textContent =
-            mensagem;
-
-    }
-
-}
-
-
-/* =========================================================
-   ENTER
+   ENTER NO CAMPO
 ========================================================= */
 
 playlistElement.addEventListener(
     "keydown",
-    event => {
+    function(event){
 
         if(
             event.key === "Enter"
@@ -622,10 +1058,55 @@ playlistElement.addEventListener(
 
 
 /* =========================================================
+   INICIALIZAÇÃO
+========================================================= */
+
+async function iniciar(){
+
+    lerParametros();
+
+    mostrarID();
+
+
+    /*
+       Se não houver ID, para aqui.
+    */
+
+    if(
+        !validarUUID(deviceId)
+    ){
+
+        activationCodeElement.textContent =
+            "------";
+
+        mostrarStatus(
+            "QR Code inválido: o ID do dispositivo não foi encontrado.",
+            "error"
+        );
+
+        activateButton.disabled =
+            true;
+
+        return;
+
+    }
+
+
+    /*
+       Consulta o servidor.
+       O código será obtido pelo ID.
+    */
+
+    await consultarDispositivo();
+
+}
+
+
+/* =========================================================
    START
 ========================================================= */
 
-inicializar();
+iniciar();
 
 </script>
 
