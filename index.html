@@ -8934,2663 +8934,7 @@ https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.m
        FIM PARTE 2
     ================================================= */
 
-}
-        /* ================================================
-       REPRODUZIR ITEM
-    ================================================= */
-
-    async reproduzirItem(item){
-
-        if(!item || !item.url){
-
-            alert(
-                "Este conteúdo não possui uma URL válida."
-            );
-
-            return;
-
-        }
-
-
-        this.itemSelecionadoAtual =
-            item;
-
-
-        const titulo =
-            document.getElementById(
-                "npTitle"
-            );
-
-
-        const categoria =
-            document.getElementById(
-                "npCategory"
-            );
-
-
-        if(titulo){
-
-            titulo.innerText =
-                item.titulo ||
-                "Conteúdo";
-
-        }
-
-
-        if(categoria){
-
-            categoria.innerText =
-                (
-                    item.grupo ||
-                    "Mídia"
-                ) +
-                " • Reproduzindo";
-
-        }
-
-
-        const video =
-            document.getElementById(
-                "mainVideoPlayer"
-            );
-
-
-        if(!video){
-
-            return;
-
-        }
-
-
-        this.pararPlayer();
-
-
-        this.hlsRetries =
-            0;
-
-
-        /*
-         * Algumas listas possuem
-         * opções HTTP.
-         */
-
-        if(
-            item.userAgent ||
-            item.referrer
-        ){
-
-            console.log(
-                "Opções EXT VLC detectadas:",
-                {
-                    userAgent:
-                        item.userAgent,
-
-                    referrer:
-                        item.referrer
-                }
-            );
-
-        }
-
-
-        const url =
-            String(
-                item.url
-            ).trim();
-
-
-        /*
-         * Detecta HLS.
-         */
-
-        const ehHLS =
-            /\.m3u8(?:$|\?)/i.test(
-                url
-            ) ||
-            /format=hls/i.test(
-                url
-            );
-
-
-        /*
-         * HLS.js
-         */
-
-        if(
-            ehHLS &&
-            window.Hls &&
-            Hls.isSupported()
-        ){
-
-            try{
-
-                const hls =
-                    new Hls({
-
-                        enableWorker:true,
-
-                        lowLatencyMode:false,
-
-                        backBufferLength:30,
-
-                        maxBufferLength:30,
-
-                        maxMaxBufferLength:60,
-
-                        manifestLoadingMaxRetry:3,
-
-                        levelLoadingMaxRetry:3,
-
-                        fragLoadingMaxRetry:3,
-
-                        xhrSetup:
-                            function(
-                                xhr
-                            ){
-
-                                xhr.withCredentials=
-                                    false;
-
-                            }
-
-                    });
-
-
-                this.hlsInstance =
-                    hls;
-
-
-                hls.on(
-                    Hls.Events.ERROR,
-                    (
-                        event,
-                        data
-                    )=>{
-
-                        console.warn(
-                            "HLS ERROR:",
-                            data
-                        );
-
-
-                        if(
-                            data.fatal
-                        ){
-
-                            switch(
-                                data.type
-                            ){
-
-                                case Hls.ErrorTypes.NETWORK_ERROR:
-
-                                    console.warn(
-                                        "Tentando recuperar rede..."
-                                    );
-
-
-                                    try{
-
-                                        hls.startLoad();
-
-                                    }catch(error){}
-
-                                    break;
-
-
-                                case Hls.ErrorTypes.MEDIA_ERROR:
-
-                                    try{
-
-                                        hls.recoverMediaError();
-
-                                    }catch(error){}
-
-                                    break;
-
-
-                                default:
-
-                                    this.pararPlayer();
-
-                                    alert(
-                                        "Não foi possível reproduzir este canal."
-                                    );
-
-                            }
-
-                        }
-
-                    }
-                );
-
-
-                hls.on(
-                    Hls.Events.MANIFEST_PARSED,
-                    ()=>{
-
-                        video.play()
-                            .catch(
-                                error=>
-                                    console.warn(
-                                        "Autoplay bloqueado:",
-                                        error
-                                    )
-                            );
-
-                    }
-                );
-
-
-                hls.loadSource(
-                    url
-                );
-
-
-                hls.attachMedia(
-                    video
-                );
-
-
-                return;
-
-            }catch(error){
-
-                console.error(
-                    "Erro HLS:",
-                    error
-                );
-
-            }
-
-        }
-
-
-        /*
-         * HLS nativo.
-         *
-         * Safari / alguns Smart TVs.
-         */
-
-        if(
-            ehHLS &&
-            video.canPlayType(
-                "application/vnd.apple.mpegurl"
-            )
-        ){
-
-            video.src =
-                url;
-
-
-            video.play()
-                .catch(
-                    error=>
-                        console.warn(
-                            "Autoplay:",
-                            error
-                        )
-                );
-
-
-            return;
-
-        }
-
-
-        /*
-         * Reprodução normal.
-         */
-
-        video.src =
-            url;
-
-
-        video.load();
-
-
-        video.play()
-            .catch(
-                error=>
-                    console.warn(
-                        "Reprodução automática bloqueada:",
-                        error
-                    )
-            );
-
-    },
-
-
-    /* ================================================
-       PARAR PLAYER
-    ================================================= */
-
-    pararPlayer(){
-
-        const video =
-            document.getElementById(
-                "mainVideoPlayer"
-            );
-
-
-        if(
-            this.hlsInstance
-        ){
-
-            try{
-
-                this.hlsInstance.destroy();
-
-            }catch(error){}
-
-
-            this.hlsInstance =
-                null;
-
-        }
-
-
-        if(video){
-
-            try{
-
-                video.pause();
-
-            }catch(error){}
-
-
-            video.removeAttribute(
-                "src"
-            );
-
-
-            try{
-
-                video.load();
-
-            }catch(error){}
-
-        }
-
-
-        this.itemSelecionadoAtual =
-            null;
-
-
-        const titulo =
-            document.getElementById(
-                "npTitle"
-            );
-
-
-        const categoria =
-            document.getElementById(
-                "npCategory"
-            );
-
-
-        if(titulo){
-
-            titulo.innerText =
-                "Nenhuma mídia selecionada";
-
-        }
-
-
-        if(categoria){
-
-            categoria.innerText =
-                "Selecione um item da lista ao lado para reproduzir.";
-
-        }
-
-    },
-
-
-    /* ================================================
-       CARREGAR M3U
-       
-       IMPORTANTE:
-       NÃO fazemos fetch direto da IPTV.
-
-       O navegador chama:
-
-       GitHub
-          ↓
-       Supabase
-          ↓
-       IPTV
-
-       Isso resolve:
-       - CORS
-       - Mixed Content
-       - HTTP dentro de HTTPS
-    ================================================= */
-
-    async carregarListaM3U(
-        playlistUrl
-    ){
-
-        if(
-            this.carregandoM3U
-        ){
-
-            return;
-
-        }
-
-
-        playlistUrl =
-            String(
-                playlistUrl ||
-                ""
-            ).trim();
-
-
-        if(
-            !/^https?:\/\//i.test(
-                playlistUrl
-            )
-        ){
-
-            alert(
-                "Informe uma URL M3U válida começando com http:// ou https://"
-            );
-
-            return;
-
-        }
-
-
-        if(
-            !this.deviceId ||
-            !isValidUUID(
-                this.deviceId
-            )
-        ){
-
-            alert(
-                "O aparelho ainda não possui um Device ID válido."
-            );
-
-            return;
-
-        }
-
-
-        if(
-            !this.activationCode ||
-            !/^[A-Z0-9]{6}$/.test(
-                this.activationCode
-            )
-        ){
-
-            alert(
-                "O código de ativação ainda não está disponível."
-            );
-
-            return;
-
-        }
-
-
-        this.carregandoM3U =
-            true;
-
-
-        const loader =
-            document.getElementById(
-                "futuristicLoader"
-            );
-
-
-        const loaderStatus =
-            document.getElementById(
-                "loaderStatusText"
-            );
-
-
-        if(loader){
-
-            loader.classList.add(
-                "on"
-            );
-
-        }
-
-
-        if(loaderStatus){
-
-            loaderStatus.innerText =
-                "Conectando ao servidor da playlist...";
-
-        }
-
-
-        try{
-
-            console.log(
-                "Solicitando playlist através do proxy..."
-            );
-
-
-            /*
-             * Salva localmente somente depois
-             * que a solicitação for iniciada.
-             */
-
-            localStorage.setItem(
-                "gcplay_last_m3u",
-                playlistUrl
-            );
-
-
-            localStorage.setItem(
-                "gcplay_last_remote_playlist",
-                playlistUrl
-            );
-
-
-            /*
-             * Timeout de segurança.
-             *
-             * O servidor possui seu próprio
-             * timeout.
-             */
-
-            const controller =
-                new AbortController();
-
-
-            const timeout =
-                setTimeout(
-                    ()=>{
-                        controller.abort();
-                    },
-                    120000
-                );
-
-
-            let response;
-
-
-            try{
-
-                response =
-                    await fetch(
-                        PLAYLIST_FUNCTION_URL,
-                        {
-
-                            method:
-                                "POST",
-
-                            headers:{
-
-                                "Content-Type":
-                                    "application/json",
-
-                                "Accept":
-                                    "application/vnd.apple.mpegurl,text/plain,*/*"
-
-                            },
-
-                            body:
-                                JSON.stringify({
-
-                                    device_id:
-                                        this.deviceId,
-
-                                    activation_code:
-                                        this.activationCode,
-
-                                    playlist_url:
-                                        playlistUrl
-
-                                }),
-
-                            signal:
-                                controller.signal
-
-                        }
-                    );
-
-            }finally{
-
-                clearTimeout(
-                    timeout
-                );
-
-            }
-
-
-            /*
-             * Erro HTTP.
-             */
-
-            if(
-                !response.ok
-            ){
-
-                let erroTexto =
-                    "";
-
-
-                try{
-
-                    const contentType =
-                        response.headers.get(
-                            "content-type"
-                        ) ||
-                        "";
-
-
-                    if(
-                        contentType
-                            .toLowerCase()
-                            .includes(
-                                "application/json"
-                            )
-                    ){
-
-                        const erroJson =
-                            await response.json();
-
-
-                        erroTexto =
-                            erroJson.error ||
-                            erroJson.message ||
-                            "";
-
-                    }else{
-
-                        erroTexto =
-                            await response.text();
-
-                    }
-
-                }catch(error){}
-
-
-                throw new Error(
-                    erroTexto ||
-                    (
-                        "Servidor retornou HTTP " +
-                        response.status
-                    )
-                );
-
-            }
-
-
-            /*
-             * O proxy precisa devolver
-             * ReadableStream.
-             */
-
-            if(
-                !response.body
-            ){
-
-                throw new Error(
-                    "O servidor não enviou o stream da playlist."
-                );
-
-            }
-
-
-            if(loaderStatus){
-
-                loaderStatus.innerText =
-                    "Baixando e analisando canais...";
-
-            }
-
-
-            /*
-             * NOVO PARSER STREAMING
-             *
-             * A playlist não precisa ser
-             * armazenada inteira em uma String.
-             */
-
-            await this.processarM3UStreaming(
-                response.body,
-                playlistUrl
-            );
-
-
-            /*
-             * Salva lista atual.
-             */
-
-            this.listaAtual={
-
-                tipo:
-                    "manual",
-
-                url:
-                    playlistUrl
-
-            };
-
-
-            this.atualizarCardUltimaLista();
-
-
-        }catch(error){
-
-            console.error(
-                "Erro ao carregar M3U:",
-                error
-            );
-
-
-            let mensagem =
-                error &&
-                error.message
-                    ? error.message
-                    : String(
-                        error
-                    );
-
-
-            if(
-                error &&
-                error.name===
-                "AbortError"
-            ){
-
-                mensagem =
-                    "Tempo limite excedido ao carregar a playlist.";
-
-            }
-
-
-            alert(
-                "Não foi possível carregar a lista.\n\n" +
-                mensagem
-            );
-
-
-        }finally{
-
-            this.carregandoM3U =
-                false;
-
-
-            if(loader){
-
-                loader.classList.remove(
-                    "on"
-                );
-
-            }
-
-        }
-
-    },
-
-
-    /* ================================================
-       PROCESSAR M3U STREAMING
-    ================================================= */
-
-    async processarM3UStreaming(
-        stream,
-        baseUrl=""
-    ){
-
-        if(!stream){
-
-            throw new Error(
-                "Stream M3U inválido."
-            );
-
-        }
-
-
-        /*
-         * Limpa lista anterior.
-         */
-
-        this.dadosM3U={
-
-            live:[],
-
-            vod:[],
-
-            series:[],
-
-            music:[],
-
-            adult:[]
-
-        };
-
-
-        /*
-         * Estrutura temporária.
-         */
-
-        const seriesMap =
-            new Map();
-
-
-        const vistos =
-            new Set();
-
-
-        let itemAtual =
-            null;
-
-
-        let grupoExtAtual =
-            "";
-
-
-        /*
-         * Leitor.
-         */
-
-        const reader =
-            stream.getReader();
-
-
-        const decoder =
-            new TextDecoder(
-                "utf-8"
-            );
-
-
-        let buffer =
-            "";
-
-
-        let bytesRecebidos =
-            0;
-
-
-        let itensProcessados =
-            0;
-
-
-        /*
-         * Limite de segurança.
-         *
-         * Evita que uma resposta
-         * absurda trave o navegador.
-         */
-
-        const MAX_BYTES =
-            100 * 1024 * 1024;
-
-
-        const processarLinha =
-            (
-                linha
-            )=>{
-
-                linha =
-                    String(
-                        linha || ""
-                    ).trim();
-
-
-                if(!linha){
-
-                    return;
-
-                }
-
-
-                /*
-                 * EXTGRP
-                 */
-
-                if(
-                    linha
-                        .toUpperCase()
-                        .startsWith(
-                            "#EXTGRP:"
-                        )
-                ){
-
-                    grupoExtAtual =
-                        linha
-                            .substring(
-                                8
-                            )
-                            .trim();
-
-
-                    return;
-
-                }
-
-
-                /*
-                 * EXTINF
-                 */
-
-                if(
-                    linha
-                        .toUpperCase()
-                        .startsWith(
-                            "#EXTINF:"
-                        )
-                ){
-
-                    const virgula =
-                        this.encontrarVirgulaEXTINF(
-                            linha
-                        );
-
-
-                    let titulo =
-                        "";
-
-
-                    if(
-                        virgula>=0
-                    ){
-
-                        titulo =
-                            linha
-                                .substring(
-                                    virgula+1
-                                )
-                                .trim();
-
-                    }
-
-
-                    const atributos =
-                        this.extrairAtributosEXTINF(
-                            linha
-                        );
-
-
-                    itemAtual={
-
-                        titulo:
-                            atributos[
-                                "tvg-name"
-                            ] ||
-                            titulo ||
-                            "Sem título",
-
-                        logo:
-                            atributos[
-                                "tvg-logo"
-                            ] ||
-                            atributos[
-                                "logo"
-                            ] ||
-                            "",
-
-                        grupo:
-                            atributos[
-                                "group-title"
-                            ] ||
-                            grupoExtAtual ||
-                            "Geral",
-
-                        tvgId:
-                            atributos[
-                                "tvg-id"
-                            ] ||
-                            "",
-
-                        tvgName:
-                            atributos[
-                                "tvg-name"
-                            ] ||
-                            "",
-
-                        url:"",
-
-                        referrer:"",
-
-                        userAgent:""
-
-                    };
-
-
-                    grupoExtAtual =
-                        "";
-
-
-                    return;
-
-                }
-
-
-                /*
-                 * EXT VLC OPTIONS
-                 */
-
-                if(
-                    linha
-                        .toLowerCase()
-                        .startsWith(
-                            "#extvlcopt:"
-                        )
-                ){
-
-                    if(
-                        !itemAtual
-                    ){
-
-                        return;
-
-                    }
-
-
-                    const opt =
-                        linha.substring(
-                            12
-                        );
-
-
-                    const pos =
-                        opt.indexOf(
-                            "="
-                        );
-
-
-                    if(
-                        pos>=0
-                    ){
-
-                        const chave =
-                            opt
-                                .substring(
-                                    0,
-                                    pos
-                                )
-                                .trim()
-                                .toLowerCase();
-
-
-                        const valor =
-                            opt
-                                .substring(
-                                    pos+1
-                                )
-                                .trim();
-
-
-                        if(
-                            chave===
-                            "http-referrer"
-                        ){
-
-                            itemAtual.referrer =
-                                valor;
-
-                        }
-
-
-                        if(
-                            chave===
-                            "http-user-agent"
-                        ){
-
-                            itemAtual.userAgent =
-                                valor;
-
-                        }
-
-                    }
-
-
-                    return;
-
-                }
-
-
-                /*
-                 * Ignorar outras tags.
-                 */
-
-                if(
-                    linha.startsWith(
-                        "#"
-                    )
-                ){
-
-                    return;
-
-                }
-
-
-                /*
-                 * URL.
-                 */
-
-                if(
-                    itemAtual
-                ){
-
-                    let url =
-                        linha;
-
-
-                    /*
-                     * Resolver URL relativa.
-                     */
-
-                    try{
-
-                        if(
-                            baseUrl &&
-                            !/^https?:\/\//i.test(
-                                url
-                            ) &&
-                            !/^rtmp:\/\//i.test(
-                                url
-                            ) &&
-                            !/^rtsp:\/\//i.test(
-                                url
-                            )
-                        ){
-
-                            url =
-                                new URL(
-                                    url,
-                                    baseUrl
-                                ).href;
-
-                        }
-
-                    }catch(error){}
-
-
-                    itemAtual.url =
-                        url;
-
-
-                    /*
-                     * Validar URL.
-                     */
-
-                    if(
-                        !itemAtual.url
-                    ){
-
-                        itemAtual =
-                            null;
-
-
-                        return;
-
-                    }
-
-
-                    /*
-                     * Duplicidade.
-                     */
-
-                    const chave =
-                        (
-                            itemAtual.titulo +
-                            "|" +
-                            itemAtual.url
-                        )
-                        .toLowerCase();
-
-
-                    if(
-                        !vistos.has(
-                            chave
-                        )
-                    ){
-
-                        vistos.add(
-                            chave
-                        );
-
-
-                        /*
-                         * Classificação.
-                         */
-
-                        this.classificarItemStreaming(
-                            itemAtual,
-                            seriesMap
-                        );
-
-
-                        itensProcessados++;
-
-
-                        /*
-                         * Atualiza tela periodicamente.
-                         */
-
-                        if(
-                            itensProcessados %
-                            250 ===
-                            0
-                        ){
-
-                            this.atualizarEstatisticasStreaming(
-                                seriesMap
-                            );
-
-                        }
-
-                    }
-
-
-                    itemAtual =
-                        null;
-
-                }
-
-            };
-
-
-        try{
-
-            while(true){
-
-                const resultado =
-                    await reader.read();
-
-
-                if(
-                    resultado.done
-                ){
-
-                    break;
-
-                }
-
-
-                const chunk =
-                    resultado.value;
-
-
-                if(chunk){
-
-                    bytesRecebidos +=
-                        chunk.byteLength ||
-                        0;
-
-                }
-
-
-                if(
-                    bytesRecebidos >
-                    MAX_BYTES
-                ){
-
-                    try{
-
-                        await reader.cancel();
-
-                    }catch(error){}
-
-
-                    throw new Error(
-                        "A playlist excede o limite de segurança de 100 MB."
-                    );
-
-                }
-
-
-                buffer +=
-                    decoder.decode(
-                        chunk,
-                        {
-                            stream:true
-                        }
-                    );
-
-
-                /*
-                 * Normaliza CRLF.
-                 */
-
-                buffer =
-                    buffer.replace(
-                        /\r/g,
-                        ""
-                    );
-
-
-                const linhas =
-                    buffer.split(
-                        "\n"
-                    );
-
-
-                /*
-                 * Última linha pode estar
-                 * incompleta.
-                 */
-
-                buffer =
-                    linhas.pop() ||
-                    "";
-
-
-                for(
-                    const linha
-                    of linhas
-                ){
-
-                    processarLinha(
-                        linha
-                    );
-
-                }
-
-
-                /*
-                 * Deixa o navegador respirar
-                 * em listas muito grandes.
-                 */
-
-                if(
-                    itensProcessados %
-                    500 ===
-                    0 &&
-                    itensProcessados>0
-                ){
-
-                    await new Promise(
-                        resolve=>
-                            setTimeout(
-                                resolve,
-                                0
-                            )
-                    );
-
-                }
-
-            }
-
-
-            /*
-             * Decodifica último pedaço.
-             */
-
-            buffer +=
-                decoder.decode();
-
-
-            if(
-                buffer.trim()
-            ){
-
-                processarLinha(
-                    buffer
-                );
-
-            }
-
-        }finally{
-
-            try{
-
-                reader.releaseLock();
-
-            }catch(error){}
-
-        }
-
-
-        /*
-         * Converte séries.
-         */
-
-        this.dadosM3U.series =
-            Array.from(
-                seriesMap.values()
-            );
-
-
-        this.dadosM3U.series.forEach(
-            serie=>{
-
-                Object.keys(
-                    serie.temporadas
-                )
-                .forEach(
-                    temporada=>{
-
-                        serie.temporadas[
-                            temporada
-                        ].sort(
-                            (a,b)=>
-                                a.ep-b.ep
-                        );
-
-                    }
-                );
-
-            }
-        );
-
-
-        this.dadosM3U.series.sort(
-            (a,b)=>
-                a.titulo.localeCompare(
-                    b.titulo,
-                    "pt-BR",
-                    {
-                        sensitivity:
-                            "base"
-                    }
-                )
-        );
-
-
-        /*
-         * Estatísticas finais.
-         */
-
-        this.atualizarEstatisticas();
-
-
-        console.log(
-            "M3U finalizada:",
-            this.m3uStats
-        );
-
-
-        if(
-            this.m3uStats.total<=0
-        ){
-
-            throw new Error(
-                "A playlist foi carregada, mas nenhum conteúdo válido foi encontrado."
-            );
-
-        }
-
-
-        /*
-         * Abre dashboard.
-         */
-
-        this.abrirDashboard();
-
-    },
-
-
-    /* ================================================
-       CLASSIFICADOR STREAMING
-    ================================================= */
-
-    classificarItemStreaming(
-        item,
-        seriesMap
-    ){
-
-        if(
-            !item ||
-            !item.url
-        ){
-
-            return;
-
-        }
-
-
-        const destino =
-            this.dadosM3U;
-
-
-        const titulo =
-            this.normalizarTexto(
-                item.titulo
-            );
-
-
-        const grupo =
-            this.normalizarTexto(
-                item.grupo
-            );
-
-
-        const texto =
-            titulo +
-            " " +
-            grupo;
-
-
-        /*
-         * ADULTO
-         */
-
-        const termosAdulto=[
-
-            "adult",
-
-            "xxx",
-
-            "porn",
-
-            "porno",
-
-            "18+",
-
-            "18 plus",
-
-            "erotic",
-
-            "erotico",
-
-            "erotica",
-
-            "sex",
-
-            "sexo",
-
-            "hot girls",
-
-            "hot woman",
-
-            "private",
-
-            "playboy",
-
-            "brazzers"
-
-        ];
-
-
-        if(
-            termosAdulto.some(
-                termo=>
-                    texto.includes(
-                        this.normalizarTexto(
-                            termo
-                        )
-                    )
-            )
-        ){
-
-            destino.adult.push({
-
-                ...item,
-
-                tipo:
-                    "adult"
-
-            });
-
-
-            return;
-
-        }
-
-
-        /*
-         * MÚSICA
-         */
-
-        const termosMusica=[
-
-            "music",
-
-            "musica",
-
-            "música",
-
-            "musical",
-
-            "radio",
-
-            "rádio",
-
-            "mtv",
-
-            "concert",
-
-            "show musical",
-
-            "clip",
-
-            "clipe"
-
-        ];
-
-
-        if(
-            termosMusica.some(
-                termo=>
-                    texto.includes(
-                        this.normalizarTexto(
-                            termo
-                        )
-                    )
-            )
-        ){
-
-            destino.music.push({
-
-                ...item,
-
-                tipo:
-                    "music"
-
-            });
-
-
-            return;
-
-        }
-
-
-        /*
-         * SÉRIE
-         */
-
-        const episodio =
-            this.detectarEpisodio(
-                item.titulo
-            );
-
-
-        const termosSerie=[
-
-            "serie",
-
-            "série",
-
-            "series",
-
-            "season",
-
-            "temporada",
-
-            "episodio",
-
-            "episódio",
-
-            "episode"
-
-        ];
-
-
-        const ehSerie =
-            episodio !== null ||
-            termosSerie.some(
-                termo=>
-                    texto.includes(
-                        this.normalizarTexto(
-                            termo
-                        )
-                    )
-            );
-
-
-        if(
-            ehSerie
-        ){
-
-            this.adicionarSerie(
-                item,
-                episodio,
-                seriesMap
-            );
-
-
-            return;
-
-        }
-
-
-        /*
-         * VOD
-         */
-
-        const termosVOD=[
-
-            "filme",
-
-            "filmes",
-
-            "movie",
-
-            "movies",
-
-            "vod",
-
-            "cinema",
-
-            "film",
-
-            "documentario",
-
-            "documentário"
-
-        ];
-
-
-        const extensaoVideo =
-            /\.(mp4|mkv|avi|mov|wmv|flv|webm)(?:\?|#|$)/i
-                .test(
-                    item.url
-                );
-
-
-        if(
-            extensaoVideo ||
-            termosVOD.some(
-                termo=>
-                    texto.includes(
-                        this.normalizarTexto(
-                            termo
-                        )
-                    )
-            )
-        ){
-
-            destino.vod.push({
-
-                ...item,
-
-                tipo:
-                    "vod"
-
-            });
-
-
-            return;
-
-        }
-
-
-        /*
-         * LIVE
-         */
-
-        destino.live.push({
-
-            ...item,
-
-            tipo:
-                "live"
-
-        );
-
-    },
-
-
-    /* ================================================
-       ESTATÍSTICAS DURANTE STREAMING
-    ================================================= */
-
-    atualizarEstatisticasStreaming(
-        seriesMap
-    ){
-
-        const seriesQuantidade =
-            seriesMap
-                ? seriesMap.size
-                : this.dadosM3U.series.length;
-
-
-        const total=
-
-            this.dadosM3U.live.length +
-
-            this.dadosM3U.vod.length +
-
-            seriesQuantidade +
-
-            this.dadosM3U.music.length +
-
-            this.dadosM3U.adult.length;
-
-
-        this.m3uStats={
-
-            total,
-
-            live:
-                this.dadosM3U.live.length,
-
-            vod:
-                this.dadosM3U.vod.length,
-
-            series:
-                seriesQuantidade,
-
-            music:
-                this.dadosM3U.music.length,
-
-            adult:
-                this.dadosM3U.adult.length
-
-        };
-
-
-        const loaderStatus =
-            document.getElementById(
-                "loaderStatusText"
-            );
-
-
-        if(
-            loaderStatus
-        ){
-
-            loaderStatus.innerText =
-                "Canais encontrados: " +
-                total.toLocaleString(
-                    "pt-BR"
-                );
-
-        }
-
-    },
-
-
-    /* ================================================
-       VOLTAR PARA AUTENTICAÇÃO
-    ================================================= */
-
-    sairParaAuth(){
-
-        this.pararPlayer();
-
-
-        const dashboard =
-            document.getElementById(
-                "viewDashboard"
-            );
-
-
-        const auth =
-            document.getElementById(
-                "viewAuth"
-            );
-
-
-        if(dashboard){
-
-            dashboard.style.display =
-                "none";
-
-        }
-
-
-        if(auth){
-
-            auth.style.display =
-                "flex";
-
-        }
-
-
-        this.atualizarCardUltimaLista();
-
-    },
-
-
-    /* ================================================
-       CONFIGURAÇÃO DO TECLADO
-    ================================================= */
-
-    configurarTeclado(){
-
-        document.addEventListener(
-            "keydown",
-            event=>{
-
-                /*
-                 * ESC fecha modais.
-                 */
-
-                if(
-                    event.key===
-                    "Escape"
-                ){
-
-                    this.fecharModalSeries();
-
-                    this.fecharModalPin();
-
-                    return;
-
-                }
-
-
-                /*
-                 * ENTER no PIN.
-                 */
-
-                const pinModal =
-                    document.getElementById(
-                        "modalAdultoPin"
-                    );
-
-
-                if(
-                    pinModal &&
-                    pinModal.style.display===
-                    "flex" &&
-                    event.key===
-                    "Enter"
-                ){
-
-                    this.validarPinAdulto();
-
-                }
-
-            }
-        );
-
-
-        /*
-         * Enter nos campos de PIN.
-         */
-
-        const pin =
-            document.getElementById(
-                "inputPinBox"
-            );
-
-
-        if(pin){
-
-            pin.addEventListener(
-                "keydown",
-                event=>{
-
-                    if(
-                        event.key===
-                        "Enter"
-                    ){
-
-                        event.preventDefault();
-
-                        this.validarPinAdulto();
-
-                    }
-
-                }
-            );
-
-        }
-
-    },
-
-
-    /* ================================================
-       MODAL SÉRIES
-    ================================================= */
-
-    abrirModalSeries(
-        serie
-    ){
-
-        if(
-            !serie
-        ){
-
-            return;
-
-        }
-
-
-        this.serieAtual =
-            serie;
-
-
-        const modal =
-            document.getElementById(
-                "modalSeries"
-            );
-
-
-        const titulo =
-            document.getElementById(
-                "modalSeriesTitle"
-            );
-
-
-        const temporadas =
-            document.getElementById(
-                "seasonTabsContainer"
-            );
-
-
-        const episodios =
-            document.getElementById(
-                "episodesListBox"
-            );
-
-
-        if(
-            !modal ||
-            !titulo ||
-            !temporadas ||
-            !episodios
-        ){
-
-            return;
-
-        }
-
-
-        titulo.innerText =
-            serie.titulo ||
-            "Série";
-
-
-        temporadas.innerHTML =
-            "";
-
-
-        episodios.innerHTML =
-            "";
-
-
-        const keys =
-            Object.keys(
-                serie.temporadas ||
-                {}
-            )
-            .map(
-                Number
-            )
-            .sort(
-                (a,b)=>
-                    a-b
-            );
-
-
-        if(
-            !keys.length
-        ){
-
-            episodios.innerHTML =
-                `
-
-                <div
-                    class="empty-state"
-                    style="padding:30px;"
-                >
-                    Nenhum episódio encontrado.
-                </div>
-
-                `;
-
-
-            modal.style.display =
-                "flex";
-
-
-            return;
-
-        }
-
-
-        keys.forEach(
-            temporada=>{
-
-                const button =
-                    document.createElement(
-                        "button"
-                    );
-
-
-                button.className =
-                    "season-tab";
-
-
-                button.innerText =
-                    "Temporada " +
-                    temporada;
-
-
-                button.onclick =
-                    ()=>{
-
-                        this.mostrarTemporada(
-                            temporada
-                        );
-
-                    };
-
-
-                temporadas.appendChild(
-                    button
-                );
-
-            }
-        );
-
-
-        modal.style.display =
-            "flex";
-
-
-        this.mostrarTemporada(
-            keys[0]
-        );
-
-    },
-
-
-    /* ================================================
-       MOSTRAR TEMPORADA
-    ================================================= */
-
-    mostrarTemporada(
-        temporada
-    ){
-
-        if(
-            !this.serieAtual
-        ){
-
-            return;
-
-        }
-
-
-        const temporadaButtons =
-            document.querySelectorAll(
-                ".season-tab"
-            );
-
-
-        temporadaButtons.forEach(
-            button=>{
-
-                const ativa =
-                    button.innerText
-                        .includes(
-                            String(
-                                temporada
-                            )
-                        );
-
-
-                button.classList.toggle(
-                    "active",
-                    ativa
-                );
-
-            }
-        );
-
-
-        const box =
-            document.getElementById(
-                "episodesListBox"
-            );
-
-
-        if(!box)
-            return;
-
-
-        box.innerHTML =
-            "";
-
-
-        const lista =
-            (
-                this.serieAtual
-                    .temporadas[
-                        temporada
-                    ] ||
-                []
-            );
-
-
-        if(
-            !lista.length
-        ){
-
-            box.innerHTML =
-                `
-
-                <div
-                    class="empty-state"
-                    style="padding:25px;"
-                >
-                    Nenhum episódio encontrado.
-                </div>
-
-                `;
-
-
-            return;
-
-        }
-
-
-        lista.forEach(
-            episodio=>{
-
-                const item =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                item.className =
-                    "episode-item";
-
-
-                item.tabIndex =
-                    0;
-
-
-                item.innerHTML =
-                    `
-
-                    <div>
-
-                        <div
-                            style="
-                                color:#fff;
-                                font-weight:700;
-                                font-size:13px;
-                            "
-                        >
-                            ${escapeHTML(
-                                episodio.titulo ||
-                                (
-                                    "Episódio " +
-                                    episodio.ep
-                                )
-                            )}
-                        </div>
-
-                        <div
-                            style="
-                                color:var(--text-muted);
-                                font-size:11px;
-                                margin-top:2px;
-                            "
-                        >
-                            S${String(
-                                temporada
-                            ).padStart(
-                                2,
-                                "0"
-                            )}
-                            E${String(
-                                episodio.ep
-                            ).padStart(
-                                2,
-                                "0"
-                            )}
-                        </div>
-
-                    </div>
-
-                    <i
-                        class="fa-solid fa-play"
-                        style="
-                            color:var(--primary);
-                        "
-                    ></i>
-
-                    `;
-
-
-                item.onclick =
-                    ()=>{
-
-                        this.fecharModalSeries();
-
-                        this.reproduzirItem({
-
-                            ...episodio,
-
-                            tipo:
-                                "series"
-
-                        });
-
-                    };
-
-
-                item.onkeydown =
-                    event=>{
-
-                        if(
-                            event.key===
-                            "Enter" ||
-                            event.key===
-                            " "
-                        ){
-
-                            event.preventDefault();
-
-
-                            this.fecharModalSeries();
-
-
-                            this.reproduzirItem({
-
-                                ...episodio,
-
-                                tipo:
-                                    "series"
-
-                            });
-
-                        }
-
-                    };
-
-
-                box.appendChild(
-                    item
-                );
-
-            }
-        );
-
-    },
-
-
-    /* ================================================
-       FECHAR MODAL SÉRIES
-    ================================================= */
-
-    fecharModalSeries(){
-
-        const modal =
-            document.getElementById(
-                "modalSeries"
-            );
-
-
-        if(modal){
-
-            modal.style.display =
-                "none";
-
-        }
-
-
-        this.serieAtual =
-            null;
-
-    },
-
-
-    /* ================================================
-       ACESSAR ADULTOS
-    ================================================= */
-
-    tentarAcessarAdultos(){
-
-        this.modoPinAtual =
-            "acesso";
-
-
-        this.abrirModalPin(
-            "Digite a senha para acessar o conteúdo adulto."
-        );
-
-    },
-
-
-    /* ================================================
-       ABRIR PIN
-    ================================================= */
-
-    abrirModalPin(
-        instrucao
-    ){
-
-        const modal =
-            document.getElementById(
-                "modalAdultoPin"
-            );
-
-
-        const input =
-            document.getElementById(
-                "inputPinBox"
-            );
-
-
-        const texto =
-            document.getElementById(
-                "pinInstructionText"
-            );
-
-
-        if(!modal)
-            return;
-
-
-        if(texto){
-
-            texto.innerText =
-                instrucao ||
-                "Digite a senha de acesso.";
-
-        }
-
-
-        if(input){
-
-            input.value =
-                "";
-
-        }
-
-
-        modal.style.display =
-            "flex";
-
-
-        setTimeout(
-            ()=>{
-
-                if(input){
-
-                    input.focus();
-
-                }
-
-            },
-            100
-        );
-
-    },
-
-
-    /* ================================================
-       VALIDAR PIN
-    ================================================= */
-
-    validarPinAdulto(){
-
-        const input =
-            document.getElementById(
-                "inputPinBox"
-            );
-
-
-        if(!input)
-            return;
-
-
-        const valor =
-            String(
-                input.value ||
-                ""
-            ).trim();
-
-
-        /*
-         * Configurar nova senha.
-         */
-
-        if(
-            this.modoPinAtual===
-            "configurar"
-        ){
-
-            if(
-                !/^\d{4}$/.test(
-                    valor
-                )
-            ){
-
-                alert(
-                    "A senha deve possuir exatamente 4 números."
-                );
-
-
-                input.focus();
-
-
-                return;
-
-            }
-
-
-            this.senhaAdulto =
-                valor;
-
-
-            localStorage.setItem(
-                "gc_adult_pin",
-                valor
-            );
-
-
-            this.fecharModalPin();
-
-
-            alert(
-                "Senha de conteúdo adulto alterada com sucesso."
-            );
-
-
-            return;
-
-        }
-
-
-        /*
-         * Acesso adulto.
-         */
-
-        if(
-            valor===
-            this.senhaAdulto
-        ){
-
-            this.fecharModalPin();
-
-
-            this.abaAtiva =
-                "adult";
-
-
-            this.categoriaAtiva =
-                "TODOS";
-
-
-            this.atualizarTabs();
-
-
-            this.atualizarSubcategorias();
-
-
-            this.renderizarCatalogo();
-
-
-        }else{
-
-            alert(
-                "Senha incorreta."
-            );
-
-
-            input.value =
-                "";
-
-
-            input.focus();
-
-        }
-
-    },
-
-
-    /* ================================================
-       CONFIGURAR SENHA
-    ================================================= */
-
-    abrirConfigSenha(){
-
-        this.modoPinAtual =
-            "configurar";
-
-
-        this.abrirModalPin(
-            "Digite uma nova senha de 4 números."
-        );
-
-    },
-
-
-    /* ================================================
-       FECHAR PIN
-    ================================================= */
-
-    fecharModalPin(){
-
-        const modal =
-            document.getElementById(
-                "modalAdultoPin"
-            );
-
-
-        if(modal){
-
-            modal.style.display =
-                "none";
-
-        }
-
-
-        const input =
-            document.getElementById(
-                "inputPinBox"
-            );
-
-
-        if(input){
-
-            input.value =
-                "";
-
-        }
-
-
-        this.modoPinAtual =
-            "acesso";
-
-    },
-
-
-    /* ================================================
-       FIM PARTE 2
-    ================================================= */
-
-};
-    <script>
+};<script>
 
 /* =====================================================
    MÉTODOS ADICIONAIS DO APP
@@ -13516,5 +10860,687 @@ if(
 }
 
 </script>
+<script>
+
+/* =====================================================
+   AJUSTES FINAIS GC PLAY PRO
+===================================================== */
+
+
+/* =====================================================
+   ATUALIZAÇÃO AUTOMÁTICA DO QR CODE
+===================================================== */
+
+App.atualizarIdentificacaoVisual =
+    function(){
+
+        const deviceBox =
+            document.getElementById(
+                "deviceMacBox"
+            );
+
+
+        const codeBox =
+            document.getElementById(
+                "activationCodeText"
+            );
+
+
+        if(deviceBox){
+
+            if(
+                this.deviceId
+            ){
+
+                deviceBox.innerText =
+                    this.deviceId;
+
+            }else{
+
+                deviceBox.innerText =
+                    "GERANDO...";
+
+            }
+
+        }
+
+
+        if(codeBox){
+
+            codeBox.innerText =
+                "Código: " +
+                (
+                    this.activationCode ||
+                    "—"
+                );
+
+        }
+
+    };
+
+
+/* =====================================================
+   REGERAR QR
+===================================================== */
+
+App.regerarQRCode =
+    function(){
+
+        this.gerarQRCodeMac();
+
+        this.atualizarIdentificacaoVisual();
+
+    };
+
+
+/* =====================================================
+   VERIFICAR ATIVAÇÃO PERIODICAMENTE
+===================================================== */
+
+App.iniciarMonitoramentoAtivacao =
+    function(){
+
+        if(
+            this.activationPoll
+        ){
+
+            clearInterval(
+                this.activationPoll
+            );
+
+        }
+
+
+        /*
+         * Consulta a cada 15 segundos.
+         *
+         * Isso serve como fallback caso
+         * Realtime não esteja disponível.
+         */
+
+        this.activationPoll =
+            setInterval(
+                ()=>{
+
+                    if(
+                        this.deviceId
+                    ){
+
+                        this.verificarStatusDispositivo();
+
+                    }
+
+                },
+                15000
+            );
+
+    };
+
+
+/* =====================================================
+   MODIFICAR INIT PARA MONITORAMENTO
+===================================================== */
+
+const _initGCPlay =
+    App.init;
+
+
+App.init =
+    async function(){
+
+        try{
+
+            this.inicializado =
+                true;
+
+
+            /*
+             * Cria identidade.
+             */
+
+            this.inicializarDispositivo();
+
+
+            /*
+             * Atualiza visual imediatamente.
+             */
+
+            this.atualizarIdentificacaoVisual();
+
+
+            /*
+             * Teclado.
+             */
+
+            this.configurarTeclado();
+
+
+            /*
+             * Lista local.
+             */
+
+            this.restaurarListaLocal();
+
+
+            /*
+             * Registro.
+             */
+
+            await this.registrarDispositivo();
+
+
+            /*
+             * Atualiza visual após registro.
+             */
+
+            this.atualizarIdentificacaoVisual();
+
+
+            /*
+             * QR.
+             */
+
+            this.gerarQRCodeMac();
+
+
+            /*
+             * Realtime.
+             */
+
+            this.iniciarRealtime();
+
+
+            /*
+             * Monitoramento fallback.
+             */
+
+            this.iniciarMonitoramentoAtivacao();
+
+
+            /*
+             * Estado inicial.
+             */
+
+            this.atualizarStatusAtivacao(
+                "AGUARDANDO ATIVAÇÃO",
+                "waiting"
+            );
+
+
+            /*
+             * Última lista.
+             */
+
+            this.atualizarCardUltimaLista();
+
+
+            /*
+             * Verifica status imediatamente.
+             */
+
+            await this.verificarStatusDispositivo();
+
+
+        }catch(error){
+
+            console.error(
+                "GC PLAY INIT:",
+                error
+            );
+
+        }finally{
+
+            const loading =
+                document.getElementById(
+                    "loadingHomeScreen"
+                );
+
+
+            const auth =
+                document.getElementById(
+                    "viewAuth"
+                );
+
+
+            if(loading){
+
+                loading.style.display =
+                    "none";
+
+            }
+
+
+            if(auth){
+
+                auth.style.display =
+                    "flex";
+
+            }
+
+        }
+
+    };
+
+
+/* =====================================================
+   VERIFICAR SE LISTA ESTÁ DISPONÍVEL
+===================================================== */
+
+App.temListaCarregada =
+    function(){
+
+        return (
+
+            this.m3uStats &&
+            Number(
+                this.m3uStats.total
+            ) > 0
+
+        );
+
+    };
+
+
+/* =====================================================
+   VOLTAR PARA LIVE
+===================================================== */
+
+App.voltarParaLive =
+    function(){
+
+        this.abaAtiva =
+            "live";
+
+
+        this.categoriaAtiva =
+            "TODOS";
+
+
+        this.atualizarTabs();
+
+
+        this.atualizarSubcategorias();
+
+
+        this.renderizarCatalogo();
+
+    };
+
+
+/* =====================================================
+   ATALHO HOME
+===================================================== */
+
+document.addEventListener(
+    "keydown",
+    function(event){
+
+        /*
+         * Tecla Home em Smart TV.
+         */
+
+        if(
+            event.key ===
+            "Home"
+        ){
+
+            if(
+                document.getElementById(
+                    "viewDashboard"
+                ).style.display ===
+                "flex"
+            ){
+
+                App.voltarParaLive();
+
+            }
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   DETECTAR ORIENTAÇÃO
+===================================================== */
+
+function atualizarOrientacao(){
+
+    document.documentElement
+        .style
+        .setProperty(
+            "--screen-width",
+            window.innerWidth +
+            "px"
+        );
+
+
+    document.documentElement
+        .style
+        .setProperty(
+            "--screen-height",
+            window.innerHeight +
+            "px"
+        );
+
+}
+
+
+window.addEventListener(
+    "resize",
+    atualizarOrientacao
+);
+
+
+window.addEventListener(
+    "orientationchange",
+    ()=>{
+
+        setTimeout(
+            atualizarOrientacao,
+            300
+        );
+
+    }
+);
+
+
+atualizarOrientacao();
+
+
+/* =====================================================
+   PREVENIR ZOOM ACIDENTAL EM SMART TV / MOBILE
+===================================================== */
+
+document.addEventListener(
+    "gesturestart",
+    event=>{
+
+        event.preventDefault();
+
+    },
+    {
+        passive:false
+    }
+);
+
+
+/* =====================================================
+   TRATAMENTO DE LINKS
+===================================================== */
+
+function urlValidaParaMidia(
+    url
+){
+
+    if(
+        !url
+    ){
+
+        return false;
+
+    }
+
+
+    const texto =
+        String(
+            url
+        )
+        .trim()
+        .toLowerCase();
+
+
+    return (
+
+        texto.startsWith(
+            "http://"
+        ) ||
+
+        texto.startsWith(
+            "https://"
+        ) ||
+
+        texto.startsWith(
+            "rtmp://"
+        ) ||
+
+        texto.startsWith(
+            "rtsp://"
+        )
+
+    );
+
+}
+
+
+/* =====================================================
+   FALLBACK DE IMAGEM
+===================================================== */
+
+window.GCPlayFallbackPoster =
+    FALLBACK_POSTER;
+
+
+/* =====================================================
+   LIMPEZA AO SAIR DA PÁGINA
+===================================================== */
+
+window.addEventListener(
+    "beforeunload",
+    ()=>{
+
+        try{
+
+            if(
+                App.hlsInstance
+            ){
+
+                App.hlsInstance.destroy();
+
+            }
+
+        }catch(error){}
+
+
+        try{
+
+            if(
+                App.activationChannel &&
+                supabaseClient
+            ){
+
+                supabaseClient.removeChannel(
+                    App.activationChannel
+                );
+
+            }
+
+        }catch(error){}
+
+
+        try{
+
+            if(
+                App.activationPoll
+            ){
+
+                clearInterval(
+                    App.activationPoll
+                );
+
+            }
+
+        }catch(error){}
+
+    }
+);
+
+
+/* =====================================================
+   VERIFICAÇÃO DE SUPABASE
+===================================================== */
+
+if(
+    !supabaseClient
+){
+
+    console.warn(
+        "GC PLAY PRO: cliente Supabase não inicializado."
+    );
+
+}
+
+
+/* =====================================================
+   VERIFICAÇÃO DO HLS.JS
+===================================================== */
+
+if(
+    !window.Hls
+){
+
+    console.warn(
+        "GC PLAY PRO: HLS.js não foi carregado."
+    );
+
+}
+
+
+/* =====================================================
+   VERIFICAÇÃO DO QR CODE
+===================================================== */
+
+if(
+    !window.QRCode
+){
+
+    console.warn(
+        "GC PLAY PRO: QRCode.js não foi carregado."
+    );
+
+}
+
+
+/* =====================================================
+   FUNÇÃO GLOBAL DE DIAGNÓSTICO
+===================================================== */
+
+window.GCPLAY_DIAGNOSTICO =
+    function(){
+
+        return{
+
+            dispositivo:
+                App.deviceId,
+
+            codigo:
+                App.activationCode,
+
+            status:
+                document.getElementById(
+                    "activationStatus"
+                )?.innerText,
+
+            playlist:
+                App.listaAtual,
+
+            estatisticas:
+                App.m3uStats,
+
+            proxy:
+                PLAYLIST_FUNCTION_URL,
+
+            supabase:
+                SUPABASE_URL,
+
+            hls:
+                !!window.Hls,
+
+            qrcode:
+                !!window.QRCode
+
+        };
+
+    };
+
+
+/* =====================================================
+   MENSAGEM DE CONSOLE
+===================================================== */
+
+console.log(
+    "%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+    "color:#28D905;"
+);
+
+
+console.log(
+    "%c GC PLAY PRO",
+    "color:#28D905;font-size:22px;font-weight:bold;"
+);
+
+
+console.log(
+    "%c Sistema carregado com sucesso.",
+    "color:#fff;font-size:13px;"
+);
+
+
+console.log(
+    "%c Proxy M3U:",
+    "color:#28D905;font-weight:bold;",
+    PLAYLIST_FUNCTION_URL
+);
+
+
+console.log(
+    "%c Diagnóstico:",
+    "color:#28D905;font-weight:bold;",
+    "GCPLAY_DIAGNOSTICO()"
+);
+
+
+console.log(
+    "%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+    "color:#28D905;"
+);
+
+
+/* =====================================================
+   INICIALIZAÇÃO
+===================================================== */
+
+if(
+    document.readyState ===
+    "loading"
+){
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        ()=>{
+
+            App.init();
+
+        },
+        {
+            once:true
+        }
+    );
+
+}else{
+
+    App.init();
+
+}
+
+</script>
+
+
+<!-- =====================================================
+     FIM DO GC PLAY PRO
+===================================================== -->
+
 </body>
+
 </html>
