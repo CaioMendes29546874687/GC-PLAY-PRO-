@@ -1,1076 +1,405 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    >
-
-    <meta
-        name="theme-color"
-        content="#05070b"
-    >
-
-    <title>GC PLAY PRO - Ativação</title>
-
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        :root {
-            --bg: #05070b;
-            --card: #0d1118;
-            --card2: #111722;
-            --border: rgba(255,255,255,.09);
-
-            --text: #ffffff;
-            --muted: #8f9aaa;
-
-            --accent: #00e5ff;
-            --accent-dark: #00b8d4;
-
-            --success: #00e676;
-            --danger: #ff5252;
-            --warning: #ffca28;
-        }
-
-        html,
-        body {
-            min-height: 100%;
-        }
-
-        body {
-            min-height: 100vh;
 
-            background:
-                radial-gradient(
-                    circle at 50% -10%,
-                    rgba(0,229,255,.14),
-                    transparent 38%
-                ),
-                radial-gradient(
-                    circle at 100% 100%,
-                    rgba(124,77,255,.12),
-                    transparent 40%
-                ),
-                var(--bg);
-
-            color: var(--text);
-
-            font-family:
-                Arial,
-                Helvetica,
-                sans-serif;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+>
+
+<title>Ativar GC PLAY PRO</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:#070707;
+    color:#fff;
+    font-family:Arial,Helvetica,sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+}
+
+.box{
+    width:min(500px,100%);
+    background:#111;
+    border:1px solid #292929;
+    border-radius:16px;
+    padding:28px;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+
+.logo{
+    text-align:center;
+    font-size:27px;
+    font-weight:bold;
+    color:#00e5ff;
+    margin-bottom:8px;
+}
+
+.subtitle{
+    text-align:center;
+    color:#888;
+    font-size:14px;
+    margin-bottom:25px;
+}
+
+.info{
+    background:#191919;
+    border-radius:9px;
+    padding:14px;
+    margin-bottom:18px;
+}
+
+.label{
+    color:#777;
+    font-size:11px;
+    margin-bottom:5px;
+}
+
+.value{
+    word-break:break-all;
+    font-size:13px;
+}
+
+.code{
+    font-size:24px;
+    font-weight:bold;
+    letter-spacing:4px;
+}
+
+label{
+    display:block;
+    color:#aaa;
+    font-size:13px;
+    margin-bottom:7px;
+}
+
+input{
+    width:100%;
+    height:48px;
+    background:#181818;
+    border:1px solid #333;
+    border-radius:8px;
+    padding:0 13px;
+    color:#fff;
+    outline:none;
+    margin-bottom:16px;
+}
+
+input:focus{
+    border-color:#00bcd4;
+}
+
+button{
+    width:100%;
+    height:50px;
+    border:0;
+    border-radius:8px;
+    background:#00bcd4;
+    color:#001014;
+    font-weight:bold;
+    font-size:15px;
+}
+
+button:disabled{
+    opacity:.5;
+}
+
+.message{
+    margin-top:18px;
+    padding:13px;
+    border-radius:8px;
+    background:#191919;
+    text-align:center;
+    font-size:13px;
+    display:none;
+}
+
+.message.show{
+    display:block;
+}
+
+.success{
+    color:#00e676;
+}
+
+.error{
+    color:#ff5252;
+}
+
+.loading{
+    color:#ffb300;
+}
+
+</style>
 
-            padding: 20px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 480px;
-        }
-
-        /* =========================
-           LOGO
-        ========================= */
-
-        .logo {
-            text-align: center;
-            margin-bottom: 24px;
-        }
-
-        .logo-main {
-            font-size: 34px;
-            font-weight: 900;
-            letter-spacing: 3px;
-        }
-
-        .logo-main span {
-            color: var(--accent);
-        }
-
-        .logo-sub {
-            margin-top: 7px;
-
-            color: var(--muted);
-
-            font-size: 11px;
-            font-weight: 700;
-
-            letter-spacing: 3px;
-        }
-
-        /* =========================
-           CARD
-        ========================= */
-
-        .card {
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(17,23,34,.98),
-                    rgba(7,10,16,.98)
-                );
-
-            border:
-                1px solid var(--border);
-
-            border-radius: 22px;
-
-            padding: 25px;
-
-            box-shadow:
-                0 25px 80px rgba(0,0,0,.5);
-        }
-
-        .title {
-            text-align: center;
-
-            font-size: 23px;
-            font-weight: 900;
-
-            margin-bottom: 8px;
-        }
-
-        .description {
-            color: var(--muted);
-
-            text-align: center;
-
-            font-size: 14px;
-            line-height: 1.55;
-
-            margin-bottom: 24px;
-        }
-
-        /* =========================
-           DEVICE
-        ========================= */
-
-        .device-box {
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(0,229,255,.07),
-                    rgba(0,229,255,.02)
-                );
-
-            border:
-                1px solid rgba(0,229,255,.2);
-
-            border-radius: 16px;
-
-            padding: 18px;
-
-            text-align: center;
-
-            margin-bottom: 22px;
-        }
-
-        .device-label {
-            color: var(--muted);
-
-            font-size: 10px;
-            font-weight: 800;
-
-            letter-spacing: 2px;
-            text-transform: uppercase;
-
-            margin-bottom: 9px;
-        }
-
-        .device-code {
-            color: var(--accent);
-
-            font-size: 29px;
-            font-weight: 900;
-
-            letter-spacing: 5px;
-
-            min-height: 35px;
-        }
-
-        .device-id {
-            color: #626e7d;
-
-            font-size: 10px;
-
-            margin-top: 9px;
-
-            word-break: break-all;
-        }
-
-        /* =========================
-           FORM
-        ========================= */
-
-        .field {
-            margin-bottom: 18px;
-        }
-
-        label {
-            display: block;
-
-            color: #d5dbe3;
-
-            font-size: 13px;
-            font-weight: 800;
-
-            margin-bottom: 8px;
-        }
-
-        input {
-            width: 100%;
-
-            border:
-                1px solid var(--border);
-
-            outline: none;
-
-            background: #070a0f;
-
-            color: white;
-
-            border-radius: 12px;
-
-            padding: 15px;
-
-            font-size: 14px;
-
-            transition:
-                border-color .2s,
-                box-shadow .2s;
-        }
-
-        input:focus {
-            border-color:
-                rgba(0,229,255,.7);
-
-            box-shadow:
-                0 0 0 3px
-                rgba(0,229,255,.08);
-        }
-
-        input::placeholder {
-            color: #586270;
-        }
-
-        /* =========================
-           BUTTON
-        ========================= */
-
-        .button {
-            width: 100%;
-
-            border: 0;
-
-            border-radius: 13px;
-
-            padding: 16px;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    var(--accent),
-                    var(--accent-dark)
-                );
-
-            color: #001014;
-
-            font-size: 15px;
-            font-weight: 900;
-
-            cursor: pointer;
-
-            transition:
-                transform .15s,
-                opacity .15s;
-        }
-
-        .button:active {
-            transform: scale(.98);
-        }
-
-        .button:disabled {
-            opacity: .55;
-            cursor: not-allowed;
-        }
-
-        /* =========================
-           STATUS
-        ========================= */
-
-        .status {
-            display: none;
-
-            margin-top: 17px;
-
-            padding: 14px;
-
-            border-radius: 13px;
-
-            font-size: 13px;
-
-            line-height: 1.5;
-        }
-
-        .status.show {
-            display: block;
-        }
-
-        .status.info {
-            background:
-                rgba(0,229,255,.07);
-
-            border:
-                1px solid rgba(0,229,255,.18);
-
-            color: #a8f5ff;
-        }
-
-        .status.success {
-            background:
-                rgba(0,230,118,.07);
-
-            border:
-                1px solid rgba(0,230,118,.18);
-
-            color: #9affc4;
-        }
-
-        .status.error {
-            background:
-                rgba(255,82,82,.07);
-
-            border:
-                1px solid rgba(255,82,82,.18);
-
-            color: #ffaaaa;
-        }
-
-        /* =========================
-           SUCCESS
-        ========================= */
-
-        .success-icon {
-            width: 70px;
-            height: 70px;
-
-            margin:
-                0 auto 18px;
-
-            border-radius: 50%;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            background:
-                rgba(0,230,118,.08);
-
-            border:
-                2px solid rgba(0,230,118,.4);
-
-            color:
-                var(--success);
-
-            font-size: 34px;
-            font-weight: 900;
-        }
-
-        .success-details {
-            margin-top: 18px;
-
-            background:
-                rgba(255,255,255,.025);
-
-            border:
-                1px solid var(--border);
-
-            border-radius: 13px;
-
-            padding: 14px;
-
-            font-size: 12px;
-        }
-
-        .success-details-row {
-            display: flex;
-
-            justify-content: space-between;
-            gap: 15px;
-
-            padding: 7px 0;
-
-            border-bottom:
-                1px solid rgba(255,255,255,.05);
-        }
-
-        .success-details-row:last-child {
-            border-bottom: 0;
-        }
-
-        .success-details-label {
-            color: var(--muted);
-        }
-
-        .success-details-value {
-            color: white;
-            text-align: right;
-
-            word-break: break-all;
-        }
-
-        /* =========================
-           SPINNER
-        ========================= */
-
-        .spinner {
-            width: 17px;
-            height: 17px;
-
-            display: inline-block;
-
-            vertical-align: middle;
-
-            border:
-                2px solid rgba(0,0,0,.25);
-
-            border-top-color:
-                #001014;
-
-            border-radius: 50%;
-
-            animation:
-                spin .7s linear infinite;
-
-            margin-right: 7px;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* =========================
-           FOOTER
-        ========================= */
-
-        .footer {
-            text-align: center;
-
-            color: #4d5865;
-
-            font-size: 10px;
-
-            margin-top: 20px;
-
-            letter-spacing: .5px;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        @media (max-width: 420px) {
-
-            body {
-                padding: 14px;
-            }
-
-            .card {
-                padding: 20px;
-            }
-
-            .logo-main {
-                font-size: 29px;
-            }
-
-            .device-code {
-                font-size: 25px;
-            }
-        }
-    </style>
 </head>
 
 <body>
 
-<div class="container">
-
-    <!-- LOGO -->
+<div class="box">
 
     <div class="logo">
+        GC PLAY PRO
+    </div>
 
-        <div class="logo-main">
-            GC <span>PLAY</span> PRO
-        </div>
-
-        <div class="logo-sub">
-            ATIVAÇÃO DE DISPOSITIVO
-        </div>
-
+    <div class="subtitle">
+        Ativação do dispositivo
     </div>
 
 
-    <!-- CARD -->
+    <div class="info">
 
-    <div class="card">
-
-        <!-- =================================
-             TELA DE ATIVAÇÃO
-        ================================== -->
-
-        <div id="activationView">
-
-            <div class="title">
-                Ativar dispositivo
-            </div>
-
-            <div class="description">
-                Seu dispositivo foi identificado pelo
-                QR Code. Informe a URL da playlist M3U
-                para enviar a configuração para sua TV.
-            </div>
-
-
-            <!-- DEVICE -->
-
-            <div class="device-box">
-
-                <div class="device-label">
-                    Código de ativação
-                </div>
-
-                <div
-                    id="deviceCode"
-                    class="device-code"
-                >
-                    ------
-                </div>
-
-                <div
-                    id="deviceId"
-                    class="device-id"
-                >
-                    Carregando dispositivo...
-                </div>
-
-            </div>
-
-
-            <!-- PLAYLIST -->
-
-            <div class="field">
-
-                <label for="playlistUrl">
-                    URL da playlist M3U
-                </label>
-
-                <input
-                    id="playlistUrl"
-                    type="url"
-                    inputmode="url"
-                    autocomplete="off"
-                    autocapitalize="none"
-                    spellcheck="false"
-                    placeholder="https://servidor.com/playlist.m3u"
-                >
-
-            </div>
-
-
-            <!-- BUTTON -->
-
-            <button
-                id="activateButton"
-                class="button"
-                type="button"
-            >
-                ATIVAR DISPOSITIVO
-            </button>
-
-
-            <!-- STATUS -->
-
-            <div
-                id="status"
-                class="status"
-            ></div>
-
+        <div class="label">
+            ID DO DISPOSITIVO
         </div>
-
-
-        <!-- =================================
-             TELA DE SUCESSO
-        ================================== -->
 
         <div
-            id="successView"
-            class="hidden"
+            id="deviceId"
+            class="value"
         >
-
-            <div class="success-icon">
-                ✓
-            </div>
-
-            <div class="title">
-                Dispositivo ativado!
-            </div>
-
-            <div class="description">
-                A configuração foi enviada com sucesso.
-                Agora você pode voltar para a TV.
-            </div>
-
-
-            <div
-                id="successStatus"
-                class="status success show"
-            >
-                Aguardando a TV receber a configuração...
-            </div>
-
-
-            <div class="success-details">
-
-                <div class="success-details-row">
-
-                    <span class="success-details-label">
-                        Código
-                    </span>
-
-                    <span
-                        id="successCode"
-                        class="success-details-value"
-                    >
-                        -
-                    </span>
-
-                </div>
-
-
-                <div class="success-details-row">
-
-                    <span class="success-details-label">
-                        Status
-                    </span>
-
-                    <span
-                        id="successDeviceStatus"
-                        class="success-details-value"
-                    >
-                        Ativo
-                    </span>
-
-                </div>
-
-            </div>
-
+            Carregando...
         </div>
 
     </div>
 
 
-    <div class="footer">
-        GC PLAY PRO • Ativação segura
+    <div class="info">
+
+        <div class="label">
+            CÓDIGO
+        </div>
+
+        <div
+            id="activationCode"
+            class="value code"
+        >
+            ------
+        </div>
+
     </div>
+
+
+    <label for="playlist">
+        URL da sua playlist M3U
+    </label>
+
+    <input
+        id="playlist"
+        type="url"
+        placeholder="https://exemplo.com/lista.m3u"
+        autocomplete="off"
+    >
+
+
+    <button
+        id="activateButton"
+        onclick="ativar()"
+    >
+        ATIVAR DISPOSITIVO
+    </button>
+
+
+    <div
+        id="message"
+        class="message"
+    ></div>
 
 </div>
 
 
 <script>
 
-/*
-============================================================
- GC PLAY PRO
- CONNECT / ATIVAÇÃO
-============================================================
-*/
-
-
-/*
-============================================================
- CONFIGURAÇÃO
-============================================================
-*/
-
 const SUPABASE_URL =
     "https://kuzgdvpdqmocklsgyzvt.supabase.co";
 
-const SUPABASE_PUBLISHABLE_KEY =
+const SUPABASE_KEY =
     "sb_publishable_2qV7Uw-99dQlVcXluSuikw_YZGClN13";
 
-const ACTIVATE_FUNCTION =
-    "activate-device";
+const EDGE_FUNCTION_URL =
+    SUPABASE_URL +
+    "/functions/v1/activate-device";
 
 
-/*
-============================================================
- ELEMENTOS
-============================================================
-*/
-
-const activationView =
-    document.getElementById(
-        "activationView"
-    );
-
-const successView =
-    document.getElementById(
-        "successView"
-    );
-
-const deviceCodeElement =
-    document.getElementById(
-        "deviceCode"
-    );
-
-const deviceIdElement =
-    document.getElementById(
-        "deviceId"
-    );
-
-const playlistInput =
-    document.getElementById(
-        "playlistUrl"
-    );
-
-const activateButton =
-    document.getElementById(
-        "activateButton"
-    );
-
-const statusElement =
-    document.getElementById(
-        "status"
-    );
-
-const successStatus =
-    document.getElementById(
-        "successStatus"
-    );
-
-const successCode =
-    document.getElementById(
-        "successCode"
-    );
-
-const successDeviceStatus =
-    document.getElementById(
-        "successDeviceStatus"
-    );
-
-
-/*
-============================================================
- LÊ OS PARÂMETROS DO QR CODE
-============================================================
-*/
-
-const urlParams =
+const params =
     new URLSearchParams(
         window.location.search
     );
 
 
 const deviceId =
-    (
-        urlParams.get("device") ||
-        urlParams.get("device_id") ||
-        ""
-    ).trim();
+    (params.get("device") || "")
+        .trim();
 
 
 const activationCode =
-    (
-        urlParams.get("code") ||
-        urlParams.get("activation_code") ||
-        urlParams.get("mac") ||
-        ""
-    )
-    .trim()
-    .toUpperCase();
+    (params.get("code") || "")
+        .trim()
+        .toUpperCase();
 
 
-/*
-============================================================
- SUPABASE
-============================================================
-*/
-
-let supabaseClient = null;
+document.getElementById(
+    "deviceId"
+).textContent =
+    deviceId || "ID não informado";
 
 
-function inicializarSupabase() {
-
-    try {
-
-        if (
-            !window.supabase ||
-            typeof window.supabase.createClient !==
-            "function"
-        ) {
-
-            throw new Error(
-                "Biblioteca do Supabase não carregada."
-            );
-
-        }
+document.getElementById(
+    "activationCode"
+).textContent =
+    activationCode || "------";
 
 
-        supabaseClient =
-            window.supabase.createClient(
-                SUPABASE_URL,
-                SUPABASE_PUBLISHABLE_KEY
-            );
+function mostrarMensagem(
+    texto,
+    tipo
+){
 
-
-        return true;
-
-    } catch (error) {
-
-        console.error(
-            "Supabase:",
-            error
+    const el =
+        document.getElementById(
+            "message"
         );
 
-        return false;
+    el.textContent = texto;
 
-    }
+    el.className =
+        "message show " +
+        (tipo || "");
+
 }
 
 
-/*
-============================================================
- STATUS
-============================================================
-*/
+function validarUUID(value){
 
-function mostrarStatus(
-    mensagem,
-    tipo = "info"
-) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+        .test(value);
 
-    statusElement.className =
-        "status show " + tipo;
-
-    statusElement.innerHTML =
-        mensagem;
 }
 
 
-/*
-============================================================
- URL VÁLIDA
-============================================================
-*/
+function validarCodigo(value){
 
-function validarPlaylistUrl(
-    url
-) {
+    return /^[A-Z0-9]{6}$/.test(value);
 
-    if (!url) {
-        return false;
-    }
+}
 
 
-    try {
+function validarURL(value){
 
-        const parsed =
-            new URL(url);
+    try{
 
+        const url =
+            new URL(value);
 
         return (
-            parsed.protocol ===
-                "http:" ||
-
-            parsed.protocol ===
-                "https:"
+            url.protocol === "http:" ||
+            url.protocol === "https:"
         );
 
-    } catch {
+    }catch{
 
         return false;
 
     }
+
 }
 
 
-/*
-============================================================
- VALIDAÇÃO DO QR
-============================================================
-*/
+async function ativar(){
 
-function validarQrCode() {
+    const button =
+        document.getElementById(
+            "activateButton"
+        );
 
-    if (!deviceId) {
 
-        deviceIdElement.textContent =
-            "Dispositivo não identificado.";
+    const playlist =
+        document.getElementById(
+            "playlist"
+        ).value.trim();
 
-        mostrarStatus(
+
+    if(!validarUUID(deviceId)){
+
+        mostrarMensagem(
             "Este QR Code não possui um ID de dispositivo válido.",
             "error"
         );
 
-        activateButton.disabled =
-            true;
+        return;
 
-        return false;
     }
 
 
-    if (!activationCode) {
+    if(!validarCodigo(activationCode)){
 
-        deviceIdElement.textContent =
-            "Código de ativação ausente.";
-
-        mostrarStatus(
-            "Este QR Code não possui um código de ativação válido.",
+        mostrarMensagem(
+            "Código de ativação inválido.",
             "error"
         );
 
-        activateButton.disabled =
-            true;
-
-        return false;
-    }
-
-
-    /*
-     * Mostra informações
-     */
-
-    deviceCodeElement.textContent =
-        activationCode;
-
-    deviceIdElement.textContent =
-        "Dispositivo: " +
-        deviceId;
-
-
-    return true;
-}
-
-
-/*
-============================================================
- ATIVAÇÃO
-============================================================
-*/
-
-async function ativarDispositivo() {
-
-    const playlistUrl =
-        playlistInput.value.trim();
-
-
-    /*
-     * Valida QR
-     */
-
-    if (!validarQrCode()) {
         return;
+
     }
 
 
-    /*
-     * Valida playlist
-     */
+    if(!validarURL(playlist)){
 
-    if (
-        !validarPlaylistUrl(
-            playlistUrl
-        )
-    ) {
-
-        mostrarStatus(
-            "Digite uma URL de playlist M3U válida.",
+        mostrarMensagem(
+            "Digite uma URL M3U válida.",
             "error"
         );
 
-        playlistInput.focus();
-
         return;
+
     }
 
 
-    /*
-     * Supabase
-     */
+    button.disabled = true;
 
-    if (!supabaseClient) {
-
-        const ok =
-            inicializarSupabase();
-
-        if (!ok) {
-
-            mostrarStatus(
-                "Não foi possível conectar ao serviço de ativação.",
-                "error"
-            );
-
-            return;
-        }
-    }
+    button.textContent =
+        "ATIVANDO...";
 
 
-    /*
-     * Estado do botão
-     */
-
-    activateButton.disabled =
-        true;
-
-    activateButton.innerHTML =
-        '<span class="spinner"></span>ATIVANDO...';
-
-
-    mostrarStatus(
-        "Validando dispositivo e enviando configuração...",
-        "info"
+    mostrarMensagem(
+        "Enviando ativação...",
+        "loading"
     );
 
 
-    try {
-
-        /*
-         * Chama a Edge Function
-         */
+    try{
 
         const response =
             await fetch(
-                SUPABASE_URL +
-                "/functions/v1/" +
-                ACTIVATE_FUNCTION,
+                EDGE_FUNCTION_URL,
                 {
-                    method: "POST",
+                    method:"POST",
 
-                    headers: {
+                    headers:{
                         "Content-Type":
                             "application/json",
 
                         "apikey":
-                            SUPABASE_PUBLISHABLE_KEY
+                            SUPABASE_KEY,
+
+                        "Authorization":
+                            "Bearer " +
+                            SUPABASE_KEY
                     },
 
-                    body: JSON.stringify({
+                    body:JSON.stringify({
+
+                        action:"activate",
 
                         device_id:
                             deviceId,
@@ -1079,189 +408,77 @@ async function ativarDispositivo() {
                             activationCode,
 
                         playlist_url:
-                            playlistUrl
+                            playlist
 
                     })
                 }
             );
 
 
-        /*
-         * Tenta ler JSON
-         */
+        let data;
 
-        let result = null;
+        try{
 
-        try {
-
-            result =
+            data =
                 await response.json();
 
-        } catch {
+        }catch{
 
-            result = null;
+            data = {};
 
         }
 
 
-        /*
-         * Erro HTTP
-         */
-
-        if (!response.ok) {
-
-            const message =
-                result &&
-                result.error
-                    ? result.error
-                    : "Erro ao ativar o dispositivo.";
+        if(!response.ok){
 
             throw new Error(
-                message
+                data.error ||
+                "Não foi possível ativar o dispositivo."
             );
+
         }
 
 
-        /*
-         * Erro retornado pela função
-         */
-
-        if (
-            !result ||
-            result.success !== true
-        ) {
+        if(!data.success){
 
             throw new Error(
-                result &&
-                result.error
-                    ? result.error
-                    : "Ativação não concluída."
+                data.error ||
+                "Ativação recusada."
             );
+
         }
 
 
-        /*
-         * SUCESSO
-         */
-
-        localStorage.setItem(
-            "gc_last_device",
-            deviceId
-        );
-
-        localStorage.setItem(
-            "gc_last_activation",
-            activationCode
+        mostrarMensagem(
+            "Dispositivo ativado com sucesso! Você já pode voltar para a TV.",
+            "success"
         );
 
 
-        /*
-         * Atualiza tela
-         */
-
-        successCode.textContent =
-            activationCode;
-
-        successDeviceStatus.textContent =
-            "Ativo";
+        button.textContent =
+            "ATIVADO ✓";
 
 
-        activationView
-            .classList
-            .add("hidden");
+    }catch(error){
+
+        console.error(error);
 
 
-        successView
-            .classList
-            .remove("hidden");
-
-
-        successStatus.className =
-            "status success show";
-
-        successStatus.textContent =
-            "✓ Configuração enviada para o dispositivo. Você já pode voltar para a TV.";
-
-
-    } catch (error) {
-
-        console.error(
-            "Erro de ativação:",
-            error
-        );
-
-
-        mostrarStatus(
+        mostrarMensagem(
             error.message ||
-            "Não foi possível ativar o dispositivo.",
+            "Erro ao ativar dispositivo.",
             "error"
         );
 
 
-        activateButton.disabled =
-            false;
+        button.disabled = false;
 
-        activateButton.textContent =
+        button.textContent =
             "ATIVAR DISPOSITIVO";
 
     }
 
 }
-
-
-/*
-============================================================
- BOTÃO
-============================================================
-*/
-
-activateButton.addEventListener(
-    "click",
-    ativarDispositivo
-);
-
-
-/*
-============================================================
- ENTER
-============================================================
-*/
-
-playlistInput.addEventListener(
-    "keydown",
-    function(event) {
-
-        if (
-            event.key ===
-            "Enter"
-        ) {
-
-            event.preventDefault();
-
-            ativarDispositivo();
-
-        }
-
-    }
-);
-
-
-/*
-============================================================
- INICIALIZAÇÃO
-============================================================
-*/
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function() {
-
-        inicializarSupabase();
-
-        validarQrCode();
-
-    }
-);
 
 </script>
 
