@@ -844,20 +844,22 @@ const App = {
         if(status==="active"){
             this.atualizarStatusAtivacao("APARELHO ATIVADO","online");
 
+            /*
+             * IMPORTANTE:
+             * A ativação NÃO baixa a M3U automaticamente.
+             * A lista só será carregada quando o usuário escolher
+             * uma M3U. Isso evita loops e downloads gigantes.
+             */
             if(data.playlist_url && data.playlist_url.trim()){
                 const playlist=data.playlist_url.trim();
                 localStorage.setItem("gcplay_last_remote_playlist",playlist);
                 localStorage.setItem("gcplay_last_m3u",playlist);
-
-                // Carrega automaticamente a lista somente se ela ainda não estiver carregada.
                 const atual=String(this.listaAtual?.url || "").trim();
                 const total=Number(this.m3uStats?.total || 0);
                 if(atual !== playlist || total === 0){
                     setTimeout(()=>{
                         if(!this.carregandoM3U){
-                            this.carregarListaM3U(playlist,true).catch(err=>
-                                console.warn("Falha ao carregar M3U ativada:",err)
-                            );
+                            this.carregarListaM3U(playlist,true).catch(err=>console.warn("Falha ao carregar M3U ativada:",err));
                         }
                     },250);
                 }
@@ -1607,126 +1609,76 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
         return typeof url==="string"&&/^https?:\/\//i.test(url.trim());
     },
 
-    reproduzirMidia(item){
-        if(!item||!item.url){
-            alert("Este conteúdo não possui uma URL válida.");
-            return;
-        }
+    criarURLProxyMidia(url,item=null){
+        url=String(url || "").trim();
+        if(!url || !this.deviceId || !this.activationCode) return url;
+        if(!/^https?:\/\//i.test(url)) return url;
+        const p=new URLSearchParams();
+        p.set("mode","media");
+        p.set("device_id",this.deviceId);
+        p.set("activation_code",this.activationCode);
+        p.set("url",url);
+        if(item?.referrer) p.set("referrer",String(item.referrer));
+        if(item?.userAgent) p.set("user_agent",String(item.userAgent));
+        return PLAYLIST_FUNCTION_URL+"?"+p.toString();
+    },
 
+    reproduzirMidia(item){
+        if(!item||!item.url){ alert("Este conteúdo não possui uma URL válida."); return; }
         this.itemSelecionadoAtual=item;
         const title=document.getElementById("npTitle");
         const category=document.getElementById("npCategory");
         if(title) title.innerText=item.titulo||"Reproduzindo";
         if(category) category.innerText="Categoria: "+(item.grupo||"Geral");
-
         const video=document.getElementById("mainVideoPlayer");
         this.destruirHLS();
-        try{video.pause();}catch(error){}
-        video.removeAttribute("src");
-        video.load();
-
+        try{ video.pause(); video.removeAttribute("src"); video.load(); }catch(error){}
         const url=String(item.url||"").trim();
+        if(!url) return;
         const isHLS=/\.m3u8(?:$|[?#])/i.test(url);
-
         if(isHLS) this.reproduzirHLS(video,item);
         else this.reproduzirDireto(video,url,item);
     },
 
-    criarURLProxyMidia(url,item=null){
-        url=String(url || "").trim();
-        if(!url) return "";
-        if(!this.deviceId || !this.activationCode) return url;
-
-        if(!/^https?:\/\//i.test(url)) return url;
-
-        const params=new URLSearchParams();
-        params.set("device_id",this.deviceId);
-        params.set("activation_code",this.activationCode);
-        params.set("proxy","1");
-        params.set("url",url);
-
-        if(item?.referrer) params.set("referrer",String(item.referrer));
-        if(item?.userAgent) params.set("user_agent",String(item.userAgent));
-
-        return PLAYLIST_FUNCTION_URL+"?"+params.toString();
-    },
-
     reproduzirHLS(video,item){
         this.hlsRetries=0;
-        const urlOriginal=String(item.url||"").trim();
-        const urlProxy=this.criarURLProxyMidia(urlOriginal,item);
-
+        const original=String(item.url||"").trim();
+        const proxied=this.criarURLProxyMidia(original,item);
         if(window.Hls&&Hls.isSupported()){
-            const config={
-                enableWorker:true,
-                lowLatencyMode:false,
-                backBufferLength:30,
-                maxBufferLength:30,
-                maxMaxBufferLength:60,
-                manifestLoadingMaxRetry:3,
-                levelLoadingMaxRetry:3,
-                fragLoadingMaxRetry:3,
-                xhrSetup:(xhr,url)=>{
-                    // O manifest já entra pelo proxy. Segmentos, chaves e sub-playlists
-                    // também passam pelo proxy e recebem a autenticação do aparelho.
-                    try{
-                        const p=this.criarURLProxyMidia(url,item);
-                        if(p && p!==url) xhr.open("GET",p,true);
-                    }catch(error){
-                        console.warn("Proxy HLS:",error);
-                    }
-                }
-            };
-
+            const config={enableWorker:true,lowLatencyMode:false,backBufferLength:30,maxBufferLength:30,maxMaxBufferLength:60,manifestLoadingMaxRetry:3,levelLoadingMaxRetry:3,fragLoadingMaxRetry:3};
             this.hlsInstance=new Hls(config);
             this.hlsInstance.attachMedia(video);
-            this.hlsInstance.loadSource(urlProxy);
-
-            this.hlsInstance.on(Hls.Events.MANIFEST_PARSED,()=>{
-                video.play().catch(()=>{});
-            });
-
+            this.hlsInstance.loadSource(proxied||original);
+            this.hlsInstance.on(Hls.Events.MANIFEST_PARSED,()=>video.play().catch(()=>{}));
             this.hlsInstance.on(Hls.Events.ERROR,(event,data)=>{
                 console.warn("HLS:",data);
                 if(!data.fatal) return;
-
                 if(data.type===Hls.ErrorTypes.NETWORK_ERROR){
-                    if(this.hlsRetries<2){
-                        this.hlsRetries++;
-                        setTimeout(()=>{
-                            try{this.hlsInstance?.startLoad();}catch(error){}
-                        },1200);
-                    }else{
-                        alert("Falha de rede ao reproduzir este canal. O servidor IPTV pode estar indisponível.");
-                    }
+                    if(this.hlsRetries<2){ this.hlsRetries++; setTimeout(()=>{try{this.hlsInstance?.startLoad();}catch(e){}},1200); }
+                    else alert("Não foi possível conectar ao servidor deste conteúdo.");
                 }else if(data.type===Hls.ErrorTypes.MEDIA_ERROR){
-                    try{this.hlsInstance.recoverMediaError();}catch(error){this.destruirHLS();}
-                }else{
-                    this.destruirHLS();
-                    alert("Este stream HLS não pôde ser reproduzido neste aparelho.");
-                }
+                    try{this.hlsInstance.recoverMediaError();}catch(e){this.destruirHLS();}
+                }else{ this.destruirHLS(); alert("Este stream HLS não pôde ser reproduzido neste aparelho."); }
             });
             return;
         }
-
         if(video.canPlayType("application/vnd.apple.mpegurl")){
-            video.src=urlProxy;
+            video.src=proxied||original;
             video.addEventListener("loadedmetadata",()=>video.play().catch(()=>{}),{once:true});
+            video.load();
             return;
         }
-
         alert("Este aparelho/navegador não possui suporte HLS.");
     },
 
     reproduzirDireto(video,url,item=null){
-        const proxied=this.criarURLProxyMidia(url,item);
-        video.src=proxied || url;
-        video.addEventListener("error",()=>{
-            console.warn("Erro de reprodução:",video.error, "URL:",url);
-        },{once:true});
-        video.addEventListener("loadedmetadata",()=>{
-            video.play().catch(error=>console.warn("Autoplay bloqueado:",error));
-        },{once:true});
+        const original=String(url||"").trim();
+        const proxied=this.criarURLProxyMidia(original,item);
+        const usarProxy=/^https?:\/\//i.test(original) && /^https:\/\//i.test(location.href);
+        video.src=(usarProxy&&proxied)?proxied:original;
+        video.addEventListener("loadedmetadata",()=>video.play().catch(()=>{}),{once:true});
+        video.addEventListener("canplay",()=>video.play().catch(()=>{}),{once:true});
+        video.addEventListener("error",()=>console.warn("Erro de reprodução:",video.error,original),{once:true});
         video.load();
     },
 
