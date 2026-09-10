@@ -238,9 +238,6 @@ video{width:100%;height:100%;background:#000;outline:none;}
     display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;height:100dvh;
     width:100vw;background:var(--bg-main);position:fixed;top:0;left:0;z-index:3000;gap:15px;color:#fff;
 }
-/* Fallback: even if JavaScript or a CDN fails, the home screen must open. */
-.loading-home-screen{animation:gcBootFallback 2.2s forwards;}
-@keyframes gcBootFallback{0%,68%{opacity:1;visibility:visible;pointer-events:auto;}100%{opacity:0;visibility:hidden;pointer-events:none;}}
 #modalSeries,#modalAdultoPin{
     position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:4500;
     background:rgba(0,0,0,.88);backdrop-filter:blur(8px);padding:20px;
@@ -272,28 +269,6 @@ video{width:100%;height:100%;background:#000;outline:none;}
 .pin-input:focus{border-color:var(--primary);box-shadow:var(--neon-glow);}
 .empty-state{grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);}
 
-
-.manual-m3u-modal{
-    position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:5000;
-    background:rgba(0,0,0,.90);backdrop-filter:blur(8px);padding:20px;
-}
-.manual-m3u-modal.show{display:flex;}
-.manual-m3u-box{
-    width:100%;max-width:650px;background:var(--surface);border:1px solid var(--primary);
-    border-radius:16px;padding:22px;box-shadow:var(--neon-glow-strong);
-}
-.manual-m3u-title{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:#fff;margin-bottom:8px;}
-.manual-m3u-help{font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:14px;}
-.manual-m3u-input{
-    width:100%;height:48px;background:#020402;border:1px solid var(--border);border-radius:9px;
-    color:#fff;padding:0 13px;font-size:13px;outline:none;
-}
-.manual-m3u-input:focus{border-color:var(--primary);box-shadow:var(--neon-glow);}
-.manual-m3u-actions{display:flex;gap:10px;margin-top:14px;}
-.manual-m3u-actions button{flex:1;}
-.playback-status{
-    font-size:11px;color:var(--text-muted);margin-top:6px;min-height:16px;
-}
 @media(max-width:900px){
     body{overflow:auto;}
     .smart-container{flex-direction:column;overflow-y:auto;}
@@ -338,7 +313,7 @@ video{width:100%;height:100%;background:#000;outline:none;}
     </p>
 </div>
 
-<div id="viewAuth" class="smart-container" style="display:flex;">
+<div id="viewAuth" class="smart-container" style="display:none;">
     <div class="main-content-area">
         <div>
             <div class="top-brand-bar">
@@ -424,12 +399,6 @@ video{width:100%;height:100%;background:#000;outline:none;}
                    placeholder="Pesquisar nesta categoria..." autocomplete="off"
                    oninput="App.filtrarCatalogo(this.value)">
             <div class="items-grid-box" id="itemsGridBox"></div>
-            <div id="paginationM3UControls" style="display:none;flex-direction:column;align-items:center;gap:8px;padding:18px 8px 24px;">
-                <button id="btnCarregarMaisM3U" class="btn-back-menu" style="width:auto;min-width:190px;" onclick="App.carregarMaisM3U()">
-                    <i class="fa-solid fa-angles-down"></i> CARREGAR MAIS
-                </button>
-                <div id="paginationM3UInfo" style="font-size:11px;color:var(--text-muted);text-align:center;"></div>
-            </div>
         </div>
 
         <div class="right-player-panel">
@@ -478,35 +447,6 @@ video{width:100%;height:100%;background:#000;outline:none;}
         <div style="display:flex;gap:10px;">
             <button class="btn-back-menu" style="background:none;border-color:var(--border);color:#fff;" onclick="App.fecharModalPin()">Cancelar</button>
             <button class="btn-back-menu" onclick="App.validarPinAdulto()">Confirmar</button>
-        </div>
-    </div>
-</div>
-
-<script>
-(function(){
-    try{
-        var loader=document.getElementById("loadingHomeScreen");
-        var auth=document.getElementById("viewAuth");
-        if(auth) auth.style.display="flex";
-        if(loader){
-            setTimeout(function(){
-                loader.style.display="none";
-                if(auth) auth.style.display="flex";
-            },2500);
-        }
-    }catch(e){}
-})();
-</script>
-
-<div id="manualM3UModal" class="manual-m3u-modal" aria-hidden="true">
-    <div class="manual-m3u-box">
-        <div class="manual-m3u-title"><i class="fa-solid fa-link" style="color:var(--primary);"></i> ADICIONAR LISTA M3U</div>
-        <div class="manual-m3u-help">Cole abaixo o link completo da sua lista M3U. O GC PLAY PRO fará o carregamento pelo servidor para evitar bloqueios de CORS e HTTP/HTTPS.</div>
-        <input id="manualM3UInput" class="manual-m3u-input" type="url" inputmode="url" autocomplete="off" placeholder="http:// ou https:// seu link M3U">
-        <div id="manualM3UStatus" class="playback-status"></div>
-        <div class="manual-m3u-actions">
-            <button class="btn-back-menu" style="background:none;border-color:var(--border);color:#fff;" onclick="App.fecharModalManual()">Cancelar</button>
-            <button class="btn-back-menu" onclick="App.confirmarM3UManual()"><i class="fa-solid fa-cloud-arrow-down"></i> Carregar M3U</button>
         </div>
     </div>
 </div>
@@ -590,10 +530,6 @@ const App = {
     activationPoll:null,
     inicializado:false,
     carregandoM3U:false,
-    MAX_ITENS_M3U:200,
-    paginaM3U:{offset:0,limit:200,hasMore:false,url:"",carregando:false},
-    autoloadAtivacaoEmAndamento:false,
-    ultimaPlaylistAutoCarregada:"",
 
     async init(){
         console.log("GC PLAY PRO: iniciando aplicação...");
@@ -908,67 +844,23 @@ const App = {
         if(status==="active"){
             this.atualizarStatusAtivacao("APARELHO ATIVADO","online");
 
-            /*
-             * IMPORTANTE:
-             * A ativação NÃO baixa a M3U automaticamente.
-             * A lista só será carregada quando o usuário escolher
-             * uma M3U. Isso evita loops e downloads gigantes.
-             */
             if(data.playlist_url && data.playlist_url.trim()){
-                const playlistAtivada=String(data.playlist_url).trim();
+                const playlist=data.playlist_url.trim();
+                localStorage.setItem("gcplay_last_remote_playlist",playlist);
+                localStorage.setItem("gcplay_last_m3u",playlist);
 
-                localStorage.setItem(
-                    "gcplay_last_remote_playlist",
-                    playlistAtivada
-                );
-                localStorage.setItem(
-                    "gcplay_last_m3u",
-                    playlistAtivada
-                );
-
-                /*
-                 * CORREÇÃO IMPORTANTE:
-                 * Depois que o aparelho é ativado no painel remoto,
-                 * o aplicativo deve entrar automaticamente no player
-                 * e carregar a M3U vinculada ao dispositivo.
-                 *
-                 * Antes, o código apenas salvava a URL e deixava o
-                 * usuário preso nesta tela de ativação.
-                 */
-                const urlJaCarregada=
-                    this.ultimaPlaylistAutoCarregada===playlistAtivada;
-
-                if(
-                    !urlJaCarregada &&
-                    !this.autoloadAtivacaoEmAndamento &&
-                    !this.carregandoM3U
-                ){
-                    this.autoloadAtivacaoEmAndamento=true;
-                    this.ultimaPlaylistAutoCarregada=playlistAtivada;
-
-                    console.log(
-                        "GC PLAY PRO: aparelho ativado. Carregando M3U automaticamente..."
-                    );
-
+                // Carrega automaticamente a lista somente se ela ainda não estiver carregada.
+                const atual=String(this.listaAtual?.url || "").trim();
+                const total=Number(this.m3uStats?.total || 0);
+                if(atual !== playlist || total === 0){
                     setTimeout(()=>{
-                        this.carregarListaM3U(
-                            playlistAtivada,
-                            false
-                        ).finally(()=>{
-                            this.autoloadAtivacaoEmAndamento=false;
-                        });
-                    },300);
+                        if(!this.carregandoM3U){
+                            this.carregarListaM3U(playlist,true).catch(err=>
+                                console.warn("Falha ao carregar M3U ativada:",err)
+                            );
+                        }
+                    },250);
                 }
-            }else{
-                /*
-                 * O aparelho pode estar ativo sem uma playlist vinculada.
-                 * Nesse caso ele permanece na tela para permitir adicionar
-                 * uma M3U manualmente.
-                 */
-                this.atualizarStatusAtivacao(
-                    "APARELHO ATIVADO - AGUARDANDO M3U",
-                    "online"
-                );
             }
         }else if(status==="blocked"){
             this.atualizarStatusAtivacao("APARELHO BLOQUEADO","blocked");
@@ -982,37 +874,8 @@ const App = {
     },
 
     abrirModalManual(){
-        const modal=document.getElementById("manualM3UModal");
-        const input=document.getElementById("manualM3UInput");
-        const status=document.getElementById("manualM3UStatus");
-        if(!modal || !input) return;
-        modal.classList.add("show");
-        modal.setAttribute("aria-hidden","false");
-        if(status) status.innerText="";
-        input.value=localStorage.getItem("gcplay_last_m3u") || "";
-        setTimeout(()=>input.focus(),100);
-    },
-
-    fecharModalManual(){
-        const modal=document.getElementById("manualM3UModal");
-        if(modal){
-            modal.classList.remove("show");
-            modal.setAttribute("aria-hidden","true");
-        }
-    },
-
-    confirmarM3UManual(){
-        const input=document.getElementById("manualM3UInput");
-        const status=document.getElementById("manualM3UStatus");
-        const url=String(input?.value || "").trim();
-        if(!/^https?:\/\//i.test(url)){
-            if(status) status.innerText="Cole uma URL M3U começando com http:// ou https://";
-            input?.focus();
-            return;
-        }
-        if(status) status.innerText="Conectando ao servidor IPTV...";
-        this.fecharModalManual();
-        this.carregarListaM3U(url,false);
+        const url=prompt("Insira o link URL da sua lista M3U:");
+        if(url && url.trim()) this.carregarListaM3U(url.trim());
     },
 
     carregarDemoDefault(){
@@ -1053,88 +916,36 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
             return;
         }
 
-        if(this.paginaM3U.carregando){
+        if(this.carregandoM3U){
+            console.warn("Já existe uma M3U sendo carregada.");
             return;
         }
 
-        // Nova lista: limpa somente os itens do catálogo.
-        this.paginaM3U={
-            offset:0,
-            limit:200,
-            hasMore:false,
-            url:url,
-            carregando:false
-        };
-
-        this.dadosM3U={live:[],vod:[],series:[],music:[],adult:[]};
-        this.m3uStats={total:0,live:0,vod:0,series:0,music:0,adult:0};
-        this.listaAtual={tipo:"manual",url:url};
-
-        localStorage.setItem("gcplay_last_m3u",url);
-        localStorage.setItem("gcplay_last_remote_playlist",url);
-
-        this.atualizarControlePaginacao();
-
-        await this.carregarPaginaM3U(0,silencioso,true);
-    },
-
-    async carregarMaisM3U(){
-        if(!this.paginaM3U.hasMore || this.paginaM3U.carregando){
-            return;
-        }
-
-        await this.carregarPaginaM3U(
-            this.paginaM3U.offset,
-            false,
-            false
-        );
-    },
-
-    async carregarPaginaM3U(offset=0,silencioso=false,primeiraPagina=false){
-
-        const url=this.paginaM3U.url;
-        if(!url) return;
-        if(this.paginaM3U.carregando) return;
-
-        this.paginaM3U.carregando=true;
+        this.carregandoM3U=true;
 
         const loader=document.getElementById("futuristicLoader");
         const loaderText=document.getElementById("loaderStatusText");
-        const btn=document.getElementById("btnCarregarMaisM3U");
 
-        if(!silencioso && loader) loader.classList.add("on");
-
-        if(loaderText){
-            loaderText.innerText = offset===0
-                ? "Carregando primeira página da M3U..."
-                : "Carregando mais canais...";
+        if(!silencioso){
+            loader.classList.add("on");
         }
 
-        if(btn){
-            btn.disabled=true;
-            btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> CARREGANDO...';
-        }
-
-        let timeout=null;
+        loaderText.innerText="Conectando ao servidor IPTV...";
 
         try{
             const controller=new AbortController();
-            timeout=setTimeout(()=>controller.abort(),90000);
+            const timeout=setTimeout(()=>{
+                try{controller.abort();}catch(error){}
+            },60000);
 
-            /*
-             * IMPORTANTE:
-             * O servidor agora devolve a M3U em STREAM.
-             * O navegador lê somente a quantidade necessária
-             * para montar a página atual e cancela o restante.
-             * Isso evita o JSON gigante e reduz drasticamente
-             * o uso de CPU da Edge Function.
-             */
             const resposta=await fetch(PLAYLIST_FUNCTION_URL,{
                 method:"POST",
                 mode:"cors",
                 cache:"no-store",
                 signal:controller.signal,
-                headers:{"Content-Type":"application/json"},
+                headers:{
+                    "Content-Type":"application/json"
+                },
                 body:JSON.stringify({
                     device_id:this.deviceId,
                     activation_code:this.activationCode,
@@ -1142,398 +953,257 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
                 })
             });
 
+            clearTimeout(timeout);
+
             if(!resposta.ok){
-                let msg="Erro HTTP "+resposta.status;
+                let erroTexto="Erro HTTP "+resposta.status;
+
                 try{
-                    const ct=(resposta.headers.get("content-type")||"").toLowerCase();
-                    if(ct.includes("application/json")){
-                        const e=await resposta.json();
-                        if(e && e.error) msg=e.error;
+                    const contentType=resposta.headers.get("content-type") || "";
+
+                    if(contentType.toLowerCase().includes("application/json")){
+                        const erro=await resposta.json();
+                        if(erro && erro.error) erroTexto=erro.error;
                     }else{
-                        const t=await resposta.text();
-                        if(t) msg=t.substring(0,300);
+                        const texto=await resposta.text();
+                        if(texto) erroTexto=texto.substring(0,300);
                     }
                 }catch(error){}
-                throw new Error(msg);
+
+                throw new Error(erroTexto);
             }
 
             if(!resposta.body){
-                throw new Error("O servidor não enviou o stream da M3U.");
+                throw new Error("O servidor não enviou o conteúdo da M3U.");
             }
 
-            const pagina=await this.extrairPaginaDoStream(
-                resposta.body,
-                url,
-                Number(offset)||0,
-                200,
-                loaderText
-            );
+            loaderText.innerText="Recebendo lista IPTV...";
 
-            if(offset===0 && !pagina.itens.length){
-                throw new Error("A playlist não possui canais válidos.");
-            }
+            await this.processarM3UStreaming(resposta.body,url);
 
-            this.adicionarPaginaM3U(pagina.itens);
+            this.listaAtual={tipo:"manual",url:url};
 
-            this.paginaM3U.offset=(Number(offset)||0)+pagina.itens.length;
-            this.paginaM3U.hasMore=pagina.hasMore;
-
-            this.atualizarEstatisticasCatalogo();
-            this.construirSubcategorias();
-            this.atualizarControlePaginacao();
-
-            if(primeiraPagina){
-                this.abrirDashboard();
-            }
+            localStorage.setItem("gcplay_last_m3u",url);
+            localStorage.setItem("gcplay_last_remote_playlist",url);
 
         }catch(error){
-
-            console.error("Erro na página M3U:",error);
+            console.error("Erro ao carregar M3U:",error);
 
             if(error && error.name==="AbortError"){
-                alert("O servidor demorou demais para carregar a página da M3U.");
+                alert("O servidor demorou demais para responder.");
             }else{
                 alert(
-                    "Não foi possível carregar a página da M3U.\n\n"+
+                    "Não foi possível carregar a lista M3U.\n\n" +
                     (error && error.message ? error.message : "Erro desconhecido.")
                 );
             }
-
-            if(primeiraPagina && !this.dadosM3U.live.length &&
-                !this.dadosM3U.vod.length && !this.dadosM3U.series.length &&
-                !this.dadosM3U.music.length && !this.dadosM3U.adult.length){
-                this.mostrarAplicativo();
-            }
-
         }finally{
-
-            if(timeout) clearTimeout(timeout);
-            this.paginaM3U.carregando=false;
-
-            if(!silencioso && loader) loader.classList.remove("on");
-
-            this.atualizarControlePaginacao();
+            this.carregandoM3U=false;
+            if(!silencioso){
+                loader.classList.remove("on");
+            }
         }
     },
 
-    async extrairPaginaDoStream(stream,baseUrl,offset,limit,loaderText){
+    async processarM3UStreaming(stream,baseUrl=""){
 
         const reader=stream.getReader();
         const decoder=new TextDecoder("utf-8");
 
+        const live=[];
+        const vod=[];
+        const music=[];
+        const adult=[];
+        const seriesMap=new Map();
+        const vistos=new Set();
+
         let buffer="";
         let itemAtual=null;
         let grupoExtAtual="";
-        let encontrados=0;
-        let lidos=0;
-        let terminado=false;
-        let hasMore=false;
-        const itens=[];
-        const vistos=new Set();
+        let linhasProcessadas=0;
+        let ultimoUpdate=Date.now();
 
-        const atributos=(line)=>{
-            const out={};
-            const re=/([a-zA-Z0-9_-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s]+))/g;
-            let m;
-            while((m=re.exec(line))){
-                out[m[1].toLowerCase()]=(m[2]??m[3]??m[4]??"").trim();
-            }
-            return out;
+        const atualizarLoader=(texto)=>{
+            const el=document.getElementById("loaderStatusText");
+            if(el) el.innerText=texto;
         };
 
-        const processarLinha=(raw)=>{
+        const processarLinha=(linhaOriginal)=>{
+            const linha=String(linhaOriginal || "").trim();
+            if(!linha) return;
 
-            const line=String(raw||"").trim();
-            if(!line) return false;
+            linhasProcessadas++;
 
-            lidos++;
-
-            if(line.toUpperCase().startsWith("#EXTGRP:")){
-                grupoExtAtual=line.substring(8).trim();
-                return false;
+            if(linha.toUpperCase().startsWith("#EXTGRP:")){
+                grupoExtAtual=linha.substring(8).trim();
+                return;
             }
 
-            if(line.toUpperCase().startsWith("#EXTINF:")){
+            if(linha.toUpperCase().startsWith("#EXTINF:")){
+                const virgula=this.encontrarVirgulaEXTINF(linha);
+                let titulo="";
 
-                let comma=-1;
-                let quote=null;
-
-                for(let i=0;i<line.length;i++){
-                    const ch=line[i];
-                    if(ch==='"' || ch==="'"){
-                        if(quote===null) quote=ch;
-                        else if(quote===ch) quote=null;
-                    }else if(ch==="," && quote===null){
-                        comma=i;
-                        break;
-                    }
+                if(virgula>=0){
+                    titulo=linha.substring(virgula+1).trim();
                 }
 
-                const titulo=comma>=0
-                    ? line.substring(comma+1).trim()
-                    : "Sem título";
-
-                const a=atributos(line);
+                const atributos=this.extrairAtributosEXTINF(linha);
 
                 itemAtual={
-                    titulo:a["tvg-name"]||titulo||"Sem título",
-                    logo:a["tvg-logo"]||a.logo||"",
-                    grupo:a["group-title"]||grupoExtAtual||"Geral",
-                    tvgId:a["tvg-id"]||"",
-                    tvgName:a["tvg-name"]||"",
+                    titulo:atributos["tvg-name"] || titulo || "Sem título",
+                    logo:atributos["tvg-logo"] || atributos["logo"] || "",
+                    grupo:atributos["group-title"] || grupoExtAtual || "Geral",
+                    tvgId:atributos["tvg-id"] || "",
+                    tvgName:atributos["tvg-name"] || "",
                     url:"",
                     referrer:"",
                     userAgent:""
                 };
 
                 grupoExtAtual="";
-                return false;
+                return;
             }
 
-            if(line.toUpperCase().startsWith("#EXTVLCOPT:")){
-                if(!itemAtual) return false;
+            if(linha.toLowerCase().startsWith("#extvlcopt:")){
+                if(!itemAtual) return;
 
-                const option=line.substring(12);
-                const pos=option.indexOf("=");
+                const opt=linha.substring(12);
+                const pos=opt.indexOf("=");
 
-                if(pos>=0){
-                    const key=option.substring(0,pos).trim().toLowerCase();
-                    const value=option.substring(pos+1).trim();
+                if(pos>-1){
+                    const chave=opt.substring(0,pos).trim().toLowerCase();
+                    const valor=opt.substring(pos+1).trim();
 
-                    if(key==="http-referrer") itemAtual.referrer=value;
-                    if(key==="http-user-agent") itemAtual.userAgent=value;
+                    if(chave==="http-referrer") itemAtual.referrer=valor;
+                    if(chave==="http-user-agent") itemAtual.userAgent=valor;
                 }
 
-                return false;
+                return;
             }
 
-            if(line.startsWith("#")) return false;
-            if(!itemAtual) return false;
+            if(linha.startsWith("#")) return;
 
-            let streamUrl=line;
+            if(itemAtual){
+                let url=linha;
 
-            try{
-                if(!/^https?:\/\//i.test(streamUrl) &&
-                   !/^rtmp:\/\//i.test(streamUrl) &&
-                   !/^rtsp:\/\//i.test(streamUrl)){
-                    streamUrl=new URL(streamUrl,baseUrl).href;
+                try{
+                    if(
+                        baseUrl &&
+                        !/^https?:\/\//i.test(url) &&
+                        !/^rtmp:\/\//i.test(url) &&
+                        !/^rtsp:\/\//i.test(url)
+                    ){
+                        url=new URL(url,baseUrl).href;
+                    }
+                }catch(error){}
+
+                itemAtual.url=url;
+
+                if(!url){
+                    itemAtual=null;
+                    return;
                 }
-            }catch(error){}
 
-            itemAtual.url=streamUrl.trim();
+                const chaveDuplicado=(itemAtual.titulo+"|"+url).toLowerCase();
 
-            if(!itemAtual.url){
+                if(vistos.has(chaveDuplicado)){
+                    itemAtual=null;
+                    return;
+                }
+
+                vistos.add(chaveDuplicado);
+
+                this.classificarItem(
+                    itemAtual,
+                    {live,vod,music,adult,seriesMap}
+                );
+
                 itemAtual=null;
-                return false;
+
+                if(Date.now()-ultimoUpdate>700){
+                    atualizarLoader(
+                        "Processando lista... "+
+                        linhasProcessadas.toLocaleString("pt-BR")+
+                        " linhas"
+                    );
+                    ultimoUpdate=Date.now();
+                }
             }
-
-            const chave=(itemAtual.titulo+"|"+itemAtual.url).toLowerCase();
-
-            if(vistos.has(chave)){
-                itemAtual=null;
-                return false;
-            }
-
-            vistos.add(chave);
-            encontrados++;
-
-            if(encontrados>offset && itens.length<limit){
-                itens.push({...itemAtual,index:encontrados-1});
-            }
-
-            itemAtual=null;
-
-            if(itens.length>=limit){
-                hasMore=true;
-                return true;
-            }
-
-            if(loaderText && lidos%250===0){
-                loaderText.innerText=
-                    "Lendo M3U... "+encontrados.toLocaleString("pt-BR")+" canais encontrados";
-            }
-
-            return false;
         };
 
-        try{
-            while(!terminado){
+        while(true){
+            const resultado=await reader.read();
 
-                const result=await reader.read();
+            if(resultado.done) break;
 
-                if(result.done){
-                    terminado=true;
-                    break;
-                }
+            buffer += decoder.decode(
+                resultado.value,
+                {stream:true}
+            );
 
-                buffer+=decoder.decode(result.value,{stream:true});
-                buffer=buffer.replace(/\r\n/g,"\n").replace(/\r/g,"\n");
+            buffer=buffer
+                .replace(/\r\n/g,"\n")
+                .replace(/\r/g,"\n");
 
-                let pos=-1;
+            let pos=-1;
 
-                while((pos=buffer.indexOf("\n"))!==-1){
-
-                    const line=buffer.substring(0,pos);
-                    buffer=buffer.substring(pos+1);
-
-                    if(processarLinha(line)){
-                        hasMore=true;
-                        terminado=true;
-                        try{await reader.cancel();}catch(error){}
-                        break;
-                    }
-                }
+            while((pos=buffer.indexOf("\n"))!==-1){
+                const linha=buffer.substring(0,pos);
+                buffer=buffer.substring(pos+1);
+                processarLinha(linha);
             }
 
-            if(!terminado && buffer.trim()){
-                processarLinha(buffer);
-            }
-
-        }finally{
-            try{reader.releaseLock();}catch(error){}
+            await new Promise(resolve=>setTimeout(resolve,0));
         }
 
-        return {itens,hasMore};
-    },
+        buffer += decoder.decode();
 
-    adicionarPaginaM3U(itens){
+        if(buffer.trim()){
+            processarLinha(buffer);
+        }
 
-        const destino={
-            live:this.dadosM3U.live,
-            vod:this.dadosM3U.vod,
-            music:this.dadosM3U.music,
-            adult:this.dadosM3U.adult,
-            seriesMap:new Map()
-        };
+        const series=Array.from(seriesMap.values());
 
-        // Reconstroi o mapa das séries já carregadas para poder juntar
-        // episódios que caíram em páginas diferentes.
-        this.dadosM3U.series.forEach(serie=>{
-            destino.seriesMap.set(
-                this.normalizarTexto(serie.titulo),
-                serie
-            );
-        });
+        series.sort((a,b)=>a.titulo.localeCompare(
+            b.titulo,
+            "pt-BR",
+            {sensitivity:"base"}
+        ));
 
-        const vistos=new Set();
-
-        [this.dadosM3U.live,this.dadosM3U.vod,this.dadosM3U.music,this.dadosM3U.adult]
-            .forEach(lista=>lista.forEach(item=>{
-                if(item && item.url){
-                    vistos.add(
-                        (String(item.titulo||"")+"|"+String(item.url||"")).toLowerCase()
-                    );
-                }
-            }));
-
-        this.dadosM3U.series.forEach(serie=>{
-            Object.values(serie.temporadas||{}).forEach(lista=>
-                lista.forEach(item=>{
-                    if(item && item.url){
-                        vistos.add(
-                            (String(item.titulo||"")+"|"+String(item.url||"")).toLowerCase()
-                        );
-                    }
-                })
-            );
-        });
-
-        itens.forEach(raw=>{
-            const item={
-                titulo:String(raw.titulo||raw.name||"Sem título"),
-                logo:String(raw.logo||""),
-                grupo:String(raw.grupo||raw.group||"Geral"),
-                tvgId:String(raw.tvg_id||raw.tvgId||""),
-                tvgName:String(raw.tvg_name||raw.tvgName||""),
-                url:String(raw.url||"").trim(),
-                referrer:String(raw.referrer||""),
-                userAgent:String(raw.userAgent||raw.user_agent||"")
-            };
-
-            if(!item.url) return;
-
-            const chave=(item.titulo+"|"+item.url).toLowerCase();
-            if(vistos.has(chave)) return;
-            vistos.add(chave);
-
-            this.classificarItem(item,destino);
-        });
-
-        this.dadosM3U.series=Array.from(
-            destino.seriesMap.values()
-        );
-
-        this.dadosM3U.series.sort(
-            (a,b)=>a.titulo.localeCompare(
-                b.titulo,
-                "pt-BR",
-                {sensitivity:"base"}
-            )
-        );
-
-        this.dadosM3U.series.forEach(serie=>{
-            Object.keys(serie.temporadas||{}).forEach(temp=>{
-                serie.temporadas[temp].sort(
-                    (a,b)=>Number(a.ep)-Number(b.ep)
-                );
+        series.forEach(serie=>{
+            Object.keys(serie.temporadas).forEach(temp=>{
+                serie.temporadas[temp].sort((a,b)=>a.ep-b.ep);
             });
         });
-    },
 
-    atualizarEstatisticasCatalogo(){
-        const s=this.dadosM3U;
-        this.m3uStats={
-            total:s.live.length+s.vod.length+s.series.length+s.music.length+s.adult.length,
-            live:s.live.length,
-            vod:s.vod.length,
-            series:s.series.length,
-            music:s.music.length,
-            adult:s.adult.length
+        this.dadosM3U={
+            live,
+            vod,
+            series,
+            music,
+            adult
         };
-    },
 
-    atualizarControlePaginacao(){
-        const box=document.getElementById("paginationM3UControls");
-        const btn=document.getElementById("btnCarregarMaisM3U");
-        const info=document.getElementById("paginationM3UInfo");
+        this.m3uStats={
+            total:
+                live.length+
+                vod.length+
+                series.length+
+                music.length+
+                adult.length,
+            live:live.length,
+            vod:vod.length,
+            series:series.length,
+            music:music.length,
+            adult:adult.length
+        };
 
-        if(!box) return;
+        console.log(
+            "GC PLAY PRO - M3U STREAM FINALIZADO",
+            this.m3uStats
+        );
 
-        const totalCarregado=this.m3uStats.total||0;
-
-        if(this.paginaM3U.hasMore){
-            box.style.display="flex";
-            if(btn){
-                btn.style.display="inline-flex";
-                btn.disabled=this.paginaM3U.carregando;
-                btn.innerHTML=this.paginaM3U.carregando
-                    ? '<i class="fa-solid fa-spinner fa-spin"></i> CARREGANDO...'
-                    : '<i class="fa-solid fa-angles-down"></i> CARREGAR MAIS';
-            }
-            if(info){
-                info.innerText=
-                    "Itens carregados: "+
-                    totalCarregado.toLocaleString("pt-BR")+
-                    " • a lista completa permanece no servidor";
-            }
-        }else if(totalCarregado>0){
-            box.style.display="flex";
-            if(btn) btn.style.display="none";
-            if(info){
-                info.innerText=
-                    "Lista carregada até o fim • "+
-                    totalCarregado.toLocaleString("pt-BR")+
-                    " itens disponíveis";
-            }
-        }else{
-            box.style.display="none";
-        }
-    },
-
-    async processarM3UStreaming(stream,baseUrl="") {
-        // Compatibilidade com versões antigas. O carregamento atual usa
-        // paginação JSON no servidor e não mantém a M3U inteira na memória.
-        throw new Error("O modo de streaming antigo foi desativado. Use a paginação M3U.");
+        this.abrirDashboard();
     },
 
     ehM3UValido(texto){
@@ -1944,78 +1614,73 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
         }
 
         this.itemSelecionadoAtual=item;
-        document.getElementById("npTitle").innerText=item.titulo||"Reproduzindo";
-        document.getElementById("npCategory").innerText="Categoria: "+(item.grupo||"Geral");
+        const title=document.getElementById("npTitle");
+        const category=document.getElementById("npCategory");
+        if(title) title.innerText=item.titulo||"Reproduzindo";
+        if(category) category.innerText="Categoria: "+(item.grupo||"Geral");
 
         const video=document.getElementById("mainVideoPlayer");
         this.destruirHLS();
-
         try{video.pause();}catch(error){}
         video.removeAttribute("src");
         video.load();
 
-        const url=item.url.trim();
-        const isHLS=/\.m3u8($|\?)/i.test(url);
+        const url=String(item.url||"").trim();
+        const isHLS=/\.m3u8(?:$|[?#])/i.test(url);
 
         if(isHLS) this.reproduzirHLS(video,item);
-        else this.reproduzirDireto(video,url);
+        else this.reproduzirDireto(video,url,item);
     },
 
-    criarURLProxyMidia(url){
+    criarURLProxyMidia(url,item=null){
         url=String(url || "").trim();
         if(!url) return "";
         if(!this.deviceId || !this.activationCode) return url;
 
-        try{
-            const paginaHTTPS=location.protocol==="https:";
-            const origemHTTP=/^http:\/\//i.test(url);
-            const origemHTTPS=/^https:\/\//i.test(url);
+        if(!/^https?:\/\//i.test(url)) return url;
 
-            // No GitHub Pages, streams HTTP são bloqueados por Mixed Content.
-            // Também usamos o proxy para HTTPS quando o servidor do provedor não libera CORS.
-            if(paginaHTTPS && (origemHTTP || origemHTTPS)){
-                return PLAYLIST_FUNCTION_URL +
-                    "?device_id=" + encodeURIComponent(this.deviceId) +
-                    "&activation_code=" + encodeURIComponent(this.activationCode) +
-                    "&playlist_url=" + encodeURIComponent(url);
-            }
-        }catch(error){
-            console.warn("Falha ao montar proxy:",error);
-        }
+        const params=new URLSearchParams();
+        params.set("device_id",this.deviceId);
+        params.set("activation_code",this.activationCode);
+        params.set("proxy","1");
+        params.set("url",url);
 
-        return url;
+        if(item?.referrer) params.set("referrer",String(item.referrer));
+        if(item?.userAgent) params.set("user_agent",String(item.userAgent));
+
+        return PLAYLIST_FUNCTION_URL+"?"+params.toString();
     },
 
     reproduzirHLS(video,item){
         this.hlsRetries=0;
-        const urlOriginal=String(item.url || "").trim();
-        const urlProxy=this.criarURLProxyMidia(urlOriginal);
+        const urlOriginal=String(item.url||"").trim();
+        const urlProxy=this.criarURLProxyMidia(urlOriginal,item);
 
         if(window.Hls&&Hls.isSupported()){
             const config={
                 enableWorker:true,
-                xhrSetup:(xhr,url)=>{
-                    try{
-                        const proxied=this.criarURLProxyMidia(url);
-                        if(proxied && proxied!==url){
-                            xhr.open("GET",proxied,true);
-                        }
-                    }catch(error){
-                        console.warn("Proxy HLS:",error);
-                    }
-                },
                 lowLatencyMode:false,
                 backBufferLength:30,
                 maxBufferLength:30,
                 maxMaxBufferLength:60,
                 manifestLoadingMaxRetry:3,
                 levelLoadingMaxRetry:3,
-                fragLoadingMaxRetry:3
+                fragLoadingMaxRetry:3,
+                xhrSetup:(xhr,url)=>{
+                    // O manifest já entra pelo proxy. Segmentos, chaves e sub-playlists
+                    // também passam pelo proxy e recebem a autenticação do aparelho.
+                    try{
+                        const p=this.criarURLProxyMidia(url,item);
+                        if(p && p!==url) xhr.open("GET",p,true);
+                    }catch(error){
+                        console.warn("Proxy HLS:",error);
+                    }
+                }
             };
 
             this.hlsInstance=new Hls(config);
-            this.hlsInstance.loadSource(urlOriginal);
             this.hlsInstance.attachMedia(video);
+            this.hlsInstance.loadSource(urlProxy);
 
             this.hlsInstance.on(Hls.Events.MANIFEST_PARSED,()=>{
                 video.play().catch(()=>{});
@@ -2029,10 +1694,10 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
                     if(this.hlsRetries<2){
                         this.hlsRetries++;
                         setTimeout(()=>{
-                            try{this.hlsInstance.startLoad();}catch(error){}
+                            try{this.hlsInstance?.startLoad();}catch(error){}
                         },1200);
                     }else{
-                        alert("Falha de rede ao reproduzir este canal. Verifique o servidor/CORS.");
+                        alert("Falha de rede ao reproduzir este canal. O servidor IPTV pode estar indisponível.");
                     }
                 }else if(data.type===Hls.ErrorTypes.MEDIA_ERROR){
                     try{this.hlsInstance.recoverMediaError();}catch(error){this.destruirHLS();}
@@ -2041,7 +1706,6 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
                     alert("Este stream HLS não pôde ser reproduzido neste aparelho.");
                 }
             });
-
             return;
         }
 
@@ -2054,16 +1718,16 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
         alert("Este aparelho/navegador não possui suporte HLS.");
     },
 
-    reproduzirDireto(video,url){
-        const original=String(url || "").trim();
-        const proxied=this.criarURLProxyMidia(original);
-        video.src=proxied || original;
+    reproduzirDireto(video,url,item=null){
+        const proxied=this.criarURLProxyMidia(url,item);
+        video.src=proxied || url;
         video.addEventListener("error",()=>{
-            console.warn("Erro de reprodução:",video.error);
+            console.warn("Erro de reprodução:",video.error, "URL:",url);
         },{once:true});
-        video.play().catch(error=>{
-            console.warn("Autoplay bloqueado:",error);
-        });
+        video.addEventListener("loadedmetadata",()=>{
+            video.play().catch(error=>console.warn("Autoplay bloqueado:",error));
+        },{once:true});
+        video.load();
     },
 
     destruirHLS(){
@@ -2174,9 +1838,6 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
     configurarTeclado(){
         document.addEventListener("keydown",event=>{
             if(event.key==="Escape"){
-                if(document.getElementById("manualM3UModal")?.classList.contains("show")){
-                    this.fecharModalManual();return;
-                }
                 if(document.getElementById("modalSeries").style.display==="flex"){
                     this.fecharModalSeries();return;
                 }
@@ -2193,12 +1854,6 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
         });
 
         document.addEventListener("keydown",event=>{
-            if(event.key==="Enter" && event.target && event.target.id==="manualM3UInput"){
-                event.preventDefault();
-                this.confirmarM3UManual();
-                return;
-            }
-
             const alvo=event.target;
             if(event.key==="Enter"&&alvo.classList.contains("account-card")){
                 alvo.click();
