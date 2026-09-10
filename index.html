@@ -2,897 +2,673 @@
 <html lang="pt-BR">
 
 <head>
-
 <meta charset="UTF-8">
 
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
->
+<meta name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 
-<meta
-    name="theme-color"
-    content="#050505"
->
+<meta name="theme-color" content="#050505">
 
 <title>GC PLAY PRO</title>
 
-
 <style>
 
-/* ============================================================
-   CORES
-============================================================ */
+/* =========================================================
+   BASE
+========================================================= */
 
 :root{
-
     --bg:#050505;
-
-    --panel:#0d0d0d;
-
-    --panel2:#151515;
-
-    --green:#39ff14;
-
-    --text:#f4f4f4;
-
+    --panel:#101010;
+    --panel2:#171717;
+    --line:#292929;
+    --text:#f5f5f5;
     --muted:#999;
-
-    --danger:#ff4545;
-
-    --line:#252525;
-
+    --green:#39ff14;
+    --red:#ff4545;
 }
-
-
-/* ============================================================
-   RESET
-============================================================ */
 
 *{
-
     box-sizing:border-box;
-
 }
-
 
 html,
 body{
-
     margin:0;
-
     padding:0;
-
     min-height:100%;
-
     background:var(--bg);
-
     color:var(--text);
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
+    font-family:Arial,Helvetica,sans-serif;
 }
-
 
 body{
-
     min-height:100vh;
-
 }
-
-
-.hidden{
-
-    display:none!important;
-
-}
-
 
 button,
 input,
 select{
-
     font:inherit;
-
 }
-
 
 button{
-
     cursor:pointer;
+}
 
+.hidden{
+    display:none!important;
 }
 
 
-/* ============================================================
+/* =========================================================
    HEADER
-============================================================ */
+========================================================= */
 
 header{
-
     position:sticky;
-
     top:0;
-
-    z-index:20;
-
-    background:
-        rgba(
-            5,
-            5,
-            5,
-            .97
-        );
-
-    border-bottom:
-        1px solid
-        var(--line);
-
-    padding:
-        12px
-        14px;
-
+    z-index:30;
+    background:rgba(5,5,5,.97);
+    border-bottom:1px solid var(--line);
 }
-
 
 .top{
-
     max-width:1400px;
-
     margin:auto;
-
+    min-height:76px;
+    padding:10px 16px;
     display:flex;
-
     align-items:center;
-
     gap:10px;
-
 }
-
 
 .logo{
-
-    color:
-        var(--green);
-
-    font-size:21px;
-
+    color:var(--green);
+    font-size:28px;
     font-weight:900;
-
     letter-spacing:1px;
-
     white-space:nowrap;
-
 }
-
 
 .grow{
-
     flex:1;
-
 }
 
 
-/* ============================================================
+/* =========================================================
    BOTÕES
-============================================================ */
+========================================================= */
 
 .btn{
-
-    border:
-        1px solid
-        #303030;
-
+    border:1px solid #333;
     background:#111;
-
     color:#fff;
-
-    border-radius:10px;
-
-    padding:
-        10px
-        13px;
-
-    transition:.2s;
-
+    border-radius:12px;
+    padding:12px 16px;
+    transition:.18s;
 }
-
 
 .btn:hover{
-
-    border-color:
-        var(--green);
-
+    border-color:var(--green);
 }
 
-
-.primary{
-
-    background:
-        var(--green);
-
+.btn.primary{
+    background:var(--green);
     color:#000;
+    border-color:var(--green);
+    font-weight:900;
+}
 
-    border-color:
-        var(--green);
-
-    font-weight:800;
-
+.btn.danger{
+    color:#ff8585;
 }
 
 
-.danger{
-
-    color:
-        #ff7777;
-
-}
-
-
-/* ============================================================
-   CONTEÚDO
-============================================================ */
+/* =========================================================
+   MAIN
+========================================================= */
 
 main{
-
     max-width:1400px;
-
     margin:auto;
-
-    padding:16px;
-
+    padding:20px 16px 40px;
 }
-
 
 .hero{
-
-    padding:
-        18px
-        4px;
-
+    padding:20px 4px 14px;
 }
-
 
 .hero h1{
-
-    margin:
-        0
-        0
-        7px;
-
-    font-size:28px;
-
+    margin:0 0 10px;
+    font-size:40px;
 }
-
 
 .hero p{
-
     margin:0;
-
-    color:
-        var(--muted);
-
+    color:var(--muted);
+    font-size:20px;
+    line-height:1.4;
+    max-width:800px;
 }
 
 
-/* ============================================================
+/* =========================================================
    STATUS
-============================================================ */
+========================================================= */
 
 .status{
-
-    margin:
-        12px
-        0;
-
-    padding:
-        10px
-        12px;
-
-    border:
-        1px solid
-        var(--line);
-
-    border-radius:10px;
-
-    background:
-        #0d0d0d;
-
+    margin:14px 0;
+    padding:12px 14px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:#0c0c0c;
     color:#bbb;
-
 }
-
 
 .status.ok{
-
-    border-color:
-        #1c8f12;
-
-    color:
-        #b7ffad;
-
+    color:#baffb1;
+    border-color:#168b0d;
 }
-
 
 .status.err{
-
-    border-color:
-        #9c2323;
-
-    color:
-        #ffb0b0;
-
+    color:#ffb1b1;
+    border-color:#922222;
 }
 
 
-/* ============================================================
+/* =========================================================
    LISTAS
-============================================================ */
+========================================================= */
 
 .lists{
-
     display:flex;
-
     gap:8px;
-
-    overflow:auto;
-
-    padding:
-        8px
-        0;
-
+    overflow-x:auto;
+    padding:10px 0;
+    scrollbar-width:none;
 }
 
+.lists::-webkit-scrollbar{
+    display:none;
+}
 
 .pill{
-
-    padding:
-        9px
-        12px;
-
-    border:
-        1px solid
-        #333;
-
-    border-radius:
-        999px;
-
-    background:
-        #101010;
-
+    border:1px solid #333;
+    background:#101010;
     color:#fff;
-
+    border-radius:999px;
+    padding:10px 15px;
     white-space:nowrap;
-
 }
-
 
 .pill.active{
-
-    border-color:
-        var(--green);
-
-    color:
-        var(--green);
-
+    border-color:var(--green);
+    color:var(--green);
 }
 
 
-/* ============================================================
-   TOOLBAR
-============================================================ */
+/* =========================================================
+   CONTROLES
+========================================================= */
 
 .toolbar{
-
     display:flex;
-
-    gap:9px;
-
+    gap:10px;
     align-items:center;
-
     flex-wrap:wrap;
-
-    margin:
-        12px
-        0;
-
+    margin:12px 0;
 }
-
 
 .search{
-
-    width:100%;
-
-    max-width:400px;
-
-    padding:
-        10px
-        12px;
-
-    border:
-        1px solid
-        #333;
-
-    border-radius:10px;
-
-    background:
-        #0e0e0e;
-
+    flex:1;
+    min-width:220px;
+    max-width:520px;
+    padding:13px 14px;
+    border-radius:12px;
+    border:1px solid #333;
+    background:#0e0e0e;
     color:#fff;
-
     outline:none;
-
 }
-
 
 .search:focus{
-
-    border-color:
-        var(--green);
-
+    border-color:var(--green);
 }
-
 
 .toolbar select{
-
-    padding:10px;
-
-    background:
-        #0e0e0e;
-
+    padding:13px 14px;
+    border-radius:12px;
+    border:1px solid #333;
+    background:#0e0e0e;
     color:#fff;
-
-    border:
-        1px solid
-        #333;
-
-    border-radius:10px;
-
 }
 
 
-/* ============================================================
+/* =========================================================
+   CONTADOR
+========================================================= */
+
+.counter{
+    color:#888;
+    font-size:13px;
+    margin:8px 0;
+}
+
+
+/* =========================================================
    GRID
-============================================================ */
+========================================================= */
 
 .grid{
-
     display:grid;
-
     grid-template-columns:
         repeat(
             auto-fill,
-            minmax(
-                190px,
-                1fr
-            )
+            minmax(190px,1fr)
         );
-
     gap:12px;
-
 }
 
 
-.card{
+/* =========================================================
+   CARD
+========================================================= */
 
+.card{
     background:
         linear-gradient(
             180deg,
-            #151515,
+            #161616,
             #0b0b0b
         );
 
-    border:
-        1px solid
-        #252525;
-
-    border-radius:13px;
-
+    border:1px solid #262626;
+    border-radius:14px;
     overflow:hidden;
-
-    min-height:150px;
-
+    min-height:160px;
 }
-
 
 .card button{
-
     width:100%;
-
     border:0;
-
     background:transparent;
-
     color:inherit;
-
     text-align:left;
-
     padding:0;
-
 }
-
 
 .thumb{
-
-    height:105px;
-
-    background:#090909;
-
+    height:110px;
+    background:#080808;
     display:flex;
-
     align-items:center;
-
     justify-content:center;
-
+    overflow:hidden;
 }
-
 
 .thumb img{
-
     width:100%;
-
     height:100%;
-
     object-fit:contain;
-
 }
-
 
 .noimg{
-
-    font-size:32px;
-
+    font-size:34px;
     color:#333;
-
 }
-
 
 .ct{
-
     padding:10px;
-
 }
-
 
 .ct b{
-
     display:block;
-
-    line-height:1.25;
-
     font-size:14px;
-
+    line-height:1.3;
 }
-
 
 .ct small{
-
     display:block;
-
-    color:#888;
-
     margin-top:5px;
-
+    color:#777;
     white-space:nowrap;
-
     overflow:hidden;
-
     text-overflow:ellipsis;
-
 }
 
 
-/* ============================================================
-   VAZIO
-============================================================ */
+/* =========================================================
+   CARD DE SÉRIE
+========================================================= */
+
+.seriesCard{
+    min-height:190px;
+}
+
+.seriesCard .thumb{
+    height:135px;
+}
+
+.seriesInfo{
+    padding:10px;
+}
+
+.seriesInfo b{
+    display:block;
+    font-size:15px;
+    line-height:1.25;
+}
+
+.seriesInfo small{
+    display:block;
+    margin-top:6px;
+    color:#888;
+}
+
+
+/* =========================================================
+   PAGINAÇÃO
+========================================================= */
+
+.pagination{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    flex-wrap:wrap;
+    padding:25px 0 10px;
+}
+
+.pageInfo{
+    color:#999;
+    min-width:130px;
+    text-align:center;
+}
+
+.pageBtn{
+    min-width:42px;
+    padding:10px 12px;
+    border-radius:10px;
+    border:1px solid #333;
+    background:#111;
+    color:#fff;
+}
+
+.pageBtn.active{
+    border-color:var(--green);
+    color:var(--green);
+}
+
+.pageBtn:disabled{
+    opacity:.35;
+    cursor:not-allowed;
+}
+
+
+/* =========================================================
+   EMPTY
+========================================================= */
 
 .empty{
-
+    grid-column:1/-1;
     text-align:center;
-
-    padding:55px 15px;
-
-    color:#888;
-
+    padding:60px 15px;
+    color:#777;
 }
 
 
-/* ============================================================
-   MODAIS
-============================================================ */
+/* =========================================================
+   MODAL
+========================================================= */
 
 .modal{
-
     position:fixed;
-
     inset:0;
-
-    background:
-        rgba(
-            0,
-            0,
-            0,
-            .80
-        );
-
-    z-index:50;
-
+    z-index:80;
+    background:rgba(0,0,0,.82);
     display:flex;
-
     align-items:center;
-
     justify-content:center;
-
     padding:16px;
-
 }
-
 
 .box{
-
-    width:
-        min(
-            620px,
-            100%
-        );
-
+    width:min(650px,100%);
     max-height:92vh;
-
     overflow:auto;
-
-    background:
-        #101010;
-
-    border:
-        1px solid
-        #303030;
-
-    border-radius:16px;
-
-    padding:18px;
-
-    box-shadow:
-        0 0 35px
-        rgba(
-            57,
-            255,
-            20,
-            .08
-        );
-
+    background:#101010;
+    border:1px solid #333;
+    border-radius:17px;
+    padding:20px;
 }
-
 
 .box h2{
-
-    margin-top:0;
-
+    margin:0 0 16px;
 }
-
 
 .field{
-
-    margin:
-        12px
-        0;
-
+    margin:14px 0;
 }
-
 
 .field label{
-
     display:block;
-
     color:#aaa;
-
     font-size:13px;
-
-    margin-bottom:6px;
-
+    margin-bottom:7px;
 }
-
 
 .field input{
-
     width:100%;
-
-    padding:12px;
-
-    border-radius:9px;
-
-    border:
-        1px solid
-        #333;
-
-    background:
-        #080808;
-
+    padding:13px;
+    border-radius:10px;
+    border:1px solid #333;
+    background:#080808;
     color:#fff;
-
     outline:none;
-
 }
-
 
 .field input:focus{
-
-    border-color:
-        var(--green);
-
+    border-color:var(--green);
 }
-
 
 .actions{
-
     display:flex;
-
     gap:8px;
-
     justify-content:flex-end;
-
     flex-wrap:wrap;
-
-    margin-top:15px;
-
+    margin-top:18px;
 }
 
 
-/* ============================================================
-   PLAYER
-============================================================ */
-
-.playerModal .box{
-
-    width:
-        min(
-            1100px,
-            100%
-        );
-
-    padding:10px;
-
-}
-
-
-.playerWrap{
-
-    background:#000;
-
-    border-radius:10px;
-
-    overflow:hidden;
-
-}
-
-
-.playerWrap video{
-
-    display:block;
-
-    width:100%;
-
-    height:auto;
-
-    max-height:72vh;
-
-    background:#000;
-
-}
-
-
-.playerTitle{
-
-    padding:8px;
-
-    font-weight:700;
-
-}
-
-
-/* ============================================================
-   LISTA DE LISTAS
-============================================================ */
+/* =========================================================
+   LIST MANAGER
+========================================================= */
 
 .listRow{
-
     display:flex;
-
     align-items:center;
-
     gap:10px;
-
     padding:12px;
-
-    border:
-        1px solid
-        #292929;
-
-    border-radius:11px;
-
-    margin:
-        8px
-        0;
-
-    background:
-        #0c0c0c;
-
+    border:1px solid #292929;
+    border-radius:12px;
+    background:#0b0b0b;
+    margin:8px 0;
 }
-
 
 .listRow .name{
-
     font-weight:800;
-
 }
-
 
 .listRow .url{
-
-    font-size:12px;
-
     color:#777;
-
+    font-size:12px;
+    margin-top:4px;
     overflow:hidden;
-
     text-overflow:ellipsis;
-
     white-space:nowrap;
-
 }
 
 
-/* ============================================================
+/* =========================================================
+   PLAYER
+========================================================= */
+
+.playerModal .box{
+    width:min(1100px,100%);
+    padding:10px;
+}
+
+.playerHeader{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:5px 4px 10px;
+}
+
+.playerTitle{
+    flex:1;
+    font-weight:800;
+}
+
+.playerWrap{
+    background:#000;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+.playerWrap video{
+    width:100%;
+    display:block;
+    background:#000;
+    max-height:72vh;
+}
+
+.playerStatus{
+    padding:10px 5px;
+    color:#888;
+    font-size:13px;
+}
+
+
+/* =========================================================
    TOAST
-============================================================ */
+========================================================= */
 
 #toast{
-
     position:fixed;
-
     left:50%;
-
     bottom:20px;
-
-    transform:
-        translateX(-50%);
-
-    z-index:100;
-
-    background:
-        #171717;
-
-    border:
-        1px solid
-        #333;
-
-    padding:
-        11px
-        15px;
-
-    border-radius:10px;
-
-    display:none;
-
+    transform:translateX(-50%);
+    z-index:120;
+    background:#171717;
+    border:1px solid #333;
+    padding:12px 16px;
+    border-radius:11px;
     max-width:90%;
-
     text-align:center;
+    display:none;
+}
+
+
+/* =========================================================
+   MODAL SÉRIE
+========================================================= */
+
+.seriesModal .box{
+    width:min(800px,100%);
+}
+
+.season{
+    border:1px solid #292929;
+    border-radius:12px;
+    margin:10px 0;
+    overflow:hidden;
+}
+
+.seasonTitle{
+    width:100%;
+    padding:13px;
+    border:0;
+    background:#171717;
+    color:#fff;
+    text-align:left;
+    font-weight:800;
+}
+
+.episodeList{
+    display:none;
+}
+
+.episodeList.open{
+    display:block;
+}
+
+.episode{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    padding:11px;
+    border-top:1px solid #292929;
+    background:#0c0c0c;
+}
+
+.episodeName{
+    flex:1;
+    font-size:14px;
+}
+
+
+/* =========================================================
+   DESKTOP
+========================================================= */
+
+@media(min-width:900px){
+
+    .top{
+        padding-left:22px;
+        padding-right:22px;
+    }
 
 }
 
 
-/* ============================================================
+/* =========================================================
    MOBILE
-============================================================ */
+========================================================= */
 
-@media(
-    max-width:600px
-){
+@media(max-width:650px){
+
+    .top{
+        min-height:64px;
+        padding:8px 12px;
+    }
+
+    .logo{
+        font-size:21px;
+    }
+
+    .top .btn{
+        padding:10px 12px;
+    }
+
+    main{
+        padding:12px;
+    }
+
+    .hero{
+        padding-top:18px;
+    }
+
+    .hero h1{
+        font-size:30px;
+    }
+
+    .hero p{
+        font-size:17px;
+    }
 
     .grid{
-
         grid-template-columns:
             repeat(
                 2,
@@ -901,74 +677,71 @@ main{
                     1fr
                 )
             );
-
         gap:8px;
-
     }
-
 
     .thumb{
-
         height:90px;
-
     }
 
+    .seriesCard .thumb{
+        height:105px;
+    }
 
     .ct{
-
         padding:8px;
-
     }
-
 
     .ct b{
-
-        font-size:13px;
-
+        font-size:12px;
     }
 
-
-    .top{
-
-        flex-wrap:wrap;
-
+    .ct small{
+        font-size:11px;
     }
-
 
     .search{
-
-        order:5;
-
+        width:100%;
         max-width:none;
+        min-width:0;
+        order:1;
+    }
 
+    .toolbar select{
+        flex:1;
+    }
+
+    .toolbar .btn{
+        flex:1;
+    }
+
+    .listRow{
+        align-items:flex-start;
+        flex-wrap:wrap;
     }
 
 }
 
 </style>
-
 </head>
 
 
 <body>
 
 
-<!-- ============================================================
+<!-- =========================================================
      HEADER
-============================================================ -->
+========================================================= -->
 
 <header>
 
 <div class="top">
 
-
 <div class="logo">
 GC PLAY PRO
 </div>
 
-
 <div class="grow"></div>
-
 
 <button
     class="btn"
@@ -977,7 +750,6 @@ GC PLAY PRO
 LISTAS
 </button>
 
-
 <button
     class="btn primary"
     onclick="openM3U()"
@@ -985,16 +757,15 @@ LISTAS
 + M3U
 </button>
 
-
 </div>
 
 </header>
 
 
 
-<!-- ============================================================
+<!-- =========================================================
      MAIN
-============================================================ -->
+========================================================= -->
 
 <main>
 
@@ -1005,12 +776,9 @@ LISTAS
 Sua TV, do seu jeito.
 </h1>
 
-
 <p>
-
 Cada lista utiliza seu próprio servidor.
 O GC PLAY PRO não fica preso a nenhum servidor específico.
-
 </p>
 
 </section>
@@ -1033,36 +801,36 @@ O GC PLAY PRO não fica preso a nenhum servidor específico.
 
 <div class="toolbar">
 
-
 <input
     id="search"
     class="search"
     placeholder="Pesquisar canal, filme, série..."
-    oninput="render()"
+    autocomplete="off"
 >
-
 
 <select
     id="cat"
-    onchange="render()"
 >
-
 <option value="ALL">
 Todas
 </option>
-
 </select>
-
 
 <button
     class="btn"
-    onclick="refreshCurrent()"
+    id="refreshBtn"
 >
 ↻ Atualizar
 </button>
 
-
 </div>
+
+
+
+<div
+    id="counter"
+    class="counter"
+></div>
 
 
 
@@ -1072,59 +840,56 @@ Todas
 ></div>
 
 
+
+<div
+    id="pagination"
+    class="pagination"
+></div>
+
+
 </main>
 
 
 
-<!-- ============================================================
+<!-- =========================================================
      MODAL M3U
-============================================================ -->
+========================================================= -->
 
 <div
     id="m3uModal"
     class="modal hidden"
 >
 
-
 <div class="box">
-
 
 <h2>
 Adicionar lista M3U
 </h2>
 
-
 <div class="field">
-
 
 <label>
 Nome da lista
 </label>
-
 
 <input
     id="mName"
     placeholder="Minha TV"
 >
 
-
 </div>
-
 
 
 <div class="field">
 
-
 <label>
-URL M3U completa
+URL M3U normal
 </label>
-
 
 <input
     id="mUrl"
     placeholder="http://servidor/get.php?..."
 >
-
 
 </div>
 
@@ -1133,19 +898,15 @@ URL M3U completa
     style="
         color:#888;
         font-size:13px;
+        line-height:1.5;
     "
 >
-
-Aceita M3U normal, Xtream get.php,
-MPEG-TS, HLS/M3U8 e outras playlists
-compatíveis.
-
+Use a URL M3U normal da sua lista.
+Cada lista pode utilizar seu próprio servidor.
 </p>
 
 
-
 <div class="actions">
-
 
 <button
     class="btn"
@@ -1154,50 +915,39 @@ compatíveis.
 Cancelar
 </button>
 
-
 <button
     class="btn primary"
-    onclick="saveM3U()"
+    id="saveM3UBtn"
 >
 Salvar e carregar
 </button>
 
-
-</div>
-
-
 </div>
 
 </div>
 
+</div>
 
 
-<!-- ============================================================
+
+<!-- =========================================================
      MODAL LISTAS
-============================================================ -->
+========================================================= -->
 
 <div
     id="listsModal"
     class="modal hidden"
 >
 
-
 <div class="box">
-
 
 <h2>
 Minhas listas
 </h2>
 
-
-<div
-    id="listRows"
-></div>
-
-
+<div id="listRows"></div>
 
 <div class="actions">
-
 
 <button
     class="btn"
@@ -1205,7 +955,6 @@ Minhas listas
 >
 Fechar
 </button>
-
 
 <button
     class="btn primary"
@@ -1217,57 +966,84 @@ Fechar
 + Adicionar
 </button>
 
-
-</div>
-
-
 </div>
 
 </div>
 
+</div>
 
 
-<!-- ============================================================
-     PLAYER
-============================================================ -->
+
+<!-- =========================================================
+     MODAL SÉRIE
+========================================================= -->
+
+<div
+    id="seriesModal"
+    class="modal seriesModal hidden"
+>
+
+<div class="box">
+
+<div class="playerHeader">
+
+<div
+    id="seriesTitle"
+    class="playerTitle"
+>
+Série
+</div>
+
+<button
+    class="btn"
+    onclick="closeSeries()"
+>
+✕
+</button>
+
+</div>
+
+<div
+    id="seriesContent"
+></div>
+
+</div>
+
+</div>
+
+
+
+<!-- =========================================================
+     MODAL PLAYER
+========================================================= -->
 
 <div
     id="playerModal"
     class="modal playerModal hidden"
 >
 
-
 <div class="box">
 
+<div class="playerHeader">
 
-<div class="playerTitle">
-
-
-<span
+<div
     id="playerName"
+    class="playerTitle"
 >
 Player
-</span>
-
+</div>
 
 <button
     class="btn"
-    style="
-        float:right;
-        padding:5px 9px;
-    "
     onclick="closePlayer()"
 >
 ✕
 </button>
 
-
 </div>
 
 
-
 <div class="playerWrap">
-
 
 <video
     id="video"
@@ -1276,77 +1052,54 @@ Player
     autoplay
 ></video>
 
-
 </div>
-
 
 
 <div
     id="playerStatus"
-    style="
-        padding:8px;
-        color:#888;
-        font-size:13px;
-    "
+    class="playerStatus"
 >
+Conectando...
+</div>
+
+</div>
+
 </div>
 
 
-</div>
 
-</div>
-
-
-
-<div
-    id="toast"
-></div>
+<div id="toast"></div>
 
 
 
-<!-- ============================================================
-     BIBLIOTECAS
-============================================================ -->
+<!-- =========================================================
+     PLAYERS
+========================================================= -->
 
-<script
-src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"
-></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"></script>
 
-
-<script
-src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.0/dist/mpegts.min.js"
-></script>
+<script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.0/dist/mpegts.min.js"></script>
 
 
 
 <script>
 
-
-/* ============================================================
+/* =========================================================
    CONFIGURAÇÃO
-============================================================ */
-
-
-/*
-    ESTE É O ÚNICO SERVIDOR FIXO:
-
-    É o nosso PROXY SUPABASE.
-
-    Nenhum servidor IPTV está fixado aqui.
-*/
-
+========================================================= */
 
 const PROXY_URL =
 "https://kuzgdvpdqmocklsgyzvt.supabase.co/functions/v1/gcplay-proxy";
 
-
 const STORAGE_KEY =
-"gcplay_pro_v5";
+"gcplay_pro_v6";
+
+const ITEMS_PER_PAGE = 100;
 
 
-/* ============================================================
+/* =========================================================
    ESTADO
-============================================================ */
+========================================================= */
 
 let state = {
 
@@ -1354,103 +1107,146 @@ let state = {
 
     current: null,
 
-    items: []
+    items: [],
+
+    page: 1,
+
+    filtered: [],
+
+    seriesGroups: [],
+
+    viewMode: "normal"
 
 };
 
 
 let hls = null;
 
-let player = null;
+let mpegPlayer = null;
 
 
-/* ============================================================
-   ESCAPE HTML
-============================================================ */
+/* =========================================================
+   ELEMENTOS
+========================================================= */
+
+const $ = id =>
+    document.getElementById(id);
+
+
+/* =========================================================
+   ESCAPE
+========================================================= */
 
 function escapeHTML(value){
 
-    return String(
-        value ?? ""
-    )
-    .replace(
-        /[&<>"']/g,
-        function(char){
-
-            return {
+    return String(value ?? "")
+        .replace(
+            /[&<>"']/g,
+            char => ({
 
                 "&":"&amp;",
-
                 "<":"&lt;",
-
                 ">":"&gt;",
-
                 '"':"&quot;",
-
                 "'":"&#039;"
 
-            }[char];
-
-        }
-    );
+            }[char])
+        );
 
 }
 
 
-/* ============================================================
+/* =========================================================
    TOAST
-============================================================ */
+========================================================= */
 
 function toast(message){
 
-    const element =
-        document.getElementById(
-            "toast"
-        );
+    const el =
+        $("toast");
 
-
-    element.textContent =
+    el.textContent =
         message;
 
-
-    element.style.display =
+    el.style.display =
         "block";
 
-
     clearTimeout(
-        window.__toastTimer
+        window.__toast
     );
 
-
-    window.__toastTimer =
+    window.__toast =
         setTimeout(
-            function(){
+            () => {
 
-                element.style.display =
+                el.style.display =
                     "none";
 
             },
-            3200
+            3000
         );
 
 }
 
 
-/* ============================================================
+/* =========================================================
+   STATUS
+========================================================= */
+
+function setStatus(
+    text,
+    ok = true
+){
+
+    const el =
+        $("status");
+
+    el.textContent =
+        text;
+
+    el.className =
+        "status " +
+        (
+            ok
+            ? "ok"
+            : "err"
+        );
+
+    el.classList.remove(
+        "hidden"
+    );
+
+}
+
+
+/* =========================================================
    STORAGE
-============================================================ */
+========================================================= */
 
 function saveState(){
 
-    localStorage.setItem(
+    try{
 
-        STORAGE_KEY,
+        localStorage.setItem(
 
-        JSON.stringify(
-            state.lists
-        )
+            STORAGE_KEY,
 
-    );
+            JSON.stringify(
+                state.lists
+            )
+
+        );
+
+    }
+
+    catch(error){
+
+        console.warn(
+            "Não foi possível salvar:",
+            error
+        );
+
+    }
 
 }
 
@@ -1464,11 +1260,20 @@ function loadState(){
 
                 localStorage.getItem(
                     STORAGE_KEY
-                )
-                ||
+                ) ||
                 "[]"
 
             );
+
+        if(
+            !Array.isArray(
+                state.lists
+            )
+        ){
+
+            state.lists = [];
+
+        }
 
     }
 
@@ -1481,16 +1286,13 @@ function loadState(){
 }
 
 
-/* ============================================================
-   PROXY URL
-============================================================ */
+/* =========================================================
+   URL DO PROXY
+========================================================= */
 
 function proxyURL(
-
     target,
-
     mode
-
 ){
 
     return (
@@ -1514,124 +1316,16 @@ function proxyURL(
 }
 
 
-/* ============================================================
-   MODAIS
-============================================================ */
-
-function openM3U(){
-
-    document
-        .getElementById(
-            "m3uModal"
-        )
-        .classList
-        .remove(
-            "hidden"
-        );
-
-}
-
-
-function closeM3U(){
-
-    document
-        .getElementById(
-            "m3uModal"
-        )
-        .classList
-        .add(
-            "hidden"
-        );
-
-}
-
-
-function openLists(){
-
-    renderListManager();
-
-
-    document
-        .getElementById(
-            "listsModal"
-        )
-        .classList
-        .remove(
-            "hidden"
-        );
-
-}
-
-
-function closeLists(){
-
-    document
-        .getElementById(
-            "listsModal"
-        )
-        .classList
-        .add(
-            "hidden"
-        );
-
-}
-
-
-/* ============================================================
-   STATUS
-============================================================ */
-
-function setStatus(
-
-    text,
-
-    success
-
-){
-
-    const element =
-        document.getElementById(
-            "status"
-        );
-
-
-    element.textContent =
-        text;
-
-
-    element.className =
-        "status " +
-        (
-            success
-            ?
-            "ok"
-            :
-            "err"
-        );
-
-
-    element.classList
-        .remove(
-            "hidden"
-        );
-
-}
-
-
-/* ============================================================
+/* =========================================================
    NORMALIZAR URL
-============================================================ */
+========================================================= */
 
-function normalizeURL(
-    url
-){
+function normalizeURL(url){
 
     url =
-        (
-            url ||
-            ""
+        String(
+            url || ""
         ).trim();
-
 
     if(!url){
 
@@ -1639,43 +1333,31 @@ function normalizeURL(
 
     }
 
-
     if(
-        url.startsWith(
-            "//"
-        )
+        url.startsWith("//")
     ){
 
-        return (
-            "http:" +
-            url
-        );
+        return "http:" + url;
 
     }
-
 
     return url;
 
 }
 
 
-/* ============================================================
+/* =========================================================
    PARSER EXTINF
-============================================================ */
+========================================================= */
 
-function parseEXTINF(
-    line
-){
+function parseEXTINF(line){
 
     const data = {};
-
 
     const regex =
         /([\w-]+)="([^"]*)"/g;
 
-
     let match;
-
 
     while(
         (
@@ -1685,17 +1367,14 @@ function parseEXTINF(
     ){
 
         data[
-            match[1]
-                .toLowerCase()
+            match[1].toLowerCase()
         ] =
             match[2];
 
     }
 
-
     const comma =
         line.indexOf(",");
-
 
     data.title =
 
@@ -1713,70 +1392,52 @@ function parseEXTINF(
 
         "Sem nome";
 
-
     return data;
 
 }
 
 
-/* ============================================================
-   CLASSIFICAR
-============================================================ */
+/* =========================================================
+   CLASSIFICAÇÃO
+========================================================= */
 
 function classify(
-
     metadata,
-
     url
-
 ){
 
     const group =
-
         (
             metadata[
                 "group-title"
-            ]
-            ||
+            ] ||
             ""
         )
         .toLowerCase();
-
 
     const title =
-
         (
-            metadata.title
-            ||
+            metadata.title ||
             ""
         )
         .toLowerCase();
-
 
     const address =
-
         (
-            url
-            ||
+            url ||
             ""
         )
         .toLowerCase();
 
-
     const combined =
-
         group +
         " " +
         title;
 
 
     if(
-
         /adult|18\+|xxx|erotic|adulto/
-        .test(
-            combined
-        )
-
+        .test(combined)
     ){
 
         return "Adult";
@@ -1785,19 +1446,13 @@ function classify(
 
 
     if(
-
-        /series?|série|season|temporada|episódio|episode/
-        .test(
-            combined
-        )
+        /series?|série|season|temporada|episode|episódio/
+        .test(combined)
 
         ||
 
         /\/series?\//
-        .test(
-            address
-        )
-
+        .test(address)
     ){
 
         return "Series";
@@ -1806,19 +1461,13 @@ function classify(
 
 
     if(
-
         /movie|filme|film|vod|cinema/
-        .test(
-            combined
-        )
+        .test(combined)
 
         ||
 
         /\/movies?\//
-        .test(
-            address
-        )
-
+        .test(address)
     ){
 
         return "Films";
@@ -1827,12 +1476,8 @@ function classify(
 
 
     if(
-
         /music|música|radio/
-        .test(
-            combined
-        )
-
+        .test(combined)
     ){
 
         return "Music";
@@ -1845,41 +1490,39 @@ function classify(
 }
 
 
-/* ============================================================
-   PROCESSAR UM ITEM M3U
-============================================================ */
+/* =========================================================
+   ADICIONAR ITEM
+========================================================= */
 
-function addM3UItem(
-
+function addItem(
     metadata,
-
-    channelURL
-
+    url
 ){
 
-    if(!channelURL){
+    url =
+        normalizeURL(
+            url
+        );
 
-        return null;
+    if(!url){
+
+        return;
 
     }
 
-
     metadata =
-
-        metadata
-        ||
+        metadata ||
         {
             title:"Canal"
         };
 
 
-    const item = {
+    state.items.push({
 
         id:
             state.items.length,
 
         name:
-
             metadata.title
             ||
             metadata[
@@ -1890,7 +1533,7 @@ function addM3UItem(
 
         url:
 
-            channelURL,
+            url,
 
         logo:
 
@@ -1920,37 +1563,343 @@ function addM3UItem(
 
             classify(
                 metadata,
-                channelURL
+                url
             ),
 
         raw:
-
             metadata
 
-    };
-
-
-    state.items.push(
-        item
-    );
-
-
-    return item;
+    });
 
 }
 
 
-/* ============================================================
+/* =========================================================
+   NOME DA SÉRIE
+========================================================= */
+
+function getSeriesName(
+    item
+){
+
+    let name =
+        item.name
+        ||
+        "Série sem nome";
+
+
+    /*
+       Remove padrões comuns de episódio.
+    */
+
+    name =
+        name.replace(
+
+            /\bS\d{1,3}\s*E\d{1,3}\b/gi,
+
+            ""
+
+        );
+
+
+    name =
+        name.replace(
+
+            /\b\d{1,3}x\d{1,3}\b/gi,
+
+            ""
+
+        );
+
+
+    name =
+        name.replace(
+
+            /\btemporada\s*\d+\b/gi,
+
+            ""
+
+        );
+
+
+    name =
+        name.replace(
+
+            /\bseason\s*\d+\b/gi,
+
+            ""
+
+        );
+
+
+    name =
+        name.replace(
+
+            /\bepis[oó]dio\s*\d+\b/gi,
+
+            ""
+
+        );
+
+
+    name =
+        name.replace(
+
+            /\bepisode\s*\d+\b/gi,
+
+            ""
+
+        );
+
+
+    name =
+        name.replace(
+
+            /[\[\(]\s*(?:S\d+|E\d+|S\d+\s*E\d+)[^\]\)]*[\]\)]/gi,
+
+            ""
+
+        );
+
+
+    return name
+        .replace(
+            /\s+/g,
+            " "
+        )
+        .replace(
+            /[-|:]+\s*$/,
+            ""
+        )
+        .trim();
+
+}
+
+
+/* =========================================================
+   TEMPORADA DO ITEM
+========================================================= */
+
+function getSeasonNumber(
+    item
+){
+
+    const text =
+        item.name +
+        " " +
+        item.url;
+
+
+    let match =
+        text.match(
+            /\bS(\d{1,3})\b/i
+        );
+
+
+    if(match){
+
+        return Number(
+            match[1]
+        );
+
+    }
+
+
+    match =
+        text.match(
+            /\bseason[\s._-]*(\d{1,3})\b/i
+        );
+
+
+    if(match){
+
+        return Number(
+            match[1]
+        );
+
+    }
+
+
+    match =
+        text.match(
+            /\btemporada[\s._-]*(\d{1,3})\b/i
+        );
+
+
+    if(match){
+
+        return Number(
+            match[1]
+        );
+
+    }
+
+
+    return 1;
+
+}
+
+
+/* =========================================================
+   EPISÓDIO
+========================================================= */
+
+function getEpisodeNumber(
+    item
+){
+
+    const text =
+        item.name +
+        " " +
+        item.url;
+
+
+    let match =
+        text.match(
+            /\bE(\d{1,3})\b/i
+        );
+
+
+    if(match){
+
+        return Number(
+            match[1]
+        );
+
+    }
+
+
+    match =
+        text.match(
+            /\b\d{1,3}x(\d{1,3})\b/i
+        );
+
+
+    if(match){
+
+        return Number(
+            match[1]
+        );
+
+    }
+
+
+    match =
+        text.match(
+            /\b(?:epis[oó]dio|episode)[\s._-]*(\d{1,3})\b/i
+        );
+
+
+    if(match){
+
+        return Number(
+            match[1]
+        );
+
+    }
+
+
+    return 0;
+
+}
+
+
+/* =========================================================
+   AGRUPAR SÉRIES
+========================================================= */
+
+function buildSeriesGroups(){
+
+    const map =
+        new Map();
+
+
+    for(
+        const item
+        of state.items
+    ){
+
+        if(
+            item.category !==
+            "Series"
+        ){
+
+            continue;
+
+        }
+
+
+        const name =
+            getSeriesName(
+                item
+            );
+
+
+        const key =
+            name
+                .toLowerCase()
+                .replace(
+                    /\s+/g,
+                    " "
+                )
+                .trim();
+
+
+        if(
+            !map.has(key)
+        ){
+
+            map.set(
+                key,
+                {
+
+                    name:
+                        name,
+
+                    logo:
+                        item.logo,
+
+                    items:[]
+
+                }
+            );
+
+        }
+
+
+        map
+            .get(key)
+            .items
+            .push(item);
+
+    }
+
+
+    state.seriesGroups =
+        Array.from(
+            map.values()
+        );
+
+
+    state.seriesGroups
+        .sort(
+            (a,b) =>
+                a.name.localeCompare(
+                    b.name
+                )
+        );
+
+}
+
+
+/* =========================================================
    CATEGORIAS
-============================================================ */
+========================================================= */
 
 function buildCategories(){
 
     const select =
-        document.getElementById(
-            "cat"
-        );
-
+        $("cat");
 
     const old =
         select.value;
@@ -1971,8 +1920,7 @@ function buildCategories(){
             (
                 counts[
                     item.category
-                ]
-                ||
+                ] ||
                 0
             ) + 1;
 
@@ -1980,28 +1928,19 @@ function buildCategories(){
 
 
     let html =
-
         '<option value="ALL">' +
-
-        "Todas (" +
-
+        'Todas (' +
         state.items.length +
-
-        ")" +
-
-        "</option>";
+        ')' +
+        '</option>';
 
 
-    const fixed = [
+    const order = [
 
         "TV",
-
         "Films",
-
         "Series",
-
         "Music",
-
         "Adult"
 
     ];
@@ -2009,7 +1948,7 @@ function buildCategories(){
 
     for(
         const category
-        of fixed
+        of order
     ){
 
         if(
@@ -2019,17 +1958,13 @@ function buildCategories(){
             html +=
 
                 '<option value="' +
-
                 category +
-
                 '">' +
 
                 category +
 
                 " (" +
-
                 counts[category] +
-
                 ")" +
 
                 "</option>";
@@ -2045,13 +1980,8 @@ function buildCategories(){
             counts
         )
         .filter(
-            function(c){
-
-                return !fixed.includes(
-                    c
-                );
-
-            }
+            c =>
+                !order.includes(c)
         )
         .sort()
     ){
@@ -2059,21 +1989,13 @@ function buildCategories(){
         html +=
 
             '<option value="' +
-
-            escapeHTML(
-                category
-            ) +
-
+            escapeHTML(category) +
             '">' +
 
-            escapeHTML(
-                category
-            ) +
+            escapeHTML(category) +
 
             " (" +
-
             counts[category] +
-
             ")" +
 
             "</option>";
@@ -2086,21 +2008,13 @@ function buildCategories(){
 
 
     if(
-
-        [
-            ...select.options
-        ]
-        .some(
-            function(option){
-
-                return (
-                    option.value ===
-                    old
-                );
-
-            }
+        Array.from(
+            select.options
         )
-
+        .some(
+            option =>
+                option.value === old
+        )
     ){
 
         select.value =
@@ -2111,93 +2025,165 @@ function buildCategories(){
 }
 
 
-/* ============================================================
-   BOTÕES DE LISTA
-============================================================ */
+/* =========================================================
+   PILLS DE LISTAS
+========================================================= */
 
 function renderListPills(){
 
-    const element =
-        document.getElementById(
-            "listPills"
-        );
+    const el =
+        $("listPills");
 
 
-    element.innerHTML =
-
+    el.innerHTML =
         state.lists
-
         .map(
-            function(list){
+            list =>
 
-                return
+                '<button class="pill ' +
 
-                    '<button class="pill ' +
+                (
+                    list.id ===
+                    state.current
+                    ?
+                    "active"
+                    :
+                    ""
+                ) +
 
-                    (
+                '" data-list-id="' +
+                escapeHTML(list.id) +
+                '">' +
 
-                        list.id ===
-                        state.current
+                escapeHTML(
+                    list.name
+                ) +
 
-                        ?
+                "</button>"
 
-                        "active"
+        )
+        .join("");
 
-                        :
 
-                        ""
+    el
+        .querySelectorAll(
+            "[data-list-id]"
+        )
+        .forEach(
+            button => {
 
-                    ) +
-
-                    '" onclick="selectList(\'' +
-
-                    list.id +
-
-                    '\')">' +
-
-                    escapeHTML(
-                        list.name
-                    ) +
-
-                    "</button>";
+                button.onclick =
+                    () =>
+                        selectList(
+                            button.dataset.listId
+                        );
 
             }
-        )
-
-        .join("");
+        );
 
 }
 
 
-/* ============================================================
-   RENDER
-============================================================ */
+/* =========================================================
+   MODO DA TELA
+========================================================= */
 
-function render(){
+function updateViewMode(){
+
+    const category =
+        $("cat").value;
+
+
+    state.viewMode =
+        category ===
+        "Series"
+        ?
+        "series"
+        :
+        "normal";
+
+}
+
+
+/* =========================================================
+   PREPARAR FILTRO
+========================================================= */
+
+function prepareFiltered(){
+
+    updateViewMode();
+
 
     const search =
-        document
-            .getElementById(
-                "search"
-            )
+        $("search")
             .value
-            .toLowerCase()
-            .trim();
+            .trim()
+            .toLowerCase();
 
 
     const category =
-        document
-            .getElementById(
-                "cat"
-            )
-            .value;
+        $("cat").value;
 
 
-    const filtered =
+    /*
+       SÉRIES
+    */
 
+    if(
+        category ===
+        "Series"
+    ){
+
+        state.filtered =
+            state.seriesGroups
+            .filter(
+                series => {
+
+                    if(!search){
+
+                        return true;
+
+                    }
+
+
+                    return (
+
+                        series.name
+                            .toLowerCase()
+                            .includes(
+                                search
+                            )
+
+                        ||
+
+                        series.items.some(
+                            item =>
+
+                                item.name
+                                    .toLowerCase()
+                                    .includes(
+                                        search
+                                    )
+                        )
+
+                    );
+
+                }
+            );
+
+        return;
+
+    }
+
+
+    /*
+       OUTRAS CATEGORIAS
+    */
+
+    state.filtered =
         state.items
         .filter(
-            function(item){
+            item => {
 
                 const categoryOK =
 
@@ -2246,144 +2232,803 @@ function render(){
             }
         );
 
+}
 
-    const grid =
-        document.getElementById(
-            "grid"
+
+/* =========================================================
+   RENDER
+========================================================= */
+
+function render(){
+
+    prepareFiltered();
+
+
+    const total =
+        state.filtered.length;
+
+
+    const totalPages =
+        Math.max(
+            1,
+            Math.ceil(
+                total /
+                ITEMS_PER_PAGE
+            )
         );
 
 
     if(
-        !filtered.length
+        state.page >
+        totalPages
+    ){
+
+        state.page =
+            totalPages;
+
+    }
+
+
+    if(
+        state.page < 1
+    ){
+
+        state.page = 1;
+
+    }
+
+
+    const start =
+        (
+            state.page -
+            1
+        ) *
+        ITEMS_PER_PAGE;
+
+
+    const pageItems =
+        state.filtered.slice(
+
+            start,
+
+            start +
+            ITEMS_PER_PAGE
+
+        );
+
+
+    const grid =
+        $("grid");
+
+
+    /*
+       CONTADOR
+    */
+
+    if(total){
+
+        const first =
+            start + 1;
+
+        const last =
+            Math.min(
+                start +
+                ITEMS_PER_PAGE,
+                total
+            );
+
+
+        $("counter").textContent =
+
+            state.viewMode ===
+            "series"
+
+            ?
+
+            (
+                "Mostrando séries " +
+                first +
+                "–" +
+                last +
+                " de " +
+                total
+            )
+
+            :
+
+            (
+                "Mostrando " +
+                first +
+                "–" +
+                last +
+                " de " +
+                total
+            );
+
+    }
+
+    else{
+
+        $("counter").textContent =
+            "Nenhum resultado";
+
+    }
+
+
+    /*
+       GRID VAZIO
+    */
+
+    if(
+        !pageItems.length
     ){
 
         grid.innerHTML =
 
-            '<div class="empty" ' +
-
-            'style="grid-column:1/-1">' +
+            '<div class="empty">' +
 
             "Nenhum item encontrado." +
 
             "</div>";
+
+
+        renderPagination(
+            totalPages
+        );
 
         return;
 
     }
 
 
-    grid.innerHTML =
+    /*
+       SÉRIES
+    */
 
-        filtered
+    if(
+        state.viewMode ===
+        "series"
+    ){
 
-        .map(
-            function(item){
+        grid.innerHTML =
+            pageItems
+            .map(
+                renderSeriesCard
+            )
+            .join("");
 
-                return
+    }
 
-                '<div class="card">' +
+    else{
 
-                    '<button onclick="playItem(' +
+        grid.innerHTML =
+            pageItems
+            .map(
+                renderItemCard
+            )
+            .join("");
 
-                    item.id +
-
-                    ')">' +
-
-
-                        '<div class="thumb">' +
-
-
-                            (
-                                item.logo
-
-                                ?
-
-                                /*
-                                    IMPORTANTE:
-
-                                    O logo agora vai
-                                    direto para o servidor.
-
-                                    Não fazemos proxy
-                                    de milhares de
-                                    logos.
-                                */
-
-                                '<img loading="lazy" ' +
-
-                                'src="' +
-
-                                escapeHTML(
-                                    item.logo
-                                ) +
-
-                                '" ' +
-
-                                'onerror="' +
-
-                                "this.style.display='none'" +
-
-                                '">'
+    }
 
 
-                                :
+    /*
+       PAGINAÇÃO
+    */
 
-                                '<div class="noimg">▶</div>'
-
-                            )
-
-
-                        +
-
-                        "</div>" +
+    renderPagination(
+        totalPages
+    );
 
 
-                        '<div class="ct">' +
+    /*
+       Eventos
+    */
 
-
-                            "<b>" +
-
-                            escapeHTML(
-                                item.name
-                            ) +
-
-                            "</b>" +
-
-
-                            "<small>" +
-
-                            escapeHTML(
-                                item.group
-                            ) +
-
-                            " • " +
-
-                            escapeHTML(
-                                item.category
-                            ) +
-
-                            "</small>" +
-
-
-                        "</div>" +
-
-
-                    "</button>" +
-
-
-                "</div>";
-
-            }
-        )
-
-        .join("");
+    bindGridEvents();
 
 }
 
 
-/* ============================================================
-   CARREGAR LISTA — STREAMING
-============================================================ */
+/* =========================================================
+   CARD NORMAL
+========================================================= */
+
+function renderItemCard(
+    item
+){
+
+    const image =
+
+        item.logo
+
+        ?
+
+        '<img loading="lazy" src="' +
+
+        escapeHTML(
+            item.logo
+        ) +
+
+        '" onerror="this.style.display=\'none\'">'
+
+        :
+
+        '<div class="noimg">▶</div>';
+
+
+    return
+
+        '<div class="card">' +
+
+            '<button data-play="' +
+            item.id +
+            '">' +
+
+                '<div class="thumb">' +
+
+                    image +
+
+                "</div>" +
+
+                '<div class="ct">' +
+
+                    "<b>" +
+
+                    escapeHTML(
+                        item.name
+                    ) +
+
+                    "</b>" +
+
+                    "<small>" +
+
+                    escapeHTML(
+                        item.group
+                    ) +
+
+                    " • " +
+
+                    escapeHTML(
+                        item.category
+                    ) +
+
+                    "</small>" +
+
+                "</div>" +
+
+            "</button>" +
+
+        "</div>";
+
+}
+
+
+/* =========================================================
+   CARD SÉRIE
+========================================================= */
+
+function renderSeriesCard(
+    series
+){
+
+    const image =
+
+        series.logo
+
+        ?
+
+        '<img loading="lazy" src="' +
+
+        escapeHTML(
+            series.logo
+        ) +
+
+        '" onerror="this.style.display=\'none\'">'
+
+        :
+
+        '<div class="noimg">▶</div>';
+
+
+    const seasons =
+        new Set(
+            series.items.map(
+                getSeasonNumber
+            )
+        );
+
+
+    return
+
+        '<div class="card seriesCard">' +
+
+            '<button data-series="' +
+
+            escapeHTML(
+                series.name
+            ) +
+
+            '">' +
+
+                '<div class="thumb">' +
+
+                    image +
+
+                "</div>" +
+
+                '<div class="seriesInfo">' +
+
+                    "<b>" +
+
+                    escapeHTML(
+                        series.name
+                    ) +
+
+                    "</b>" +
+
+                    "<small>" +
+
+                    seasons.size +
+
+                    " temporada(s) • " +
+
+                    series.items.length +
+
+                    " episódio(s)" +
+
+                    "</small>" +
+
+                "</div>" +
+
+            "</button>" +
+
+        "</div>";
+
+}
+
+
+/* =========================================================
+   EVENTOS DO GRID
+========================================================= */
+
+function bindGridEvents(){
+
+    $("grid")
+        .querySelectorAll(
+            "[data-play]"
+        )
+        .forEach(
+            button => {
+
+                button.onclick = () => {
+
+                    const id =
+                        Number(
+                            button.dataset.play
+                        );
+
+                    playItem(
+                        id
+                    );
+
+                };
+
+            }
+        );
+
+
+    $("grid")
+        .querySelectorAll(
+            "[data-series]"
+        )
+        .forEach(
+            button => {
+
+                button.onclick = () => {
+
+                    openSeries(
+                        button.dataset.series
+                    );
+
+                };
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   PAGINAÇÃO
+========================================================= */
+
+function renderPagination(
+    totalPages
+){
+
+    const el =
+        $("pagination");
+
+
+    if(
+        totalPages <= 1
+    ){
+
+        el.innerHTML =
+            "";
+
+        return;
+
+    }
+
+
+    let html = "";
+
+
+    html +=
+
+        '<button class="pageBtn" ' +
+
+        'data-page="prev" ' +
+
+        (
+            state.page <= 1
+            ?
+            "disabled"
+            :
+            ""
+        ) +
+
+        '>‹</button>';
+
+
+    /*
+       Janela de páginas
+    */
+
+    let start =
+        Math.max(
+            1,
+            state.page - 2
+        );
+
+
+    let end =
+        Math.min(
+            totalPages,
+            start + 4
+        );
+
+
+    if(
+        end - start < 4
+    ){
+
+        start =
+            Math.max(
+                1,
+                end - 4
+            );
+
+    }
+
+
+    for(
+        let i = start;
+        i <= end;
+        i++
+    ){
+
+        html +=
+
+            '<button class="pageBtn ' +
+
+            (
+                i === state.page
+                ?
+                "active"
+                :
+                ""
+            ) +
+
+            '" data-page="' +
+            i +
+            '">' +
+
+            i +
+
+            "</button>";
+
+    }
+
+
+    html +=
+
+        '<span class="pageInfo">' +
+
+        state.page +
+
+        " / " +
+
+        totalPages +
+
+        "</span>";
+
+
+    html +=
+
+        '<button class="pageBtn" ' +
+
+        'data-page="next" ' +
+
+        (
+            state.page >= totalPages
+            ?
+            "disabled"
+            :
+            ""
+        ) +
+
+        '>›</button>';
+
+
+    el.innerHTML =
+        html;
+
+
+    el
+        .querySelectorAll(
+            "[data-page]"
+        )
+        .forEach(
+            button => {
+
+                button.onclick = () => {
+
+                    const value =
+                        button.dataset.page;
+
+
+                    if(
+                        value ===
+                        "prev"
+                    ){
+
+                        if(
+                            state.page > 1
+                        ){
+
+                            state.page--;
+
+                        }
+
+                    }
+
+                    else if(
+                        value ===
+                        "next"
+                    ){
+
+                        if(
+                            state.page <
+                            totalPages
+                        ){
+
+                            state.page++;
+
+                        }
+
+                    }
+
+                    else{
+
+                        state.page =
+                            Number(
+                                value
+                            );
+
+                    }
+
+
+                    render();
+
+
+                    window.scrollTo({
+
+                        top:0,
+
+                        behavior:
+                            "smooth"
+
+                    });
+
+                };
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   PESQUISA COM DEBOUNCE
+========================================================= */
+
+let searchTimer = null;
+
+
+$("search")
+    .addEventListener(
+        "input",
+        () => {
+
+            clearTimeout(
+                searchTimer
+            );
+
+
+            searchTimer =
+                setTimeout(
+                    () => {
+
+                        state.page =
+                            1;
+
+                        render();
+
+                    },
+                    250
+                );
+
+        }
+    );
+
+
+/* =========================================================
+   CATEGORIA
+========================================================= */
+
+$("cat")
+    .addEventListener(
+        "change",
+        () => {
+
+            state.page =
+                1;
+
+            render();
+
+        }
+    );
+
+
+/* =========================================================
+   ATUALIZAR
+========================================================= */
+
+$("refreshBtn")
+    .addEventListener(
+        "click",
+        refreshCurrent
+    );
+
+
+/* =========================================================
+   MODAL M3U
+========================================================= */
+
+function openM3U(){
+
+    $("m3uModal")
+        .classList
+        .remove(
+            "hidden"
+        );
+
+}
+
+
+function closeM3U(){
+
+    $("m3uModal")
+        .classList
+        .add(
+            "hidden"
+        );
+
+}
+
+
+$("saveM3UBtn")
+    .addEventListener(
+        "click",
+        saveM3U
+    );
+
+
+/* =========================================================
+   SALVAR M3U
+========================================================= */
+
+async function saveM3U(){
+
+    const name =
+        $("mName")
+            .value
+            .trim()
+        ||
+        "Minha TV";
+
+
+    const url =
+        $("mUrl")
+            .value
+            .trim();
+
+
+    if(
+        !/^https?:\/\//i
+        .test(url)
+    ){
+
+        toast(
+            "Informe uma URL HTTP ou HTTPS válida."
+        );
+
+        return;
+
+    }
+
+
+    const list = {
+
+        id:
+            crypto.randomUUID(),
+
+        name:
+            name,
+
+        url:
+            url,
+
+        createdAt:
+            new Date()
+                .toISOString(),
+
+        updatedAt:
+            null
+
+    };
+
+
+    state.lists.push(
+        list
+    );
+
+
+    saveState();
+
+
+    closeM3U();
+
+
+    $("mName").value =
+        "";
+
+    $("mUrl").value =
+        "";
+
+
+    await loadList(
+        list
+    );
+
+}
+
+
+/* =========================================================
+   CARREGAR LISTA
+========================================================= */
 
 async function loadList(
     list
@@ -2392,8 +3037,17 @@ async function loadList(
     state.current =
         list.id;
 
+    state.items =
+        [];
 
-    state.items = [];
+    state.filtered =
+        [];
+
+    state.seriesGroups =
+        [];
+
+    state.page =
+        1;
 
 
     renderListPills();
@@ -2416,15 +3070,7 @@ async function loadList(
 
     try{
 
-
-        /*
-        ========================================================
-        FAZER FETCH
-        ========================================================
-        */
-
         const response =
-
             await fetch(
 
                 proxyURL(
@@ -2434,11 +3080,9 @@ async function loadList(
 
                 {
 
-                    method:
-                        "GET",
+                    method:"GET",
 
-                    cache:
-                        "no-store",
+                    cache:"no-store",
 
                     headers:{
 
@@ -2452,12 +3096,6 @@ async function loadList(
             );
 
 
-        /*
-        ========================================================
-        VERIFICAR HTTP
-        ========================================================
-        */
-
         if(
             !response.ok
         ){
@@ -2469,9 +3107,7 @@ async function loadList(
             throw new Error(
 
                 errorText
-
                 ||
-
                 (
                     "HTTP " +
                     response.status
@@ -2482,86 +3118,53 @@ async function loadList(
         }
 
 
-        /*
-        ========================================================
-        STREAM
-        ========================================================
-        */
-
         if(
             !response.body
         ){
 
             throw new Error(
-
-                "O navegador não disponibilizou o fluxo da playlist."
-
+                "O navegador não disponibilizou o fluxo."
             );
 
         }
 
 
         /*
-        ========================================================
-        READER
-        ========================================================
+        =====================================================
+        STREAMING
+        =====================================================
         */
 
         const reader =
-
             response.body
                 .getReader();
 
 
-        /*
-        ========================================================
-        DECODER
-        ========================================================
-        */
-
         const decoder =
-
             new TextDecoder(
                 "utf-8"
             );
 
 
-        /*
-        ========================================================
-        BUFFER
-
-        Guardamos somente a parte
-        ainda não processada.
-        ========================================================
-        */
-
         let buffer = "";
-
 
         let metadata =
             null;
-
 
         let total = 0;
 
 
         /*
-        ========================================================
-        LOOP
-        ========================================================
+        =====================================================
+        LER POR PARTES
+        =====================================================
         */
 
         while(true){
 
-
             const result =
-
                 await reader.read();
 
-
-            /*
-            FIM
-            */
 
             if(
                 result.done
@@ -2572,49 +3175,27 @@ async function loadList(
             }
 
 
-            /*
-            DECODIFICAR PARTE
-            */
-
             buffer +=
 
                 decoder.decode(
-
                     result.value,
-
                     {
                         stream:true
                     }
-
                 );
 
 
-            /*
-            SEPARAR LINHAS
-            */
-
             const lines =
-
                 buffer.split(
                     /\r?\n/
                 );
 
 
-            /*
-            ÚLTIMA LINHA PODE
-            ESTAR INCOMPLETA
-            */
-
             buffer =
-
                 lines.pop()
                 ||
                 "";
 
-
-            /*
-            PROCESSAR LINHAS
-            */
 
             for(
                 const rawLine
@@ -2632,16 +3213,10 @@ async function loadList(
                 }
 
 
-                /*
-                EXTINF
-                */
-
                 if(
-
                     line.startsWith(
                         "#EXTINF"
                     )
-
                 ){
 
                     metadata =
@@ -2654,10 +3229,6 @@ async function loadList(
                 }
 
 
-                /*
-                DIRETIVAS
-                */
-
                 if(
                     line.startsWith("#")
                 ){
@@ -2667,36 +3238,22 @@ async function loadList(
                 }
 
 
-                /*
-                URL
-                */
-
-                const channelURL =
-
+                const url =
                     normalizeURL(
                         line
                     );
 
 
-                if(
-                    !channelURL
-                ){
+                if(!url){
 
                     continue;
 
                 }
 
 
-                /*
-                ADICIONAR
-                */
-
-                addM3UItem(
-
+                addItem(
                     metadata,
-
-                    channelURL
-
+                    url
                 );
 
 
@@ -2708,17 +3265,14 @@ async function loadList(
 
 
                 /*
-                ATUALIZAR INTERFACE
+                =============================================
+                A CADA 100 ITENS
+                =============================================
                 */
 
                 if(
                     total % 100 === 0
                 ){
-
-                    buildCategories();
-
-                    render();
-
 
                     setStatus(
 
@@ -2731,22 +3285,23 @@ async function loadList(
 
 
                     /*
-                    Deixa o navegador
-                    respirar.
+                       NÃO renderiza 100 vezes.
+                       Apenas atualiza a informação.
                     */
 
-                    await new Promise(
+                    if(
+                        total % 1000 === 0
+                    ){
 
-                        function(resolve){
+                        await new Promise(
+                            resolve =>
+                                setTimeout(
+                                    resolve,
+                                    0
+                                )
+                        );
 
-                            setTimeout(
-                                resolve,
-                                0
-                            );
-
-                        }
-
-                    );
+                    }
 
                 }
 
@@ -2756,22 +3311,16 @@ async function loadList(
 
 
         /*
-        ========================================================
-        DECODER FINAL
-        ========================================================
+        =====================================================
+        FINAL DO DECODER
+        =====================================================
         */
 
         buffer +=
-
             decoder.decode();
 
 
-        /*
-        PROCESSAR RESTANTE
-        */
-
         const lastLines =
-
             buffer.split(
                 /\r?\n/
             );
@@ -2794,11 +3343,9 @@ async function loadList(
 
 
             if(
-
                 line.startsWith(
                     "#EXTINF"
                 )
-
             ){
 
                 metadata =
@@ -2820,48 +3367,58 @@ async function loadList(
             }
 
 
-            const channelURL =
-
+            const url =
                 normalizeURL(
                     line
                 );
 
 
-            if(
-                !channelURL
-            ){
+            if(!url){
 
                 continue;
 
             }
 
 
-            addM3UItem(
-
+            addItem(
                 metadata,
-
-                channelURL
-
+                url
             );
 
 
             metadata =
                 null;
 
-
-            total++;
-
         }
 
 
         /*
-        ========================================================
-        FINAL
-        ========================================================
+        =====================================================
+        AGRUPAR SÉRIES
+        =====================================================
         */
 
-        list.updatedAt =
+        setStatus(
+            "Organizando " +
+            state.items.length +
+            " itens...",
+            true
+        );
 
+
+        await new Promise(
+            resolve =>
+                setTimeout(
+                    resolve,
+                    0
+                )
+        );
+
+
+        buildSeriesGroups();
+
+
+        list.updatedAt =
             new Date()
                 .toISOString();
 
@@ -2871,46 +3428,33 @@ async function loadList(
 
         buildCategories();
 
+
+        state.page =
+            1;
+
+
         render();
 
 
-        if(
-            state.items.length
-        ){
+        setStatus(
 
-            setStatus(
+            state.items.length +
+            " itens carregados de " +
+            list.name +
+            ".",
 
-                state.items.length +
-                " itens carregados de " +
-                list.name +
-                ".",
+            true
 
-                true
-
-            );
+        );
 
 
-            toast(
-                "Lista carregada com sucesso."
-            );
-
-        }
-
-        else{
-
-            throw new Error(
-
-                "Nenhum canal foi encontrado na M3U."
-
-            );
-
-        }
-
+        toast(
+            "Lista carregada com sucesso."
+        );
 
     }
 
     catch(error){
-
 
         console.error(
             "GC PLAY PRO:",
@@ -2937,259 +3481,162 @@ async function loadList(
 }
 
 
-/* ============================================================
-   SALVAR NOVA LISTA
-============================================================ */
+/* =========================================================
+   LISTAS
+========================================================= */
 
-async function saveM3U(){
+function openLists(){
 
-    const name =
-
-        document
-            .getElementById(
-                "mName"
-            )
-            .value
-            .trim()
-
-        ||
-
-        "Minha lista";
+    renderListManager();
 
 
-    const url =
-
-        document
-            .getElementById(
-                "mUrl"
-            )
-            .value
-            .trim();
-
-
-    if(
-
-        !/^https?:\/\//i
-        .test(
-            url
-        )
-
-    ){
-
-        toast(
-            "Informe uma URL M3U HTTP ou HTTPS."
+    $("listsModal")
+        .classList
+        .remove(
+            "hidden"
         );
-
-        return;
-
-    }
-
-
-    const list = {
-
-        id:
-            crypto.randomUUID(),
-
-        name:
-            name,
-
-        url:
-            url,
-
-        createdAt:
-
-            new Date()
-                .toISOString(),
-
-        updatedAt:
-            null
-
-    };
-
-
-    state.lists.push(
-        list
-    );
-
-
-    saveState();
-
-
-    closeM3U();
-
-
-    document
-        .getElementById(
-            "mName"
-        )
-        .value = "";
-
-
-    document
-        .getElementById(
-            "mUrl"
-        )
-        .value = "";
-
-
-    await loadList(
-        list
-    );
 
 }
 
 
-/* ============================================================
-   SELECIONAR LISTA
-============================================================ */
+function closeLists(){
 
-function selectList(
-    id
-){
-
-    const list =
-
-        state.lists.find(
-            function(item){
-
-                return (
-                    item.id === id
-                );
-
-            }
+    $("listsModal")
+        .classList
+        .add(
+            "hidden"
         );
-
-
-    if(list){
-
-        loadList(
-            list
-        );
-
-    }
 
 }
 
-
-/* ============================================================
-   GERENCIAR LISTAS
-============================================================ */
 
 function renderListManager(){
 
-    const element =
-        document.getElementById(
-            "listRows"
-        );
+    const el =
+        $("listRows");
 
 
     if(
         !state.lists.length
     ){
 
-        element.innerHTML =
+        el.innerHTML =
 
             '<div class="empty">' +
-
-            "Nenhuma lista cadastrada." +
-
-            "</div>";
+            'Nenhuma lista cadastrada.' +
+            '</div>';
 
         return;
 
     }
 
 
-    element.innerHTML =
+    el.innerHTML =
 
         state.lists
-
         .map(
-            function(list){
+            list =>
 
-                return
+                '<div class="listRow">' +
 
-                    '<div class="listRow">' +
+                    '<div class="grow">' +
 
+                        '<div class="name">' +
 
-                        '<div class="grow">' +
+                        escapeHTML(
+                            list.name
+                        ) +
 
+                        '</div>' +
 
-                            '<div class="name">' +
+                        '<div class="url">' +
 
-                            escapeHTML(
-                                list.name
-                            ) +
+                        escapeHTML(
+                            list.url
+                        ) +
 
-                            "</div>" +
+                        '</div>' +
 
+                    '</div>' +
 
-                            '<div class="url">' +
+                    '<button class="btn" data-edit="' +
 
-                            escapeHTML(
-                                list.url
-                            ) +
+                    escapeHTML(
+                        list.id
+                    ) +
 
-                            "</div>" +
+                    '">' +
 
+                    'Editar' +
 
-                        "</div>" +
+                    '</button>' +
 
+                    '<button class="btn danger" data-delete="' +
 
-                        '<button class="btn" ' +
+                    escapeHTML(
+                        list.id
+                    ) +
 
-                        'onclick="editList(\'' +
+                    '">' +
 
-                        list.id +
+                    'Excluir' +
 
-                        '\')">' +
+                    '</button>' +
 
-                        "Editar" +
+                '</div>'
 
-                        "</button>" +
-
-
-                        '<button class="btn danger" ' +
-
-                        'onclick="deleteList(\'' +
-
-                        list.id +
-
-                        '\')">' +
-
-                        "Excluir" +
-
-                        "</button>" +
+        )
+        .join("");
 
 
-                    "</div>";
+    el
+        .querySelectorAll(
+            "[data-edit]"
+        )
+        .forEach(
+            button => {
+
+                button.onclick =
+                    () =>
+                        editList(
+                            button.dataset.edit
+                        );
 
             }
-        )
+        );
 
-        .join("");
+
+    el
+        .querySelectorAll(
+            "[data-delete]"
+        )
+        .forEach(
+            button => {
+
+                button.onclick =
+                    () =>
+                        deleteList(
+                            button.dataset.delete
+                        );
+
+            }
+        );
 
 }
 
 
-/* ============================================================
-   EDITAR LISTA
-============================================================ */
+/* =========================================================
+   EDITAR
+========================================================= */
 
 function editList(
     id
 ){
 
     const list =
-
         state.lists.find(
-            function(item){
-
-                return (
-                    item.id === id
-                );
-
-            }
+            item =>
+                item.id === id
         );
 
 
@@ -3201,7 +3648,6 @@ function editList(
 
 
     const name =
-
         prompt(
             "Nome da lista:",
             list.name
@@ -3218,7 +3664,6 @@ function editList(
 
 
     const url =
-
         prompt(
             "URL M3U:",
             list.url
@@ -3234,17 +3679,11 @@ function editList(
     }
 
 
-    const cleanURL =
-        url.trim();
-
-
     if(
-
         !/^https?:\/\//i
         .test(
-            cleanURL
+            url.trim()
         )
-
     ){
 
         toast(
@@ -3257,14 +3696,13 @@ function editList(
 
 
     list.name =
-
         name.trim()
         ||
-        "Minha lista";
+        "Minha TV";
 
 
     list.url =
-        cleanURL;
+        url.trim();
 
 
     saveState();
@@ -3280,20 +3718,18 @@ function editList(
 }
 
 
-/* ============================================================
-   EXCLUIR LISTA
-============================================================ */
+/* =========================================================
+   EXCLUIR
+========================================================= */
 
 function deleteList(
     id
 ){
 
     if(
-
         !confirm(
             "Excluir esta lista?"
         )
-
     ){
 
         return;
@@ -3302,15 +3738,9 @@ function deleteList(
 
 
     state.lists =
-
         state.lists.filter(
-            function(list){
-
-                return (
-                    list.id !== id
-                );
-
-            }
+            list =>
+                list.id !== id
         );
 
 
@@ -3321,7 +3751,14 @@ function deleteList(
         state.current =
             null;
 
-        state.items = [];
+        state.items =
+            [];
+
+        state.filtered =
+            [];
+
+        state.seriesGroups =
+            [];
 
     }
 
@@ -3340,30 +3777,50 @@ function deleteList(
 }
 
 
-/* ============================================================
+/* =========================================================
+   SELECIONAR LISTA
+========================================================= */
+
+function selectList(
+    id
+){
+
+    const list =
+        state.lists.find(
+            item =>
+                item.id === id
+        );
+
+
+    if(list){
+
+        loadList(
+            list
+        );
+
+    }
+
+}
+
+
+/* =========================================================
    ATUALIZAR
-============================================================ */
+========================================================= */
 
 async function refreshCurrent(){
 
     const list =
-
         state.lists.find(
-            function(item){
-
-                return (
-                    item.id ===
-                    state.current
-                );
-
-            }
+            item =>
+                item.id ===
+                state.current
         );
 
 
     if(!list){
 
         toast(
-            "Adicione uma lista M3U primeiro."
+            "Adicione uma lista primeiro."
         );
 
         return;
@@ -3378,59 +3835,282 @@ async function refreshCurrent(){
 }
 
 
-/* ============================================================
-   FECHAR PLAYER
-============================================================ */
+/* =========================================================
+   SÉRIES
+========================================================= */
+
+function openSeries(
+    seriesName
+){
+
+    const series =
+        state.seriesGroups.find(
+            item =>
+                item.name ===
+                seriesName
+        );
+
+
+    if(!series){
+
+        return;
+
+    }
+
+
+    $("seriesTitle")
+        .textContent =
+        series.name;
+
+
+    const seasons =
+        new Map();
+
+
+    for(
+        const episode
+        of series.items
+    ){
+
+        const season =
+            getSeasonNumber(
+                episode
+            );
+
+
+        if(
+            !seasons.has(
+                season
+            )
+        ){
+
+            seasons.set(
+                season,
+                []
+            );
+
+        }
+
+
+        seasons
+            .get(season)
+            .push(
+                episode
+            );
+
+    }
+
+
+    const seasonNumbers =
+        Array.from(
+            seasons.keys()
+        )
+        .sort(
+            (a,b) =>
+                a - b
+        );
+
+
+    $("seriesContent").innerHTML =
+
+        seasonNumbers
+        .map(
+            season => {
+
+                const episodes =
+                    seasons
+                        .get(
+                            season
+                        )
+                        .sort(
+                            (a,b) =>
+                                getEpisodeNumber(a) -
+                                getEpisodeNumber(b)
+                        );
+
+
+                return
+
+                    '<div class="season">' +
+
+                        '<button class="seasonTitle">' +
+
+                        'Temporada ' +
+                        season +
+
+                        ' (' +
+                        episodes.length +
+                        ' episódios)' +
+
+                        '</button>' +
+
+                        '<div class="episodeList">' +
+
+                            episodes
+                            .map(
+                                episode =>
+
+                                    '<div class="episode">' +
+
+                                        '<div class="episodeName">' +
+
+                                        escapeHTML(
+                                            episode.name
+                                        ) +
+
+                                        '</div>' +
+
+                                        '<button class="btn primary" data-episode="' +
+
+                                        episode.id +
+
+                                        '">' +
+
+                                        '▶' +
+
+                                        '</button>' +
+
+                                    '</div>'
+
+                            )
+                            .join("") +
+
+                        '</div>' +
+
+                    '</div>';
+
+            }
+        )
+        .join("");
+
+
+    $("seriesModal")
+        .classList
+        .remove(
+            "hidden"
+        );
+
+
+    /*
+       Abrir/fechar temporadas
+    */
+
+    $("seriesContent")
+        .querySelectorAll(
+            ".seasonTitle"
+        )
+        .forEach(
+            button => {
+
+                button.onclick = () => {
+
+                    const list =
+                        button
+                            .nextElementSibling;
+
+
+                    list.classList.toggle(
+                        "open"
+                    );
+
+                };
+
+            }
+        );
+
+
+    /*
+       Episódios
+    */
+
+    $("seriesContent")
+        .querySelectorAll(
+            "[data-episode]"
+        )
+        .forEach(
+            button => {
+
+                button.onclick = () => {
+
+                    const id =
+                        Number(
+                            button.dataset.episode
+                        );
+
+
+                    closeSeries();
+
+
+                    playItem(
+                        id
+                    );
+
+                };
+
+            }
+        );
+
+}
+
+
+function closeSeries(){
+
+    $("seriesModal")
+        .classList
+        .add(
+            "hidden"
+        );
+
+}
+
+
+/* =========================================================
+   PLAYER
+========================================================= */
 
 function closePlayer(){
 
-    document
-        .getElementById(
-            "playerModal"
-        )
+    $("playerModal")
         .classList
         .add(
             "hidden"
         );
 
 
-    try{
+    if(hls){
 
-        if(hls){
-
+        try{
             hls.destroy();
-
-            hls = null;
-
         }
+        catch(e){}
+
+        hls =
+            null;
 
     }
 
-    catch(error){}
 
+    if(mpegPlayer){
 
-    try{
-
-        if(player){
-
-            player.destroy();
-
-            player = null;
-
+        try{
+            mpegPlayer.destroy();
         }
+        catch(e){}
+
+        mpegPlayer =
+            null;
 
     }
-
-    catch(error){}
 
 
     const video =
-        document.getElementById(
-            "video"
-        );
+        $("video");
 
 
-    video.pause();
+    try{
+        video.pause();
+    }
+    catch(e){}
 
 
     video.removeAttribute(
@@ -3443,125 +4123,114 @@ function closePlayer(){
 }
 
 
-/* ============================================================
-   PLAYER
-============================================================ */
+function playerStatus(
+    text
+){
+
+    $("playerStatus")
+        .textContent =
+        text;
+
+}
+
+
+/* =========================================================
+   REPRODUZIR
+========================================================= */
 
 function playItem(
     id
 ){
 
     const item =
-
         state.items.find(
-            function(channel){
-
-                return (
-                    channel.id === id
-                );
-
-            }
+            channel =>
+                channel.id === id
         );
 
 
     if(!item){
+
+        toast(
+            "Canal não encontrado."
+        );
 
         return;
 
     }
 
 
-    document
-        .getElementById(
-            "playerName"
-        )
+    closePlayer();
+
+
+    $("playerName")
         .textContent =
         item.name;
 
 
-    document
-        .getElementById(
-            "playerStatus"
-        )
-        .textContent =
-        "Conectando...";
-
-
-    document
-        .getElementById(
-            "playerModal"
-        )
+    $("playerModal")
         .classList
         .remove(
             "hidden"
         );
 
 
+    playerStatus(
+        "Conectando ao servidor..."
+    );
+
+
     const video =
-        document.getElementById(
-            "video"
-        );
+        $("video");
 
 
     /*
-    ============================================================
-    URL DO STREAM
-
-    Sempre passa pelo proxy.
-
-    O servidor vem da própria M3U.
-    ============================================================
+    ========================================================
+    SEMPRE PASSAR PELO PROXY
+    ========================================================
     */
 
     const streamURL =
-
         proxyURL(
-
             item.url,
-
             "media"
-
         );
 
 
-    const originalURL =
-
+    const original =
         item.url
             .toLowerCase();
 
 
     /*
-    ============================================================
+    ========================================================
     HLS
-    ============================================================
+    ========================================================
     */
 
     if(
-
         /\.m3u8(?:$|\?)/i
         .test(
-            originalURL
+            original
         )
-
     ){
 
         if(
-
-            window.Hls
-            &&
+            window.Hls &&
             Hls.isSupported()
-
         ){
 
             hls =
-
                 new Hls({
 
                     enableWorker:
                         true,
 
                     lowLatencyMode:
-                        false
+                        false,
+
+                    enableStashBuffer:
+                        true
 
                 });
 
@@ -3577,69 +4246,61 @@ function playItem(
 
 
             hls.on(
+                Hls.Events.MANIFEST_PARSED,
+                () => {
 
-                Hls.Events
-                    .MANIFEST_PARSED,
-
-                function(){
-
-                    document
-                        .getElementById(
-                            "playerStatus"
-                        )
-                        .textContent =
-                        "HLS conectado.";
+                    playerStatus(
+                        "HLS conectado."
+                    );
 
 
                     video
                         .play()
                         .catch(
-                            function(){}
+                            () => {}
                         );
 
                 }
-
             );
 
 
             hls.on(
-
                 Hls.Events.ERROR,
-
-                function(
+                (
                     event,
                     data
-                ){
+                ) => {
+
+                    console.error(
+                        "HLS:",
+                        data
+                    );
+
 
                     if(
                         data &&
                         data.fatal
                     ){
 
-                        document
-                            .getElementById(
-                                "playerStatus"
-                            )
-                            .textContent =
-
+                        playerStatus(
                             "Erro HLS: " +
-                            data.details;
+                            (
+                                data.details ||
+                                "falha fatal"
+                            )
+                        );
 
                     }
 
                 }
-
             );
 
         }
 
-
         else if(
-
             video.canPlayType(
                 "application/vnd.apple.mpegurl"
             )
-
         ){
 
             video.src =
@@ -3649,21 +4310,16 @@ function playItem(
             video
                 .play()
                 .catch(
-                    function(){}
+                    () => {}
                 );
 
         }
 
-
         else{
 
-            document
-                .getElementById(
-                    "playerStatus"
-                )
-                .textContent =
-
-                "Este navegador não suporta HLS.";
+            playerStatus(
+                "Este navegador não suporta HLS."
+            );
 
         }
 
@@ -3674,9 +4330,9 @@ function playItem(
 
 
     /*
-    ============================================================
+    ========================================================
     MPEG-TS
-    ============================================================
+    ========================================================
     */
 
     if(
@@ -3684,13 +4340,9 @@ function playItem(
         "undefined"
     ){
 
-        document
-            .getElementById(
-                "playerStatus"
-            )
-            .textContent =
-
-            "mpegts.js não carregou.";
+        playerStatus(
+            "mpegts.js não carregou."
+        );
 
         return;
 
@@ -3699,8 +4351,7 @@ function playItem(
 
     try{
 
-        player =
-
+        mpegPlayer =
             mpegts.createPlayer(
 
                 {
@@ -3732,49 +4383,49 @@ function playItem(
             );
 
 
-        player.attachMediaElement(
+        mpegPlayer.attachMediaElement(
             video
         );
 
 
-        player.load();
+        mpegPlayer.load();
 
 
-        player.play()
+        mpegPlayer.play()
             .catch(
-                function(){}
+                () => {}
             );
 
 
-        player.on(
-
+        mpegPlayer.on(
             mpegts.Events.ERROR,
+            (
+                type,
+                detail,
+                info
+            ) => {
 
-            function(){
+                console.error(
+                    "MPEGTS:",
+                    type,
+                    detail,
+                    info
+                );
 
-                document
-                    .getElementById(
-                        "playerStatus"
-                    )
-                    .textContent =
 
-                    "Falha ao reproduzir o MPEG-TS.";
+                playerStatus(
+                    "Falha ao reproduzir MPEG-TS."
+                );
 
             }
-
         );
 
 
-        document
-            .getElementById(
-                "playerStatus"
-            )
-            .textContent =
-
-            "MPEG-TS conectado.";
+        playerStatus(
+            "MPEG-TS conectado."
+        );
 
     }
-
 
     catch(error){
 
@@ -3783,23 +4434,59 @@ function playItem(
         );
 
 
-        document
-            .getElementById(
-                "playerStatus"
-            )
-            .textContent =
+        playerStatus(
 
             "Erro no player: " +
-            error.message;
+            error.message
+
+        );
 
     }
 
 }
 
 
-/* ============================================================
+/* =========================================================
+   FECHAR MODAIS AO CLICAR FORA
+========================================================= */
+
+[
+    "m3uModal",
+    "listsModal",
+    "seriesModal",
+    "playerModal"
+]
+.forEach(
+    id => {
+
+        $(id)
+            .addEventListener(
+                "click",
+                event => {
+
+                    if(
+                        event.target ===
+                        $(id)
+                    ){
+
+                        $(id)
+                            .classList
+                            .add(
+                                "hidden"
+                            );
+
+                    }
+
+                }
+            );
+
+    }
+);
+
+
+/* =========================================================
    INICIALIZAÇÃO
-============================================================ */
+========================================================= */
 
 loadState();
 
@@ -3814,34 +4501,29 @@ if(
     state.lists.length
 ){
 
+    /*
+       Recupera a primeira lista.
+    */
+
     loadList(
         state.lists[0]
     );
 
 }
 
-
 else{
 
-    document
-        .getElementById(
-            "grid"
-        )
-        .innerHTML =
+    $("grid").innerHTML =
 
-        '<div class="empty" ' +
+        '<div class="empty">' +
 
-        'style="grid-column:1/-1">' +
+        'Adicione sua primeira lista M3U para começar.' +
 
-        "Adicione sua primeira lista M3U para começar." +
-
-        "</div>";
+        '</div>';
 
 }
-
 
 </script>
 
 </body>
-
 </html>
