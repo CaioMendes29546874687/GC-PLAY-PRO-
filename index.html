@@ -4,12 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#050505">
+
 <title>GC PLAY PRO</title>
 
 <style>
-*{box-sizing:border-box}
 
-html,body{
+*{
+    box-sizing:border-box;
+}
+
+html,
+body{
     margin:0;
     padding:0;
     background:#050505;
@@ -21,7 +26,9 @@ body{
     min-height:100vh;
 }
 
-button,input,select{
+button,
+input,
+select{
     font:inherit;
 }
 
@@ -33,7 +40,9 @@ button{
     display:none!important;
 }
 
-/* HEADER */
+/* =========================
+   HEADER
+========================= */
 
 header{
     position:sticky;
@@ -48,6 +57,7 @@ header{
     margin:auto;
     min-height:76px;
     padding:10px 18px;
+
     display:flex;
     align-items:center;
     gap:10px;
@@ -64,13 +74,17 @@ header{
     flex:1;
 }
 
-/* BOTÕES */
+/* =========================
+   BOTÕES
+========================= */
 
 .btn{
     border:1px solid #333;
     background:#111;
     color:#fff;
+
     border-radius:12px;
+
     padding:12px 16px;
 }
 
@@ -89,7 +103,9 @@ header{
     color:#ff7777;
 }
 
-/* MAIN */
+/* =========================
+   MAIN
+========================= */
 
 main{
     max-width:1400px;
@@ -108,20 +124,29 @@ main{
 
 .hero p{
     margin:0;
+
     color:#999;
+
     font-size:20px;
     line-height:1.4;
+
     max-width:800px;
 }
 
-/* STATUS */
+/* =========================
+   STATUS
+========================= */
 
 .status{
     padding:13px 15px;
     margin:12px 0;
+
     border-radius:12px;
+
     border:1px solid #333;
+
     background:#0c0c0c;
+
     color:#aaa;
 }
 
@@ -135,21 +160,31 @@ main{
     color:#ffaaaa;
 }
 
-/* LISTAS */
+/* =========================
+   LISTAS
+========================= */
 
 .lists{
     display:flex;
+
     gap:8px;
+
     overflow-x:auto;
+
     padding:8px 0 14px;
 }
 
 .pill{
     border:1px solid #333;
+
     background:#111;
+
     color:#fff;
+
     border-radius:999px;
+
     padding:10px 16px;
+
     white-space:nowrap;
 }
 
@@ -158,23 +193,35 @@ main{
     border-color:#39ff14;
 }
 
-/* TOOLBAR */
+/* =========================
+   TOOLBAR
+========================= */
 
 .toolbar{
     display:flex;
+
     gap:10px;
+
     flex-wrap:wrap;
+
     margin:10px 0;
 }
 
 .search{
     flex:1;
+
     min-width:220px;
+
     padding:14px;
+
     border-radius:12px;
+
     border:1px solid #333;
+
     background:#0e0e0e;
+
     color:#fff;
+
     outline:none;
 }
 
@@ -184,66 +231,102 @@ main{
 
 select{
     padding:13px 14px;
+
     border-radius:12px;
+
     border:1px solid #333;
+
     background:#111;
+
     color:#fff;
+
     min-width:170px;
 }
 
-/* CONTADOR */
+/* =========================
+   CONTADOR
+========================= */
 
 .counter{
     color:#888;
+
     font-size:14px;
+
     margin:12px 0;
 }
 
-/* GRID */
+/* =========================
+   GRID
+========================= */
 
 .grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(190px,1fr)
+        );
+
     gap:12px;
+
     width:100%;
 }
 
-/* CARD */
+/* =========================
+   CARD
+========================= */
 
 .card{
     min-width:0;
+
     border:1px solid #292929;
+
     border-radius:14px;
+
     overflow:hidden;
+
     background:#101010;
 }
 
 .cardBtn{
     width:100%;
+
     padding:0;
+
     border:0;
+
     background:transparent;
+
     color:#fff;
+
     text-align:left;
 }
 
 .thumb{
     height:120px;
+
     background:#080808;
+
     display:flex;
+
     align-items:center;
+
     justify-content:center;
+
     overflow:hidden;
 }
 
 .thumb img{
     width:100%;
     height:100%;
+
     object-fit:contain;
 }
 
 .noimg{
     color:#333;
+
     font-size:38px;
 }
 
@@ -253,41 +336,61 @@ select{
 
 .cardTitle{
     font-size:14px;
+
     font-weight:bold;
+
     line-height:1.3;
 }
 
 .cardGroup{
     margin-top:6px;
+
     color:#777;
+
     font-size:12px;
+
     white-space:nowrap;
+
     overflow:hidden;
+
     text-overflow:ellipsis;
 }
 
-/* PAGINAÇÃO */
+/* =========================
+   PAGINAÇÃO
+========================= */
 
 .pagination{
     display:flex;
+
     justify-content:center;
+
     align-items:center;
+
     flex-wrap:wrap;
+
     gap:7px;
+
     padding:25px 0;
 }
 
 .page{
     min-width:42px;
+
     padding:10px;
+
     border-radius:9px;
+
     border:1px solid #333;
+
     background:#111;
+
     color:#fff;
 }
 
 .page.active{
     color:#39ff14;
+
     border-color:#39ff14;
 }
 
@@ -297,29 +400,45 @@ select{
 
 .pageInfo{
     color:#888;
+
     padding:0 8px;
 }
 
-/* MODAL */
+/* =========================
+   MODAL
+========================= */
 
 .modal{
     position:fixed;
+
     inset:0;
+
     z-index:100;
+
     background:rgba(0,0,0,.85);
+
     display:flex;
+
     align-items:center;
+
     justify-content:center;
+
     padding:15px;
 }
 
 .box{
     width:min(700px,100%);
+
     max-height:92vh;
+
     overflow:auto;
+
     background:#111;
+
     border:1px solid #333;
+
     border-radius:17px;
+
     padding:20px;
 }
 
@@ -333,18 +452,27 @@ select{
 
 .field label{
     display:block;
+
     color:#aaa;
+
     font-size:13px;
+
     margin-bottom:7px;
 }
 
 .field input{
     width:100%;
+
     padding:14px;
+
     border-radius:10px;
+
     border:1px solid #333;
+
     background:#080808;
+
     color:#fff;
+
     outline:none;
 }
 
@@ -354,22 +482,35 @@ select{
 
 .actions{
     display:flex;
+
     justify-content:flex-end;
+
     gap:8px;
+
     flex-wrap:wrap;
+
     margin-top:18px;
 }
 
-/* LIST MANAGER */
+/* =========================
+   LIST MANAGER
+========================= */
 
 .listRow{
     border:1px solid #292929;
+
     background:#0b0b0b;
+
     border-radius:12px;
+
     padding:12px;
+
     margin:8px 0;
+
     display:flex;
+
     align-items:center;
+
     gap:10px;
 }
 
@@ -379,64 +520,101 @@ select{
 
 .listURL{
     color:#666;
+
     font-size:12px;
+
     overflow:hidden;
+
     white-space:nowrap;
+
     text-overflow:ellipsis;
 }
 
-/* PLAYER */
+/* =========================
+   PLAYER
+========================= */
 
 .playerBox{
     width:min(1100px,100%);
+
     background:#111;
+
     border:1px solid #333;
+
     border-radius:15px;
+
     padding:10px;
 }
 
 .playerHead{
     display:flex;
+
     align-items:center;
+
     gap:10px;
+
     padding:5px;
 }
 
 .playerTitle{
     flex:1;
+
     font-weight:bold;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
 }
 
 video{
     width:100%;
+
     max-height:75vh;
+
     display:block;
+
     background:#000;
+
     border-radius:10px;
 }
 
 .playerStatus{
     color:#888;
+
     font-size:13px;
+
     padding:10px 5px;
 }
 
-/* SÉRIES */
+/* =========================
+   SÉRIES
+========================= */
 
 .season{
     border:1px solid #292929;
+
     border-radius:12px;
+
     margin:10px 0;
+
     overflow:hidden;
 }
 
 .seasonBtn{
     width:100%;
+
     padding:14px;
+
     background:#181818;
+
     color:#fff;
+
     border:0;
+
     text-align:left;
+
     font-weight:bold;
 }
 
@@ -450,40 +628,61 @@ video{
 
 .episode{
     display:flex;
+
     align-items:center;
+
     gap:10px;
+
     border-top:1px solid #292929;
+
     padding:10px;
 }
 
 .episodeName{
     flex:1;
+
     font-size:14px;
 }
 
-/* TOAST */
+/* =========================
+   TOAST
+========================= */
 
 #toast{
     position:fixed;
+
     left:50%;
+
     bottom:20px;
+
     transform:translateX(-50%);
+
     z-index:200;
+
     background:#181818;
+
     border:1px solid #333;
+
     padding:12px 17px;
+
     border-radius:12px;
+
     display:none;
+
     max-width:90%;
+
     text-align:center;
 }
 
-/* MOBILE */
+/* =========================
+   MOBILE
+========================= */
 
 @media(max-width:650px){
 
     .top{
         min-height:64px;
+
         padding:8px 12px;
     }
 
@@ -508,7 +707,9 @@ video{
     }
 
     .grid{
-        grid-template-columns:repeat(2,minmax(0,1fr));
+        grid-template-columns:
+            repeat(2,minmax(0,1fr));
+
         gap:8px;
     }
 
@@ -530,7 +731,9 @@ video{
 
     .search{
         width:100%;
+
         min-width:0;
+
         order:1;
     }
 
@@ -545,296 +748,321 @@ video{
     .listRow{
         flex-wrap:wrap;
     }
+
 }
+
 </style>
 </head>
 
 <body>
 
 <header>
-    <div class="top">
 
-        <div class="logo">
-            GC PLAY PRO
-        </div>
+<div class="top">
 
-        <div class="grow"></div>
+<div class="logo">
+GC PLAY PRO
+</div>
 
-        <button class="btn" onclick="openLists()">
-            LISTAS
-        </button>
+<div class="grow"></div>
 
-        <button class="btn primary" onclick="openM3U()">
-            + M3U
-        </button>
+<button
+class="btn"
+onclick="openLists()"
+>
+LISTAS
+</button>
 
-    </div>
+<button
+class="btn primary"
+onclick="openM3U()"
+>
++ M3U
+</button>
+
+</div>
+
 </header>
 
 
 <main>
 
-    <section class="hero">
+<section class="hero">
 
-        <h1>
-            Sua TV, do seu jeito.
-        </h1>
+<h1>
+Sua TV, do seu jeito.
+</h1>
 
-        <p>
-            Cada lista utiliza seu próprio servidor.
-            O GC PLAY PRO não fica preso a nenhum servidor específico.
-        </p>
+<p>
+Cada lista utiliza seu próprio servidor.
+O GC PLAY PRO não fica preso a nenhum servidor específico.
+</p>
 
-    </section>
-
-
-    <div id="status" class="status hidden"></div>
+</section>
 
 
-    <div id="listPills" class="lists"></div>
+<div
+id="status"
+class="status hidden"
+></div>
 
 
-    <div class="toolbar">
-
-        <select id="category">
-            <option value="ALL">
-                Todas
-            </option>
-        </select>
-
-        <input
-            id="search"
-            class="search"
-            placeholder="Pesquisar canal, filme, série..."
-            autocomplete="off"
-        >
-
-        <button
-            id="refresh"
-            class="btn"
-        >
-            ↻ Atualizar
-        </button>
-
-    </div>
+<div
+id="listPills"
+class="lists"
+></div>
 
 
-    <div
-        id="counter"
-        class="counter"
-    ></div>
+<div class="toolbar">
+
+<select id="category">
+<option value="ALL">
+Todas
+</option>
+</select>
+
+<button
+id="refresh"
+class="btn"
+>
+↻ Atualizar
+</button>
+
+<input
+id="search"
+class="search"
+placeholder="Pesquisar canal, filme, série..."
+autocomplete="off"
+>
+
+</div>
 
 
-    <div
-        id="grid"
-        class="grid"
-    ></div>
+<div
+id="counter"
+class="counter"
+></div>
 
 
-    <div
-        id="pagination"
-        class="pagination"
-    ></div>
+<div
+id="grid"
+class="grid"
+></div>
+
+
+<div
+id="pagination"
+class="pagination"
+></div>
 
 </main>
 
 
-<!-- =====================================================
+<!-- =========================
      MODAL M3U
-====================================================== -->
+========================= -->
 
 <div
-    id="m3uModal"
-    class="modal hidden"
+id="m3uModal"
+class="modal hidden"
 >
 
-    <div class="box">
+<div class="box">
 
-        <h2>
-            Adicionar lista M3U
-        </h2>
+<h2>
+Adicionar lista M3U
+</h2>
 
-        <div class="field">
+<div class="field">
 
-            <label>
-                Nome da lista
-            </label>
+<label>
+Nome da lista
+</label>
 
-            <input
-                id="m3uName"
-                placeholder="Minha TV"
-            >
-
-        </div>
-
-
-        <div class="field">
-
-            <label>
-                URL M3U
-            </label>
-
-            <input
-                id="m3uURL"
-                placeholder="http://servidor/get.php?..."
-            >
-
-        </div>
-
-
-        <p style="color:#888;font-size:13px;line-height:1.5">
-
-            Você pode cadastrar várias listas.
-            Cada lista pode utilizar um servidor diferente.
-
-        </p>
-
-
-        <div class="actions">
-
-            <button
-                class="btn"
-                onclick="closeM3U()"
-            >
-                Cancelar
-            </button>
-
-            <button
-                id="addM3U"
-                class="btn primary"
-            >
-                Salvar e carregar
-            </button>
-
-        </div>
-
-    </div>
+<input
+id="m3uName"
+placeholder="Minha TV"
+>
 
 </div>
 
 
-<!-- =====================================================
+<div class="field">
+
+<label>
+URL M3U
+</label>
+
+<input
+id="m3uURL"
+placeholder="http://servidor/get.php?..."
+>
+
+</div>
+
+
+<p
+style="
+color:#888;
+font-size:13px;
+line-height:1.5
+"
+>
+
+Você pode cadastrar várias listas.
+Cada lista pode utilizar um servidor diferente.
+
+</p>
+
+
+<div class="actions">
+
+<button
+class="btn"
+onclick="closeM3U()"
+>
+Cancelar
+</button>
+
+<button
+id="addM3U"
+class="btn primary"
+>
+Salvar e carregar
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- =========================
      MODAL LISTAS
-====================================================== -->
+========================= -->
 
 <div
-    id="listsModal"
-    class="modal hidden"
+id="listsModal"
+class="modal hidden"
 >
 
-    <div class="box">
+<div class="box">
 
-        <h2>
-            Minhas listas
-        </h2>
+<h2>
+Minhas listas
+</h2>
 
-        <div id="listRows"></div>
+<div id="listRows"></div>
 
-        <div class="actions">
+<div class="actions">
 
-            <button
-                class="btn"
-                onclick="closeLists()"
-            >
-                Fechar
-            </button>
+<button
+class="btn"
+onclick="closeLists()"
+>
+Fechar
+</button>
 
-            <button
-                class="btn primary"
-                onclick="
-                    closeLists();
-                    openM3U();
-                "
-            >
-                + Adicionar
-            </button>
+<button
+class="btn primary"
+onclick="
+closeLists();
+openM3U();
+"
+>
++ Adicionar
+</button>
 
-        </div>
+</div>
 
-    </div>
+</div>
 
 </div>
 
 
-<!-- =====================================================
+<!-- =========================
      MODAL SÉRIE
-====================================================== -->
+========================= -->
 
 <div
-    id="seriesModal"
-    class="modal hidden"
+id="seriesModal"
+class="modal hidden"
 >
 
-    <div class="box">
+<div class="box">
 
-        <div class="playerHead">
+<div class="playerHead">
 
-            <div
-                id="seriesTitle"
-                class="playerTitle"
-            >
-                Série
-            </div>
+<div
+id="seriesTitle"
+class="playerTitle"
+>
+Série
+</div>
 
-            <button
-                class="btn"
-                onclick="closeSeries()"
-            >
-                ✕
-            </button>
+<button
+class="btn"
+onclick="closeSeries()"
+>
+✕
+</button>
 
-        </div>
+</div>
 
-        <div id="seriesContent"></div>
+<div id="seriesContent"></div>
 
-    </div>
+</div>
 
 </div>
 
 
-<!-- =====================================================
+<!-- =========================
      MODAL PLAYER
-====================================================== -->
+========================= -->
 
 <div
-    id="playerModal"
-    class="modal hidden"
+id="playerModal"
+class="modal hidden"
 >
 
-    <div class="playerBox">
+<div class="playerBox">
 
-        <div class="playerHead">
+<div class="playerHead">
 
-            <div
-                id="playerTitle"
-                class="playerTitle"
-            >
-                Player
-            </div>
+<div
+id="playerTitle"
+class="playerTitle"
+>
+Player
+</div>
 
-            <button
-                class="btn"
-                onclick="closePlayer()"
-            >
-                ✕
-            </button>
+<button
+class="btn"
+onclick="closePlayer()"
+>
+✕
+</button>
 
-        </div>
+</div>
 
-        <video
-            id="video"
-            controls
-            playsinline
-        ></video>
 
-        <div
-            id="playerStatus"
-            class="playerStatus"
-        >
-            Preparando...
-        </div>
+<video
+id="video"
+controls
+playsinline
+preload="metadata"
+></video>
 
-    </div>
+
+<div
+id="playerStatus"
+class="playerStatus"
+>
+Preparando...
+</div>
+
+</div>
 
 </div>
 
@@ -842,22 +1070,26 @@ video{
 <div id="toast"></div>
 
 
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"></script>
+<script
+src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"
+></script>
 
-<script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.0/dist/mpegts.min.js"></script>
+<script
+src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.0/dist/mpegts.min.js"
+></script>
 
 
 <script>
 
 /* =====================================================
    CONFIGURAÇÃO
-====================================================== */
+===================================================== */
 
 const PROXY_URL =
 "https://kuzgdvpdqmocklsgyzvt.supabase.co/functions/v1/gcplay-proxy";
 
 const STORAGE =
-"GC_PLAY_PRO_LISTS_V10";
+"GC_PLAY_PRO_LISTS_V11";
 
 const PER_PAGE =
 100;
@@ -865,7 +1097,7 @@ const PER_PAGE =
 
 /* =====================================================
    ESTADO
-====================================================== */
+===================================================== */
 
 let lists = [];
 
@@ -883,10 +1115,12 @@ let hlsPlayer = null;
 
 let tsPlayer = null;
 
+let currentItem = null;
+
 
 /* =====================================================
-   HELPERS
-====================================================== */
+   HELPER
+===================================================== */
 
 function $(id){
     return document.getElementById(id);
@@ -905,39 +1139,57 @@ function escapeHTML(text){
 }
 
 
-function showStatus(text,type="ok"){
+function showStatus(
+    text,
+    type="ok"
+){
 
-    const el = $("status");
+    const el =
+        $("status");
 
-    el.textContent = text;
+    el.textContent =
+        text;
 
     el.className =
         "status " +
         (
             type === "error"
-            ? "error"
-            : "ok"
+            ?
+            "error"
+            :
+            "ok"
         );
 
-    el.classList.remove("hidden");
+    el.classList.remove(
+        "hidden"
+    );
 
 }
 
 
 function toast(text){
 
-    const el = $("toast");
+    const el =
+        $("toast");
 
-    el.textContent = text;
+    el.textContent =
+        text;
 
-    el.style.display = "block";
+    el.style.display =
+        "block";
 
-    clearTimeout(window.__toast);
+    clearTimeout(
+        window.__toast
+    );
 
     window.__toast =
-        setTimeout(() => {
-            el.style.display = "none";
-        },3000);
+        setTimeout(
+            ()=>{
+                el.style.display =
+                    "none";
+            },
+            3000
+        );
 
 }
 
@@ -958,16 +1210,21 @@ function loadLists(){
 
         lists =
             JSON.parse(
-                localStorage.getItem(STORAGE)
+                localStorage.getItem(
+                    STORAGE
+                )
                 ||
                 "[]"
             );
 
-        if(!Array.isArray(lists)){
+        if(
+            !Array.isArray(lists)
+        ){
             lists=[];
         }
 
-    }catch(e){
+    }
+    catch(e){
 
         lists=[];
 
@@ -978,9 +1235,12 @@ function loadLists(){
 
 /* =====================================================
    PROXY
-====================================================== */
+===================================================== */
 
-function proxyURL(url,mode){
+function proxyURL(
+    url,
+    mode
+){
 
     return (
         PROXY_URL +
@@ -994,8 +1254,8 @@ function proxyURL(url,mode){
 
 
 /* =====================================================
-   EXTINF
-====================================================== */
+   PARSER EXTINF
+===================================================== */
 
 function parseExtinf(line){
 
@@ -1025,7 +1285,9 @@ function parseExtinf(line){
     result.title =
         comma >= 0
         ?
-        line.slice(comma+1).trim()
+        line
+            .slice(comma+1)
+            .trim()
         :
         "Sem nome";
 
@@ -1036,16 +1298,21 @@ function parseExtinf(line){
 
 
 /* =====================================================
-   CATEGORIA
-====================================================== */
+   DETECTAR CATEGORIA
+===================================================== */
 
-function detectCategory(meta,url){
+function detectCategory(
+    meta,
+    url
+){
 
     const text = (
 
         (meta.title || "") +
         " " +
         (meta["group-title"] || "") +
+        " " +
+        (meta["tvg-name"] || "") +
         " " +
         url
 
@@ -1056,7 +1323,9 @@ function detectCategory(meta,url){
         /adult|adulto|18\+|xxx|porn/
         .test(text)
     ){
+
         return "Adult";
+
     }
 
 
@@ -1064,7 +1333,9 @@ function detectCategory(meta,url){
         /series|serie|série|season|temporada|episode|episodio|episódio/
         .test(text)
     ){
+
         return "Series";
+
     }
 
 
@@ -1072,7 +1343,9 @@ function detectCategory(meta,url){
         /movie|movies|filme|films|vod|cinema/
         .test(text)
     ){
+
         return "Films";
+
     }
 
 
@@ -1080,7 +1353,9 @@ function detectCategory(meta,url){
         /music|musica|música|radio/
         .test(text)
     ){
+
         return "Music";
+
     }
 
 
@@ -1090,10 +1365,13 @@ function detectCategory(meta,url){
 
 
 /* =====================================================
-   ADICIONAR ITEM
-====================================================== */
+   ITEM
+===================================================== */
 
-function addItem(meta,url){
+function addItem(
+    meta,
+    url
+){
 
     if(!url){
         return;
@@ -1102,7 +1380,8 @@ function addItem(meta,url){
 
     const item = {
 
-        id:items.length,
+        id:
+            items.length,
 
         name:
             meta.title
@@ -1111,7 +1390,8 @@ function addItem(meta,url){
             ||
             "Sem nome",
 
-        url:url,
+        url:
+            url,
 
         logo:
             meta["tvg-logo"]
@@ -1132,14 +1412,16 @@ function addItem(meta,url){
     };
 
 
-    items.push(item);
+    items.push(
+        item
+    );
 
 }
 
 
 /* =====================================================
-   AGRUPAMENTO DE SÉRIES
-====================================================== */
+   SÉRIES
+===================================================== */
 
 function seriesName(item){
 
@@ -1190,7 +1472,10 @@ function seriesName(item){
 
 
     return name
-        .replace(/\s+/g," ")
+        .replace(
+            /\s+/g,
+            " "
+        )
         .trim();
 
 }
@@ -1198,7 +1483,7 @@ function seriesName(item){
 
 function seasonNumber(item){
 
-    let text =
+    const text =
         item.name +
         " " +
         item.url;
@@ -1290,7 +1575,9 @@ function buildSeries(){
         if(
             item.category !== "Series"
         ){
+
             continue;
+
         }
 
 
@@ -1302,7 +1589,9 @@ function buildSeries(){
             name.toLowerCase();
 
 
-        if(!map.has(key)){
+        if(
+            !map.has(key)
+        ){
 
             map.set(
                 key,
@@ -1342,12 +1631,13 @@ function buildSeries(){
 
 /* =====================================================
    CATEGORIAS
-====================================================== */
+===================================================== */
 
 function updateCategories(){
 
     const select =
         $("category");
+
 
     const counts = {};
 
@@ -1367,9 +1657,11 @@ function updateCategories(){
 
 
     let html =
-        '<option value="ALL">Todas (' +
+        '<option value="ALL">' +
+        'Todas (' +
         items.length +
-        ')</option>';
+        ')' +
+        '</option>';
 
 
     const order =
@@ -1412,13 +1704,14 @@ function updateCategories(){
 
 
 /* =====================================================
-   FILTRAR
-====================================================== */
+   FILTRO
+===================================================== */
 
 function filterItems(){
 
     const category =
-        $("category").value;
+        $("category")
+            .value;
 
 
     const search =
@@ -1427,10 +1720,6 @@ function filterItems(){
             .trim()
             .toLowerCase();
 
-
-    /*
-       SÉRIES
-    */
 
     if(
         category === "Series"
@@ -1459,10 +1748,6 @@ function filterItems(){
 
     }
 
-
-    /*
-       NORMAL
-    */
 
     filteredItems =
         items.filter(
@@ -1500,8 +1785,8 @@ function filterItems(){
 
 
 /* =====================================================
-   RENDER PRINCIPAL
-====================================================== */
+   RENDER
+===================================================== */
 
 function render(){
 
@@ -1516,26 +1801,19 @@ function render(){
         Math.max(
             1,
             Math.ceil(
-                total / PER_PAGE
+                total /
+                PER_PAGE
             )
         );
 
 
     if(
-        currentPage > totalPages
+        currentPage >
+        totalPages
     ){
 
         currentPage =
             totalPages;
-
-    }
-
-
-    if(
-        currentPage < 1
-    ){
-
-        currentPage=1;
 
     }
 
@@ -1554,14 +1832,10 @@ function render(){
         );
 
 
-    /*
-       CONTADOR
-    */
-
     if(total){
 
-        $("counter").textContent =
-
+        $("counter")
+            .textContent =
             "Mostrando " +
             (start+1) +
             "–" +
@@ -1572,23 +1846,23 @@ function render(){
             " de " +
             total;
 
-    }else{
+    }
+    else{
 
-        $("counter").textContent =
+        $("counter")
+            .textContent =
             "Nenhum item encontrado.";
 
     }
 
 
-    /*
-       GRID
-    */
-
     const grid =
         $("grid");
 
 
-    if(!pageItems.length){
+    if(
+        !pageItems.length
+    ){
 
         grid.innerHTML =
             '<div style="' +
@@ -1597,8 +1871,8 @@ function render(){
             'padding:60px;' +
             'color:#777' +
             '">' +
-            "Nenhum item encontrado." +
-            "</div>";
+            'Nenhum item encontrado.' +
+            '</div>';
 
 
         renderPagination(
@@ -1610,13 +1884,9 @@ function render(){
     }
 
 
-    /*
-       IMPORTANTE:
-       SERIES
-    */
-
     if(
-        $("category").value === "Series"
+        $("category").value ===
+        "Series"
     ){
 
         grid.innerHTML =
@@ -1627,7 +1897,6 @@ function render(){
                 .join("");
 
     }
-
     else{
 
         grid.innerHTML =
@@ -1642,7 +1911,6 @@ function render(){
 
     bindCards();
 
-
     renderPagination(
         totalPages
     );
@@ -1651,8 +1919,8 @@ function render(){
 
 
 /* =====================================================
-   CARD NORMAL
-====================================================== */
+   CARD
+===================================================== */
 
 function renderCard(item){
 
@@ -1663,11 +1931,14 @@ function renderCard(item){
 
         image =
             '<img loading="lazy" src="' +
-            escapeHTML(item.logo) +
+            escapeHTML(
+                item.logo
+            ) +
             '" ' +
             'onerror="this.parentElement.innerHTML=\'<div class=noimg>▶</div>\'">';
 
-    }else{
+    }
+    else{
 
         image =
             '<div class="noimg">▶</div>';
@@ -1679,33 +1950,33 @@ function renderCard(item){
 
         '<div class="card">' +
 
-            '<button ' +
-            'class="cardBtn" ' +
-            'data-play="' +
-            item.id +
-            '">' +
+        '<button ' +
+        'class="cardBtn" ' +
+        'data-play="' +
+        item.id +
+        '">' +
 
-                '<div class="thumb">' +
-                    image +
-                '</div>' +
+        '<div class="thumb">' +
+        image +
+        '</div>' +
 
-                '<div class="cardText">' +
+        '<div class="cardText">' +
 
-                    '<div class="cardTitle">' +
-                        escapeHTML(
-                            item.name
-                        ) +
-                    '</div>' +
+        '<div class="cardTitle">' +
+        escapeHTML(
+            item.name
+        ) +
+        '</div>' +
 
-                    '<div class="cardGroup">' +
-                        escapeHTML(
-                            item.group
-                        ) +
-                    '</div>' +
+        '<div class="cardGroup">' +
+        escapeHTML(
+            item.group
+        ) +
+        '</div>' +
 
-                '</div>' +
+        '</div>' +
 
-            '</button>' +
+        '</button>' +
 
         '</div>'
 
@@ -1716,9 +1987,11 @@ function renderCard(item){
 
 /* =====================================================
    CARD SÉRIE
-====================================================== */
+===================================================== */
 
-function renderSeriesCard(serie){
+function renderSeriesCard(
+    serie
+){
 
     let image;
 
@@ -1727,11 +2000,14 @@ function renderSeriesCard(serie){
 
         image =
             '<img loading="lazy" src="' +
-            escapeHTML(serie.logo) +
+            escapeHTML(
+                serie.logo
+            ) +
             '" ' +
             'onerror="this.parentElement.innerHTML=\'<div class=noimg>▶</div>\'">';
 
-    }else{
+    }
+    else{
 
         image =
             '<div class="noimg">▶</div>';
@@ -1751,38 +2027,38 @@ function renderSeriesCard(serie){
 
         '<div class="card">' +
 
-            '<button ' +
-            'class="cardBtn" ' +
-            'data-series="' +
-            escapeHTML(
-                serie.name
-            ) +
-            '">' +
+        '<button ' +
+        'class="cardBtn" ' +
+        'data-series="' +
+        escapeHTML(
+            serie.name
+        ) +
+        '">' +
 
-                '<div class="thumb">' +
-                    image +
-                '</div>' +
+        '<div class="thumb">' +
+        image +
+        '</div>' +
 
-                '<div class="cardText">' +
+        '<div class="cardText">' +
 
-                    '<div class="cardTitle">' +
-                        escapeHTML(
-                            serie.name
-                        ) +
-                    '</div>' +
+        '<div class="cardTitle">' +
+        escapeHTML(
+            serie.name
+        ) +
+        '</div>' +
 
-                    '<div class="cardGroup">' +
+        '<div class="cardGroup">' +
 
-                        seasons.size +
-                        " temporada(s) • " +
-                        serie.items.length +
-                        " episódio(s)" +
+        seasons.size +
+        " temporada(s) • " +
+        serie.items.length +
+        " episódio(s)" +
 
-                    '</div>' +
+        '</div>' +
 
-                '</div>' +
+        '</div>' +
 
-            '</button>' +
+        '</button>' +
 
         '</div>'
 
@@ -1792,8 +2068,8 @@ function renderSeriesCard(serie){
 
 
 /* =====================================================
-   EVENTOS DOS CARDS
-====================================================== */
+   BIND CARDS
+===================================================== */
 
 function bindCards(){
 
@@ -1843,9 +2119,11 @@ function bindCards(){
 
 /* =====================================================
    PAGINAÇÃO
-====================================================== */
+===================================================== */
 
-function renderPagination(totalPages){
+function renderPagination(
+    totalPages
+){
 
     const el =
         $("pagination");
@@ -1871,8 +2149,10 @@ function renderPagination(totalPages){
         'data-page="prev" ' +
         (
             currentPage === 1
-            ? "disabled"
-            : ""
+            ?
+            "disabled"
+            :
+            ""
         ) +
         '>‹</button>';
 
@@ -1915,8 +2195,10 @@ function renderPagination(totalPages){
             '<button class="page ' +
             (
                 i === currentPage
-                ? "active"
-                : ""
+                ?
+                "active"
+                :
+                ""
             ) +
             '" data-page="' +
             i +
@@ -1928,21 +2210,31 @@ function renderPagination(totalPages){
 
 
     html +=
+
         '<span class="pageInfo">' +
+
         currentPage +
+
         " / " +
+
         totalPages +
-        "</span>";
+
+        '</span>';
 
 
     html +=
+
         '<button class="page" ' +
         'data-page="next" ' +
+
         (
             currentPage === totalPages
-            ? "disabled"
-            : ""
+            ?
+            "disabled"
+            :
+            ""
         ) +
+
         '>›</button>';
 
 
@@ -1965,14 +2257,16 @@ function renderPagination(totalPages){
 
 
                         if(
-                            value === "prev"
+                            value ===
+                            "prev"
                         ){
 
                             currentPage--;
 
                         }
                         else if(
-                            value === "next"
+                            value ===
+                            "next"
                         ){
 
                             currentPage++;
@@ -2006,9 +2300,11 @@ function renderPagination(totalPages){
 
 /* =====================================================
    CARREGAR M3U
-====================================================== */
+===================================================== */
 
-async function loadM3U(list){
+async function loadM3U(
+    list
+){
 
     currentList =
         list;
@@ -2041,7 +2337,7 @@ async function loadM3U(list){
 
     try{
 
-        const url =
+        const endpoint =
             proxyURL(
                 list.url,
                 "playlist"
@@ -2050,7 +2346,7 @@ async function loadM3U(list){
 
         const response =
             await fetch(
-                url,
+                endpoint,
                 {
                     method:"GET",
                     cache:"no-store"
@@ -2078,14 +2374,15 @@ async function loadM3U(list){
         if(!response.body){
 
             throw new Error(
-                "O servidor não retornou um fluxo."
+                "O servidor não retornou dados."
             );
 
         }
 
 
         const reader =
-            response.body.getReader();
+            response.body
+                .getReader();
 
 
         const decoder =
@@ -2107,8 +2404,12 @@ async function loadM3U(list){
                 await reader.read();
 
 
-            if(result.done){
+            if(
+                result.done
+            ){
+
                 break;
+
             }
 
 
@@ -2140,7 +2441,9 @@ async function loadM3U(list){
 
 
                 if(!line){
+
                     continue;
+
                 }
 
 
@@ -2169,9 +2472,7 @@ async function loadM3U(list){
                 }
 
 
-                if(
-                    meta
-                ){
+                if(meta){
 
                     addItem(
                         meta,
@@ -2193,11 +2494,6 @@ async function loadM3U(list){
                         );
 
 
-                        /*
-                           Devolve controle
-                           ao navegador.
-                        */
-
                         await new Promise(
                             resolve =>
                                 setTimeout(
@@ -2214,10 +2510,6 @@ async function loadM3U(list){
 
         }
 
-
-        /*
-           Última linha
-        */
 
         buffer +=
             decoder.decode();
@@ -2285,17 +2577,16 @@ async function loadM3U(list){
 
 
         showStatus(
-
             items.length +
             " itens carregados de " +
             list.name +
             "."
-
         );
 
 
         list.updatedAt =
-            new Date().toISOString();
+            new Date()
+                .toISOString();
 
 
         saveLists();
@@ -2332,7 +2623,7 @@ async function loadM3U(list){
 
 /* =====================================================
    PILLS
-====================================================== */
+===================================================== */
 
 function renderPills(){
 
@@ -2346,18 +2637,27 @@ function renderPills(){
                 list =>
 
                     '<button class="pill ' +
+
                     (
                         currentList &&
-                        currentList.id === list.id
+                        currentList.id ===
+                        list.id
                         ?
                         "active"
                         :
                         ""
                     ) +
+
                     '" data-list="' +
-                    escapeHTML(list.id) +
+                    escapeHTML(
+                        list.id
+                    ) +
                     '">' +
-                    escapeHTML(list.name) +
+
+                    escapeHTML(
+                        list.name
+                    ) +
+
                     '</button>'
             )
             .join("");
@@ -2382,7 +2682,11 @@ function renderPills(){
 
 
                         if(list){
-                            loadM3U(list);
+
+                            loadM3U(
+                                list
+                            );
+
                         }
 
                     };
@@ -2395,13 +2699,15 @@ function renderPills(){
 
 /* =====================================================
    MODAL M3U
-====================================================== */
+===================================================== */
 
 function openM3U(){
 
     $("m3uModal")
         .classList
-        .remove("hidden");
+        .remove(
+            "hidden"
+        );
 
 }
 
@@ -2410,7 +2716,9 @@ function closeM3U(){
 
     $("m3uModal")
         .classList
-        .add("hidden");
+        .add(
+            "hidden"
+        );
 
 }
 
@@ -2435,7 +2743,9 @@ $("addM3U")
 
 
         if(
-            !/^https?:\/\//i.test(url)
+            !/^https?:\/\//i.test(
+                url
+            )
         ){
 
             toast(
@@ -2492,15 +2802,18 @@ $("addM3U")
 
 /* =====================================================
    LISTAS
-====================================================== */
+===================================================== */
 
 function openLists(){
 
     renderListManager();
 
+
     $("listsModal")
         .classList
-        .remove("hidden");
+        .remove(
+            "hidden"
+        );
 
 }
 
@@ -2509,7 +2822,9 @@ function closeLists(){
 
     $("listsModal")
         .classList
-        .add("hidden");
+        .add(
+            "hidden"
+        );
 
 }
 
@@ -2520,7 +2835,9 @@ function renderListManager(){
         $("listRows");
 
 
-    if(!lists.length){
+    if(
+        !lists.length
+    ){
 
         el.innerHTML =
             '<p style="color:#777">' +
@@ -2539,35 +2856,41 @@ function renderListManager(){
 
                     '<div class="listRow">' +
 
-                        '<div class="grow">' +
+                    '<div class="grow">' +
 
-                            '<div class="listName">' +
-                                escapeHTML(
-                                    list.name
-                                ) +
-                            '</div>' +
+                    '<div class="listName">' +
+                    escapeHTML(
+                        list.name
+                    ) +
+                    '</div>' +
 
-                            '<div class="listURL">' +
-                                escapeHTML(
-                                    list.url
-                                ) +
-                            '</div>' +
+                    '<div class="listURL">' +
+                    escapeHTML(
+                        list.url
+                    ) +
+                    '</div>' +
 
-                        '</div>' +
+                    '</div>' +
 
-                        '<button class="btn" ' +
-                        'data-load="' +
-                        escapeHTML(list.id) +
-                        '">' +
-                        'Carregar' +
-                        '</button>' +
+                    '<button ' +
+                    'class="btn" ' +
+                    'data-load="' +
+                    escapeHTML(
+                        list.id
+                    ) +
+                    '">' +
+                    'Carregar' +
+                    '</button>' +
 
-                        '<button class="btn danger" ' +
-                        'data-delete="' +
-                        escapeHTML(list.id) +
-                        '">' +
-                        'Excluir' +
-                        '</button>' +
+                    '<button ' +
+                    'class="btn danger" ' +
+                    'data-delete="' +
+                    escapeHTML(
+                        list.id
+                    ) +
+                    '">' +
+                    'Excluir' +
+                    '</button>' +
 
                     '</div>'
             )
@@ -2596,7 +2919,9 @@ function renderListManager(){
 
                             closeLists();
 
-                            loadM3U(list);
+                            loadM3U(
+                                list
+                            );
 
                         }
 
@@ -2653,10 +2978,12 @@ function renderListManager(){
 
 
 /* =====================================================
-   SÉRIES
-====================================================== */
+   SÉRIE
+===================================================== */
 
-function openSeries(name){
+function openSeries(
+    name
+){
 
     const serie =
         seriesGroups.find(
@@ -2666,7 +2993,13 @@ function openSeries(name){
 
 
     if(!serie){
+
+        toast(
+            "Série não encontrada."
+        );
+
         return;
+
     }
 
 
@@ -2680,19 +3013,24 @@ function openSeries(name){
 
 
     for(
-        const item of serie.items
+        const item of
+        serie.items
     ){
 
-        const s =
-            seasonNumber(item);
+        const season =
+            seasonNumber(
+                item
+            );
 
 
         if(
-            !seasons.has(s)
+            !seasons.has(
+                season
+            )
         ){
 
             seasons.set(
-                s,
+                season,
                 []
             );
 
@@ -2700,13 +3038,13 @@ function openSeries(name){
 
 
         seasons
-            .get(s)
+            .get(season)
             .push(item);
 
     }
 
 
-    const nums =
+    const numbers =
         Array.from(
             seasons.keys()
         )
@@ -2715,17 +3053,22 @@ function openSeries(name){
         );
 
 
-    $("seriesContent").innerHTML =
-        nums
+    $("seriesContent")
+        .innerHTML =
+
+        numbers
             .map(
                 season => {
 
                     const episodes =
                         seasons
-                            .get(season)
+                            .get(
+                                season
+                            )
                             .sort(
                                 (a,b)=>
-                                    episodeNumber(a) -
+                                    episodeNumber(a)
+                                    -
                                     episodeNumber(b)
                             );
 
@@ -2734,44 +3077,46 @@ function openSeries(name){
 
                         '<div class="season">' +
 
-                            '<button class="seasonBtn">' +
+                        '<button ' +
+                        'class="seasonBtn">' +
 
-                                'Temporada ' +
-                                season +
-                                ' (' +
-                                episodes.length +
-                                ' episódios)' +
+                        'Temporada ' +
+                        season +
+                        ' (' +
+                        episodes.length +
+                        ' episódios)' +
 
-                            '</button>' +
+                        '</button>' +
 
-                            '<div class="episodes">' +
+                        '<div class="episodes">' +
 
-                                episodes
-                                    .map(
-                                        episode =>
+                        episodes
+                            .map(
+                                episode =>
 
-                                            '<div class="episode">' +
+                                    '<div class="episode">' +
 
-                                                '<div class="episodeName">' +
+                                    '<div class="episodeName">' +
 
-                                                    escapeHTML(
-                                                        episode.name
-                                                    ) +
+                                    escapeHTML(
+                                        episode.name
+                                    ) +
 
-                                                '</div>' +
+                                    '</div>' +
 
-                                                '<button class="btn primary" ' +
-                                                'data-episode="' +
-                                                episode.id +
-                                                '">' +
-                                                '▶' +
-                                                '</button>' +
+                                    '<button ' +
+                                    'class="btn primary" ' +
+                                    'data-episode="' +
+                                    episode.id +
+                                    '">' +
+                                    '▶' +
+                                    '</button>' +
 
-                                            '</div>'
-                                    )
-                                    .join("") +
+                                    '</div>'
+                            )
+                            .join("") +
 
-                            '</div>' +
+                        '</div>' +
 
                         '</div>'
 
@@ -2784,7 +3129,9 @@ function openSeries(name){
 
     $("seriesModal")
         .classList
-        .remove("hidden");
+        .remove(
+            "hidden"
+        );
 
 
     $("seriesContent")
@@ -2800,7 +3147,9 @@ function openSeries(name){
                         this
                             .nextElementSibling
                             .classList
-                            .toggle("open");
+                            .toggle(
+                                "open"
+                            );
 
                     };
 
@@ -2826,7 +3175,9 @@ function openSeries(name){
 
                         closeSeries();
 
-                        playItem(id);
+                        playItem(
+                            id
+                        );
 
                     };
 
@@ -2840,29 +3191,28 @@ function closeSeries(){
 
     $("seriesModal")
         .classList
-        .add("hidden");
+        .add(
+            "hidden"
+        );
 
 }
 
 
 /* =====================================================
-   PLAYER
-====================================================== */
+   PLAYER - LIMPAR
+===================================================== */
 
-function closePlayer(){
-
-    $("playerModal")
-        .classList
-        .add("hidden");
-
+function destroyPlayers(){
 
     if(hlsPlayer){
 
         try{
             hlsPlayer.destroy();
-        }catch(e){}
+        }
+        catch(e){}
 
-        hlsPlayer=null;
+        hlsPlayer =
+            null;
 
     }
 
@@ -2871,11 +3221,24 @@ function closePlayer(){
 
         try{
             tsPlayer.destroy();
-        }catch(e){}
+        }
+        catch(e){}
 
-        tsPlayer=null;
+        tsPlayer =
+            null;
 
     }
+
+}
+
+
+/* =====================================================
+   PLAYER - FECHAR
+===================================================== */
+
+function closePlayer(){
+
+    destroyPlayers();
 
 
     const video =
@@ -2884,7 +3247,8 @@ function closePlayer(){
 
     try{
         video.pause();
-    }catch(e){}
+    }
+    catch(e){}
 
 
     video.removeAttribute(
@@ -2894,10 +3258,802 @@ function closePlayer(){
 
     video.load();
 
+
+    $("playerModal")
+        .classList
+        .add(
+            "hidden"
+        );
+
 }
 
 
-function playItem(id){
+/* =====================================================
+   IDENTIFICAR TIPO DO VÍDEO
+===================================================== */
+
+function detectMediaType(
+    item
+){
+
+    const url =
+        item.url
+            .toLowerCase();
+
+
+    /*
+       HLS
+    */
+
+    if(
+        /\.m3u8(?:$|\?)/i
+            .test(url)
+    ){
+
+        return "hls";
+
+    }
+
+
+    /*
+       MP4
+    */
+
+    if(
+        /\.(mp4|m4v)(?:$|\?)/i
+            .test(url)
+    ){
+
+        return "mp4";
+
+    }
+
+
+    /*
+       WEBM
+    */
+
+    if(
+        /\.webm(?:$|\?)/i
+            .test(url)
+    ){
+
+        return "webm";
+
+    }
+
+
+    /*
+       MPEG-TS
+    */
+
+    if(
+        /\.(ts|mpegts)(?:$|\?)/i
+            .test(url)
+    ){
+
+        return "mpegts";
+
+    }
+
+
+    /*
+       AVI
+    */
+
+    if(
+        /\.avi(?:$|\?)/i
+            .test(url)
+    ){
+
+        return "avi";
+
+    }
+
+
+    /*
+       MKV
+    */
+
+    if(
+        /\.mkv(?:$|\?)/i
+            .test(url)
+    ){
+
+        return "mkv";
+
+    }
+
+
+    /*
+       TV
+    */
+
+    if(
+        item.category === "TV"
+    ){
+
+        return "mpegts";
+
+    }
+
+
+    /*
+       FILMES E SÉRIES
+       quando não existe extensão,
+       vamos tentar MPEG-TS primeiro
+       e depois vídeo nativo.
+    */
+
+    return "unknown";
+
+}
+
+
+/* =====================================================
+   PLAYER - HLS
+===================================================== */
+
+function playHLS(
+    item,
+    url
+){
+
+    return new Promise(
+        (resolve,reject)=>{
+
+            const video =
+                $("video");
+
+
+            destroyPlayers();
+
+
+            $("playerStatus")
+                .textContent =
+                "Conectando HLS...";
+
+
+            if(
+                window.Hls &&
+                Hls.isSupported()
+            ){
+
+                hlsPlayer =
+                    new Hls({
+
+                        enableWorker:true,
+
+                        lowLatencyMode:false,
+
+                        enableStashBuffer:true,
+
+                        backBufferLength:30
+
+                    });
+
+
+                hlsPlayer.attachMedia(
+                    video
+                );
+
+
+                hlsPlayer.loadSource(
+                    url
+                );
+
+
+                hlsPlayer.on(
+                    Hls.Events.MANIFEST_PARSED,
+                    ()=>{
+
+                        $("playerStatus")
+                            .textContent =
+                            "HLS conectado.";
+
+                        video
+                            .play()
+                            .then(
+                                ()=>{
+                                    resolve();
+                                }
+                            )
+                            .catch(
+                                ()=>{
+                                    resolve();
+                                }
+                            );
+
+                    }
+                );
+
+
+                hlsPlayer.on(
+                    Hls.Events.ERROR,
+                    (
+                        event,
+                        data
+                    )=>{
+
+                        console.error(
+                            "HLS:",
+                            data
+                        );
+
+
+                        if(
+                            data &&
+                            data.fatal
+                        ){
+
+                            reject(
+                                new Error(
+                                    "Falha no HLS"
+                                )
+                            );
+
+                        }
+
+                    }
+                );
+
+
+            }
+            else if(
+                video.canPlayType(
+                    "application/vnd.apple.mpegurl"
+                )
+            ){
+
+                video.src =
+                    url;
+
+
+                video
+                    .play()
+                    .then(
+                        ()=>{
+                            resolve();
+                        }
+                    )
+                    .catch(
+                        ()=>{
+                            resolve();
+                        }
+                    );
+
+            }
+            else{
+
+                reject(
+                    new Error(
+                        "HLS não suportado."
+                    )
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   PLAYER - MPEG TS
+===================================================== */
+
+function playMPEGTS(
+    item,
+    url
+){
+
+    return new Promise(
+        (resolve,reject)=>{
+
+            const video =
+                $("video");
+
+
+            destroyPlayers();
+
+
+            $("playerStatus")
+                .textContent =
+                "Conectando MPEG-TS...";
+
+
+            if(
+                !window.mpegts ||
+                !mpegts.isSupported()
+            ){
+
+                reject(
+                    new Error(
+                        "MPEG-TS não suportado neste navegador."
+                    )
+                );
+
+                return;
+
+            }
+
+
+            try{
+
+                tsPlayer =
+                    mpegts.createPlayer(
+
+                        {
+                            type:"mpegts",
+
+                            isLive:
+                                item.category === "TV",
+
+                            url:url
+
+                        },
+
+                        {
+
+                            enableWorker:true,
+
+                            enableStashBuffer:true,
+
+                            stashInitialSize:128,
+
+                            lazyLoad:false,
+
+                            autoCleanupSourceBuffer:true
+
+                        }
+
+                    );
+
+
+                tsPlayer.attachMediaElement(
+                    video
+                );
+
+
+                tsPlayer.load();
+
+
+                tsPlayer.on(
+                    mpegts.Events.ERROR,
+                    function(
+                        type,
+                        detail,
+                        info
+                    ){
+
+                        console.error(
+                            "MPEGTS ERROR",
+                            type,
+                            detail,
+                            info
+                        );
+
+
+                        reject(
+                            new Error(
+                                "Falha MPEG-TS"
+                            )
+                        );
+
+                    }
+                );
+
+
+                setTimeout(
+                    ()=>{
+
+                        video
+                            .play()
+                            .then(
+                                ()=>{
+                                    $("playerStatus")
+                                        .textContent =
+                                        "MPEG-TS conectado.";
+
+                                    resolve();
+
+                                }
+                            )
+                            .catch(
+                                ()=>{
+
+                                    $("playerStatus")
+                                        .textContent =
+                                        "MPEG-TS conectado. Toque no ▶ para iniciar.";
+
+                                    resolve();
+
+                                }
+                            );
+
+                    },
+                    500
+                );
+
+            }
+            catch(error){
+
+                reject(
+                    error
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   PLAYER - VÍDEO NATIVO
+===================================================== */
+
+function playNative(
+    item,
+    url
+){
+
+    return new Promise(
+        (resolve,reject)=>{
+
+            const video =
+                $("video");
+
+
+            destroyPlayers();
+
+
+            $("playerStatus")
+                .textContent =
+                "Conectando vídeo...";
+
+
+            video.src =
+                url;
+
+
+            let finished = false;
+
+
+            const success =
+                ()=>{
+
+                    if(finished){
+                        return;
+                    }
+
+
+                    finished=true;
+
+
+                    $("playerStatus")
+                        .textContent =
+                        "Vídeo conectado.";
+
+
+                    video
+                        .play()
+                        .catch(
+                            ()=>{
+                                $("playerStatus")
+                                    .textContent =
+                                    "Vídeo conectado. Toque no ▶ para iniciar.";
+                            }
+                        );
+
+
+                    resolve();
+
+                };
+
+
+            const error =
+                ()=>{
+
+                    if(finished){
+                        return;
+                    }
+
+
+                    finished=true;
+
+
+                    reject(
+                        new Error(
+                            "O navegador não conseguiu reproduzir este vídeo."
+                        )
+                    );
+
+                };
+
+
+            video.addEventListener(
+                "loadedmetadata",
+                success,
+                {
+                    once:true
+                }
+            );
+
+
+            video.addEventListener(
+                "canplay",
+                success,
+                {
+                    once:true
+                }
+            );
+
+
+            video.addEventListener(
+                "error",
+                error,
+                {
+                    once:true
+                };
+
+
+            /*
+               Timeout.
+            */
+
+            setTimeout(
+                ()=>{
+
+                    if(!finished){
+
+                        /*
+                           Se o navegador
+                           ainda estiver carregando,
+                           damos mais uma chance.
+                        */
+
+                        if(
+                            video.readyState >= 2
+                        ){
+
+                            success();
+
+                        }
+
+                    }
+
+                },
+                12000
+            );
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   PLAYER - FALLBACK
+===================================================== */
+
+async function tryPlayer(
+    item,
+    url
+){
+
+    const type =
+        detectMediaType(
+            item
+        );
+
+
+    console.log(
+        "Tipo detectado:",
+        type,
+        item.url
+    );
+
+
+    /*
+       HLS
+    */
+
+    if(
+        type === "hls"
+    ){
+
+        try{
+
+            await playHLS(
+                item,
+                url
+            );
+
+            return;
+
+        }
+        catch(error){
+
+            console.warn(
+                "HLS falhou:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /*
+       MP4 / WEBM
+    */
+
+    if(
+        type === "mp4" ||
+        type === "webm"
+    ){
+
+        try{
+
+            await playNative(
+                item,
+                url
+            );
+
+            return;
+
+        }
+        catch(error){
+
+            console.warn(
+                "Vídeo nativo falhou:",
+                error
+            );
+
+        }
+
+
+        /*
+           Fallback MPEG-TS
+        */
+
+        try{
+
+            await playMPEGTS(
+                item,
+                url
+            );
+
+            return;
+
+        }
+        catch(error){
+
+            console.warn(
+                "Fallback TS falhou:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /*
+       MPEG-TS conhecido
+    */
+
+    if(
+        type === "mpegts"
+    ){
+
+        try{
+
+            await playMPEGTS(
+                item,
+                url
+            );
+
+            return;
+
+        }
+        catch(error){
+
+            console.warn(
+                "MPEG-TS falhou:",
+                error
+            );
+
+        }
+
+
+        /*
+           Fallback nativo
+        */
+
+        try{
+
+            await playNative(
+                item,
+                url
+            );
+
+            return;
+
+        }
+        catch(error){
+
+            console.warn(
+                "Fallback nativo falhou:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /*
+       AVI / MKV ou desconhecido
+    */
+
+    try{
+
+        await playNative(
+            item,
+            url
+        );
+
+        return;
+
+    }
+    catch(error){
+
+        console.warn(
+            "Nativo falhou:",
+            error
+        );
+
+    }
+
+
+    try{
+
+        await playMPEGTS(
+            item,
+            url
+        );
+
+        return;
+
+    }
+    catch(error){
+
+        console.warn(
+            "MPEGTS também falhou:",
+            error
+        );
+
+    }
+
+
+    throw new Error(
+        "Não foi possível reproduzir este conteúdo."
+    );
+
+}
+
+
+/* =====================================================
+   PLAYER PRINCIPAL
+===================================================== */
+
+async function playItem(
+    id
+){
 
     const item =
         items.find(
@@ -2917,6 +4073,10 @@ function playItem(id){
     }
 
 
+    currentItem =
+        item;
+
+
     $("playerTitle")
         .textContent =
         item.name;
@@ -2924,16 +4084,29 @@ function playItem(id){
 
     $("playerStatus")
         .textContent =
-        "Conectando ao servidor...";
+        "Preparando reprodução...";
 
 
     $("playerModal")
         .classList
-        .remove("hidden");
+        .remove(
+            "hidden"
+        );
 
 
     const video =
         $("video");
+
+
+    video.pause();
+
+
+    video.removeAttribute(
+        "src"
+    );
+
+
+    video.load();
 
 
     const url =
@@ -2943,224 +4116,43 @@ function playItem(id){
         );
 
 
-    /*
-       Limpar players anteriores
-    */
-
-    if(hlsPlayer){
-
-        try{
-            hlsPlayer.destroy();
-        }catch(e){}
-
-        hlsPlayer=null;
-
-    }
-
-
-    if(tsPlayer){
-
-        try{
-            tsPlayer.destroy();
-        }catch(e){}
-
-        tsPlayer=null;
-
-    }
-
-
-    video.removeAttribute(
-        "src"
+    console.log(
+        "URL original:",
+        item.url
     );
 
-    video.load();
+
+    console.log(
+        "URL proxy:",
+        url
+    );
 
 
-    /*
-       HLS
-    */
+    try{
 
-    if(
-        /\.m3u8(?:\?|$)/i
-        .test(item.url)
-    ){
+        await tryPlayer(
+            item,
+            url
+        );
 
-        if(
-            window.Hls &&
-            Hls.isSupported()
-        ){
-
-            hlsPlayer =
-                new Hls({
-
-                    enableWorker:true,
-
-                    lowLatencyMode:false,
-
-                    enableStashBuffer:true
-
-                });
-
-
-            hlsPlayer.attachMedia(
-                video
-            );
-
-
-            hlsPlayer.loadSource(
-                url
-            );
-
-
-            hlsPlayer.on(
-                Hls.Events.MANIFEST_PARSED,
-                function(){
-
-                    $("playerStatus")
-                        .textContent =
-                        "HLS conectado.";
-
-                    video
-                        .play()
-                        .catch(
-                            ()=>{}
-                        );
-
-                }
-            );
-
-
-            hlsPlayer.on(
-                Hls.Events.ERROR,
-                function(
-                    event,
-                    data
-                ){
-
-                    console.error(
-                        "HLS ERROR",
-                        data
-                    );
-
-
-                    if(
-                        data &&
-                        data.fatal
-                    ){
-
-                        $("playerStatus")
-                            .textContent =
-                            "Erro no HLS.";
-
-                    }
-
-                }
-            );
-
-        }
-        else{
-
-            video.src =
-                url;
-
-            video
-                .play()
-                .catch(
-                    ()=>{}
-                );
-
-        }
-
-
-        return;
 
     }
+    catch(error){
 
-
-    /*
-       MPEG-TS
-    */
-
-    if(
-        window.mpegts &&
-        mpegts.isSupported()
-    ){
-
-        try{
-
-            tsPlayer =
-                mpegts.createPlayer(
-
-                    {
-                        type:"mpegts",
-                        isLive:true,
-                        url:url
-                    },
-
-                    {
-                        enableWorker:true,
-                        enableStashBuffer:true,
-                        stashInitialSize:128
-                    }
-
-                );
-
-
-            tsPlayer.attachMediaElement(
-                video
-            );
-
-
-            tsPlayer.load();
-
-
-            tsPlayer.play()
-                .catch(
-                    ()=>{}
-                );
-
-
-            $("playerStatus")
-                .textContent =
-                "MPEG-TS conectado.";
-
-        }
-        catch(error){
-
-            console.error(
-                error
-            );
-
-
-            $("playerStatus")
-                .textContent =
-                "Erro no MPEG-TS: " +
-                error.message;
-
-        }
-
-    }
-    else{
-
-        /*
-           Última tentativa:
-           navegador diretamente
-        */
-
-        video.src =
-            url;
-
-
-        video
-            .play()
-            .catch(
-                ()=>{}
-            );
+        console.error(
+            "PLAYER FINAL:",
+            error
+        );
 
 
         $("playerStatus")
             .textContent =
-            "Tentando reprodução direta...";
+            "Não foi possível reproduzir este conteúdo.";
+
+
+        toast(
+            "Falha na reprodução."
+        );
 
     }
 
@@ -3169,7 +4161,7 @@ function playItem(id){
 
 /* =====================================================
    EVENTOS
-====================================================== */
+===================================================== */
 
 $("category")
 .addEventListener(
@@ -3240,8 +4232,8 @@ $("refresh")
 
 
 /* =====================================================
-   FECHAR MODAIS CLICANDO FORA
-====================================================== */
+   FECHAR MODAIS
+===================================================== */
 
 [
     "m3uModal",
@@ -3253,22 +4245,37 @@ $("refresh")
     id => {
 
         $(id)
-        .addEventListener(
-            "click",
-            function(event){
+            .addEventListener(
+                "click",
+                function(event){
 
-                if(
-                    event.target === this
-                ){
+                    if(
+                        event.target ===
+                        this
+                    ){
 
-                    this
-                        .classList
-                        .add("hidden");
+                        if(
+                            id ===
+                            "playerModal"
+                        ){
+
+                            closePlayer();
+
+                        }
+                        else{
+
+                            this
+                                .classList
+                                .add(
+                                    "hidden"
+                                );
+
+                        }
+
+                    }
 
                 }
-
-            }
-        );
+            );
 
     }
 );
@@ -3276,14 +4283,16 @@ $("refresh")
 
 /* =====================================================
    INICIALIZAÇÃO
-====================================================== */
+===================================================== */
 
 loadLists();
 
 renderPills();
 
 
-if(lists.length){
+if(
+    lists.length
+){
 
     loadM3U(
         lists[0]
