@@ -10,81 +10,153 @@
     content="width=device-width, initial-scale=1.0, viewport-fit=cover"
 >
 
-<meta name="theme-color" content="#050505">
+<meta
+    name="theme-color"
+    content="#050505"
+>
 
 <title>GC PLAY PRO</title>
 
+
 <style>
 
+/* ============================================================
+   CORES
+============================================================ */
+
 :root{
+
     --bg:#050505;
+
     --panel:#0d0d0d;
+
     --panel2:#151515;
+
     --green:#39ff14;
+
     --text:#f4f4f4;
+
     --muted:#999;
+
     --danger:#ff4545;
+
     --line:#252525;
+
 }
 
+
+/* ============================================================
+   RESET
+============================================================ */
+
 *{
+
     box-sizing:border-box;
+
 }
+
 
 html,
 body{
+
     margin:0;
+
     padding:0;
+
     min-height:100%;
+
     background:var(--bg);
+
     color:var(--text);
-    font-family:Arial,Helvetica,sans-serif;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
 }
+
 
 body{
+
     min-height:100vh;
+
 }
 
+
 .hidden{
+
     display:none!important;
+
 }
+
 
 button,
 input,
 select{
+
     font:inherit;
+
 }
 
+
 button{
+
     cursor:pointer;
+
 }
+
+
+/* ============================================================
+   HEADER
+============================================================ */
 
 header{
 
     position:sticky;
+
     top:0;
+
     z-index:20;
 
-    background:rgba(5,5,5,.97);
+    background:
+        rgba(
+            5,
+            5,
+            5,
+            .97
+        );
 
-    border-bottom:1px solid var(--line);
+    border-bottom:
+        1px solid
+        var(--line);
 
-    padding:12px 14px;
+    padding:
+        12px
+        14px;
+
 }
+
 
 .top{
 
     max-width:1400px;
+
     margin:auto;
 
     display:flex;
+
     align-items:center;
+
     gap:10px;
+
 }
+
 
 .logo{
 
-    color:var(--green);
+    color:
+        var(--green);
 
     font-size:21px;
 
@@ -93,15 +165,26 @@ header{
     letter-spacing:1px;
 
     white-space:nowrap;
+
 }
 
+
 .grow{
+
     flex:1;
+
 }
+
+
+/* ============================================================
+   BOTÕES
+============================================================ */
 
 .btn{
 
-    border:1px solid #303030;
+    border:
+        1px solid
+        #303030;
 
     background:#111;
 
@@ -109,31 +192,49 @@ header{
 
     border-radius:10px;
 
-    padding:10px 13px;
+    padding:
+        10px
+        13px;
 
     transition:.2s;
+
 }
+
 
 .btn:hover{
 
-    border-color:var(--green);
+    border-color:
+        var(--green);
 
 }
+
 
 .primary{
 
-    background:var(--green);
+    background:
+        var(--green);
 
     color:#000;
 
-    border-color:var(--green);
+    border-color:
+        var(--green);
 
     font-weight:800;
+
 }
 
+
 .danger{
-    color:#ff7777;
+
+    color:
+        #ff7777;
+
 }
+
+
+/* ============================================================
+   CONTEÚDO
+============================================================ */
 
 main{
 
@@ -142,55 +243,94 @@ main{
     margin:auto;
 
     padding:16px;
+
 }
+
 
 .hero{
 
-    padding:18px 4px;
+    padding:
+        18px
+        4px;
+
 }
+
 
 .hero h1{
 
-    margin:0 0 7px;
+    margin:
+        0
+        0
+        7px;
 
     font-size:28px;
+
 }
+
 
 .hero p{
 
     margin:0;
 
-    color:var(--muted);
+    color:
+        var(--muted);
+
 }
+
+
+/* ============================================================
+   STATUS
+============================================================ */
 
 .status{
 
-    margin:12px 0;
+    margin:
+        12px
+        0;
 
-    padding:10px 12px;
+    padding:
+        10px
+        12px;
 
-    border:1px solid var(--line);
+    border:
+        1px solid
+        var(--line);
 
     border-radius:10px;
 
-    background:#0d0d0d;
+    background:
+        #0d0d0d;
 
     color:#bbb;
+
 }
+
 
 .status.ok{
 
-    border-color:#1c8f12;
+    border-color:
+        #1c8f12;
 
-    color:#b7ffad;
+    color:
+        #b7ffad;
+
 }
+
 
 .status.err{
 
-    border-color:#9c2323;
+    border-color:
+        #9c2323;
 
-    color:#ffb0b0;
+    color:
+        #ffb0b0;
+
 }
+
+
+/* ============================================================
+   LISTAS
+============================================================ */
 
 .lists{
 
@@ -200,30 +340,50 @@ main{
 
     overflow:auto;
 
-    padding:8px 0;
+    padding:
+        8px
+        0;
+
 }
+
 
 .pill{
 
-    padding:9px 12px;
+    padding:
+        9px
+        12px;
 
-    border:1px solid #333;
+    border:
+        1px solid
+        #333;
 
-    border-radius:999px;
+    border-radius:
+        999px;
 
-    background:#101010;
+    background:
+        #101010;
 
     color:#fff;
 
     white-space:nowrap;
+
 }
+
 
 .pill.active{
 
-    border-color:var(--green);
+    border-color:
+        var(--green);
 
-    color:var(--green);
+    color:
+        var(--green);
+
 }
+
+
+/* ============================================================
+   TOOLBAR
+============================================================ */
 
 .toolbar{
 
@@ -235,8 +395,12 @@ main{
 
     flex-wrap:wrap;
 
-    margin:12px 0;
+    margin:
+        12px
+        0;
+
 }
+
 
 .search{
 
@@ -244,36 +408,55 @@ main{
 
     max-width:400px;
 
-    padding:10px 12px;
+    padding:
+        10px
+        12px;
 
-    border:1px solid #333;
+    border:
+        1px solid
+        #333;
 
     border-radius:10px;
 
-    background:#0e0e0e;
+    background:
+        #0e0e0e;
 
     color:#fff;
 
     outline:none;
+
 }
+
 
 .search:focus{
 
-    border-color:var(--green);
+    border-color:
+        var(--green);
+
 }
+
 
 .toolbar select{
 
     padding:10px;
 
-    background:#0e0e0e;
+    background:
+        #0e0e0e;
 
     color:#fff;
 
-    border:1px solid #333;
+    border:
+        1px solid
+        #333;
 
     border-radius:10px;
+
 }
+
+
+/* ============================================================
+   GRID
+============================================================ */
 
 .grid{
 
@@ -282,11 +465,16 @@ main{
     grid-template-columns:
         repeat(
             auto-fill,
-            minmax(190px,1fr)
+            minmax(
+                190px,
+                1fr
+            )
         );
 
     gap:12px;
+
 }
+
 
 .card{
 
@@ -297,14 +485,18 @@ main{
             #0b0b0b
         );
 
-    border:1px solid #252525;
+    border:
+        1px solid
+        #252525;
 
     border-radius:13px;
 
     overflow:hidden;
 
     min-height:150px;
+
 }
+
 
 .card button{
 
@@ -319,7 +511,9 @@ main{
     text-align:left;
 
     padding:0;
+
 }
+
 
 .thumb{
 
@@ -332,7 +526,9 @@ main{
     align-items:center;
 
     justify-content:center;
+
 }
+
 
 .thumb img{
 
@@ -341,19 +537,25 @@ main{
     height:100%;
 
     object-fit:contain;
+
 }
+
 
 .noimg{
 
     font-size:32px;
 
     color:#333;
+
 }
+
 
 .ct{
 
     padding:10px;
+
 }
+
 
 .ct b{
 
@@ -362,7 +564,9 @@ main{
     line-height:1.25;
 
     font-size:14px;
+
 }
+
 
 .ct small{
 
@@ -377,7 +581,13 @@ main{
     overflow:hidden;
 
     text-overflow:ellipsis;
+
 }
+
+
+/* ============================================================
+   VAZIO
+============================================================ */
 
 .empty{
 
@@ -386,7 +596,13 @@ main{
     padding:55px 15px;
 
     color:#888;
+
 }
+
+
+/* ============================================================
+   MODAIS
+============================================================ */
 
 .modal{
 
@@ -394,7 +610,13 @@ main{
 
     inset:0;
 
-    background:rgba(0,0,0,.80);
+    background:
+        rgba(
+            0,
+            0,
+            0,
+            .80
+        );
 
     z-index:50;
 
@@ -405,19 +627,28 @@ main{
     justify-content:center;
 
     padding:16px;
+
 }
+
 
 .box{
 
-    width:min(620px,100%);
+    width:
+        min(
+            620px,
+            100%
+        );
 
     max-height:92vh;
 
     overflow:auto;
 
-    background:#101010;
+    background:
+        #101010;
 
-    border:1px solid #303030;
+    border:
+        1px solid
+        #303030;
 
     border-radius:16px;
 
@@ -425,18 +656,31 @@ main{
 
     box-shadow:
         0 0 35px
-        rgba(57,255,20,.08);
+        rgba(
+            57,
+            255,
+            20,
+            .08
+        );
+
 }
+
 
 .box h2{
 
     margin-top:0;
+
 }
+
 
 .field{
 
-    margin:12px 0;
+    margin:
+        12px
+        0;
+
 }
+
 
 .field label{
 
@@ -447,7 +691,9 @@ main{
     font-size:13px;
 
     margin-bottom:6px;
+
 }
+
 
 .field input{
 
@@ -457,19 +703,27 @@ main{
 
     border-radius:9px;
 
-    border:1px solid #333;
+    border:
+        1px solid
+        #333;
 
-    background:#080808;
+    background:
+        #080808;
 
     color:#fff;
 
     outline:none;
+
 }
+
 
 .field input:focus{
 
-    border-color:var(--green);
+    border-color:
+        var(--green);
+
 }
+
 
 .actions{
 
@@ -482,14 +736,26 @@ main{
     flex-wrap:wrap;
 
     margin-top:15px;
+
 }
+
+
+/* ============================================================
+   PLAYER
+============================================================ */
 
 .playerModal .box{
 
-    width:min(1100px,100%);
+    width:
+        min(
+            1100px,
+            100%
+        );
 
     padding:10px;
+
 }
+
 
 .playerWrap{
 
@@ -498,7 +764,9 @@ main{
     border-radius:10px;
 
     overflow:hidden;
+
 }
+
 
 .playerWrap video{
 
@@ -511,14 +779,22 @@ main{
     max-height:72vh;
 
     background:#000;
+
 }
+
 
 .playerTitle{
 
     padding:8px;
 
     font-weight:700;
+
 }
+
+
+/* ============================================================
+   LISTA DE LISTAS
+============================================================ */
 
 .listRow{
 
@@ -530,19 +806,28 @@ main{
 
     padding:12px;
 
-    border:1px solid #292929;
+    border:
+        1px solid
+        #292929;
 
     border-radius:11px;
 
-    margin:8px 0;
+    margin:
+        8px
+        0;
 
-    background:#0c0c0c;
+    background:
+        #0c0c0c;
+
 }
+
 
 .listRow .name{
 
     font-weight:800;
+
 }
+
 
 .listRow .url{
 
@@ -555,7 +840,13 @@ main{
     text-overflow:ellipsis;
 
     white-space:nowrap;
+
 }
+
+
+/* ============================================================
+   TOAST
+============================================================ */
 
 #toast{
 
@@ -565,15 +856,21 @@ main{
 
     bottom:20px;
 
-    transform:translateX(-50%);
+    transform:
+        translateX(-50%);
 
     z-index:100;
 
-    background:#171717;
+    background:
+        #171717;
 
-    border:1px solid #333;
+    border:
+        1px solid
+        #333;
 
-    padding:11px 15px;
+    padding:
+        11px
+        15px;
 
     border-radius:10px;
 
@@ -582,46 +879,68 @@ main{
     max-width:90%;
 
     text-align:center;
+
 }
 
-@media(max-width:600px){
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media(
+    max-width:600px
+){
 
     .grid{
 
         grid-template-columns:
             repeat(
                 2,
-                minmax(0,1fr)
+                minmax(
+                    0,
+                    1fr
+                )
             );
 
         gap:8px;
+
     }
+
 
     .thumb{
 
         height:90px;
+
     }
+
 
     .ct{
 
         padding:8px;
+
     }
+
 
     .ct b{
 
         font-size:13px;
+
     }
+
 
     .top{
 
         flex-wrap:wrap;
+
     }
+
 
     .search{
 
         order:5;
 
         max-width:none;
+
     }
 
 }
@@ -630,17 +949,26 @@ main{
 
 </head>
 
+
 <body>
+
+
+<!-- ============================================================
+     HEADER
+============================================================ -->
 
 <header>
 
 <div class="top">
 
+
 <div class="logo">
 GC PLAY PRO
 </div>
 
+
 <div class="grow"></div>
+
 
 <button
     class="btn"
@@ -649,6 +977,7 @@ GC PLAY PRO
 LISTAS
 </button>
 
+
 <button
     class="btn primary"
     onclick="openM3U()"
@@ -656,12 +985,19 @@ LISTAS
 + M3U
 </button>
 
+
 </div>
 
 </header>
 
 
+
+<!-- ============================================================
+     MAIN
+============================================================ -->
+
 <main>
+
 
 <section class="hero">
 
@@ -669,12 +1005,16 @@ LISTAS
 Sua TV, do seu jeito.
 </h1>
 
+
 <p>
+
 Cada lista utiliza seu próprio servidor.
 O GC PLAY PRO não fica preso a nenhum servidor específico.
+
 </p>
 
 </section>
+
 
 
 <div
@@ -683,13 +1023,16 @@ O GC PLAY PRO não fica preso a nenhum servidor específico.
 ></div>
 
 
+
 <div
     id="listPills"
     class="lists"
 ></div>
 
 
+
 <div class="toolbar">
+
 
 <input
     id="search"
@@ -705,7 +1048,7 @@ O GC PLAY PRO não fica preso a nenhum servidor específico.
 >
 
 <option value="ALL">
-Todas as categorias
+Todas
 </option>
 
 </select>
@@ -718,7 +1061,9 @@ Todas as categorias
 ↻ Atualizar
 </button>
 
+
 </div>
+
 
 
 <div
@@ -726,17 +1071,23 @@ Todas as categorias
     class="grid"
 ></div>
 
+
 </main>
 
 
-<!-- MODAL M3U -->
+
+<!-- ============================================================
+     MODAL M3U
+============================================================ -->
 
 <div
     id="m3uModal"
     class="modal hidden"
 >
 
+
 <div class="box">
+
 
 <h2>
 Adicionar lista M3U
@@ -745,47 +1096,56 @@ Adicionar lista M3U
 
 <div class="field">
 
+
 <label>
 Nome da lista
 </label>
+
 
 <input
     id="mName"
     placeholder="Minha TV"
 >
 
+
 </div>
+
 
 
 <div class="field">
 
+
 <label>
 URL M3U completa
 </label>
+
 
 <input
     id="mUrl"
     placeholder="http://servidor/get.php?..."
 >
 
+
 </div>
 
 
 <p
     style="
-    color:#888;
-    font-size:13px;
+        color:#888;
+        font-size:13px;
     "
 >
 
-Aceita listas M3U normais, Xtream
-get.php, MPEG-TS, HLS/M3U8 e outros
-formatos retornados pela playlist.
+Aceita M3U normal, Xtream get.php,
+MPEG-TS, HLS/M3U8 e outras playlists
+compatíveis.
 
 </p>
 
 
+
 <div class="actions">
+
 
 <button
     class="btn"
@@ -794,6 +1154,7 @@ formatos retornados pela playlist.
 Cancelar
 </button>
 
+
 <button
     class="btn primary"
     onclick="saveM3U()"
@@ -801,31 +1162,42 @@ Cancelar
 Salvar e carregar
 </button>
 
+
+</div>
+
+
 </div>
 
 </div>
 
-</div>
 
 
-<!-- MODAL LISTAS -->
+<!-- ============================================================
+     MODAL LISTAS
+============================================================ -->
 
 <div
     id="listsModal"
     class="modal hidden"
 >
 
+
 <div class="box">
+
 
 <h2>
 Minhas listas
 </h2>
 
 
-<div id="listRows"></div>
+<div
+    id="listRows"
+></div>
+
 
 
 <div class="actions">
+
 
 <button
     class="btn"
@@ -833,6 +1205,7 @@ Minhas listas
 >
 Fechar
 </button>
+
 
 <button
     class="btn primary"
@@ -844,27 +1217,38 @@ Fechar
 + Adicionar
 </button>
 
+
+</div>
+
+
 </div>
 
 </div>
 
-</div>
 
 
-<!-- PLAYER -->
+<!-- ============================================================
+     PLAYER
+============================================================ -->
 
 <div
     id="playerModal"
     class="modal playerModal hidden"
 >
 
+
 <div class="box">
+
 
 <div class="playerTitle">
 
-<span id="playerName">
+
+<span
+    id="playerName"
+>
 Player
 </span>
+
 
 <button
     class="btn"
@@ -877,10 +1261,13 @@ Player
 ✕
 </button>
 
+
 </div>
 
 
+
 <div class="playerWrap">
+
 
 <video
     id="video"
@@ -889,7 +1276,9 @@ Player
     autoplay
 ></video>
 
+
 </div>
+
 
 
 <div
@@ -902,22 +1291,32 @@ Player
 >
 </div>
 
-</div>
 
 </div>
 
-
-<div id="toast"></div>
-
-
-<!-- HLS -->
-
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"></script>
+</div>
 
 
-<!-- MPEG-TS -->
 
-<script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.0/dist/mpegts.min.js"></script>
+<div
+    id="toast"
+></div>
+
+
+
+<!-- ============================================================
+     BIBLIOTECAS
+============================================================ -->
+
+<script
+src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"
+></script>
+
+
+<script
+src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.0/dist/mpegts.min.js"
+></script>
+
 
 
 <script>
@@ -928,18 +1327,26 @@ Player
 ============================================================ */
 
 
+/*
+    ESTE É O ÚNICO SERVIDOR FIXO:
+
+    É o nosso PROXY SUPABASE.
+
+    Nenhum servidor IPTV está fixado aqui.
+*/
+
+
 const PROXY_URL =
 "https://kuzgdvpdqmocklsgyzvt.supabase.co/functions/v1/gcplay-proxy";
 
 
 const STORAGE_KEY =
-"gcplay_pro_v4";
+"gcplay_pro_v5";
 
 
 /* ============================================================
    ESTADO
 ============================================================ */
-
 
 let state = {
 
@@ -958,52 +1365,73 @@ let player = null;
 
 
 /* ============================================================
-   FUNÇÕES BÁSICAS
+   ESCAPE HTML
 ============================================================ */
-
 
 function escapeHTML(value){
 
-    return String(value ?? "")
-        .replace(/[&<>"']/g, function(char){
+    return String(
+        value ?? ""
+    )
+    .replace(
+        /[&<>"']/g,
+        function(char){
 
             return {
 
                 "&":"&amp;",
+
                 "<":"&lt;",
+
                 ">":"&gt;",
+
                 '"':"&quot;",
+
                 "'":"&#039;"
 
             }[char];
 
-        });
+        }
+    );
 
 }
 
 
+/* ============================================================
+   TOAST
+============================================================ */
+
 function toast(message){
 
     const element =
-        document.getElementById("toast");
+        document.getElementById(
+            "toast"
+        );
+
 
     element.textContent =
         message;
 
+
     element.style.display =
         "block";
+
 
     clearTimeout(
         window.__toastTimer
     );
 
+
     window.__toastTimer =
-        setTimeout(function(){
+        setTimeout(
+            function(){
 
-            element.style.display =
-                "none";
+                element.style.display =
+                    "none";
 
-        },3200);
+            },
+            3200
+        );
 
 }
 
@@ -1012,12 +1440,16 @@ function toast(message){
    STORAGE
 ============================================================ */
 
-
 function saveState(){
 
     localStorage.setItem(
+
         STORAGE_KEY,
-        JSON.stringify(state.lists)
+
+        JSON.stringify(
+            state.lists
+        )
+
     );
 
 }
@@ -1029,12 +1461,18 @@ function loadState(){
 
         state.lists =
             JSON.parse(
+
                 localStorage.getItem(
                     STORAGE_KEY
-                ) || "[]"
+                )
+                ||
+                "[]"
+
             );
 
-    }catch(error){
+    }
+
+    catch(error){
 
         state.lists = [];
 
@@ -1044,21 +1482,33 @@ function loadState(){
 
 
 /* ============================================================
-   PROXY
+   PROXY URL
 ============================================================ */
 
-
 function proxyURL(
+
     target,
+
     mode
+
 ){
 
     return (
+
         PROXY_URL +
+
         "?mode=" +
-        encodeURIComponent(mode) +
+
+        encodeURIComponent(
+            mode
+        ) +
+
         "&url=" +
-        encodeURIComponent(target)
+
+        encodeURIComponent(
+            target
+        )
+
     );
 
 }
@@ -1068,13 +1518,16 @@ function proxyURL(
    MODAIS
 ============================================================ */
 
-
 function openM3U(){
 
     document
-        .getElementById("m3uModal")
+        .getElementById(
+            "m3uModal"
+        )
         .classList
-        .remove("hidden");
+        .remove(
+            "hidden"
+        );
 
 }
 
@@ -1082,9 +1535,13 @@ function openM3U(){
 function closeM3U(){
 
     document
-        .getElementById("m3uModal")
+        .getElementById(
+            "m3uModal"
+        )
         .classList
-        .add("hidden");
+        .add(
+            "hidden"
+        );
 
 }
 
@@ -1093,10 +1550,15 @@ function openLists(){
 
     renderListManager();
 
+
     document
-        .getElementById("listsModal")
+        .getElementById(
+            "listsModal"
+        )
         .classList
-        .remove("hidden");
+        .remove(
+            "hidden"
+        );
 
 }
 
@@ -1104,9 +1566,13 @@ function openLists(){
 function closeLists(){
 
     document
-        .getElementById("listsModal")
+        .getElementById(
+            "listsModal"
+        )
         .classList
-        .add("hidden");
+        .add(
+            "hidden"
+        );
 
 }
 
@@ -1115,10 +1581,12 @@ function closeLists(){
    STATUS
 ============================================================ */
 
-
 function setStatus(
+
     text,
+
     success
+
 ){
 
     const element =
@@ -1126,33 +1594,44 @@ function setStatus(
             "status"
         );
 
+
     element.textContent =
         text;
+
 
     element.className =
         "status " +
         (
             success
-            ? "ok"
-            : "err"
+            ?
+            "ok"
+            :
+            "err"
         );
 
+
     element.classList
-        .remove("hidden");
+        .remove(
+            "hidden"
+        );
 
 }
 
 
 /* ============================================================
-   NORMALIZAÇÃO
+   NORMALIZAR URL
 ============================================================ */
 
-
-function normalizeURL(url){
+function normalizeURL(
+    url
+){
 
     url =
-        (url || "")
-        .trim();
+        (
+            url ||
+            ""
+        ).trim();
+
 
     if(!url){
 
@@ -1160,13 +1639,20 @@ function normalizeURL(url){
 
     }
 
+
     if(
-        url.startsWith("//")
+        url.startsWith(
+            "//"
+        )
     ){
 
-        return "http:" + url;
+        return (
+            "http:" +
+            url
+        );
 
     }
+
 
     return url;
 
@@ -1174,25 +1660,33 @@ function normalizeURL(url){
 
 
 /* ============================================================
-   EXTINF
+   PARSER EXTINF
 ============================================================ */
 
-
-function parseEXTINF(line){
+function parseEXTINF(
+    line
+){
 
     const data = {};
+
 
     const regex =
         /([\w-]+)="([^"]*)"/g;
 
+
     let match;
 
+
     while(
-        (match = regex.exec(line))
+        (
+            match =
+            regex.exec(line)
+        )
     ){
 
         data[
-            match[1].toLowerCase()
+            match[1]
+                .toLowerCase()
         ] =
             match[2];
 
@@ -1204,11 +1698,20 @@ function parseEXTINF(line){
 
 
     data.title =
+
         comma >= 0
-        ? line
-            .slice(comma + 1)
+
+        ?
+
+        line
+            .slice(
+                comma + 1
+            )
             .trim()
-        : "Sem nome";
+
+        :
+
+        "Sem nome";
 
 
     return data;
@@ -1217,48 +1720,63 @@ function parseEXTINF(line){
 
 
 /* ============================================================
-   CATEGORIA
+   CLASSIFICAR
 ============================================================ */
 
-
 function classify(
+
     metadata,
+
     url
+
 ){
 
     const group =
+
         (
-            metadata["group-title"]
+            metadata[
+                "group-title"
+            ]
             ||
             ""
-        ).toLowerCase();
+        )
+        .toLowerCase();
 
 
     const title =
+
         (
             metadata.title
             ||
             ""
-        ).toLowerCase();
+        )
+        .toLowerCase();
 
 
     const address =
+
         (
             url
             ||
             ""
-        ).toLowerCase();
+        )
+        .toLowerCase();
 
 
     const combined =
+
         group +
         " " +
         title;
 
 
     if(
+
         /adult|18\+|xxx|erotic|adulto/
-        .test(combined)
+        .test(
+            combined
+        )
+
     ){
 
         return "Adult";
@@ -1267,10 +1785,19 @@ function classify(
 
 
     if(
+
         /series?|série|season|temporada|episódio|episode/
-        .test(combined)
+        .test(
+            combined
+        )
+
         ||
-        /\/series?\//.test(address)
+
+        /\/series?\//
+        .test(
+            address
+        )
+
     ){
 
         return "Series";
@@ -1279,10 +1806,19 @@ function classify(
 
 
     if(
+
         /movie|filme|film|vod|cinema/
-        .test(combined)
+        .test(
+            combined
+        )
+
         ||
-        /\/movies?\//.test(address)
+
+        /\/movies?\//
+        .test(
+            address
+        )
+
     ){
 
         return "Films";
@@ -1291,8 +1827,12 @@ function classify(
 
 
     if(
+
         /music|música|radio/
-        .test(combined)
+        .test(
+            combined
+        )
+
     ){
 
         return "Music";
@@ -1306,132 +1846,96 @@ function classify(
 
 
 /* ============================================================
-   PARSER M3U
+   PROCESSAR UM ITEM M3U
 ============================================================ */
 
+function addM3UItem(
 
-function parseM3U(text){
+    metadata,
 
-    const lines =
-        text
-        .replace(/^\uFEFF/,"")
-        .split(/\r?\n/);
+    channelURL
 
+){
 
-    const items = [];
+    if(!channelURL){
 
-    let metadata = null;
-
-
-    for(
-        const originalLine
-        of lines
-    ){
-
-        const line =
-            originalLine.trim();
-
-
-        if(!line){
-
-            continue;
-
-        }
-
-
-        if(
-            line.startsWith("#EXTINF")
-        ){
-
-            metadata =
-                parseEXTINF(line);
-
-            continue;
-
-        }
-
-
-        if(
-            line.startsWith("#")
-        ){
-
-            continue;
-
-        }
-
-
-        const url =
-            normalizeURL(line);
-
-
-        if(!url){
-
-            continue;
-
-        }
-
-
-        metadata =
-            metadata ||
-            {
-                title:"Canal"
-            };
-
-
-        items.push({
-
-            id:
-                items.length,
-
-            name:
-                metadata.title
-                ||
-                metadata["tvg-name"]
-                ||
-                "Sem nome",
-
-            url:
-
-                url,
-
-            logo:
-
-                metadata["tvg-logo"]
-                ||
-                "",
-
-            group:
-
-                metadata["group-title"]
-                ||
-                "Sem categoria",
-
-            tvgId:
-
-                metadata["tvg-id"]
-                ||
-                "",
-
-            category:
-
-                classify(
-                    metadata,
-                    url
-                ),
-
-            raw:
-
-                metadata
-
-        });
-
-
-        metadata = null;
+        return null;
 
     }
 
 
-    return items;
+    metadata =
+
+        metadata
+        ||
+        {
+            title:"Canal"
+        };
+
+
+    const item = {
+
+        id:
+            state.items.length,
+
+        name:
+
+            metadata.title
+            ||
+            metadata[
+                "tvg-name"
+            ]
+            ||
+            "Sem nome",
+
+        url:
+
+            channelURL,
+
+        logo:
+
+            metadata[
+                "tvg-logo"
+            ]
+            ||
+            "",
+
+        group:
+
+            metadata[
+                "group-title"
+            ]
+            ||
+            "Sem categoria",
+
+        tvgId:
+
+            metadata[
+                "tvg-id"
+            ]
+            ||
+            "",
+
+        category:
+
+            classify(
+                metadata,
+                channelURL
+            ),
+
+        raw:
+
+            metadata
+
+    };
+
+
+    state.items.push(
+        item
+    );
+
+
+    return item;
 
 }
 
@@ -1439,7 +1943,6 @@ function parseM3U(text){
 /* ============================================================
    CATEGORIAS
 ============================================================ */
-
 
 function buildCategories(){
 
@@ -1461,9 +1964,14 @@ function buildCategories(){
         of state.items
     ){
 
-        counts[item.category] =
+        counts[
+            item.category
+        ] =
+
             (
-                counts[item.category]
+                counts[
+                    item.category
+                ]
                 ||
                 0
             ) + 1;
@@ -1472,19 +1980,28 @@ function buildCategories(){
 
 
     let html =
+
         '<option value="ALL">' +
+
         "Todas (" +
+
         state.items.length +
+
         ")" +
+
         "</option>";
 
 
-    const fixedCategories = [
+    const fixed = [
 
         "TV",
+
         "Films",
+
         "Series",
+
         "Music",
+
         "Adult"
 
     ];
@@ -1492,7 +2009,7 @@ function buildCategories(){
 
     for(
         const category
-        of fixedCategories
+        of fixed
     ){
 
         if(
@@ -1500,13 +2017,21 @@ function buildCategories(){
         ){
 
             html +=
+
                 '<option value="' +
+
                 category +
+
                 '">' +
+
                 category +
+
                 " (" +
+
                 counts[category] +
+
                 ")" +
+
                 "</option>";
 
         }
@@ -1516,23 +2041,41 @@ function buildCategories(){
 
     for(
         const category
-        of Object.keys(counts)
-            .filter(
-                c =>
-                    !fixedCategories
-                    .includes(c)
-            )
-            .sort()
+        of Object.keys(
+            counts
+        )
+        .filter(
+            function(c){
+
+                return !fixed.includes(
+                    c
+                );
+
+            }
+        )
+        .sort()
     ){
 
         html +=
+
             '<option value="' +
-            escapeHTML(category) +
+
+            escapeHTML(
+                category
+            ) +
+
             '">' +
-            escapeHTML(category) +
+
+            escapeHTML(
+                category
+            ) +
+
             " (" +
+
             counts[category] +
+
             ")" +
+
             "</option>";
 
     }
@@ -1543,16 +2086,25 @@ function buildCategories(){
 
 
     if(
+
         [
             ...select.options
         ]
         .some(
-            option =>
-                option.value === old
+            function(option){
+
+                return (
+                    option.value ===
+                    old
+                );
+
+            }
         )
+
     ){
 
-        select.value = old;
+        select.value =
+            old;
 
     }
 
@@ -1560,9 +2112,8 @@ function buildCategories(){
 
 
 /* ============================================================
-   BOTÕES DAS LISTAS
+   BOTÕES DE LISTA
 ============================================================ */
-
 
 function renderListPills(){
 
@@ -1573,26 +2124,46 @@ function renderListPills(){
 
 
     element.innerHTML =
+
         state.lists
+
         .map(
-            list =>
+            function(list){
 
-                '<button class="pill ' +
-                (
-                    list.id ===
-                    state.current
-                    ? "active"
-                    : ""
-                ) +
-                '" onclick="selectList(\'' +
-                list.id +
-                '\')">' +
-                escapeHTML(
-                    list.name
-                ) +
-                "</button>"
+                return
 
+                    '<button class="pill ' +
+
+                    (
+
+                        list.id ===
+                        state.current
+
+                        ?
+
+                        "active"
+
+                        :
+
+                        ""
+
+                    ) +
+
+                    '" onclick="selectList(\'' +
+
+                    list.id +
+
+                    '\')">' +
+
+                    escapeHTML(
+                        list.name
+                    ) +
+
+                    "</button>";
+
+            }
         )
+
         .join("");
 
 }
@@ -1602,52 +2173,74 @@ function renderListPills(){
    RENDER
 ============================================================ */
 
-
 function render(){
 
     const search =
         document
-        .getElementById("search")
-        .value
-        .toLowerCase()
-        .trim();
+            .getElementById(
+                "search"
+            )
+            .value
+            .toLowerCase()
+            .trim();
 
 
     const category =
         document
-        .getElementById("cat")
-        .value;
+            .getElementById(
+                "cat"
+            )
+            .value;
 
 
     const filtered =
+
         state.items
         .filter(
-            item => {
+            function(item){
 
                 const categoryOK =
-                    category === "ALL"
+
+                    category ===
+                    "ALL"
+
                     ||
+
                     item.category ===
                     category;
 
 
                 const searchOK =
+
                     !search
+
                     ||
+
                     (
+
                         item.name +
+
                         " " +
+
                         item.group +
+
                         " " +
+
                         item.url
+
                     )
                     .toLowerCase()
-                    .includes(search);
+                    .includes(
+                        search
+                    );
 
 
                 return (
-                    categoryOK &&
+
+                    categoryOK
+                    &&
                     searchOK
+
                 );
 
             }
@@ -1665,9 +2258,13 @@ function render(){
     ){
 
         grid.innerHTML =
+
             '<div class="empty" ' +
+
             'style="grid-column:1/-1">' +
+
             "Nenhum item encontrado." +
+
             "</div>";
 
         return;
@@ -1676,180 +2273,658 @@ function render(){
 
 
     grid.innerHTML =
+
         filtered
+
         .map(
-            item =>
+            function(item){
 
-            '<div class="card">' +
+                return
 
-                '<button onclick="playItem(' +
-                item.id +
-                ')">' +
+                '<div class="card">' +
 
-                    '<div class="thumb">' +
+                    '<button onclick="playItem(' +
 
-                        (
-                            item.logo
+                    item.id +
 
-                            ?
+                    ')">' +
 
-                            '<img loading="lazy" src="' +
+
+                        '<div class="thumb">' +
+
+
+                            (
+                                item.logo
+
+                                ?
+
+                                /*
+                                    IMPORTANTE:
+
+                                    O logo agora vai
+                                    direto para o servidor.
+
+                                    Não fazemos proxy
+                                    de milhares de
+                                    logos.
+                                */
+
+                                '<img loading="lazy" ' +
+
+                                'src="' +
+
+                                escapeHTML(
+                                    item.logo
+                                ) +
+
+                                '" ' +
+
+                                'onerror="' +
+
+                                "this.style.display='none'" +
+
+                                '">'
+
+
+                                :
+
+                                '<div class="noimg">▶</div>'
+
+                            )
+
+
+                        +
+
+                        "</div>" +
+
+
+                        '<div class="ct">' +
+
+
+                            "<b>" +
+
                             escapeHTML(
-                                proxyURL(
-                                    item.logo,
-                                    "image"
-                                )
+                                item.name
                             ) +
-                            '" onerror="this.style.display=\'none\'">'
 
-                            :
+                            "</b>" +
 
-                            '<div class="noimg">▶</div>'
-                        )
 
-                    +
+                            "<small>" +
 
-                    "</div>" +
+                            escapeHTML(
+                                item.group
+                            ) +
 
-                    '<div class="ct">' +
+                            " • " +
 
-                        "<b>" +
-                        escapeHTML(
-                            item.name
-                        ) +
-                        "</b>" +
+                            escapeHTML(
+                                item.category
+                            ) +
 
-                        "<small>" +
-                        escapeHTML(
-                            item.group
-                        ) +
-                        " • " +
-                        escapeHTML(
-                            item.category
-                        ) +
-                        "</small>" +
+                            "</small>" +
 
-                    "</div>" +
 
-                "</button>" +
+                        "</div>" +
 
-            "</div>"
 
+                    "</button>" +
+
+
+                "</div>";
+
+            }
         )
+
         .join("");
 
 }
 
 
 /* ============================================================
-   CARREGAR LISTA
+   CARREGAR LISTA — STREAMING
 ============================================================ */
 
-
-async function loadList(list){
+async function loadList(
+    list
+){
 
     state.current =
         list.id;
+
 
     state.items = [];
 
 
     renderListPills();
 
+    buildCategories();
+
     render();
 
 
     setStatus(
-        "Carregando " +
+
+        "Conectando ao servidor de " +
         list.name +
         "...",
+
         true
+
     );
 
 
     try{
 
+
+        /*
+        ========================================================
+        FAZER FETCH
+        ========================================================
+        */
+
         const response =
+
             await fetch(
+
                 proxyURL(
                     list.url,
                     "playlist"
                 ),
+
                 {
-                    method:"GET",
-                    cache:"no-store"
+
+                    method:
+                        "GET",
+
+                    cache:
+                        "no-store",
+
+                    headers:{
+
+                        "Accept":
+                            "application/x-mpegURL,text/plain,*/*"
+
+                    }
+
                 }
+
             );
 
 
-        const text =
-            await response.text();
-
+        /*
+        ========================================================
+        VERIFICAR HTTP
+        ========================================================
+        */
 
         if(
             !response.ok
         ){
 
+            const errorText =
+                await response.text();
+
+
             throw new Error(
-                text ||
+
+                errorText
+
+                ||
+
                 (
                     "HTTP " +
                     response.status
                 )
+
             );
 
         }
 
 
-        const items =
-            parseM3U(text);
-
+        /*
+        ========================================================
+        STREAM
+        ========================================================
+        */
 
         if(
-            !items.length
+            !response.body
         ){
 
             throw new Error(
-                "A resposta não parece ser uma playlist M3U válida."
+
+                "O navegador não disponibilizou o fluxo da playlist."
+
             );
 
         }
 
 
-        state.items =
-            items;
+        /*
+        ========================================================
+        READER
+        ========================================================
+        */
 
+        const reader =
+
+            response.body
+                .getReader();
+
+
+        /*
+        ========================================================
+        DECODER
+        ========================================================
+        */
+
+        const decoder =
+
+            new TextDecoder(
+                "utf-8"
+            );
+
+
+        /*
+        ========================================================
+        BUFFER
+
+        Guardamos somente a parte
+        ainda não processada.
+        ========================================================
+        */
+
+        let buffer = "";
+
+
+        let metadata =
+            null;
+
+
+        let total = 0;
+
+
+        /*
+        ========================================================
+        LOOP
+        ========================================================
+        */
+
+        while(true){
+
+
+            const result =
+
+                await reader.read();
+
+
+            /*
+            FIM
+            */
+
+            if(
+                result.done
+            ){
+
+                break;
+
+            }
+
+
+            /*
+            DECODIFICAR PARTE
+            */
+
+            buffer +=
+
+                decoder.decode(
+
+                    result.value,
+
+                    {
+                        stream:true
+                    }
+
+                );
+
+
+            /*
+            SEPARAR LINHAS
+            */
+
+            const lines =
+
+                buffer.split(
+                    /\r?\n/
+                );
+
+
+            /*
+            ÚLTIMA LINHA PODE
+            ESTAR INCOMPLETA
+            */
+
+            buffer =
+
+                lines.pop()
+                ||
+                "";
+
+
+            /*
+            PROCESSAR LINHAS
+            */
+
+            for(
+                const rawLine
+                of lines
+            ){
+
+                const line =
+                    rawLine.trim();
+
+
+                if(!line){
+
+                    continue;
+
+                }
+
+
+                /*
+                EXTINF
+                */
+
+                if(
+
+                    line.startsWith(
+                        "#EXTINF"
+                    )
+
+                ){
+
+                    metadata =
+                        parseEXTINF(
+                            line
+                        );
+
+                    continue;
+
+                }
+
+
+                /*
+                DIRETIVAS
+                */
+
+                if(
+                    line.startsWith("#")
+                ){
+
+                    continue;
+
+                }
+
+
+                /*
+                URL
+                */
+
+                const channelURL =
+
+                    normalizeURL(
+                        line
+                    );
+
+
+                if(
+                    !channelURL
+                ){
+
+                    continue;
+
+                }
+
+
+                /*
+                ADICIONAR
+                */
+
+                addM3UItem(
+
+                    metadata,
+
+                    channelURL
+
+                );
+
+
+                metadata =
+                    null;
+
+
+                total++;
+
+
+                /*
+                ATUALIZAR INTERFACE
+                */
+
+                if(
+                    total % 100 === 0
+                ){
+
+                    buildCategories();
+
+                    render();
+
+
+                    setStatus(
+
+                        total +
+                        " itens encontrados...",
+
+                        true
+
+                    );
+
+
+                    /*
+                    Deixa o navegador
+                    respirar.
+                    */
+
+                    await new Promise(
+
+                        function(resolve){
+
+                            setTimeout(
+                                resolve,
+                                0
+                            );
+
+                        }
+
+                    );
+
+                }
+
+            }
+
+        }
+
+
+        /*
+        ========================================================
+        DECODER FINAL
+        ========================================================
+        */
+
+        buffer +=
+
+            decoder.decode();
+
+
+        /*
+        PROCESSAR RESTANTE
+        */
+
+        const lastLines =
+
+            buffer.split(
+                /\r?\n/
+            );
+
+
+        for(
+            const rawLine
+            of lastLines
+        ){
+
+            const line =
+                rawLine.trim();
+
+
+            if(!line){
+
+                continue;
+
+            }
+
+
+            if(
+
+                line.startsWith(
+                    "#EXTINF"
+                )
+
+            ){
+
+                metadata =
+                    parseEXTINF(
+                        line
+                    );
+
+                continue;
+
+            }
+
+
+            if(
+                line.startsWith("#")
+            ){
+
+                continue;
+
+            }
+
+
+            const channelURL =
+
+                normalizeURL(
+                    line
+                );
+
+
+            if(
+                !channelURL
+            ){
+
+                continue;
+
+            }
+
+
+            addM3UItem(
+
+                metadata,
+
+                channelURL
+
+            );
+
+
+            metadata =
+                null;
+
+
+            total++;
+
+        }
+
+
+        /*
+        ========================================================
+        FINAL
+        ========================================================
+        */
 
         list.updatedAt =
+
             new Date()
-            .toISOString();
+                .toISOString();
 
 
         saveState();
+
 
         buildCategories();
 
         render();
 
 
-        setStatus(
-            items.length +
-            " itens carregados de " +
-            list.name +
-            ".",
-            true
+        if(
+            state.items.length
+        ){
+
+            setStatus(
+
+                state.items.length +
+                " itens carregados de " +
+                list.name +
+                ".",
+
+                true
+
+            );
+
+
+            toast(
+                "Lista carregada com sucesso."
+            );
+
+        }
+
+        else{
+
+            throw new Error(
+
+                "Nenhum canal foi encontrado na M3U."
+
+            );
+
+        }
+
+
+    }
+
+    catch(error){
+
+
+        console.error(
+            "GC PLAY PRO:",
+            error
         );
 
 
-    }catch(error){
-
-        console.error(error);
-
-
         setStatus(
+
             "Erro ao carregar: " +
             error.message,
+
             false
+
         );
 
 
@@ -1866,27 +2941,39 @@ async function loadList(list){
    SALVAR NOVA LISTA
 ============================================================ */
 
-
 async function saveM3U(){
 
     const name =
+
         document
-        .getElementById("mName")
-        .value
-        .trim()
+            .getElementById(
+                "mName"
+            )
+            .value
+            .trim()
+
         ||
+
         "Minha lista";
 
 
     const url =
+
         document
-        .getElementById("mUrl")
-        .value
-        .trim();
+            .getElementById(
+                "mUrl"
+            )
+            .value
+            .trim();
 
 
     if(
-        !/^https?:\/\//i.test(url)
+
+        !/^https?:\/\//i
+        .test(
+            url
+        )
+
     ){
 
         toast(
@@ -1904,20 +2991,17 @@ async function saveM3U(){
             crypto.randomUUID(),
 
         name:
-
             name,
 
         url:
-
             url,
 
         createdAt:
 
             new Date()
-            .toISOString(),
+                .toISOString(),
 
         updatedAt:
-
             null
 
     };
@@ -1935,12 +3019,16 @@ async function saveM3U(){
 
 
     document
-        .getElementById("mName")
+        .getElementById(
+            "mName"
+        )
         .value = "";
 
 
     document
-        .getElementById("mUrl")
+        .getElementById(
+            "mUrl"
+        )
         .value = "";
 
 
@@ -1955,19 +3043,28 @@ async function saveM3U(){
    SELECIONAR LISTA
 ============================================================ */
 
-
-function selectList(id){
+function selectList(
+    id
+){
 
     const list =
+
         state.lists.find(
-            item =>
-                item.id === id
+            function(item){
+
+                return (
+                    item.id === id
+                );
+
+            }
         );
 
 
     if(list){
 
-        loadList(list);
+        loadList(
+            list
+        );
 
     }
 
@@ -1975,9 +3072,8 @@ function selectList(id){
 
 
 /* ============================================================
-   GERENCIADOR DE LISTAS
+   GERENCIAR LISTAS
 ============================================================ */
-
 
 function renderListManager(){
 
@@ -1992,8 +3088,11 @@ function renderListManager(){
     ){
 
         element.innerHTML =
+
             '<div class="empty">' +
+
             "Nenhuma lista cadastrada." +
+
             "</div>";
 
         return;
@@ -2002,45 +3101,72 @@ function renderListManager(){
 
 
     element.innerHTML =
+
         state.lists
+
         .map(
-            list =>
+            function(list){
 
-            '<div class="listRow">' +
+                return
 
-                '<div class="grow">' +
+                    '<div class="listRow">' +
 
-                    '<div class="name">' +
-                    escapeHTML(
-                        list.name
-                    ) +
-                    "</div>" +
 
-                    '<div class="url">' +
-                    escapeHTML(
-                        list.url
-                    ) +
-                    "</div>" +
+                        '<div class="grow">' +
 
-                "</div>" +
 
-                '<button class="btn" ' +
-                'onclick="editList(\'' +
-                list.id +
-                '\')">' +
-                "Editar" +
-                "</button>" +
+                            '<div class="name">' +
 
-                '<button class="btn danger" ' +
-                'onclick="deleteList(\'' +
-                list.id +
-                '\')">' +
-                "Excluir" +
-                "</button>" +
+                            escapeHTML(
+                                list.name
+                            ) +
 
-            "</div>"
+                            "</div>" +
 
+
+                            '<div class="url">' +
+
+                            escapeHTML(
+                                list.url
+                            ) +
+
+                            "</div>" +
+
+
+                        "</div>" +
+
+
+                        '<button class="btn" ' +
+
+                        'onclick="editList(\'' +
+
+                        list.id +
+
+                        '\')">' +
+
+                        "Editar" +
+
+                        "</button>" +
+
+
+                        '<button class="btn danger" ' +
+
+                        'onclick="deleteList(\'' +
+
+                        list.id +
+
+                        '\')">' +
+
+                        "Excluir" +
+
+                        "</button>" +
+
+
+                    "</div>";
+
+            }
         )
+
         .join("");
 
 }
@@ -2050,13 +3176,20 @@ function renderListManager(){
    EDITAR LISTA
 ============================================================ */
 
-
-function editList(id){
+function editList(
+    id
+){
 
     const list =
+
         state.lists.find(
-            item =>
-                item.id === id
+            function(item){
+
+                return (
+                    item.id === id
+                );
+
+            }
         );
 
 
@@ -2068,13 +3201,16 @@ function editList(id){
 
 
     const name =
+
         prompt(
             "Nome da lista:",
             list.name
         );
 
 
-    if(name === null){
+    if(
+        name === null
+    ){
 
         return;
 
@@ -2082,13 +3218,16 @@ function editList(id){
 
 
     const url =
+
         prompt(
             "URL M3U:",
             list.url
         );
 
 
-    if(url === null){
+    if(
+        url === null
+    ){
 
         return;
 
@@ -2100,8 +3239,12 @@ function editList(id){
 
 
     if(
+
         !/^https?:\/\//i
-        .test(cleanURL)
+        .test(
+            cleanURL
+        )
+
     ){
 
         toast(
@@ -2114,6 +3257,7 @@ function editList(id){
 
 
     list.name =
+
         name.trim()
         ||
         "Minha lista";
@@ -2125,7 +3269,9 @@ function editList(id){
 
     saveState();
 
+
     renderListManager();
+
 
     loadList(
         list
@@ -2138,13 +3284,16 @@ function editList(id){
    EXCLUIR LISTA
 ============================================================ */
 
-
-function deleteList(id){
+function deleteList(
+    id
+){
 
     if(
+
         !confirm(
             "Excluir esta lista?"
         )
+
     ){
 
         return;
@@ -2153,9 +3302,15 @@ function deleteList(id){
 
 
     state.lists =
+
         state.lists.filter(
-            list =>
-                list.id !== id
+            function(list){
+
+                return (
+                    list.id !== id
+                );
+
+            }
         );
 
 
@@ -2173,6 +3328,7 @@ function deleteList(id){
 
     saveState();
 
+
     renderListManager();
 
     renderListPills();
@@ -2185,17 +3341,22 @@ function deleteList(id){
 
 
 /* ============================================================
-   ATUALIZAR LISTA
+   ATUALIZAR
 ============================================================ */
-
 
 async function refreshCurrent(){
 
     const list =
+
         state.lists.find(
-            item =>
-                item.id ===
-                state.current
+            function(item){
+
+                return (
+                    item.id ===
+                    state.current
+                );
+
+            }
         );
 
 
@@ -2221,17 +3382,16 @@ async function refreshCurrent(){
    FECHAR PLAYER
 ============================================================ */
 
-
 function closePlayer(){
 
-    const modal =
-        document.getElementById(
+    document
+        .getElementById(
             "playerModal"
+        )
+        .classList
+        .add(
+            "hidden"
         );
-
-
-    modal.classList
-        .add("hidden");
 
 
     try{
@@ -2244,7 +3404,9 @@ function closePlayer(){
 
         }
 
-    }catch(error){}
+    }
+
+    catch(error){}
 
 
     try{
@@ -2257,7 +3419,9 @@ function closePlayer(){
 
         }
 
-    }catch(error){}
+    }
+
+    catch(error){}
 
 
     const video =
@@ -2268,9 +3432,11 @@ function closePlayer(){
 
     video.pause();
 
+
     video.removeAttribute(
         "src"
     );
+
 
     video.load();
 
@@ -2278,16 +3444,23 @@ function closePlayer(){
 
 
 /* ============================================================
-   REPRODUZIR ITEM
+   PLAYER
 ============================================================ */
 
-
-function playItem(id){
+function playItem(
+    id
+){
 
     const item =
+
         state.items.find(
-            channel =>
-                channel.id === id
+            function(channel){
+
+                return (
+                    channel.id === id
+                );
+
+            }
         );
 
 
@@ -2319,7 +3492,9 @@ function playItem(id){
             "playerModal"
         )
         .classList
-        .remove("hidden");
+        .remove(
+            "hidden"
+        );
 
 
     const video =
@@ -2328,38 +3503,65 @@ function playItem(id){
         );
 
 
+    /*
+    ============================================================
+    URL DO STREAM
+
+    Sempre passa pelo proxy.
+
+    O servidor vem da própria M3U.
+    ============================================================
+    */
+
     const streamURL =
+
         proxyURL(
+
             item.url,
+
             "media"
+
         );
 
 
     const originalURL =
+
         item.url
-        .toLowerCase();
+            .toLowerCase();
 
 
     /*
-        HLS / M3U8
+    ============================================================
+    HLS
+    ============================================================
     */
 
     if(
+
         /\.m3u8(?:$|\?)/i
-        .test(originalURL)
+        .test(
+            originalURL
+        )
+
     ){
 
         if(
-            window.Hls &&
+
+            window.Hls
+            &&
             Hls.isSupported()
+
         ){
 
             hls =
+
                 new Hls({
 
-                    enableWorker:true,
+                    enableWorker:
+                        true,
 
-                    lowLatencyMode:false
+                    lowLatencyMode:
+                        false
 
                 });
 
@@ -2375,7 +3577,10 @@ function playItem(id){
 
 
             hls.on(
-                Hls.Events.MANIFEST_PARSED,
+
+                Hls.Events
+                    .MANIFEST_PARSED,
+
                 function(){
 
                     document
@@ -2385,6 +3590,7 @@ function playItem(id){
                         .textContent =
                         "HLS conectado.";
 
+
                     video
                         .play()
                         .catch(
@@ -2392,11 +3598,14 @@ function playItem(id){
                         );
 
                 }
+
             );
 
 
             hls.on(
+
                 Hls.Events.ERROR,
+
                 function(
                     event,
                     data
@@ -2412,24 +3621,30 @@ function playItem(id){
                                 "playerStatus"
                             )
                             .textContent =
+
                             "Erro HLS: " +
                             data.details;
 
                     }
 
                 }
+
             );
 
         }
 
+
         else if(
+
             video.canPlayType(
                 "application/vnd.apple.mpegurl"
             )
+
         ){
 
             video.src =
                 streamURL;
+
 
             video
                 .play()
@@ -2439,6 +3654,7 @@ function playItem(id){
 
         }
 
+
         else{
 
             document
@@ -2446,6 +3662,7 @@ function playItem(id){
                     "playerStatus"
                 )
                 .textContent =
+
                 "Este navegador não suporta HLS.";
 
         }
@@ -2457,9 +3674,10 @@ function playItem(id){
 
 
     /*
-        MPEG-TS
+    ============================================================
+    MPEG-TS
+    ============================================================
     */
-
 
     if(
         typeof mpegts ===
@@ -2471,6 +3689,7 @@ function playItem(id){
                 "playerStatus"
             )
             .textContent =
+
             "mpegts.js não carregou.";
 
         return;
@@ -2481,6 +3700,7 @@ function playItem(id){
     try{
 
         player =
+
             mpegts.createPlayer(
 
                 {
@@ -2527,7 +3747,9 @@ function playItem(id){
 
 
         player.on(
+
             mpegts.Events.ERROR,
+
             function(){
 
                 document
@@ -2535,9 +3757,11 @@ function playItem(id){
                         "playerStatus"
                     )
                     .textContent =
+
                     "Falha ao reproduzir o MPEG-TS.";
 
             }
+
         );
 
 
@@ -2546,11 +3770,17 @@ function playItem(id){
                 "playerStatus"
             )
             .textContent =
+
             "MPEG-TS conectado.";
 
-    }catch(error){
+    }
 
-        console.error(error);
+
+    catch(error){
+
+        console.error(
+            error
+        );
 
 
         document
@@ -2558,6 +3788,7 @@ function playItem(id){
                 "playerStatus"
             )
             .textContent =
+
             "Erro no player: " +
             error.message;
 
@@ -2569,7 +3800,6 @@ function playItem(id){
 /* ============================================================
    INICIALIZAÇÃO
 ============================================================ */
-
 
 loadState();
 
@@ -2588,17 +3818,27 @@ if(
         state.lists[0]
     );
 
-}else{
+}
+
+
+else{
 
     document
-        .getElementById("grid")
+        .getElementById(
+            "grid"
+        )
         .innerHTML =
+
         '<div class="empty" ' +
+
         'style="grid-column:1/-1">' +
+
         "Adicione sua primeira lista M3U para começar." +
+
         "</div>";
 
 }
+
 
 </script>
 
