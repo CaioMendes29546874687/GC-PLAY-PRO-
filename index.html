@@ -549,6 +549,8 @@ const App = {
     activationPoll:null,
     inicializado:false,
     carregandoM3U:false,
+    autoloadAtivacaoEmAndamento:false,
+    ultimaPlaylistAutoCarregada:"",
 
     async init(){
         console.log("GC PLAY PRO: iniciando aplicação...");
@@ -870,13 +872,59 @@ const App = {
              * uma M3U. Isso evita loops e downloads gigantes.
              */
             if(data.playlist_url && data.playlist_url.trim()){
+                const playlistAtivada=String(data.playlist_url).trim();
+
                 localStorage.setItem(
                     "gcplay_last_remote_playlist",
-                    data.playlist_url
+                    playlistAtivada
                 );
                 localStorage.setItem(
                     "gcplay_last_m3u",
-                    data.playlist_url
+                    playlistAtivada
+                );
+
+                /*
+                 * CORREÇÃO IMPORTANTE:
+                 * Depois que o aparelho é ativado no painel remoto,
+                 * o aplicativo deve entrar automaticamente no player
+                 * e carregar a M3U vinculada ao dispositivo.
+                 *
+                 * Antes, o código apenas salvava a URL e deixava o
+                 * usuário preso nesta tela de ativação.
+                 */
+                const urlJaCarregada=
+                    this.ultimaPlaylistAutoCarregada===playlistAtivada;
+
+                if(
+                    !urlJaCarregada &&
+                    !this.autoloadAtivacaoEmAndamento &&
+                    !this.carregandoM3U
+                ){
+                    this.autoloadAtivacaoEmAndamento=true;
+                    this.ultimaPlaylistAutoCarregada=playlistAtivada;
+
+                    console.log(
+                        "GC PLAY PRO: aparelho ativado. Carregando M3U automaticamente..."
+                    );
+
+                    setTimeout(()=>{
+                        this.carregarListaM3U(
+                            playlistAtivada,
+                            false
+                        ).finally(()=>{
+                            this.autoloadAtivacaoEmAndamento=false;
+                        });
+                    },300);
+                }
+            }else{
+                /*
+                 * O aparelho pode estar ativo sem uma playlist vinculada.
+                 * Nesse caso ele permanece na tela para permitir adicionar
+                 * uma M3U manualmente.
+                 */
+                this.atualizarStatusAtivacao(
+                    "APARELHO ATIVADO - AGUARDANDO M3U",
+                    "online"
                 );
             }
         }else if(status==="blocked"){
