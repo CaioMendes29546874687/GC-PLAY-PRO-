@@ -1102,15 +1102,12 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
         const loaderText=document.getElementById("loaderStatusText");
         const btn=document.getElementById("btnCarregarMaisM3U");
 
-        if(!silencioso && loader){
-            loader.classList.add("on");
-        }
+        if(!silencioso && loader) loader.classList.add("on");
 
         if(loaderText){
-            loaderText.innerText=
-                offset===0
-                    ? "Carregando primeira página da M3U..."
-                    : "Carregando mais canais...";
+            loaderText.innerText = offset===0
+                ? "Carregando primeira página da M3U..."
+                : "Carregando mais canais...";
         }
 
         if(btn){
@@ -1122,8 +1119,16 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
 
         try{
             const controller=new AbortController();
-            timeout=setTimeout(()=>controller.abort(),45000);
+            timeout=setTimeout(()=>controller.abort(),90000);
 
+            /*
+             * IMPORTANTE:
+             * O servidor agora devolve a M3U em STREAM.
+             * O navegador lê somente a quantidade necessária
+             * para montar a página atual e cancela o restante.
+             * Isso evita o JSON gigante e reduz drasticamente
+             * o uso de CPU da Edge Function.
+             */
             const resposta=await fetch(PLAYLIST_FUNCTION_URL,{
                 method:"POST",
                 mode:"cors",
@@ -1133,50 +1138,45 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
                 body:JSON.stringify({
                     device_id:this.deviceId,
                     activation_code:this.activationCode,
-                    playlist_url:url,
-                    offset:Number(offset)||0,
-                    limit:200
+                    playlist_url:url
                 })
             });
 
-            clearTimeout(timeout);
-            timeout=null;
-
-            const contentType=(resposta.headers.get("content-type")||"").toLowerCase();
-            let dados={};
-
-            if(contentType.includes("application/json")){
-                dados=await resposta.json().catch(()=>({}));
-            }else{
-                const texto=await resposta.text().catch(()=>"");
-                throw new Error("O servidor de playlist não retornou JSON de paginação.");
+            if(!resposta.ok){
+                let msg="Erro HTTP "+resposta.status;
+                try{
+                    const ct=(resposta.headers.get("content-type")||"").toLowerCase();
+                    if(ct.includes("application/json")){
+                        const e=await resposta.json();
+                        if(e && e.error) msg=e.error;
+                    }else{
+                        const t=await resposta.text();
+                        if(t) msg=t.substring(0,300);
+                    }
+                }catch(error){}
+                throw new Error(msg);
             }
 
-            if(!resposta.ok || !dados.success){
-                throw new Error(
-                    dados.error ||
-                    ("Erro HTTP "+resposta.status)
-                );
+            if(!resposta.body){
+                throw new Error("O servidor não enviou o stream da M3U.");
             }
 
-            const itens=Array.isArray(dados.items)?dados.items:[];
+            const pagina=await this.extrairPaginaDoStream(
+                resposta.body,
+                url,
+                Number(offset)||0,
+                200,
+                loaderText
+            );
 
-            if(offset===0 && !itens.length){
+            if(offset===0 && !pagina.itens.length){
                 throw new Error("A playlist não possui canais válidos.");
             }
 
-            this.adicionarPaginaM3U(itens);
+            this.adicionarPaginaM3U(pagina.itens);
 
-            this.paginaM3U.offset=
-                Number(dados.next_offset ?? (offset+itens.length));
-
-            this.paginaM3U.hasMore=
-                Boolean(dados.has_more);
-
-            this.paginaM3U.limit=
-                Number(dados.limit||200);
-
-            this.paginaM3U.url=url;
+            this.paginaM3U.offset=(Number(offset)||0)+pagina.itens.length;
+            this.paginaM3U.hasMore=pagina.hasMore;
 
             this.atualizarEstatisticasCatalogo();
             this.construirSubcategorias();
@@ -1191,7 +1191,7 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
             console.error("Erro na página M3U:",error);
 
             if(error && error.name==="AbortError"){
-                alert("O servidor demorou demais para carregar esta página da M3U.");
+                alert("O servidor demorou demais para carregar a página da M3U.");
             }else{
                 alert(
                     "Não foi possível carregar a página da M3U.\n\n"+
@@ -1199,7 +1199,6 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
                 );
             }
 
-            // Primeira página não deve mandar o usuário para uma tela vazia.
             if(primeiraPagina && !this.dadosM3U.live.length &&
                 !this.dadosM3U.vod.length && !this.dadosM3U.series.length &&
                 !this.dadosM3U.music.length && !this.dadosM3U.adult.length){
@@ -1211,12 +1210,190 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
             if(timeout) clearTimeout(timeout);
             this.paginaM3U.carregando=false;
 
-            if(!silencioso && loader){
-                loader.classList.remove("on");
-            }
+            if(!silencioso && loader) loader.classList.remove("on");
 
             this.atualizarControlePaginacao();
         }
+    },
+
+    async extrairPaginaDoStream(stream,baseUrl,offset,limit,loaderText){
+
+        const reader=stream.getReader();
+        const decoder=new TextDecoder("utf-8");
+
+        let buffer="";
+        let itemAtual=null;
+        let grupoExtAtual="";
+        let encontrados=0;
+        let lidos=0;
+        let terminado=false;
+        let hasMore=false;
+        const itens=[];
+        const vistos=new Set();
+
+        const atributos=(line)=>{
+            const out={};
+            const re=/([a-zA-Z0-9_-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s]+))/g;
+            let m;
+            while((m=re.exec(line))){
+                out[m[1].toLowerCase()]=(m[2]??m[3]??m[4]??"").trim();
+            }
+            return out;
+        };
+
+        const processarLinha=(raw)=>{
+
+            const line=String(raw||"").trim();
+            if(!line) return false;
+
+            lidos++;
+
+            if(line.toUpperCase().startsWith("#EXTGRP:")){
+                grupoExtAtual=line.substring(8).trim();
+                return false;
+            }
+
+            if(line.toUpperCase().startsWith("#EXTINF:")){
+
+                let comma=-1;
+                let quote=null;
+
+                for(let i=0;i<line.length;i++){
+                    const ch=line[i];
+                    if(ch==='"' || ch==="'"){
+                        if(quote===null) quote=ch;
+                        else if(quote===ch) quote=null;
+                    }else if(ch==="," && quote===null){
+                        comma=i;
+                        break;
+                    }
+                }
+
+                const titulo=comma>=0
+                    ? line.substring(comma+1).trim()
+                    : "Sem título";
+
+                const a=atributos(line);
+
+                itemAtual={
+                    titulo:a["tvg-name"]||titulo||"Sem título",
+                    logo:a["tvg-logo"]||a.logo||"",
+                    grupo:a["group-title"]||grupoExtAtual||"Geral",
+                    tvgId:a["tvg-id"]||"",
+                    tvgName:a["tvg-name"]||"",
+                    url:"",
+                    referrer:"",
+                    userAgent:""
+                };
+
+                grupoExtAtual="";
+                return false;
+            }
+
+            if(line.toUpperCase().startsWith("#EXTVLCOPT:")){
+                if(!itemAtual) return false;
+
+                const option=line.substring(12);
+                const pos=option.indexOf("=");
+
+                if(pos>=0){
+                    const key=option.substring(0,pos).trim().toLowerCase();
+                    const value=option.substring(pos+1).trim();
+
+                    if(key==="http-referrer") itemAtual.referrer=value;
+                    if(key==="http-user-agent") itemAtual.userAgent=value;
+                }
+
+                return false;
+            }
+
+            if(line.startsWith("#")) return false;
+            if(!itemAtual) return false;
+
+            let streamUrl=line;
+
+            try{
+                if(!/^https?:\/\//i.test(streamUrl) &&
+                   !/^rtmp:\/\//i.test(streamUrl) &&
+                   !/^rtsp:\/\//i.test(streamUrl)){
+                    streamUrl=new URL(streamUrl,baseUrl).href;
+                }
+            }catch(error){}
+
+            itemAtual.url=streamUrl.trim();
+
+            if(!itemAtual.url){
+                itemAtual=null;
+                return false;
+            }
+
+            const chave=(itemAtual.titulo+"|"+itemAtual.url).toLowerCase();
+
+            if(vistos.has(chave)){
+                itemAtual=null;
+                return false;
+            }
+
+            vistos.add(chave);
+            encontrados++;
+
+            if(encontrados>offset && itens.length<limit){
+                itens.push({...itemAtual,index:encontrados-1});
+            }
+
+            itemAtual=null;
+
+            if(itens.length>=limit){
+                hasMore=true;
+                return true;
+            }
+
+            if(loaderText && lidos%250===0){
+                loaderText.innerText=
+                    "Lendo M3U... "+encontrados.toLocaleString("pt-BR")+" canais encontrados";
+            }
+
+            return false;
+        };
+
+        try{
+            while(!terminado){
+
+                const result=await reader.read();
+
+                if(result.done){
+                    terminado=true;
+                    break;
+                }
+
+                buffer+=decoder.decode(result.value,{stream:true});
+                buffer=buffer.replace(/\r\n/g,"\n").replace(/\r/g,"\n");
+
+                let pos=-1;
+
+                while((pos=buffer.indexOf("\n"))!==-1){
+
+                    const line=buffer.substring(0,pos);
+                    buffer=buffer.substring(pos+1);
+
+                    if(processarLinha(line)){
+                        hasMore=true;
+                        terminado=true;
+                        try{await reader.cancel();}catch(error){}
+                        break;
+                    }
+                }
+            }
+
+            if(!terminado && buffer.trim()){
+                processarLinha(buffer);
+            }
+
+        }finally{
+            try{reader.releaseLock();}catch(error){}
+        }
+
+        return {itens,hasMore};
     },
 
     adicionarPaginaM3U(itens){
