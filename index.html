@@ -5,619 +5,623 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport"
-      content="width=device-width,
-      initial-scale=1.0,
-      maximum-scale=1.0,
-      user-scalable=no">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
 
 <meta name="theme-color" content="#050505">
 
 <title>GC PLAY PRO</title>
 
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-
 <style>
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+:root{
+    --bg:#050505;
+    --panel:#0d0d0d;
+    --panel2:#151515;
+    --green:#39ff14;
+    --text:#f4f4f4;
+    --muted:#999;
+    --danger:#ff4545;
+    --line:#252525;
+}
+
+*{
+    box-sizing:border-box;
 }
 
 html,
-body {
-    min-height: 100%;
-    background: #050505;
-    color: white;
-    font-family: Arial, Helvetica, sans-serif;
+body{
+    margin:0;
+    padding:0;
+    min-height:100%;
+    background:var(--bg);
+    color:var(--text);
+    font-family:Arial,Helvetica,sans-serif;
 }
 
-body {
-    overflow-x: hidden;
+body{
+    min-height:100vh;
 }
 
-/* =====================================================
-   HEADER
-===================================================== */
-
-header {
-
-    height: 90px;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    padding: 0 25px;
-
-    background: #070707;
-
-    border-bottom: 2px solid #39ff14;
-
-    box-shadow:
-        0 0 20px
-        rgba(57,255,20,.25);
-
-    position: sticky;
-    top: 0;
-
-    z-index: 1000;
+.hidden{
+    display:none!important;
 }
 
-.logo {
-
-    color: #39ff14;
-
-    font-size: 34px;
-
-    font-weight: 900;
-
-    text-shadow:
-        0 0 8px #39ff14,
-        0 0 20px rgba(57,255,20,.5);
-
+button,
+input,
+select{
+    font:inherit;
 }
 
-.header-buttons {
-
-    display: flex;
-    gap: 10px;
-
+button{
+    cursor:pointer;
 }
 
-button {
+header{
 
-    min-height: 50px;
+    position:sticky;
+    top:0;
+    z-index:20;
 
-    padding: 0 20px;
+    background:rgba(5,5,5,.97);
 
-    border: 1px solid #39ff14;
+    border-bottom:1px solid var(--line);
 
-    border-radius: 10px;
-
-    background: #080808;
-
-    color: #39ff14;
-
-    font-size: 15px;
-
-    font-weight: bold;
-
-    cursor: pointer;
-
+    padding:12px 14px;
 }
 
-button:hover,
-button:focus {
+.top{
 
-    background: #39ff14;
-    color: #000;
+    max-width:1400px;
+    margin:auto;
 
-    outline: none;
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.logo{
+
+    color:var(--green);
+
+    font-size:21px;
+
+    font-weight:900;
+
+    letter-spacing:1px;
+
+    white-space:nowrap;
+}
+
+.grow{
+    flex:1;
+}
+
+.btn{
+
+    border:1px solid #303030;
+
+    background:#111;
+
+    color:#fff;
+
+    border-radius:10px;
+
+    padding:10px 13px;
+
+    transition:.2s;
+}
+
+.btn:hover{
+
+    border-color:var(--green);
 
 }
 
-/* =====================================================
-   HOME
-===================================================== */
+.primary{
 
-#home {
+    background:var(--green);
 
-    min-height:
-        calc(100vh - 90px);
+    color:#000;
 
-    display: flex;
+    border-color:var(--green);
 
-    align-items: center;
-
-    justify-content: center;
-
-    padding: 25px;
-
+    font-weight:800;
 }
 
-.home-box {
-
-    width: 100%;
-    max-width: 700px;
-
-    text-align: center;
-
+.danger{
+    color:#ff7777;
 }
 
-.home-box h1 {
+main{
 
-    color: #39ff14;
+    max-width:1400px;
 
-    font-size: 58px;
+    margin:auto;
 
-    font-weight: 900;
-
-    margin-bottom: 15px;
-
-    text-shadow:
-        0 0 10px #39ff14,
-        0 0 30px rgba(57,255,20,.5);
-
+    padding:16px;
 }
 
-.home-box p {
+.hero{
 
-    color: #aaa;
-
-    font-size: 22px;
-
-    margin-bottom: 40px;
-
+    padding:18px 4px;
 }
 
-.home-buttons {
+.hero h1{
 
-    display: grid;
+    margin:0 0 7px;
 
-    gap: 18px;
-
+    font-size:28px;
 }
 
-.big-button {
+.hero p{
 
-    width: 100%;
+    margin:0;
 
-    min-height: 70px;
-
-    font-size: 19px;
-
+    color:var(--muted);
 }
 
-/* =====================================================
-   APP
-===================================================== */
+.status{
 
-#app {
+    margin:12px 0;
 
-    display: none;
+    padding:10px 12px;
 
-    padding: 20px;
+    border:1px solid var(--line);
 
-    max-width: 1600px;
+    border-radius:10px;
 
-    margin: auto;
+    background:#0d0d0d;
 
+    color:#bbb;
 }
 
-/* =====================================================
-   MENU
-===================================================== */
+.status.ok{
 
-.menu {
+    border-color:#1c8f12;
 
-    display: flex;
-
-    gap: 10px;
-
-    overflow-x: auto;
-
-    padding-bottom: 15px;
-
+    color:#b7ffad;
 }
 
-.menu button {
+.status.err{
 
-    flex-shrink: 0;
+    border-color:#9c2323;
 
-    white-space: nowrap;
-
+    color:#ffb0b0;
 }
 
-/* =====================================================
-   STATUS
-===================================================== */
+.lists{
 
-#status {
+    display:flex;
 
-    margin-bottom: 20px;
+    gap:8px;
 
-    padding: 15px;
+    overflow:auto;
 
-    border-radius: 10px;
-
-    border: 1px solid #252525;
-
-    background: #090909;
-
-    color: #aaa;
-
+    padding:8px 0;
 }
 
-#status.ok {
+.pill{
 
-    color: #39ff14;
+    padding:9px 12px;
 
-    border-color: #39ff14;
+    border:1px solid #333;
 
+    border-radius:999px;
+
+    background:#101010;
+
+    color:#fff;
+
+    white-space:nowrap;
 }
 
-#status.error {
+.pill.active{
 
-    color: #ff5555;
+    border-color:var(--green);
 
-    border-color: #ff3333;
-
+    color:var(--green);
 }
 
-/* =====================================================
-   LISTA
-===================================================== */
+.toolbar{
 
-#lista {
+    display:flex;
 
-    display: grid;
+    gap:9px;
+
+    align-items:center;
+
+    flex-wrap:wrap;
+
+    margin:12px 0;
+}
+
+.search{
+
+    width:100%;
+
+    max-width:400px;
+
+    padding:10px 12px;
+
+    border:1px solid #333;
+
+    border-radius:10px;
+
+    background:#0e0e0e;
+
+    color:#fff;
+
+    outline:none;
+}
+
+.search:focus{
+
+    border-color:var(--green);
+}
+
+.toolbar select{
+
+    padding:10px;
+
+    background:#0e0e0e;
+
+    color:#fff;
+
+    border:1px solid #333;
+
+    border-radius:10px;
+}
+
+.grid{
+
+    display:grid;
 
     grid-template-columns:
         repeat(
             auto-fill,
-            minmax(190px, 1fr)
+            minmax(190px,1fr)
         );
 
-    gap: 15px;
-
+    gap:12px;
 }
 
-.canal {
-
-    background: #0b0b0b;
-
-    border: 1px solid #222;
-
-    border-radius: 12px;
-
-    overflow: hidden;
-
-    cursor: pointer;
-
-    transition: .2s;
-
-}
-
-.canal:hover,
-.canal:focus {
-
-    border-color: #39ff14;
-
-    transform: translateY(-2px);
-
-    box-shadow:
-        0 0 15px
-        rgba(57,255,20,.15);
-
-}
-
-.canal img {
-
-    width: 100%;
-
-    height: 120px;
-
-    object-fit: contain;
-
-    background: #050505;
-
-}
-
-.canal-info {
-
-    padding: 12px;
-
-}
-
-.canal-nome {
-
-    font-weight: bold;
-
-    font-size: 15px;
-
-    white-space: nowrap;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-
-}
-
-.canal-grupo {
-
-    margin-top: 6px;
-
-    color: #777;
-
-    font-size: 12px;
-
-    white-space: nowrap;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-
-}
-
-.empty {
-
-    grid-column: 1 / -1;
-
-    text-align: center;
-
-    color: #777;
-
-    padding: 50px 20px;
-
-}
-
-/* =====================================================
-   MODAL
-===================================================== */
-
-.modal {
-
-    display: none;
-
-    position: fixed;
-
-    inset: 0;
+.card{
 
     background:
-        rgba(0,0,0,.88);
+        linear-gradient(
+            180deg,
+            #151515,
+            #0b0b0b
+        );
 
-    z-index: 5000;
+    border:1px solid #252525;
 
-    align-items: center;
+    border-radius:13px;
 
-    justify-content: center;
+    overflow:hidden;
 
-    padding: 15px;
-
+    min-height:150px;
 }
 
-.modal-box {
+.card button{
 
-    width: 100%;
+    width:100%;
 
-    max-width: 650px;
+    border:0;
 
-    background: #090909;
+    background:transparent;
 
-    border: 1px solid #39ff14;
+    color:inherit;
 
-    border-radius: 15px;
+    text-align:left;
 
-    padding: 25px;
+    padding:0;
+}
+
+.thumb{
+
+    height:105px;
+
+    background:#090909;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+}
+
+.thumb img{
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:contain;
+}
+
+.noimg{
+
+    font-size:32px;
+
+    color:#333;
+}
+
+.ct{
+
+    padding:10px;
+}
+
+.ct b{
+
+    display:block;
+
+    line-height:1.25;
+
+    font-size:14px;
+}
+
+.ct small{
+
+    display:block;
+
+    color:#888;
+
+    margin-top:5px;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+}
+
+.empty{
+
+    text-align:center;
+
+    padding:55px 15px;
+
+    color:#888;
+}
+
+.modal{
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(0,0,0,.80);
+
+    z-index:50;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:16px;
+}
+
+.box{
+
+    width:min(620px,100%);
+
+    max-height:92vh;
+
+    overflow:auto;
+
+    background:#101010;
+
+    border:1px solid #303030;
+
+    border-radius:16px;
+
+    padding:18px;
 
     box-shadow:
         0 0 35px
-        rgba(57,255,20,.25);
-
+        rgba(57,255,20,.08);
 }
 
-.modal-box h2 {
+.box h2{
 
-    color: #39ff14;
-
-    font-size: 28px;
-
-    margin-bottom: 10px;
-
+    margin-top:0;
 }
 
-.modal-box p {
+.field{
 
-    color: #aaa;
-
-    line-height: 1.5;
-
-    margin-bottom: 20px;
-
+    margin:12px 0;
 }
 
-input {
+.field label{
 
-    width: 100%;
+    display:block;
 
-    height: 55px;
+    color:#aaa;
 
-    padding: 0 15px;
+    font-size:13px;
 
-    margin-bottom: 15px;
-
-    background: #050505;
-
-    color: white;
-
-    border: 1px solid #39ff14;
-
-    border-radius: 9px;
-
-    font-size: 15px;
-
+    margin-bottom:6px;
 }
 
-input:focus {
+.field input{
 
-    outline: none;
+    width:100%;
 
-    box-shadow:
-        0 0 12px
-        rgba(57,255,20,.25);
+    padding:12px;
 
+    border-radius:9px;
+
+    border:1px solid #333;
+
+    background:#080808;
+
+    color:#fff;
+
+    outline:none;
 }
 
-.modal-buttons {
+.field input:focus{
 
-    display: flex;
-
-    gap: 10px;
-
+    border-color:var(--green);
 }
 
-.modal-buttons button {
+.actions{
 
-    flex: 1;
+    display:flex;
 
+    gap:8px;
+
+    justify-content:flex-end;
+
+    flex-wrap:wrap;
+
+    margin-top:15px;
 }
 
-/* =====================================================
-   PLAYER
-===================================================== */
+.playerModal .box{
 
-#playerModal .modal-box {
+    width:min(1100px,100%);
 
-    max-width: 1100px;
-
+    padding:10px;
 }
 
-#playerTitle {
+.playerWrap{
 
-    color: #39ff14;
+    background:#000;
 
-    font-weight: bold;
+    border-radius:10px;
 
-    margin-bottom: 12px;
-
+    overflow:hidden;
 }
 
-#videoPlayer {
+.playerWrap video{
 
-    width: 100%;
+    display:block;
 
-    max-height: 70vh;
+    width:100%;
 
-    background: black;
+    height:auto;
 
-    border-radius: 8px;
+    max-height:72vh;
 
+    background:#000;
 }
 
-.close-player {
+.playerTitle{
 
-    width: 100%;
+    padding:8px;
 
-    margin-top: 12px;
-
+    font-weight:700;
 }
 
-/* =====================================================
-   CELULAR
-===================================================== */
+.listRow{
 
-@media(max-width:700px) {
+    display:flex;
 
-    header {
+    align-items:center;
 
-        height: 75px;
+    gap:10px;
 
-        padding: 0 12px;
+    padding:12px;
 
-    }
+    border:1px solid #292929;
 
-    .logo {
+    border-radius:11px;
 
-        font-size: 22px;
+    margin:8px 0;
 
-    }
+    background:#0c0c0c;
+}
 
-    header button {
+.listRow .name{
 
-        min-height: 42px;
+    font-weight:800;
+}
 
-        padding: 0 10px;
+.listRow .url{
 
-        font-size: 12px;
+    font-size:12px;
 
-    }
+    color:#777;
 
-    #home {
+    overflow:hidden;
 
-        min-height:
-            calc(100vh - 75px);
+    text-overflow:ellipsis;
 
-    }
+    white-space:nowrap;
+}
 
-    .home-box h1 {
+#toast{
 
-        font-size: 40px;
+    position:fixed;
 
-    }
+    left:50%;
 
-    .home-box p {
+    bottom:20px;
 
-        font-size: 18px;
+    transform:translateX(-50%);
 
-    }
+    z-index:100;
 
-    .big-button {
+    background:#171717;
 
-        min-height: 65px;
+    border:1px solid #333;
 
-        font-size: 16px;
+    padding:11px 15px;
 
-    }
+    border-radius:10px;
 
-    #app {
+    display:none;
 
-        padding: 12px;
+    max-width:90%;
 
-    }
+    text-align:center;
+}
 
-    #lista {
+@media(max-width:600px){
+
+    .grid{
 
         grid-template-columns:
-            repeat(2, 1fr);
+            repeat(
+                2,
+                minmax(0,1fr)
+            );
 
-        gap: 9px;
-
+        gap:8px;
     }
 
-    .canal img {
+    .thumb{
 
-        height: 85px;
-
+        height:90px;
     }
 
-    .canal-info {
+    .ct{
 
-        padding: 9px;
-
+        padding:8px;
     }
 
-    .canal-nome {
+    .ct b{
 
-        font-size: 13px;
-
+        font-size:13px;
     }
 
-    .modal-buttons {
+    .top{
 
-        flex-direction: column;
+        flex-wrap:wrap;
+    }
 
+    .search{
+
+        order:5;
+
+        max-width:none;
     }
 
 }
@@ -628,1242 +632,1597 @@ input:focus {
 
 <body>
 
-
-<!-- =====================================================
-     HEADER
-===================================================== -->
-
 <header>
 
-    <div class="logo">
-        GC PLAY PRO
-    </div>
+<div class="top">
 
-    <div class="header-buttons">
+<div class="logo">
+GC PLAY PRO
+</div>
 
-        <button onclick="abrirManual()">
-            + M3U
-        </button>
+<div class="grow"></div>
 
-        <button onclick="mostrarInicio()">
-            INÍCIO
-        </button>
+<button
+    class="btn"
+    onclick="openLists()"
+>
+LISTAS
+</button>
 
-    </div>
+<button
+    class="btn primary"
+    onclick="openM3U()"
+>
++ M3U
+</button>
+
+</div>
 
 </header>
 
 
-<!-- =====================================================
-     HOME
-===================================================== -->
+<main>
 
-<section id="home">
+<section class="hero">
 
-    <div class="home-box">
+<h1>
+Sua TV, do seu jeito.
+</h1>
 
-        <h1>
-            GC PLAY PRO
-        </h1>
-
-        <p>
-            Seu aplicativo de entretenimento
-        </p>
-
-        <div class="home-buttons">
-
-            <button
-                class="big-button"
-                onclick="abrirManual()">
-
-                📋 ADICIONAR M3U MANUALMENTE
-
-            </button>
-
-            <button
-                class="big-button"
-                onclick="abrirXtream()">
-
-                🔐 ENTRAR COM XTREAM CODES
-
-            </button>
-
-            <button
-                class="big-button"
-                onclick="carregarExemplo()">
-
-                ▶ CARREGAR LISTA DE TESTE
-
-            </button>
-
-        </div>
-
-    </div>
+<p>
+Cada lista utiliza seu próprio servidor.
+O GC PLAY PRO não fica preso a nenhum servidor específico.
+</p>
 
 </section>
 
 
-<!-- =====================================================
-     APP
-===================================================== -->
+<div
+    id="status"
+    class="status hidden"
+></div>
 
-<section id="app">
-
-    <div class="menu">
-
-        <button onclick="filtrar('todos')">
-            🏠 TODOS
-        </button>
-
-        <button onclick="filtrar('live')">
-            📺 TV AO VIVO
-        </button>
-
-        <button onclick="filtrar('vod')">
-            🎬 FILMES
-        </button>
-
-        <button onclick="filtrar('series')">
-            📺 SÉRIES
-        </button>
-
-        <button onclick="filtrar('music')">
-            🎵 MÚSICA
-        </button>
-
-        <button onclick="abrirManual()">
-            ➕ NOVA M3U
-        </button>
-
-    </div>
-
-    <div id="status">
-        Nenhuma lista carregada.
-    </div>
-
-    <div id="lista"></div>
-
-</section>
-
-
-<!-- =====================================================
-     MODAL M3U
-===================================================== -->
 
 <div
-    id="manualModal"
-    class="modal">
+    id="listPills"
+    class="lists"
+></div>
 
-    <div class="modal-box">
 
-        <h2>
-            Adicionar lista M3U
-        </h2>
+<div class="toolbar">
 
-        <p>
-            Cole o endereço completo da sua lista M3U.
-        </p>
+<input
+    id="search"
+    class="search"
+    placeholder="Pesquisar canal, filme, série..."
+    oninput="render()"
+>
 
-        <input
-            id="m3uInput"
-            type="text"
-            autocomplete="off"
-            spellcheck="false"
-            placeholder="http://servidor.com/get.php?...">
 
-        <div class="modal-buttons">
+<select
+    id="cat"
+    onchange="render()"
+>
 
-            <button onclick="fecharManual()">
-                CANCELAR
-            </button>
+<option value="ALL">
+Todas as categorias
+</option>
 
-            <button onclick="carregarM3U()">
-                CARREGAR
-            </button>
+</select>
 
-        </div>
 
-    </div>
+<button
+    class="btn"
+    onclick="refreshCurrent()"
+>
+↻ Atualizar
+</button>
 
 </div>
 
 
-<!-- =====================================================
-     MODAL XTREAM
-===================================================== -->
+<div
+    id="grid"
+    class="grid"
+></div>
+
+</main>
+
+
+<!-- MODAL M3U -->
 
 <div
-    id="xtreamModal"
-    class="modal">
+    id="m3uModal"
+    class="modal hidden"
+>
 
-    <div class="modal-box">
+<div class="box">
 
-        <h2>
-            Entrar com Xtream Codes
-        </h2>
+<h2>
+Adicionar lista M3U
+</h2>
 
-        <p>
-            Informe o servidor, usuário e senha.
-        </p>
 
-        <input
-            id="xtreamServer"
-            type="text"
-            placeholder="http://servidor:porta">
+<div class="field">
 
-        <input
-            id="xtreamUser"
-            type="text"
-            placeholder="Usuário">
+<label>
+Nome da lista
+</label>
 
-        <input
-            id="xtreamPass"
-            type="password"
-            placeholder="Senha">
-
-        <div class="modal-buttons">
-
-            <button onclick="fecharXtream()">
-                CANCELAR
-            </button>
-
-            <button onclick="carregarXtream()">
-                ENTRAR
-            </button>
-
-        </div>
-
-    </div>
+<input
+    id="mName"
+    placeholder="Minha TV"
+>
 
 </div>
 
 
-<!-- =====================================================
-     PLAYER
-===================================================== -->
+<div class="field">
+
+<label>
+URL M3U completa
+</label>
+
+<input
+    id="mUrl"
+    placeholder="http://servidor/get.php?..."
+>
+
+</div>
+
+
+<p
+    style="
+    color:#888;
+    font-size:13px;
+    "
+>
+
+Aceita listas M3U normais, Xtream
+get.php, MPEG-TS, HLS/M3U8 e outros
+formatos retornados pela playlist.
+
+</p>
+
+
+<div class="actions">
+
+<button
+    class="btn"
+    onclick="closeM3U()"
+>
+Cancelar
+</button>
+
+<button
+    class="btn primary"
+    onclick="saveM3U()"
+>
+Salvar e carregar
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- MODAL LISTAS -->
+
+<div
+    id="listsModal"
+    class="modal hidden"
+>
+
+<div class="box">
+
+<h2>
+Minhas listas
+</h2>
+
+
+<div id="listRows"></div>
+
+
+<div class="actions">
+
+<button
+    class="btn"
+    onclick="closeLists()"
+>
+Fechar
+</button>
+
+<button
+    class="btn primary"
+    onclick="
+        closeLists();
+        openM3U();
+    "
+>
++ Adicionar
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- PLAYER -->
 
 <div
     id="playerModal"
-    class="modal">
+    class="modal playerModal hidden"
+>
 
-    <div class="modal-box">
+<div class="box">
 
-        <div id="playerTitle">
-            Reprodutor
-        </div>
+<div class="playerTitle">
 
-        <video
-            id="videoPlayer"
-            controls
-            playsinline
-            preload="metadata">
-        </video>
+<span id="playerName">
+Player
+</span>
 
-        <button
-            class="close-player"
-            onclick="fecharPlayer()">
-
-            FECHAR PLAYER
-
-        </button>
-
-    </div>
+<button
+    class="btn"
+    style="
+        float:right;
+        padding:5px 9px;
+    "
+    onclick="closePlayer()"
+>
+✕
+</button>
 
 </div>
+
+
+<div class="playerWrap">
+
+<video
+    id="video"
+    controls
+    playsinline
+    autoplay
+></video>
+
+</div>
+
+
+<div
+    id="playerStatus"
+    style="
+        padding:8px;
+        color:#888;
+        font-size:13px;
+    "
+>
+</div>
+
+</div>
+
+</div>
+
+
+<div id="toast"></div>
+
+
+<!-- HLS -->
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"></script>
+
+
+<!-- MPEG-TS -->
+
+<script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.0/dist/mpegts.min.js"></script>
 
 
 <script>
 
-/* =====================================================
+
+/* ============================================================
    CONFIGURAÇÃO
-===================================================== */
+============================================================ */
 
-/*
-   URL DA NOVA EDGE FUNCTION.
-
-   Vamos criar essa função no Supabase
-   na próxima etapa deste código.
-*/
 
 const PROXY_URL =
 "https://kuzgdvpdqmocklsgyzvt.supabase.co/functions/v1/gcplay-proxy";
 
 
-/* =====================================================
-   VARIÁVEIS
-===================================================== */
+const STORAGE_KEY =
+"gcplay_pro_v4";
 
-let canais = [];
 
-let canaisFiltrados = [];
+/* ============================================================
+   ESTADO
+============================================================ */
 
-let categoriaAtual = "todos";
+
+let state = {
+
+    lists: [],
+
+    current: null,
+
+    items: []
+
+};
+
 
 let hls = null;
 
+let player = null;
 
-/* =====================================================
-   MODAL M3U
-===================================================== */
 
-function abrirManual() {
+/* ============================================================
+   FUNÇÕES BÁSICAS
+============================================================ */
 
-    const modal =
+
+function escapeHTML(value){
+
+    return String(value ?? "")
+        .replace(/[&<>"']/g, function(char){
+
+            return {
+
+                "&":"&amp;",
+                "<":"&lt;",
+                ">":"&gt;",
+                '"':"&quot;",
+                "'":"&#039;"
+
+            }[char];
+
+        });
+
+}
+
+
+function toast(message){
+
+    const element =
+        document.getElementById("toast");
+
+    element.textContent =
+        message;
+
+    element.style.display =
+        "block";
+
+    clearTimeout(
+        window.__toastTimer
+    );
+
+    window.__toastTimer =
+        setTimeout(function(){
+
+            element.style.display =
+                "none";
+
+        },3200);
+
+}
+
+
+/* ============================================================
+   STORAGE
+============================================================ */
+
+
+function saveState(){
+
+    localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(state.lists)
+    );
+
+}
+
+
+function loadState(){
+
+    try{
+
+        state.lists =
+            JSON.parse(
+                localStorage.getItem(
+                    STORAGE_KEY
+                ) || "[]"
+            );
+
+    }catch(error){
+
+        state.lists = [];
+
+    }
+
+}
+
+
+/* ============================================================
+   PROXY
+============================================================ */
+
+
+function proxyURL(
+    target,
+    mode
+){
+
+    return (
+        PROXY_URL +
+        "?mode=" +
+        encodeURIComponent(mode) +
+        "&url=" +
+        encodeURIComponent(target)
+    );
+
+}
+
+
+/* ============================================================
+   MODAIS
+============================================================ */
+
+
+function openM3U(){
+
+    document
+        .getElementById("m3uModal")
+        .classList
+        .remove("hidden");
+
+}
+
+
+function closeM3U(){
+
+    document
+        .getElementById("m3uModal")
+        .classList
+        .add("hidden");
+
+}
+
+
+function openLists(){
+
+    renderListManager();
+
+    document
+        .getElementById("listsModal")
+        .classList
+        .remove("hidden");
+
+}
+
+
+function closeLists(){
+
+    document
+        .getElementById("listsModal")
+        .classList
+        .add("hidden");
+
+}
+
+
+/* ============================================================
+   STATUS
+============================================================ */
+
+
+function setStatus(
+    text,
+    success
+){
+
+    const element =
         document.getElementById(
-            "manualModal"
+            "status"
         );
 
-    modal.style.display =
-        "flex";
+    element.textContent =
+        text;
 
-    setTimeout(() => {
-
-        document
-            .getElementById(
-                "m3uInput"
-            )
-            .focus();
-
-    }, 100);
-
-}
-
-
-function fecharManual() {
-
-    document
-        .getElementById(
-            "manualModal"
-        )
-        .style.display =
-        "none";
-
-}
-
-
-/* =====================================================
-   MODAL XTREAM
-===================================================== */
-
-function abrirXtream() {
-
-    document
-        .getElementById(
-            "xtreamModal"
-        )
-        .style.display =
-        "flex";
-
-}
-
-
-function fecharXtream() {
-
-    document
-        .getElementById(
-            "xtreamModal"
-        )
-        .style.display =
-        "none";
-
-}
-
-
-/* =====================================================
-   XTREAM → M3U
-===================================================== */
-
-function carregarXtream() {
-
-    const servidor =
-        document
-            .getElementById(
-                "xtreamServer"
-            )
-            .value
-            .trim();
-
-    const usuario =
-        document
-            .getElementById(
-                "xtreamUser"
-            )
-            .value
-            .trim();
-
-    const senha =
-        document
-            .getElementById(
-                "xtreamPass"
-            )
-            .value
-            .trim();
-
-
-    if (
-        !servidor ||
-        !usuario ||
-        !senha
-    ) {
-
-        alert(
-            "Preencha servidor, usuário e senha."
+    element.className =
+        "status " +
+        (
+            success
+            ? "ok"
+            : "err"
         );
 
-        return;
+    element.classList
+        .remove("hidden");
+
+}
+
+
+/* ============================================================
+   NORMALIZAÇÃO
+============================================================ */
+
+
+function normalizeURL(url){
+
+    url =
+        (url || "")
+        .trim();
+
+    if(!url){
+
+        return "";
+
+    }
+
+    if(
+        url.startsWith("//")
+    ){
+
+        return "http:" + url;
+
+    }
+
+    return url;
+
+}
+
+
+/* ============================================================
+   EXTINF
+============================================================ */
+
+
+function parseEXTINF(line){
+
+    const data = {};
+
+    const regex =
+        /([\w-]+)="([^"]*)"/g;
+
+    let match;
+
+    while(
+        (match = regex.exec(line))
+    ){
+
+        data[
+            match[1].toLowerCase()
+        ] =
+            match[2];
 
     }
 
 
-    let base =
-        servidor.replace(
-            /\/+$/,
+    const comma =
+        line.indexOf(",");
+
+
+    data.title =
+        comma >= 0
+        ? line
+            .slice(comma + 1)
+            .trim()
+        : "Sem nome";
+
+
+    return data;
+
+}
+
+
+/* ============================================================
+   CATEGORIA
+============================================================ */
+
+
+function classify(
+    metadata,
+    url
+){
+
+    const group =
+        (
+            metadata["group-title"]
+            ||
             ""
-        );
+        ).toLowerCase();
 
 
-    const url =
-        base +
-        "/get.php?username=" +
-        encodeURIComponent(usuario) +
-        "&password=" +
-        encodeURIComponent(senha) +
-        "&type=m3u_plus&output=hls";
+    const title =
+        (
+            metadata.title
+            ||
+            ""
+        ).toLowerCase();
 
 
-    fecharXtream();
-
-
-    carregarURLM3U(
-        url
-    );
-
-}
-
-
-/* =====================================================
-   M3U MANUAL
-===================================================== */
-
-function carregarM3U() {
-
-    const campo =
-        document.getElementById(
-            "m3uInput"
-        );
-
-
-    const url =
-        campo.value.trim();
-
-
-    if (!url) {
-
-        alert(
-            "Cole a URL completa da M3U."
-        );
-
-        campo.focus();
-
-        return;
-
-    }
-
-
-    if (
-        !url.startsWith("http://") &&
-        !url.startsWith("https://")
-    ) {
-
-        alert(
-            "A URL precisa começar com http:// ou https://"
-        );
-
-        return;
-
-    }
-
-
-    fecharManual();
-
-
-    carregarURLM3U(
-        url
-    );
-
-}
-
-
-/* =====================================================
-   CARREGAR ATRAVÉS DO PROXY
-===================================================== */
-
-async function carregarURLM3U(url) {
-
-    mostrarApp();
-
-
-    mostrarStatus(
-        "⏳ Conectando ao servidor M3U...",
-        "normal"
-    );
-
-
-    try {
-
-        console.log(
-            "M3U original:",
+    const address =
+        (
             url
-        );
+            ||
+            ""
+        ).toLowerCase();
 
 
-        /*
-           IMPORTANTE:
-
-           A URL original fica dentro do parâmetro
-           e é codificada para não quebrar
-           caracteres como &, ?, = etc.
-        */
-
-        const endpoint =
-            PROXY_URL +
-            "?mode=playlist&url=" +
-            encodeURIComponent(url);
+    const combined =
+        group +
+        " " +
+        title;
 
 
-        console.log(
-            "Proxy:",
-            endpoint
-        );
+    if(
+        /adult|18\+|xxx|erotic|adulto/
+        .test(combined)
+    ){
 
-
-        mostrarStatus(
-            "⏳ Baixando sua lista M3U...",
-            "normal"
-        );
-
-
-        const resposta =
-            await fetch(
-                endpoint,
-                {
-                    method: "GET",
-                    cache: "no-store"
-                }
-            );
-
-
-        console.log(
-            "Resposta:",
-            resposta.status
-        );
-
-
-        if (!resposta.ok) {
-
-            let mensagem =
-                "HTTP " +
-                resposta.status;
-
-
-            try {
-
-                const erro =
-                    await resposta.text();
-
-                if (erro) {
-
-                    mensagem +=
-                        "\n" +
-                        erro;
-
-                }
-
-            } catch(e) {}
-
-
-            throw new Error(
-                mensagem
-            );
-
-        }
-
-
-        const texto =
-            await resposta.text();
-
-
-        console.log(
-            "Tamanho da M3U:",
-            texto.length
-        );
-
-
-        if (
-            !texto ||
-            !texto.trim()
-        ) {
-
-            throw new Error(
-                "O servidor retornou uma lista vazia."
-            );
-
-        }
-
-
-        /*
-           Algumas listas começam diretamente
-           com #EXTINF.
-        */
-
-        if (
-            !texto.includes(
-                "#EXTINF"
-            )
-        ) {
-
-            throw new Error(
-                "O conteúdo recebido não contém canais M3U."
-            );
-
-        }
-
-
-        /*
-           Salvar URL
-        */
-
-        localStorage.setItem(
-            "gc_m3u_url",
-            url
-        );
-
-
-        mostrarStatus(
-            "⏳ Processando conteúdos...",
-            "normal"
-        );
-
-
-        processarM3U(
-            texto
-        );
-
-
-    } catch(erro) {
-
-        console.error(
-            "ERRO:",
-            erro
-        );
-
-
-        mostrarStatus(
-            "❌ Erro ao carregar a lista.",
-            "error"
-        );
-
-
-        alert(
-            "NÃO FOI POSSÍVEL CARREGAR A M3U\n\n" +
-            erro.message +
-            "\n\n" +
-            "Abra o console do navegador se precisar verificar o erro."
-        );
+        return "Adult";
 
     }
+
+
+    if(
+        /series?|série|season|temporada|episódio|episode/
+        .test(combined)
+        ||
+        /\/series?\//.test(address)
+    ){
+
+        return "Series";
+
+    }
+
+
+    if(
+        /movie|filme|film|vod|cinema/
+        .test(combined)
+        ||
+        /\/movies?\//.test(address)
+    ){
+
+        return "Films";
+
+    }
+
+
+    if(
+        /music|música|radio/
+        .test(combined)
+    ){
+
+        return "Music";
+
+    }
+
+
+    return "TV";
 
 }
 
 
-/* =====================================================
-   PROCESSAR M3U
-===================================================== */
-
-function processarM3U(texto) {
-
-    canais = [];
+/* ============================================================
+   PARSER M3U
+============================================================ */
 
 
-    const linhas =
-        texto.split(
-            /\r?\n/
-        );
+function parseM3U(text){
+
+    const lines =
+        text
+        .replace(/^\uFEFF/,"")
+        .split(/\r?\n/);
 
 
-    let atual = null;
+    const items = [];
+
+    let metadata = null;
 
 
-    for (
-        let i = 0;
-        i < linhas.length;
-        i++
-    ) {
+    for(
+        const originalLine
+        of lines
+    ){
 
-        const linha =
-            linhas[i].trim();
+        const line =
+            originalLine.trim();
 
 
-        if (!linha) {
+        if(!line){
+
             continue;
+
         }
 
 
-        if (
-            linha
-                .toUpperCase()
-                .startsWith(
-                    "#EXTINF"
-                )
-        ) {
+        if(
+            line.startsWith("#EXTINF")
+        ){
 
-            const virgula =
-                linha.indexOf(",");
+            metadata =
+                parseEXTINF(line);
 
+            continue;
 
-            let nome =
-                virgula >= 0
-                ? linha
-                    .substring(
-                        virgula + 1
-                    )
-                    .trim()
-                : "Sem nome";
+        }
 
 
-            nome =
-                nome
-                    .replace(
-                        /^[-\s]+/,
-                        ""
-                    )
-                    .trim();
+        if(
+            line.startsWith("#")
+        ){
+
+            continue;
+
+        }
 
 
-            const grupo =
-                extrairAtributo(
-                    linha,
-                    "group-title"
-                ) ||
-                extrairAtributo(
-                    linha,
-                    "group"
-                ) ||
-                "Outros";
+        const url =
+            normalizeURL(line);
 
 
-            const logo =
-                extrairAtributo(
-                    linha,
-                    "tvg-logo"
-                ) || "";
+        if(!url){
+
+            continue;
+
+        }
 
 
-            atual = {
-
-                nome:
-                    nome,
-
-                grupo:
-                    grupo,
-
-                logo:
-                    logo,
-
-                url:
-                    "",
-
-                categoria:
-                    detectarCategoria(
-                        grupo,
-                        nome
-                    )
-
+        metadata =
+            metadata ||
+            {
+                title:"Canal"
             };
 
 
-            continue;
+        items.push({
 
-        }
+            id:
+                items.length,
 
+            name:
+                metadata.title
+                ||
+                metadata["tvg-name"]
+                ||
+                "Sem nome",
 
-        if (
-            linha.startsWith("#")
-        ) {
+            url:
 
-            continue;
+                url,
 
-        }
+            logo:
 
+                metadata["tvg-logo"]
+                ||
+                "",
 
-        if (atual) {
+            group:
 
-            if (
-                linha.startsWith(
-                    "http://"
-                ) ||
-                linha.startsWith(
-                    "https://"
-                )
-            ) {
+                metadata["group-title"]
+                ||
+                "Sem categoria",
 
-                atual.url =
-                    linha;
+            tvgId:
 
+                metadata["tvg-id"]
+                ||
+                "",
 
-                canais.push(
-                    atual
-                );
+            category:
 
-            }
+                classify(
+                    metadata,
+                    url
+                ),
 
+            raw:
 
-            atual = null;
+                metadata
 
-        }
-
-    }
-
-
-    console.log(
-        "TOTAL:",
-        canais.length
-    );
-
-
-    if (
-        canais.length === 0
-    ) {
-
-        mostrarStatus(
-            "❌ Nenhum conteúdo encontrado.",
-            "error"
-        );
+        });
 
 
-        document
-            .getElementById(
-                "lista"
-            )
-            .innerHTML = `
-                <div class="empty">
-                    Nenhum canal foi encontrado.
-                </div>
-            `;
-
-
-        return;
+        metadata = null;
 
     }
 
 
-    canaisFiltrados =
-        canais;
-
-    categoriaAtual =
-        "todos";
-
-
-    renderizarLista(
-        canais
-    );
-
-
-    mostrarStatus(
-        "✅ " +
-        canais.length +
-        " conteúdos carregados.",
-        "ok"
-    );
+    return items;
 
 }
 
 
-/* =====================================================
-   ATRIBUTO M3U
-===================================================== */
-
-function extrairAtributo(
-    linha,
-    atributo
-) {
-
-    let regex =
-        new RegExp(
-            atributo +
-            '\\s*=\\s*"([^"]*)"',
-            "i"
-        );
+/* ============================================================
+   CATEGORIAS
+============================================================ */
 
 
-    let resultado =
-        linha.match(
-            regex
-        );
+function buildCategories(){
 
-
-    if (resultado) {
-
-        return resultado[1];
-
-    }
-
-
-    regex =
-        new RegExp(
-            atributo +
-            "\\s*=\\s*'([^']*)'",
-            "i"
-        );
-
-
-    resultado =
-        linha.match(
-            regex
-        );
-
-
-    if (resultado) {
-
-        return resultado[1];
-
-    }
-
-
-    return "";
-
-}
-
-
-/* =====================================================
-   CATEGORIA
-===================================================== */
-
-function detectarCategoria(
-    grupo,
-    nome
-) {
-
-    const texto =
-        (
-            grupo +
-            " " +
-            nome
-        )
-        .toLowerCase();
-
-
-    if (
-        texto.includes("adult") ||
-        texto.includes("xxx") ||
-        texto.includes("18+")
-    ) {
-
-        return "adult";
-
-    }
-
-
-    if (
-        texto.includes("serie") ||
-        texto.includes("série") ||
-        texto.includes("series") ||
-        texto.includes("séries") ||
-        texto.includes("season") ||
-        texto.includes("temporada")
-    ) {
-
-        return "series";
-
-    }
-
-
-    if (
-        texto.includes("filme") ||
-        texto.includes("filmes") ||
-        texto.includes("movie") ||
-        texto.includes("movies") ||
-        texto.includes("vod")
-    ) {
-
-        return "vod";
-
-    }
-
-
-    if (
-        texto.includes("music") ||
-        texto.includes("musica") ||
-        texto.includes("música")
-    ) {
-
-        return "music";
-
-    }
-
-
-    return "live";
-
-}
-
-
-/* =====================================================
-   RENDERIZAR
-===================================================== */
-
-function renderizarLista(
-    lista
-) {
-
-    const container =
+    const select =
         document.getElementById(
-            "lista"
+            "cat"
         );
 
 
-    container.innerHTML =
-        "";
+    const old =
+        select.value;
 
 
-    if (
-        !lista ||
-        lista.length === 0
-    ) {
+    const counts = {};
 
-        container.innerHTML = `
-            <div class="empty">
-                Nenhum conteúdo encontrado.
-            </div>
-        `;
+
+    for(
+        const item
+        of state.items
+    ){
+
+        counts[item.category] =
+            (
+                counts[item.category]
+                ||
+                0
+            ) + 1;
+
+    }
+
+
+    let html =
+        '<option value="ALL">' +
+        "Todas (" +
+        state.items.length +
+        ")" +
+        "</option>";
+
+
+    const fixedCategories = [
+
+        "TV",
+        "Films",
+        "Series",
+        "Music",
+        "Adult"
+
+    ];
+
+
+    for(
+        const category
+        of fixedCategories
+    ){
+
+        if(
+            counts[category]
+        ){
+
+            html +=
+                '<option value="' +
+                category +
+                '">' +
+                category +
+                " (" +
+                counts[category] +
+                ")" +
+                "</option>";
+
+        }
+
+    }
+
+
+    for(
+        const category
+        of Object.keys(counts)
+            .filter(
+                c =>
+                    !fixedCategories
+                    .includes(c)
+            )
+            .sort()
+    ){
+
+        html +=
+            '<option value="' +
+            escapeHTML(category) +
+            '">' +
+            escapeHTML(category) +
+            " (" +
+            counts[category] +
+            ")" +
+            "</option>";
+
+    }
+
+
+    select.innerHTML =
+        html;
+
+
+    if(
+        [
+            ...select.options
+        ]
+        .some(
+            option =>
+                option.value === old
+        )
+    ){
+
+        select.value = old;
+
+    }
+
+}
+
+
+/* ============================================================
+   BOTÕES DAS LISTAS
+============================================================ */
+
+
+function renderListPills(){
+
+    const element =
+        document.getElementById(
+            "listPills"
+        );
+
+
+    element.innerHTML =
+        state.lists
+        .map(
+            list =>
+
+                '<button class="pill ' +
+                (
+                    list.id ===
+                    state.current
+                    ? "active"
+                    : ""
+                ) +
+                '" onclick="selectList(\'' +
+                list.id +
+                '\')">' +
+                escapeHTML(
+                    list.name
+                ) +
+                "</button>"
+
+        )
+        .join("");
+
+}
+
+
+/* ============================================================
+   RENDER
+============================================================ */
+
+
+function render(){
+
+    const search =
+        document
+        .getElementById("search")
+        .value
+        .toLowerCase()
+        .trim();
+
+
+    const category =
+        document
+        .getElementById("cat")
+        .value;
+
+
+    const filtered =
+        state.items
+        .filter(
+            item => {
+
+                const categoryOK =
+                    category === "ALL"
+                    ||
+                    item.category ===
+                    category;
+
+
+                const searchOK =
+                    !search
+                    ||
+                    (
+                        item.name +
+                        " " +
+                        item.group +
+                        " " +
+                        item.url
+                    )
+                    .toLowerCase()
+                    .includes(search);
+
+
+                return (
+                    categoryOK &&
+                    searchOK
+                );
+
+            }
+        );
+
+
+    const grid =
+        document.getElementById(
+            "grid"
+        );
+
+
+    if(
+        !filtered.length
+    ){
+
+        grid.innerHTML =
+            '<div class="empty" ' +
+            'style="grid-column:1/-1">' +
+            "Nenhum item encontrado." +
+            "</div>";
 
         return;
 
     }
 
 
-    const fragment =
-        document
-            .createDocumentFragment();
+    grid.innerHTML =
+        filtered
+        .map(
+            item =>
 
+            '<div class="card">' +
 
-    lista.forEach(
-        function(canal) {
+                '<button onclick="playItem(' +
+                item.id +
+                ')">' +
 
-            const card =
-                document.createElement(
-                    "div"
-                );
+                    '<div class="thumb">' +
 
+                        (
+                            item.logo
 
-            card.className =
-                "canal";
+                            ?
 
+                            '<img loading="lazy" src="' +
+                            escapeHTML(
+                                proxyURL(
+                                    item.logo,
+                                    "image"
+                                )
+                            ) +
+                            '" onerror="this.style.display=\'none\'">'
 
-            card.tabIndex =
-                0;
+                            :
 
+                            '<div class="noimg">▶</div>'
+                        )
 
-            if (canal.logo) {
+                    +
 
-                const img =
-                    document.createElement(
-                        "img"
-                    );
+                    "</div>" +
 
+                    '<div class="ct">' +
 
-                img.src =
-                    canal.logo;
+                        "<b>" +
+                        escapeHTML(
+                            item.name
+                        ) +
+                        "</b>" +
 
+                        "<small>" +
+                        escapeHTML(
+                            item.group
+                        ) +
+                        " • " +
+                        escapeHTML(
+                            item.category
+                        ) +
+                        "</small>" +
 
-                img.alt =
-                    canal.nome;
+                    "</div>" +
 
+                "</button>" +
 
-                img.loading =
-                    "lazy";
+            "</div>"
 
-
-                img.onerror =
-                    function() {
-
-                        this.style.display =
-                            "none";
-
-                    };
-
-
-                card.appendChild(
-                    img
-                );
-
-            }
-
-
-            const info =
-                document.createElement(
-                    "div"
-                );
-
-
-            info.className =
-                "canal-info";
-
-
-            const nome =
-                document.createElement(
-                    "div"
-                );
-
-
-            nome.className =
-                "canal-nome";
-
-
-            nome.textContent =
-                canal.nome;
-
-
-            const grupo =
-                document.createElement(
-                    "div"
-                );
-
-
-            grupo.className =
-                "canal-grupo";
-
-
-            grupo.textContent =
-                canal.grupo;
-
-
-            info.appendChild(
-                nome
-            );
-
-            info.appendChild(
-                grupo
-            );
-
-            card.appendChild(
-                info
-            );
-
-
-            card.onclick =
-                function() {
-
-                    abrirPlayer(
-                        canal
-                    );
-
-                };
-
-
-            card.onkeydown =
-                function(event) {
-
-                    if (
-                        event.key ===
-                        "Enter"
-                    ) {
-
-                        abrirPlayer(
-                            canal
-                        );
-
-                    }
-
-                };
-
-
-            fragment.appendChild(
-                card
-            );
-
-        }
-    );
-
-
-    container.appendChild(
-        fragment
-    );
+        )
+        .join("");
 
 }
 
 
-/* =====================================================
-   FILTRO
-===================================================== */
-
-function filtrar(
-    categoria
-) {
-
-    categoriaAtual =
-        categoria;
+/* ============================================================
+   CARREGAR LISTA
+============================================================ */
 
 
-    if (
-        categoria ===
-        "todos"
-    ) {
+async function loadList(list){
 
-        canaisFiltrados =
-            canais;
+    state.current =
+        list.id;
 
-    } else {
+    state.items = [];
 
-        canaisFiltrados =
-            canais.filter(
-                function(canal) {
 
-                    return (
-                        canal.categoria ===
-                        categoria
-                    );
+    renderListPills();
 
+    render();
+
+
+    setStatus(
+        "Carregando " +
+        list.name +
+        "...",
+        true
+    );
+
+
+    try{
+
+        const response =
+            await fetch(
+                proxyURL(
+                    list.url,
+                    "playlist"
+                ),
+                {
+                    method:"GET",
+                    cache:"no-store"
                 }
             );
 
+
+        const text =
+            await response.text();
+
+
+        if(
+            !response.ok
+        ){
+
+            throw new Error(
+                text ||
+                (
+                    "HTTP " +
+                    response.status
+                )
+            );
+
+        }
+
+
+        const items =
+            parseM3U(text);
+
+
+        if(
+            !items.length
+        ){
+
+            throw new Error(
+                "A resposta não parece ser uma playlist M3U válida."
+            );
+
+        }
+
+
+        state.items =
+            items;
+
+
+        list.updatedAt =
+            new Date()
+            .toISOString();
+
+
+        saveState();
+
+        buildCategories();
+
+        render();
+
+
+        setStatus(
+            items.length +
+            " itens carregados de " +
+            list.name +
+            ".",
+            true
+        );
+
+
+    }catch(error){
+
+        console.error(error);
+
+
+        setStatus(
+            "Erro ao carregar: " +
+            error.message,
+            false
+        );
+
+
+        toast(
+            "Falha ao carregar a lista."
+        );
+
     }
-
-
-    renderizarLista(
-        canaisFiltrados
-    );
-
-
-    mostrarStatus(
-        canaisFiltrados.length +
-        " conteúdos encontrados.",
-        "ok"
-    );
 
 }
 
 
-/* =====================================================
-   PLAYER
-===================================================== */
+/* ============================================================
+   SALVAR NOVA LISTA
+============================================================ */
 
-function abrirPlayer(
-    canal
-) {
 
-    if (
-        !canal ||
-        !canal.url
-    ) {
+async function saveM3U(){
 
-        alert(
-            "Este conteúdo não possui URL."
+    const name =
+        document
+        .getElementById("mName")
+        .value
+        .trim()
+        ||
+        "Minha lista";
+
+
+    const url =
+        document
+        .getElementById("mUrl")
+        .value
+        .trim();
+
+
+    if(
+        !/^https?:\/\//i.test(url)
+    ){
+
+        toast(
+            "Informe uma URL M3U HTTP ou HTTPS."
         );
 
         return;
 
     }
 
+
+    const list = {
+
+        id:
+            crypto.randomUUID(),
+
+        name:
+
+            name,
+
+        url:
+
+            url,
+
+        createdAt:
+
+            new Date()
+            .toISOString(),
+
+        updatedAt:
+
+            null
+
+    };
+
+
+    state.lists.push(
+        list
+    );
+
+
+    saveState();
+
+
+    closeM3U();
+
+
+    document
+        .getElementById("mName")
+        .value = "";
+
+
+    document
+        .getElementById("mUrl")
+        .value = "";
+
+
+    await loadList(
+        list
+    );
+
+}
+
+
+/* ============================================================
+   SELECIONAR LISTA
+============================================================ */
+
+
+function selectList(id){
+
+    const list =
+        state.lists.find(
+            item =>
+                item.id === id
+        );
+
+
+    if(list){
+
+        loadList(list);
+
+    }
+
+}
+
+
+/* ============================================================
+   GERENCIADOR DE LISTAS
+============================================================ */
+
+
+function renderListManager(){
+
+    const element =
+        document.getElementById(
+            "listRows"
+        );
+
+
+    if(
+        !state.lists.length
+    ){
+
+        element.innerHTML =
+            '<div class="empty">' +
+            "Nenhuma lista cadastrada." +
+            "</div>";
+
+        return;
+
+    }
+
+
+    element.innerHTML =
+        state.lists
+        .map(
+            list =>
+
+            '<div class="listRow">' +
+
+                '<div class="grow">' +
+
+                    '<div class="name">' +
+                    escapeHTML(
+                        list.name
+                    ) +
+                    "</div>" +
+
+                    '<div class="url">' +
+                    escapeHTML(
+                        list.url
+                    ) +
+                    "</div>" +
+
+                "</div>" +
+
+                '<button class="btn" ' +
+                'onclick="editList(\'' +
+                list.id +
+                '\')">' +
+                "Editar" +
+                "</button>" +
+
+                '<button class="btn danger" ' +
+                'onclick="deleteList(\'' +
+                list.id +
+                '\')">' +
+                "Excluir" +
+                "</button>" +
+
+            "</div>"
+
+        )
+        .join("");
+
+}
+
+
+/* ============================================================
+   EDITAR LISTA
+============================================================ */
+
+
+function editList(id){
+
+    const list =
+        state.lists.find(
+            item =>
+                item.id === id
+        );
+
+
+    if(!list){
+
+        return;
+
+    }
+
+
+    const name =
+        prompt(
+            "Nome da lista:",
+            list.name
+        );
+
+
+    if(name === null){
+
+        return;
+
+    }
+
+
+    const url =
+        prompt(
+            "URL M3U:",
+            list.url
+        );
+
+
+    if(url === null){
+
+        return;
+
+    }
+
+
+    const cleanURL =
+        url.trim();
+
+
+    if(
+        !/^https?:\/\//i
+        .test(cleanURL)
+    ){
+
+        toast(
+            "URL inválida."
+        );
+
+        return;
+
+    }
+
+
+    list.name =
+        name.trim()
+        ||
+        "Minha lista";
+
+
+    list.url =
+        cleanURL;
+
+
+    saveState();
+
+    renderListManager();
+
+    loadList(
+        list
+    );
+
+}
+
+
+/* ============================================================
+   EXCLUIR LISTA
+============================================================ */
+
+
+function deleteList(id){
+
+    if(
+        !confirm(
+            "Excluir esta lista?"
+        )
+    ){
+
+        return;
+
+    }
+
+
+    state.lists =
+        state.lists.filter(
+            list =>
+                list.id !== id
+        );
+
+
+    if(
+        state.current === id
+    ){
+
+        state.current =
+            null;
+
+        state.items = [];
+
+    }
+
+
+    saveState();
+
+    renderListManager();
+
+    renderListPills();
+
+    buildCategories();
+
+    render();
+
+}
+
+
+/* ============================================================
+   ATUALIZAR LISTA
+============================================================ */
+
+
+async function refreshCurrent(){
+
+    const list =
+        state.lists.find(
+            item =>
+                item.id ===
+                state.current
+        );
+
+
+    if(!list){
+
+        toast(
+            "Adicione uma lista M3U primeiro."
+        );
+
+        return;
+
+    }
+
+
+    await loadList(
+        list
+    );
+
+}
+
+
+/* ============================================================
+   FECHAR PLAYER
+============================================================ */
+
+
+function closePlayer(){
 
     const modal =
         document.getElementById(
@@ -1871,27 +2230,40 @@ function abrirPlayer(
         );
 
 
+    modal.classList
+        .add("hidden");
+
+
+    try{
+
+        if(hls){
+
+            hls.destroy();
+
+            hls = null;
+
+        }
+
+    }catch(error){}
+
+
+    try{
+
+        if(player){
+
+            player.destroy();
+
+            player = null;
+
+        }
+
+    }catch(error){}
+
+
     const video =
         document.getElementById(
-            "videoPlayer"
+            "video"
         );
-
-
-    document.getElementById(
-        "playerTitle"
-    ).textContent =
-        canal.nome;
-
-
-    if (hls) {
-
-        try {
-            hls.destroy();
-        } catch(e) {}
-
-        hls = null;
-
-    }
 
 
     video.pause();
@@ -1902,66 +2274,98 @@ function abrirPlayer(
 
     video.load();
 
-
-    modal.style.display =
-        "flex";
+}
 
 
-    const url =
-        canal.url.trim();
+/* ============================================================
+   REPRODUZIR ITEM
+============================================================ */
+
+
+function playItem(id){
+
+    const item =
+        state.items.find(
+            channel =>
+                channel.id === id
+        );
+
+
+    if(!item){
+
+        return;
+
+    }
+
+
+    document
+        .getElementById(
+            "playerName"
+        )
+        .textContent =
+        item.name;
+
+
+    document
+        .getElementById(
+            "playerStatus"
+        )
+        .textContent =
+        "Conectando...";
+
+
+    document
+        .getElementById(
+            "playerModal"
+        )
+        .classList
+        .remove("hidden");
+
+
+    const video =
+        document.getElementById(
+            "video"
+        );
+
+
+    const streamURL =
+        proxyURL(
+            item.url,
+            "media"
+        );
+
+
+    const originalURL =
+        item.url
+        .toLowerCase();
 
 
     /*
-       HLS
+        HLS / M3U8
     */
 
-    if (
-        url
-            .toLowerCase()
-            .includes(
-                ".m3u8"
-            )
-    ) {
+    if(
+        /\.m3u8(?:$|\?)/i
+        .test(originalURL)
+    ){
 
-
-        if (
-            video.canPlayType(
-                "application/vnd.apple.mpegurl"
-            )
-        ) {
-
-            video.src =
-                url;
-
-            video.play()
-                .catch(
-                    () => {}
-                );
-
-            return;
-
-        }
-
-
-        if (
+        if(
             window.Hls &&
             Hls.isSupported()
-        ) {
+        ){
 
             hls =
                 new Hls({
 
-                    enableWorker:
-                        true,
+                    enableWorker:true,
 
-                    backBufferLength:
-                        30
+                    lowLatencyMode:false
 
                 });
 
 
             hls.loadSource(
-                url
+                streamURL
             );
 
 
@@ -1972,11 +2376,19 @@ function abrirPlayer(
 
             hls.on(
                 Hls.Events.MANIFEST_PARSED,
-                function() {
+                function(){
 
-                    video.play()
+                    document
+                        .getElementById(
+                            "playerStatus"
+                        )
+                        .textContent =
+                        "HLS conectado.";
+
+                    video
+                        .play()
                         .catch(
-                            () => {}
+                            function(){}
                         );
 
                 }
@@ -1988,311 +2400,208 @@ function abrirPlayer(
                 function(
                     event,
                     data
-                ) {
+                ){
 
-                    console.error(
-                        "HLS:",
-                        data
-                    );
+                    if(
+                        data &&
+                        data.fatal
+                    ){
+
+                        document
+                            .getElementById(
+                                "playerStatus"
+                            )
+                            .textContent =
+                            "Erro HLS: " +
+                            data.details;
+
+                    }
 
                 }
             );
 
+        }
 
-            return;
+        else if(
+            video.canPlayType(
+                "application/vnd.apple.mpegurl"
+            )
+        ){
+
+            video.src =
+                streamURL;
+
+            video
+                .play()
+                .catch(
+                    function(){}
+                );
 
         }
+
+        else{
+
+            document
+                .getElementById(
+                    "playerStatus"
+                )
+                .textContent =
+                "Este navegador não suporta HLS.";
+
+        }
+
+
+        return;
 
     }
 
 
     /*
-       MP4
+        MPEG-TS
     */
 
-    video.src =
-        url;
 
-
-    video.load();
-
-
-    video.play()
-        .catch(
-            () => {}
-        );
-
-}
-
-
-/* =====================================================
-   FECHAR PLAYER
-===================================================== */
-
-function fecharPlayer() {
-
-    const video =
-        document.getElementById(
-            "videoPlayer"
-        );
-
-
-    if (hls) {
-
-        try {
-            hls.destroy();
-        } catch(e) {}
-
-        hls = null;
-
-    }
-
-
-    video.pause();
-
-    video.removeAttribute(
-        "src"
-    );
-
-    video.load();
-
-
-    document.getElementById(
-        "playerModal"
-    ).style.display =
-        "none";
-
-}
-
-
-/* =====================================================
-   MOSTRAR APP
-===================================================== */
-
-function mostrarApp() {
-
-    document.getElementById(
-        "home"
-    ).style.display =
-        "none";
-
-
-    document.getElementById(
-        "app"
-    ).style.display =
-        "block";
-
-}
-
-
-function mostrarInicio() {
-
-    document.getElementById(
-        "app"
-    ).style.display =
-        "none";
-
-
-    document.getElementById(
-        "home"
-    ).style.display =
-        "flex";
-
-}
-
-
-/* =====================================================
-   STATUS
-===================================================== */
-
-function mostrarStatus(
-    texto,
-    tipo
-) {
-
-    const status =
-        document.getElementById(
-            "status"
-        );
-
-
-    status.textContent =
-        texto;
-
-
-    status.className =
-        "";
-
-
-    if (
-        tipo === "ok"
-    ) {
-
-        status.classList.add(
-            "ok"
-        );
-
-    }
-
-
-    if (
-        tipo === "error"
-    ) {
-
-        status.classList.add(
-            "error"
-        );
-
-    }
-
-}
-
-
-/* =====================================================
-   LISTA DE TESTE
-===================================================== */
-
-function carregarExemplo() {
-
-    const exemplo = `#EXTM3U
-
-#EXTINF:-1 group-title="TV AO VIVO",Canal HLS de Teste
-https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
-
-#EXTINF:-1 group-title="Filmes",Big Buck Bunny
-https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
-
-#EXTINF:-1 group-title="Filmes",Elephants Dream
-https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4
-
-#EXTINF:-1 group-title="Música",Vídeo Musical de Teste
-https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4
-`;
-
-
-    mostrarApp();
-
-
-    processarM3U(
-        exemplo
-    );
-
-}
-
-
-/* =====================================================
-   FECHAR MODAIS
-===================================================== */
-
-window.addEventListener(
-    "click",
-    function(event) {
-
-        const manual =
-            document.getElementById(
-                "manualModal"
-            );
-
-        const xtream =
-            document.getElementById(
-                "xtreamModal"
-            );
-
-        const player =
-            document.getElementById(
-                "playerModal"
-            );
-
-
-        if (
-            event.target ===
-            manual
-        ) {
-
-            fecharManual();
-
-        }
-
-
-        if (
-            event.target ===
-            xtream
-        ) {
-
-            fecharXtream();
-
-        }
-
-
-        if (
-            event.target ===
-            player
-        ) {
-
-            fecharPlayer();
-
-        }
-
-    }
-);
-
-
-/* =====================================================
-   ESC
-===================================================== */
-
-document.addEventListener(
-    "keydown",
-    function(event) {
-
-        if (
-            event.key ===
-            "Escape"
-        ) {
-
-            fecharManual();
-
-            fecharXtream();
-
-            fecharPlayer();
-
-        }
-
-    }
-);
-
-
-/* =====================================================
-   URL SALVA
-===================================================== */
-
-try {
-
-    const salva =
-        localStorage.getItem(
-            "gc_m3u_url"
-        );
-
-
-    if (salva) {
+    if(
+        typeof mpegts ===
+        "undefined"
+    ){
 
         document
             .getElementById(
-                "m3uInput"
+                "playerStatus"
             )
-            .value =
-            salva;
+            .textContent =
+            "mpegts.js não carregou.";
+
+        return;
 
     }
 
-} catch(e) {}
+
+    try{
+
+        player =
+            mpegts.createPlayer(
+
+                {
+
+                    type:
+                        "mpegts",
+
+                    isLive:
+                        true,
+
+                    url:
+                        streamURL
+
+                },
+
+                {
+
+                    enableWorker:
+                        true,
+
+                    enableStashBuffer:
+                        true,
+
+                    stashInitialSize:
+                        128
+
+                }
+
+            );
 
 
-console.log(
-    "GC PLAY PRO V2 iniciado."
-);
+        player.attachMediaElement(
+            video
+        );
+
+
+        player.load();
+
+
+        player.play()
+            .catch(
+                function(){}
+            );
+
+
+        player.on(
+            mpegts.Events.ERROR,
+            function(){
+
+                document
+                    .getElementById(
+                        "playerStatus"
+                    )
+                    .textContent =
+                    "Falha ao reproduzir o MPEG-TS.";
+
+            }
+        );
+
+
+        document
+            .getElementById(
+                "playerStatus"
+            )
+            .textContent =
+            "MPEG-TS conectado.";
+
+    }catch(error){
+
+        console.error(error);
+
+
+        document
+            .getElementById(
+                "playerStatus"
+            )
+            .textContent =
+            "Erro no player: " +
+            error.message;
+
+    }
+
+}
+
+
+/* ============================================================
+   INICIALIZAÇÃO
+============================================================ */
+
+
+loadState();
+
+
+renderListPills();
+
+
+buildCategories();
+
+
+if(
+    state.lists.length
+){
+
+    loadList(
+        state.lists[0]
+    );
+
+}else{
+
+    document
+        .getElementById("grid")
+        .innerHTML =
+        '<div class="empty" ' +
+        'style="grid-column:1/-1">' +
+        "Adicione sua primeira lista M3U para começar." +
+        "</div>";
+
+}
 
 </script>
 
 </body>
+
 </html>
