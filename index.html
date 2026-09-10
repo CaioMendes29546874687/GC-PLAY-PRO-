@@ -272,6 +272,28 @@ video{width:100%;height:100%;background:#000;outline:none;}
 .pin-input:focus{border-color:var(--primary);box-shadow:var(--neon-glow);}
 .empty-state{grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);}
 
+
+.manual-m3u-modal{
+    position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:5000;
+    background:rgba(0,0,0,.90);backdrop-filter:blur(8px);padding:20px;
+}
+.manual-m3u-modal.show{display:flex;}
+.manual-m3u-box{
+    width:100%;max-width:650px;background:var(--surface);border:1px solid var(--primary);
+    border-radius:16px;padding:22px;box-shadow:var(--neon-glow-strong);
+}
+.manual-m3u-title{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:#fff;margin-bottom:8px;}
+.manual-m3u-help{font-size:12px;color:var(--text-muted);line-height:1.5;margin-bottom:14px;}
+.manual-m3u-input{
+    width:100%;height:48px;background:#020402;border:1px solid var(--border);border-radius:9px;
+    color:#fff;padding:0 13px;font-size:13px;outline:none;
+}
+.manual-m3u-input:focus{border-color:var(--primary);box-shadow:var(--neon-glow);}
+.manual-m3u-actions{display:flex;gap:10px;margin-top:14px;}
+.manual-m3u-actions button{flex:1;}
+.playback-status{
+    font-size:11px;color:var(--text-muted);margin-top:6px;min-height:16px;
+}
 @media(max-width:900px){
     body{overflow:auto;}
     .smart-container{flex-direction:column;overflow-y:auto;}
@@ -469,6 +491,19 @@ video{width:100%;height:100%;background:#000;outline:none;}
     }catch(e){}
 })();
 </script>
+
+<div id="manualM3UModal" class="manual-m3u-modal" aria-hidden="true">
+    <div class="manual-m3u-box">
+        <div class="manual-m3u-title"><i class="fa-solid fa-link" style="color:var(--primary);"></i> ADICIONAR LISTA M3U</div>
+        <div class="manual-m3u-help">Cole abaixo o link completo da sua lista M3U. O GC PLAY PRO fará o carregamento pelo servidor para evitar bloqueios de CORS e HTTP/HTTPS.</div>
+        <input id="manualM3UInput" class="manual-m3u-input" type="url" inputmode="url" autocomplete="off" placeholder="http:// ou https:// seu link M3U">
+        <div id="manualM3UStatus" class="playback-status"></div>
+        <div class="manual-m3u-actions">
+            <button class="btn-back-menu" style="background:none;border-color:var(--border);color:#fff;" onclick="App.fecharModalManual()">Cancelar</button>
+            <button class="btn-back-menu" onclick="App.confirmarM3UManual()"><i class="fa-solid fa-cloud-arrow-down"></i> Carregar M3U</button>
+        </div>
+    </div>
+</div>
 
 <script>
 const SUPABASE_URL =
@@ -939,8 +974,37 @@ const App = {
     },
 
     abrirModalManual(){
-        const url=prompt("Insira o link URL da sua lista M3U:");
-        if(url && url.trim()) this.carregarListaM3U(url.trim());
+        const modal=document.getElementById("manualM3UModal");
+        const input=document.getElementById("manualM3UInput");
+        const status=document.getElementById("manualM3UStatus");
+        if(!modal || !input) return;
+        modal.classList.add("show");
+        modal.setAttribute("aria-hidden","false");
+        if(status) status.innerText="";
+        input.value=localStorage.getItem("gcplay_last_m3u") || "";
+        setTimeout(()=>input.focus(),100);
+    },
+
+    fecharModalManual(){
+        const modal=document.getElementById("manualM3UModal");
+        if(modal){
+            modal.classList.remove("show");
+            modal.setAttribute("aria-hidden","true");
+        }
+    },
+
+    confirmarM3UManual(){
+        const input=document.getElementById("manualM3UInput");
+        const status=document.getElementById("manualM3UStatus");
+        const url=String(input?.value || "").trim();
+        if(!/^https?:\/\//i.test(url)){
+            if(status) status.innerText="Cole uma URL M3U começando com http:// ou https://";
+            input?.focus();
+            return;
+        }
+        if(status) status.innerText="Conectando ao servidor IPTV...";
+        this.fecharModalManual();
+        this.carregarListaM3U(url,false);
     },
 
     carregarDemoDefault(){
@@ -1696,12 +1760,49 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
         else this.reproduzirDireto(video,url);
     },
 
+    criarURLProxyMidia(url){
+        url=String(url || "").trim();
+        if(!url) return "";
+        if(!this.deviceId || !this.activationCode) return url;
+
+        try{
+            const paginaHTTPS=location.protocol==="https:";
+            const origemHTTP=/^http:\/\//i.test(url);
+            const origemHTTPS=/^https:\/\//i.test(url);
+
+            // No GitHub Pages, streams HTTP são bloqueados por Mixed Content.
+            // Também usamos o proxy para HTTPS quando o servidor do provedor não libera CORS.
+            if(paginaHTTPS && (origemHTTP || origemHTTPS)){
+                return PLAYLIST_FUNCTION_URL +
+                    "?device_id=" + encodeURIComponent(this.deviceId) +
+                    "&activation_code=" + encodeURIComponent(this.activationCode) +
+                    "&playlist_url=" + encodeURIComponent(url);
+            }
+        }catch(error){
+            console.warn("Falha ao montar proxy:",error);
+        }
+
+        return url;
+    },
+
     reproduzirHLS(video,item){
         this.hlsRetries=0;
+        const urlOriginal=String(item.url || "").trim();
+        const urlProxy=this.criarURLProxyMidia(urlOriginal);
 
         if(window.Hls&&Hls.isSupported()){
             const config={
                 enableWorker:true,
+                xhrSetup:(xhr,url)=>{
+                    try{
+                        const proxied=this.criarURLProxyMidia(url);
+                        if(proxied && proxied!==url){
+                            xhr.open("GET",proxied,true);
+                        }
+                    }catch(error){
+                        console.warn("Proxy HLS:",error);
+                    }
+                },
                 lowLatencyMode:false,
                 backBufferLength:30,
                 maxBufferLength:30,
@@ -1712,7 +1813,7 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
             };
 
             this.hlsInstance=new Hls(config);
-            this.hlsInstance.loadSource(item.url);
+            this.hlsInstance.loadSource(urlOriginal);
             this.hlsInstance.attachMedia(video);
 
             this.hlsInstance.on(Hls.Events.MANIFEST_PARSED,()=>{
@@ -1744,7 +1845,7 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
         }
 
         if(video.canPlayType("application/vnd.apple.mpegurl")){
-            video.src=item.url;
+            video.src=urlProxy;
             video.addEventListener("loadedmetadata",()=>video.play().catch(()=>{}),{once:true});
             return;
         }
@@ -1753,8 +1854,15 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
     },
 
     reproduzirDireto(video,url){
-        video.src=url;
-        video.play().catch(()=>{});
+        const original=String(url || "").trim();
+        const proxied=this.criarURLProxyMidia(original);
+        video.src=proxied || original;
+        video.addEventListener("error",()=>{
+            console.warn("Erro de reprodução:",video.error);
+        },{once:true});
+        video.play().catch(error=>{
+            console.warn("Autoplay bloqueado:",error);
+        });
     },
 
     destruirHLS(){
@@ -1865,6 +1973,9 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
     configurarTeclado(){
         document.addEventListener("keydown",event=>{
             if(event.key==="Escape"){
+                if(document.getElementById("manualM3UModal")?.classList.contains("show")){
+                    this.fecharModalManual();return;
+                }
                 if(document.getElementById("modalSeries").style.display==="flex"){
                     this.fecharModalSeries();return;
                 }
@@ -1881,6 +1992,12 @@ https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
         });
 
         document.addEventListener("keydown",event=>{
+            if(event.key==="Enter" && event.target && event.target.id==="manualM3UInput"){
+                event.preventDefault();
+                this.confirmarM3UManual();
+                return;
+            }
+
             const alvo=event.target;
             if(event.key==="Enter"&&alvo.classList.contains("account-card")){
                 alvo.click();
