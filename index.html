@@ -7,24 +7,17 @@
 
 <meta name="viewport"
       content="width=device-width,
-               initial-scale=1.0,
-               maximum-scale=1.0,
-               user-scalable=no">
+      initial-scale=1.0,
+      maximum-scale=1.0,
+      user-scalable=no">
 
 <meta name="theme-color" content="#050505">
 
 <title>GC PLAY PRO</title>
 
-
-<!-- HLS.JS -->
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
-
 <style>
-
-/* =========================================================
-   RESET
-========================================================= */
 
 * {
     box-sizing: border-box;
@@ -32,83 +25,53 @@
     padding: 0;
 }
 
-
 html,
 body {
-    width: 100%;
     min-height: 100%;
+    background: #050505;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
 }
-
 
 body {
-
-    background: #050505;
-
-    color: #ffffff;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
-    min-height: 100vh;
-
     overflow-x: hidden;
-
 }
 
-
-/* =========================================================
-   TOPO
-========================================================= */
+/* =====================================================
+   HEADER
+===================================================== */
 
 header {
 
-    width: 100%;
-
-    height: 95px;
+    height: 90px;
 
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
 
-    padding:
-        0 30px;
+    padding: 0 25px;
 
-    background:
-        #070707;
+    background: #070707;
 
-    border-bottom:
-        2px solid #24ff00;
+    border-bottom: 2px solid #39ff14;
 
     box-shadow:
-        0 0 15px
-        rgba(36,255,0,.25);
+        0 0 20px
+        rgba(57,255,20,.25);
 
     position: sticky;
-
     top: 0;
 
     z-index: 1000;
-
 }
-
 
 .logo {
 
-    color:
-        #39ff14;
+    color: #39ff14;
 
-    font-size:
-        34px;
+    font-size: 34px;
 
-    font-weight:
-        900;
-
-    letter-spacing:
-        -1px;
+    font-weight: 900;
 
     text-shadow:
         0 0 8px #39ff14,
@@ -116,315 +79,200 @@ header {
 
 }
 
-
 .header-buttons {
 
-    display:
-        flex;
-
-    gap:
-        14px;
+    display: flex;
+    gap: 10px;
 
 }
-
-
-/* =========================================================
-   BOTÕES
-========================================================= */
 
 button {
 
-    min-height:
-        50px;
+    min-height: 50px;
 
-    padding:
-        0 22px;
+    padding: 0 20px;
 
-    border:
-        1px solid #39ff14;
+    border: 1px solid #39ff14;
 
-    border-radius:
-        12px;
+    border-radius: 10px;
 
-    background:
-        #080808;
+    background: #080808;
 
-    color:
-        #39ff14;
+    color: #39ff14;
 
-    font-size:
-        16px;
+    font-size: 15px;
 
-    font-weight:
-        800;
+    font-weight: bold;
 
-    cursor:
-        pointer;
-
-    transition:
-        .2s;
+    cursor: pointer;
 
 }
 
-
-button:hover {
-
-    background:
-        #39ff14;
-
-    color:
-        #000;
-
-    box-shadow:
-        0 0 15px
-        rgba(57,255,20,.5);
-
-}
-
-
+button:hover,
 button:focus {
 
-    outline:
-        2px solid #ffffff;
+    background: #39ff14;
+    color: #000;
 
-    outline-offset:
-        2px;
-
-}
-
-
-button:active {
-
-    transform:
-        scale(.97);
+    outline: none;
 
 }
 
-
-/* =========================================================
-   TELA INICIAL
-========================================================= */
+/* =====================================================
+   HOME
+===================================================== */
 
 #home {
 
     min-height:
-        calc(100vh - 95px);
+        calc(100vh - 90px);
 
-    display:
-        flex;
+    display: flex;
 
-    align-items:
-        center;
+    align-items: center;
 
-    justify-content:
-        center;
+    justify-content: center;
 
-    padding:
-        30px;
+    padding: 25px;
 
 }
-
 
 .home-box {
 
-    width:
-        100%;
+    width: 100%;
+    max-width: 700px;
 
-    max-width:
-        720px;
-
-    text-align:
-        center;
+    text-align: center;
 
 }
-
 
 .home-box h1 {
 
-    color:
-        #39ff14;
+    color: #39ff14;
 
-    font-size:
-        58px;
+    font-size: 58px;
 
-    font-weight:
-        900;
+    font-weight: 900;
 
-    margin-bottom:
-        18px;
+    margin-bottom: 15px;
 
     text-shadow:
         0 0 10px #39ff14,
-        0 0 30px rgba(57,255,20,.55);
+        0 0 30px rgba(57,255,20,.5);
 
 }
-
 
 .home-box p {
 
-    color:
-        #aaaaaa;
+    color: #aaa;
 
-    font-size:
-        25px;
+    font-size: 22px;
 
-    margin-bottom:
-        45px;
+    margin-bottom: 40px;
 
 }
 
+.home-buttons {
 
-.menu-buttons {
+    display: grid;
 
-    display:
-        grid;
-
-    gap:
-        22px;
+    gap: 18px;
 
 }
-
 
 .big-button {
 
-    width:
-        100%;
+    width: 100%;
 
-    min-height:
-        75px;
+    min-height: 70px;
 
-    font-size:
-        22px;
-
-    border-radius:
-        12px;
+    font-size: 19px;
 
 }
 
-
-/* =========================================================
+/* =====================================================
    APP
-========================================================= */
+===================================================== */
 
 #app {
 
-    display:
-        none;
+    display: none;
 
-    padding:
-        25px;
+    padding: 20px;
 
-    max-width:
-        1600px;
+    max-width: 1600px;
 
-    margin:
-        auto;
+    margin: auto;
 
 }
 
-
-/* =========================================================
-   MENU CATEGORIAS
-========================================================= */
+/* =====================================================
+   MENU
+===================================================== */
 
 .menu {
 
-    display:
-        flex;
+    display: flex;
 
-    gap:
-        12px;
+    gap: 10px;
 
-    overflow-x:
-        auto;
+    overflow-x: auto;
 
-    padding:
-        5px 3px 18px;
-
-    scrollbar-width:
-        thin;
+    padding-bottom: 15px;
 
 }
-
 
 .menu button {
 
-    white-space:
-        nowrap;
+    flex-shrink: 0;
 
-    flex-shrink:
-        0;
+    white-space: nowrap;
 
 }
 
-
-/* =========================================================
+/* =====================================================
    STATUS
-========================================================= */
+===================================================== */
 
 #status {
 
-    width:
-        100%;
+    margin-bottom: 20px;
 
-    padding:
-        17px 20px;
+    padding: 15px;
 
-    margin-bottom:
-        25px;
+    border-radius: 10px;
 
-    border:
-        1px solid #252525;
+    border: 1px solid #252525;
 
-    border-radius:
-        12px;
+    background: #090909;
 
-    background:
-        #090909;
-
-    color:
-        #aaaaaa;
-
-    font-size:
-        16px;
+    color: #aaa;
 
 }
-
 
 #status.ok {
 
-    border-color:
-        #39ff14;
+    color: #39ff14;
 
-    color:
-        #39ff14;
-
-    box-shadow:
-        0 0 12px
-        rgba(57,255,20,.12);
+    border-color: #39ff14;
 
 }
-
 
 #status.error {
 
-    border-color:
-        #ff3030;
+    color: #ff5555;
 
-    color:
-        #ff5555;
+    border-color: #ff3333;
 
 }
 
-
-/* =========================================================
+/* =====================================================
    LISTA
-========================================================= */
+===================================================== */
 
 #lista {
 
-    display:
-        grid;
+    display: grid;
 
     grid-template-columns:
         repeat(
@@ -432,191 +280,137 @@ button:active {
             minmax(190px, 1fr)
         );
 
-    gap:
-        18px;
+    gap: 15px;
 
 }
-
-
-/* =========================================================
-   CARD
-========================================================= */
 
 .canal {
 
-    background:
-        #0b0b0b;
+    background: #0b0b0b;
 
-    border:
-        1px solid #242424;
+    border: 1px solid #222;
 
-    border-radius:
-        12px;
+    border-radius: 12px;
 
-    overflow:
-        hidden;
+    overflow: hidden;
 
-    cursor:
-        pointer;
+    cursor: pointer;
 
-    transition:
-        .2s;
-
-    min-width:
-        0;
+    transition: .2s;
 
 }
 
-
-.canal:hover {
-
-    border-color:
-        #39ff14;
-
-    transform:
-        translateY(-3px);
-
-    box-shadow:
-        0 0 18px
-        rgba(57,255,20,.16);
-
-}
-
-
+.canal:hover,
 .canal:focus {
 
-    outline:
-        2px solid #39ff14;
+    border-color: #39ff14;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 0 15px
+        rgba(57,255,20,.15);
 
 }
-
 
 .canal img {
 
-    display:
-        block;
+    width: 100%;
 
-    width:
-        100%;
+    height: 120px;
 
-    height:
-        125px;
+    object-fit: contain;
 
-    object-fit:
-        contain;
-
-    background:
-        #050505;
+    background: #050505;
 
 }
-
 
 .canal-info {
 
-    padding:
-        14px;
+    padding: 12px;
 
 }
-
 
 .canal-nome {
 
-    font-size:
-        16px;
+    font-weight: bold;
 
-    font-weight:
-        800;
+    font-size: 15px;
 
-    color:
-        #ffffff;
+    white-space: nowrap;
 
-    white-space:
-        nowrap;
+    overflow: hidden;
 
-    overflow:
-        hidden;
-
-    text-overflow:
-        ellipsis;
+    text-overflow: ellipsis;
 
 }
-
 
 .canal-grupo {
 
-    margin-top:
-        7px;
+    margin-top: 6px;
 
-    color:
-        #777777;
+    color: #777;
 
-    font-size:
-        13px;
+    font-size: 12px;
 
-    white-space:
-        nowrap;
+    white-space: nowrap;
 
-    overflow:
-        hidden;
+    overflow: hidden;
 
-    text-overflow:
-        ellipsis;
+    text-overflow: ellipsis;
 
 }
 
+.empty {
 
-/* =========================================================
-   MODAIS
-========================================================= */
+    grid-column: 1 / -1;
+
+    text-align: center;
+
+    color: #777;
+
+    padding: 50px 20px;
+
+}
+
+/* =====================================================
+   MODAL
+===================================================== */
 
 .modal {
 
-    display:
-        none;
+    display: none;
 
-    position:
-        fixed;
+    position: fixed;
 
-    inset:
-        0;
+    inset: 0;
 
     background:
         rgba(0,0,0,.88);
 
-    z-index:
-        5000;
+    z-index: 5000;
 
-    align-items:
-        center;
+    align-items: center;
 
-    justify-content:
-        center;
+    justify-content: center;
 
-    padding:
-        20px;
+    padding: 15px;
 
 }
 
-
 .modal-box {
 
-    width:
-        100%;
+    width: 100%;
 
-    max-width:
-        650px;
+    max-width: 650px;
 
-    background:
-        #090909;
+    background: #090909;
 
-    border:
-        1px solid #39ff14;
+    border: 1px solid #39ff14;
 
-    border-radius:
-        16px;
+    border-radius: 15px;
 
-    padding:
-        30px;
+    padding: 25px;
 
     box-shadow:
         0 0 35px
@@ -624,472 +418,205 @@ button:active {
 
 }
 
-
 .modal-box h2 {
 
-    color:
-        #39ff14;
+    color: #39ff14;
 
-    font-size:
-        30px;
+    font-size: 28px;
 
-    margin-bottom:
-        15px;
-
-    text-shadow:
-        0 0 10px
-        rgba(57,255,20,.4);
+    margin-bottom: 10px;
 
 }
-
 
 .modal-box p {
 
-    color:
-        #aaaaaa;
+    color: #aaa;
 
-    font-size:
-        17px;
+    line-height: 1.5;
 
-    line-height:
-        1.5;
-
-    margin-bottom:
-        20px;
+    margin-bottom: 20px;
 
 }
-
-
-/* =========================================================
-   INPUT
-========================================================= */
 
 input {
 
-    display:
-        block;
+    width: 100%;
 
-    width:
-        100%;
+    height: 55px;
 
-    height:
-        58px;
+    padding: 0 15px;
 
-    background:
-        #050505;
+    margin-bottom: 15px;
 
-    border:
-        1px solid #39ff14;
+    background: #050505;
 
-    border-radius:
-        10px;
+    color: white;
 
-    color:
-        #ffffff;
+    border: 1px solid #39ff14;
 
-    padding:
-        0 16px;
+    border-radius: 9px;
 
-    font-size:
-        16px;
-
-    margin-bottom:
-        18px;
+    font-size: 15px;
 
 }
-
 
 input:focus {
 
-    outline:
-        none;
-
-    border-color:
-        #39ff14;
+    outline: none;
 
     box-shadow:
         0 0 12px
-        rgba(57,255,20,.2);
+        rgba(57,255,20,.25);
 
 }
-
-
-input::placeholder {
-
-    color:
-        #666666;
-
-}
-
-
-/* =========================================================
-   BOTÕES DO MODAL
-========================================================= */
 
 .modal-buttons {
 
-    display:
-        flex;
+    display: flex;
 
-    gap:
-        12px;
+    gap: 10px;
 
 }
-
 
 .modal-buttons button {
 
-    flex:
-        1;
+    flex: 1;
 
 }
 
-
-/* =========================================================
+/* =====================================================
    PLAYER
-========================================================= */
+===================================================== */
 
 #playerModal .modal-box {
 
-    max-width:
-        1100px;
-
-    padding:
-        20px;
+    max-width: 1100px;
 
 }
 
+#playerTitle {
 
-.player-title {
+    color: #39ff14;
 
-    color:
-        #39ff14;
+    font-weight: bold;
 
-    font-size:
-        21px;
-
-    font-weight:
-        bold;
-
-    margin-bottom:
-        15px;
+    margin-bottom: 12px;
 
 }
-
 
 #videoPlayer {
 
-    display:
-        block;
+    width: 100%;
 
-    width:
-        100%;
+    max-height: 70vh;
 
-    max-height:
-        72vh;
+    background: black;
 
-    background:
-        #000000;
-
-    border-radius:
-        10px;
+    border-radius: 8px;
 
 }
 
+.close-player {
 
-.player-close {
+    width: 100%;
 
-    margin-top:
-        15px;
-
-    width:
-        100%;
+    margin-top: 12px;
 
 }
 
+/* =====================================================
+   CELULAR
+===================================================== */
 
-/* =========================================================
-   RESPONSIVO CELULAR
-========================================================= */
-
-@media (max-width: 700px) {
+@media(max-width:700px) {
 
     header {
 
-        height:
-            95px;
+        height: 75px;
 
-        padding:
-            0 15px;
+        padding: 0 12px;
 
     }
-
 
     .logo {
 
-        font-size:
-            25px;
+        font-size: 22px;
 
     }
-
-
-    .header-buttons {
-
-        gap:
-            8px;
-
-    }
-
 
     header button {
 
-        min-height:
-            48px;
+        min-height: 42px;
 
-        padding:
-            0 12px;
+        padding: 0 10px;
 
-        font-size:
-            13px;
+        font-size: 12px;
 
     }
-
 
     #home {
 
         min-height:
-            calc(100vh - 95px);
-
-        padding:
-            20px;
+            calc(100vh - 75px);
 
     }
-
 
     .home-box h1 {
 
-        font-size:
-            40px;
+        font-size: 40px;
 
     }
-
 
     .home-box p {
 
-        font-size:
-            19px;
-
-        margin-bottom:
-            35px;
+        font-size: 18px;
 
     }
-
 
     .big-button {
 
-        min-height:
-            72px;
+        min-height: 65px;
 
-        font-size:
-            17px;
+        font-size: 16px;
 
     }
-
 
     #app {
 
-        padding:
-            15px;
+        padding: 12px;
 
     }
-
 
     #lista {
 
         grid-template-columns:
             repeat(2, 1fr);
 
-        gap:
-            10px;
+        gap: 9px;
 
     }
-
 
     .canal img {
 
-        height:
-            90px;
+        height: 85px;
 
     }
-
 
     .canal-info {
 
-        padding:
-            10px;
+        padding: 9px;
 
     }
-
 
     .canal-nome {
 
-        font-size:
-            14px;
+        font-size: 13px;
 
     }
-
-
-    .canal-grupo {
-
-        font-size:
-            11px;
-
-    }
-
-
-    .modal {
-
-        padding:
-            12px;
-
-    }
-
-
-    .modal-box {
-
-        padding:
-            22px;
-
-    }
-
-
-    .modal-box h2 {
-
-        font-size:
-            25px;
-
-    }
-
 
     .modal-buttons {
 
-        flex-direction:
-            column;
-
-    }
-
-}
-
-
-/* =========================================================
-   TV / TELAS GRANDES
-========================================================= */
-
-@media (min-width: 1200px) {
-
-    .canal {
-
-        min-height:
-            200px;
-
-    }
-
-
-    .canal img {
-
-        height:
-            140px;
-
-    }
-
-}
-
-
-/* =========================================================
-   MENSAGEM VAZIA
-========================================================= */
-
-.empty {
-
-    grid-column:
-        1 / -1;
-
-    text-align:
-        center;
-
-    padding:
-        50px 20px;
-
-    color:
-        #777777;
-
-    font-size:
-        18px;
-
-}
-
-
-/* =========================================================
-   LOADING
-========================================================= */
-
-.loading {
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        center;
-
-    gap:
-        10px;
-
-}
-
-
-.loading-dot {
-
-    width:
-        10px;
-
-    height:
-        10px;
-
-    border-radius:
-        50%;
-
-    background:
-        #39ff14;
-
-    animation:
-        pulse 1s infinite;
-
-}
-
-
-@keyframes pulse {
-
-    0%,
-    100% {
-
-        opacity:
-            .25;
-
-        transform:
-            scale(.7);
-
-    }
-
-    50% {
-
-        opacity:
-            1;
-
-        transform:
-            scale(1);
+        flex-direction: column;
 
     }
 
@@ -1099,13 +626,12 @@ input::placeholder {
 
 </head>
 
-
 <body>
 
 
-<!-- =======================================================
-     CABEÇALHO
-======================================================== -->
+<!-- =====================================================
+     HEADER
+===================================================== -->
 
 <header>
 
@@ -1113,24 +639,14 @@ input::placeholder {
         GC PLAY PRO
     </div>
 
-
     <div class="header-buttons">
 
-        <button
-            type="button"
-            onclick="abrirManual()">
-
+        <button onclick="abrirManual()">
             + M3U
-
         </button>
 
-
-        <button
-            type="button"
-            onclick="mostrarInicio()">
-
+        <button onclick="mostrarInicio()">
             INÍCIO
-
         </button>
 
     </div>
@@ -1138,10 +654,9 @@ input::placeholder {
 </header>
 
 
-
-<!-- =======================================================
-     TELA INICIAL
-======================================================== -->
+<!-- =====================================================
+     HOME
+===================================================== -->
 
 <section id="home">
 
@@ -1151,28 +666,30 @@ input::placeholder {
             GC PLAY PRO
         </h1>
 
-
         <p>
             Seu aplicativo de entretenimento
         </p>
 
-
-        <div class="menu-buttons">
+        <div class="home-buttons">
 
             <button
                 class="big-button"
-                type="button"
                 onclick="abrirManual()">
 
-                📋 ADICIONAR M3U
-                MANUALMENTE
+                📋 ADICIONAR M3U MANUALMENTE
 
             </button>
 
+            <button
+                class="big-button"
+                onclick="abrirXtream()">
+
+                🔐 ENTRAR COM XTREAM CODES
+
+            </button>
 
             <button
                 class="big-button"
-                type="button"
                 onclick="carregarExemplo()">
 
                 ▶ CARREGAR LISTA DE TESTE
@@ -1186,203 +703,195 @@ input::placeholder {
 </section>
 
 
-
-<!-- =======================================================
-     APLICATIVO
-======================================================== -->
+<!-- =====================================================
+     APP
+===================================================== -->
 
 <section id="app">
 
-
     <div class="menu">
 
-        <button
-            type="button"
-            onclick="filtrar('todos')">
-
+        <button onclick="filtrar('todos')">
             🏠 TODOS
-
         </button>
 
-
-        <button
-            type="button"
-            onclick="filtrar('live')">
-
+        <button onclick="filtrar('live')">
             📺 TV AO VIVO
-
         </button>
 
-
-        <button
-            type="button"
-            onclick="filtrar('vod')">
-
+        <button onclick="filtrar('vod')">
             🎬 FILMES
-
         </button>
 
-
-        <button
-            type="button"
-            onclick="filtrar('series')">
-
+        <button onclick="filtrar('series')">
             📺 SÉRIES
-
         </button>
 
-
-        <button
-            type="button"
-            onclick="filtrar('music')">
-
+        <button onclick="filtrar('music')">
             🎵 MÚSICA
-
         </button>
 
-
-        <button
-            type="button"
-            onclick="abrirManual()">
-
+        <button onclick="abrirManual()">
             ➕ NOVA M3U
-
         </button>
 
     </div>
-
-
 
     <div id="status">
-
         Nenhuma lista carregada.
-
     </div>
 
-
-
-    <div id="lista">
-
-    </div>
-
+    <div id="lista"></div>
 
 </section>
 
 
-
-<!-- =======================================================
+<!-- =====================================================
      MODAL M3U
-======================================================== -->
+===================================================== -->
 
 <div
     id="manualModal"
     class="modal">
 
-
     <div class="modal-box">
-
 
         <h2>
             Adicionar lista M3U
         </h2>
 
-
         <p>
-            Cole abaixo o endereço completo
-            da sua lista M3U.
+            Cole o endereço completo da sua lista M3U.
         </p>
-
 
         <input
             id="m3uInput"
             type="text"
             autocomplete="off"
             spellcheck="false"
-            placeholder="http://servidor.com/get.php?..."
-        >
-
+            placeholder="http://servidor.com/get.php?...">
 
         <div class="modal-buttons">
 
-
-            <button
-                type="button"
-                onclick="fecharManual()">
-
+            <button onclick="fecharManual()">
                 CANCELAR
-
             </button>
 
-
-            <button
-                type="button"
-                onclick="carregarM3U()">
-
+            <button onclick="carregarM3U()">
                 CARREGAR
-
             </button>
-
 
         </div>
-
 
     </div>
 
 </div>
 
 
+<!-- =====================================================
+     MODAL XTREAM
+===================================================== -->
 
-<!-- =======================================================
-     MODAL PLAYER
-======================================================== -->
+<div
+    id="xtreamModal"
+    class="modal">
+
+    <div class="modal-box">
+
+        <h2>
+            Entrar com Xtream Codes
+        </h2>
+
+        <p>
+            Informe o servidor, usuário e senha.
+        </p>
+
+        <input
+            id="xtreamServer"
+            type="text"
+            placeholder="http://servidor:porta">
+
+        <input
+            id="xtreamUser"
+            type="text"
+            placeholder="Usuário">
+
+        <input
+            id="xtreamPass"
+            type="password"
+            placeholder="Senha">
+
+        <div class="modal-buttons">
+
+            <button onclick="fecharXtream()">
+                CANCELAR
+            </button>
+
+            <button onclick="carregarXtream()">
+                ENTRAR
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     PLAYER
+===================================================== -->
 
 <div
     id="playerModal"
     class="modal">
 
-
     <div class="modal-box">
 
-
-        <div
-            id="playerTitle"
-            class="player-title">
-
+        <div id="playerTitle">
             Reprodutor
-
         </div>
-
 
         <video
             id="videoPlayer"
             controls
             playsinline
             preload="metadata">
-
         </video>
 
-
         <button
-            class="player-close"
-            type="button"
+            class="close-player"
             onclick="fecharPlayer()">
 
             FECHAR PLAYER
 
         </button>
 
-
     </div>
 
 </div>
 
 
-
 <script>
 
-/* =========================================================
-   VARIÁVEIS GLOBAIS
-========================================================= */
+/* =====================================================
+   CONFIGURAÇÃO
+===================================================== */
+
+/*
+   URL DA NOVA EDGE FUNCTION.
+
+   Vamos criar essa função no Supabase
+   na próxima etapa deste código.
+*/
+
+const PROXY_URL =
+"https://kuzgdvpdqmocklsgyzvt.supabase.co/functions/v1/gcplay-proxy";
+
+
+/* =====================================================
+   VARIÁVEIS
+===================================================== */
 
 let canais = [];
 
@@ -1393,9 +902,9 @@ let categoriaAtual = "todos";
 let hls = null;
 
 
-/* =========================================================
-   ABRIR MODAL M3U
-========================================================= */
+/* =====================================================
+   MODAL M3U
+===================================================== */
 
 function abrirManual() {
 
@@ -1404,106 +913,154 @@ function abrirManual() {
             "manualModal"
         );
 
-
-    if (!modal) {
-
-        alert(
-            "Erro interno: janela M3U não encontrada."
-        );
-
-        return;
-
-    }
-
-
     modal.style.display =
         "flex";
 
+    setTimeout(() => {
 
-    const campo =
-        document.getElementById(
-            "m3uInput"
-        );
+        document
+            .getElementById(
+                "m3uInput"
+            )
+            .focus();
 
-
-    if (campo) {
-
-        setTimeout(
-            function() {
-
-                campo.focus();
-
-                campo.setSelectionRange(
-                    campo.value.length,
-                    campo.value.length
-                );
-
-            },
-            150
-        );
-
-    }
+    }, 100);
 
 }
 
-
-/* =========================================================
-   FECHAR MODAL M3U
-========================================================= */
 
 function fecharManual() {
 
-    const modal =
-        document.getElementById(
+    document
+        .getElementById(
             "manualModal"
-        );
-
-
-    if (modal) {
-
-        modal.style.display =
-            "none";
-
-    }
+        )
+        .style.display =
+        "none";
 
 }
 
 
-/* =========================================================
-   CARREGAR M3U
-========================================================= */
+/* =====================================================
+   MODAL XTREAM
+===================================================== */
 
-async function carregarM3U() {
+function abrirXtream() {
 
-    const campo =
-        document.getElementById(
-            "m3uInput"
-        );
+    document
+        .getElementById(
+            "xtreamModal"
+        )
+        .style.display =
+        "flex";
+
+}
 
 
-    if (!campo) {
+function fecharXtream() {
+
+    document
+        .getElementById(
+            "xtreamModal"
+        )
+        .style.display =
+        "none";
+
+}
+
+
+/* =====================================================
+   XTREAM → M3U
+===================================================== */
+
+function carregarXtream() {
+
+    const servidor =
+        document
+            .getElementById(
+                "xtreamServer"
+            )
+            .value
+            .trim();
+
+    const usuario =
+        document
+            .getElementById(
+                "xtreamUser"
+            )
+            .value
+            .trim();
+
+    const senha =
+        document
+            .getElementById(
+                "xtreamPass"
+            )
+            .value
+            .trim();
+
+
+    if (
+        !servidor ||
+        !usuario ||
+        !senha
+    ) {
 
         alert(
-            "Campo M3U não encontrado."
+            "Preencha servidor, usuário e senha."
         );
 
         return;
 
     }
+
+
+    let base =
+        servidor.replace(
+            /\/+$/,
+            ""
+        );
+
+
+    const url =
+        base +
+        "/get.php?username=" +
+        encodeURIComponent(usuario) +
+        "&password=" +
+        encodeURIComponent(senha) +
+        "&type=m3u_plus&output=hls";
+
+
+    fecharXtream();
+
+
+    carregarURLM3U(
+        url
+    );
+
+}
+
+
+/* =====================================================
+   M3U MANUAL
+===================================================== */
+
+function carregarM3U() {
+
+    const campo =
+        document.getElementById(
+            "m3uInput"
+        );
 
 
     const url =
         campo.value.trim();
 
 
-    /* -----------------------------------------------------
-       VERIFICAR URL
-    ----------------------------------------------------- */
-
     if (!url) {
 
         alert(
-            "Cole o endereço da sua lista M3U."
+            "Cole a URL completa da M3U."
         );
 
         campo.focus();
@@ -1519,39 +1076,35 @@ async function carregarM3U() {
     ) {
 
         alert(
-            "A URL precisa começar com:\n\n" +
-            "http://\n\n" +
-            "ou\n\n" +
-            "https://"
+            "A URL precisa começar com http:// ou https://"
         );
-
-        campo.focus();
 
         return;
 
     }
 
 
-    /* -----------------------------------------------------
-       FECHAR MODAL
-    ----------------------------------------------------- */
-
     fecharManual();
 
 
-    /* -----------------------------------------------------
-       MOSTRAR APP
-    ----------------------------------------------------- */
+    carregarURLM3U(
+        url
+    );
+
+}
+
+
+/* =====================================================
+   CARREGAR ATRAVÉS DO PROXY
+===================================================== */
+
+async function carregarURLM3U(url) {
 
     mostrarApp();
 
 
-    /* -----------------------------------------------------
-       STATUS
-    ----------------------------------------------------- */
-
     mostrarStatus(
-        "⏳ Conectando ao servidor da M3U...",
+        "⏳ Conectando ao servidor M3U...",
         "normal"
     );
 
@@ -1559,67 +1112,81 @@ async function carregarM3U() {
     try {
 
         console.log(
-            "================================="
-        );
-
-        console.log(
-            "GC PLAY PRO"
-        );
-
-        console.log(
-            "URL M3U:",
+            "M3U original:",
             url
         );
 
+
+        /*
+           IMPORTANTE:
+
+           A URL original fica dentro do parâmetro
+           e é codificada para não quebrar
+           caracteres como &, ?, = etc.
+        */
+
+        const endpoint =
+            PROXY_URL +
+            "?mode=playlist&url=" +
+            encodeURIComponent(url);
+
+
         console.log(
-            "================================="
+            "Proxy:",
+            endpoint
         );
 
 
-        /* -------------------------------------------------
-           FETCH
-        ------------------------------------------------- */
+        mostrarStatus(
+            "⏳ Baixando sua lista M3U...",
+            "normal"
+        );
+
 
         const resposta =
             await fetch(
-                url,
+                endpoint,
                 {
-                    method:
-                        "GET",
-
-                    cache:
-                        "no-store",
-
-                    redirect:
-                        "follow"
+                    method: "GET",
+                    cache: "no-store"
                 }
             );
 
 
         console.log(
-            "HTTP:",
+            "Resposta:",
             resposta.status
         );
 
 
         if (!resposta.ok) {
 
+            let mensagem =
+                "HTTP " +
+                resposta.status;
+
+
+            try {
+
+                const erro =
+                    await resposta.text();
+
+                if (erro) {
+
+                    mensagem +=
+                        "\n" +
+                        erro;
+
+                }
+
+            } catch(e) {}
+
+
             throw new Error(
-                "Servidor retornou HTTP " +
-                resposta.status
+                mensagem
             );
 
         }
-
-
-        /* -------------------------------------------------
-           TEXTO
-        ------------------------------------------------- */
-
-        mostrarStatus(
-            "⏳ Baixando lista M3U...",
-            "normal"
-        );
 
 
         const texto =
@@ -1627,7 +1194,7 @@ async function carregarM3U() {
 
 
         console.log(
-            "Tamanho recebido:",
+            "Tamanho da M3U:",
             texto.length
         );
 
@@ -1638,58 +1205,42 @@ async function carregarM3U() {
         ) {
 
             throw new Error(
-                "A lista retornada está vazia."
+                "O servidor retornou uma lista vazia."
             );
 
         }
 
 
-        /* -------------------------------------------------
-           VALIDAR M3U
-        ------------------------------------------------- */
+        /*
+           Algumas listas começam diretamente
+           com #EXTINF.
+        */
 
         if (
             !texto.includes(
                 "#EXTINF"
-            ) &&
-            !texto.includes(
-                "#EXTM3U"
             )
         ) {
 
             throw new Error(
-                "O conteúdo recebido não parece ser uma lista M3U válida."
+                "O conteúdo recebido não contém canais M3U."
             );
 
         }
 
 
-        /* -------------------------------------------------
-           SALVAR URL
-        ------------------------------------------------- */
+        /*
+           Salvar URL
+        */
 
-        try {
+        localStorage.setItem(
+            "gc_m3u_url",
+            url
+        );
 
-            localStorage.setItem(
-                "gc_m3u_url",
-                url
-            );
-
-        } catch(e) {
-
-            console.warn(
-                "Não foi possível salvar a URL."
-            );
-
-        }
-
-
-        /* -------------------------------------------------
-           PROCESSAR
-        ------------------------------------------------- */
 
         mostrarStatus(
-            "⏳ Processando canais...",
+            "⏳ Processando conteúdos...",
             "normal"
         );
 
@@ -1702,24 +1253,22 @@ async function carregarM3U() {
     } catch(erro) {
 
         console.error(
-            "ERRO M3U:",
+            "ERRO:",
             erro
         );
 
 
         mostrarStatus(
-            "❌ Erro ao carregar a M3U.",
+            "❌ Erro ao carregar a lista.",
             "error"
         );
 
 
         alert(
-            "NÃO FOI POSSÍVEL CARREGAR A LISTA.\n\n" +
+            "NÃO FOI POSSÍVEL CARREGAR A M3U\n\n" +
             erro.message +
             "\n\n" +
-            "Se estiver usando GitHub Pages, " +
-            "uma M3U HTTP pode ser bloqueada pelo navegador. " +
-            "Nesse caso vamos colocar o proxy do GC PLAY PRO."
+            "Abra o console do navegador se precisar verificar o erro."
         );
 
     }
@@ -1727,9 +1276,9 @@ async function carregarM3U() {
 }
 
 
-/* =========================================================
+/* =====================================================
    PROCESSAR M3U
-========================================================= */
+===================================================== */
 
 function processarM3U(texto) {
 
@@ -1756,15 +1305,9 @@ function processarM3U(texto) {
 
 
         if (!linha) {
-
             continue;
-
         }
 
-
-        /* -------------------------------------------------
-           EXTINF
-        ------------------------------------------------- */
 
         if (
             linha
@@ -1773,7 +1316,6 @@ function processarM3U(texto) {
                     "#EXTINF"
                 )
         ) {
-
 
             const virgula =
                 linha.indexOf(",");
@@ -1817,20 +1359,6 @@ function processarM3U(texto) {
                 ) || "";
 
 
-            const id =
-                extrairAtributo(
-                    linha,
-                    "tvg-id"
-                ) || "";
-
-
-            const categoria =
-                detectarCategoria(
-                    grupo,
-                    nome
-                );
-
-
             atual = {
 
                 nome:
@@ -1842,14 +1370,14 @@ function processarM3U(texto) {
                 logo:
                     logo,
 
-                id:
-                    id,
+                url:
+                    "",
 
                 categoria:
-                    categoria,
-
-                url:
-                    ""
+                    detectarCategoria(
+                        grupo,
+                        nome
+                    )
 
             };
 
@@ -1858,10 +1386,6 @@ function processarM3U(texto) {
 
         }
 
-
-        /* -------------------------------------------------
-           IGNORAR OUTRAS LINHAS #
-        ------------------------------------------------- */
 
         if (
             linha.startsWith("#")
@@ -1872,24 +1396,20 @@ function processarM3U(texto) {
         }
 
 
-        /* -------------------------------------------------
-           URL
-        ------------------------------------------------- */
-
         if (atual) {
 
-            atual.url =
-                linha;
-
-
             if (
-                atual.url.startsWith(
+                linha.startsWith(
                     "http://"
                 ) ||
-                atual.url.startsWith(
+                linha.startsWith(
                     "https://"
                 )
             ) {
+
+                atual.url =
+                    linha;
+
 
                 canais.push(
                     atual
@@ -1906,32 +1426,30 @@ function processarM3U(texto) {
 
 
     console.log(
-        "TOTAL DE ITENS:",
+        "TOTAL:",
         canais.length
     );
 
-
-    /* -----------------------------------------------------
-       NENHUM ITEM
-    ----------------------------------------------------- */
 
     if (
         canais.length === 0
     ) {
 
         mostrarStatus(
-            "❌ Nenhum conteúdo foi encontrado.",
+            "❌ Nenhum conteúdo encontrado.",
             "error"
         );
 
 
-        document.getElementById(
-            "lista"
-        ).innerHTML = `
-            <div class="empty">
-                Nenhum canal ou conteúdo encontrado nesta M3U.
-            </div>
-        `;
+        document
+            .getElementById(
+                "lista"
+            )
+            .innerHTML = `
+                <div class="empty">
+                    Nenhum canal foi encontrado.
+                </div>
+            `;
 
 
         return;
@@ -1939,19 +1457,11 @@ function processarM3U(texto) {
     }
 
 
-    /* -----------------------------------------------------
-       MOSTRAR
-    ----------------------------------------------------- */
-
-    mostrarApp();
-
+    canaisFiltrados =
+        canais;
 
     categoriaAtual =
         "todos";
-
-
-    canaisFiltrados =
-        canais;
 
 
     renderizarLista(
@@ -1962,16 +1472,16 @@ function processarM3U(texto) {
     mostrarStatus(
         "✅ " +
         canais.length +
-        " conteúdos carregados com sucesso.",
+        " conteúdos carregados.",
         "ok"
     );
 
 }
 
 
-/* =========================================================
-   EXTRAIR ATRIBUTO
-========================================================= */
+/* =====================================================
+   ATRIBUTO M3U
+===================================================== */
 
 function extrairAtributo(
     linha,
@@ -2025,9 +1535,9 @@ function extrairAtributo(
 }
 
 
-/* =========================================================
-   DETECTAR CATEGORIA
-========================================================= */
+/* =====================================================
+   CATEGORIA
+===================================================== */
 
 function detectarCategoria(
     grupo,
@@ -2036,14 +1546,12 @@ function detectarCategoria(
 
     const texto =
         (
-            String(grupo) +
+            grupo +
             " " +
-            String(nome)
+            nome
         )
         .toLowerCase();
 
-
-    /* ADULTO */
 
     if (
         texto.includes("adult") ||
@@ -2056,13 +1564,11 @@ function detectarCategoria(
     }
 
 
-    /* SÉRIES */
-
     if (
-        texto.includes("series") ||
-        texto.includes("séries") ||
         texto.includes("serie") ||
         texto.includes("série") ||
+        texto.includes("series") ||
+        texto.includes("séries") ||
         texto.includes("season") ||
         texto.includes("temporada")
     ) {
@@ -2071,8 +1577,6 @@ function detectarCategoria(
 
     }
 
-
-    /* FILMES */
 
     if (
         texto.includes("filme") ||
@@ -2087,12 +1591,10 @@ function detectarCategoria(
     }
 
 
-    /* MÚSICA */
-
     if (
         texto.includes("music") ||
-        texto.includes("música") ||
-        texto.includes("musica")
+        texto.includes("musica") ||
+        texto.includes("música")
     ) {
 
         return "music";
@@ -2100,16 +1602,14 @@ function detectarCategoria(
     }
 
 
-    /* PADRÃO */
-
     return "live";
 
 }
 
 
-/* =========================================================
-   RENDERIZAR LISTA
-========================================================= */
+/* =====================================================
+   RENDERIZAR
+===================================================== */
 
 function renderizarLista(
     lista
@@ -2119,13 +1619,6 @@ function renderizarLista(
         document.getElementById(
             "lista"
         );
-
-
-    if (!container) {
-
-        return;
-
-    }
 
 
     container.innerHTML =
@@ -2149,12 +1642,12 @@ function renderizarLista(
 
 
     const fragment =
-        document.createDocumentFragment();
+        document
+            .createDocumentFragment();
 
 
     lista.forEach(
         function(canal) {
-
 
             const card =
                 document.createElement(
@@ -2169,10 +1662,6 @@ function renderizarLista(
             card.tabIndex =
                 0;
 
-
-            /* ------------------------------------------------
-               LOGO
-            ------------------------------------------------ */
 
             if (canal.logo) {
 
@@ -2209,10 +1698,6 @@ function renderizarLista(
 
             }
 
-
-            /* ------------------------------------------------
-               INFORMAÇÕES
-            ------------------------------------------------ */
 
             const info =
                 document.createElement(
@@ -2256,39 +1741,26 @@ function renderizarLista(
                 nome
             );
 
-
             info.appendChild(
                 grupo
             );
-
 
             card.appendChild(
                 info
             );
 
 
-            /* ------------------------------------------------
-               CLICK
-            ------------------------------------------------ */
-
-            card.addEventListener(
-                "click",
+            card.onclick =
                 function() {
 
                     abrirPlayer(
                         canal
                     );
 
-                }
-            );
+                };
 
 
-            /* ------------------------------------------------
-               TECLADO TV
-            ------------------------------------------------ */
-
-            card.addEventListener(
-                "keydown",
+            card.onkeydown =
                 function(event) {
 
                     if (
@@ -2302,8 +1774,7 @@ function renderizarLista(
 
                     }
 
-                }
-            );
+                };
 
 
             fragment.appendChild(
@@ -2321,9 +1792,9 @@ function renderizarLista(
 }
 
 
-/* =========================================================
-   FILTRAR
-========================================================= */
+/* =====================================================
+   FILTRO
+===================================================== */
 
 function filtrar(
     categoria
@@ -2372,9 +1843,9 @@ function filtrar(
 }
 
 
-/* =========================================================
+/* =====================================================
    PLAYER
-========================================================= */
+===================================================== */
 
 function abrirPlayer(
     canal
@@ -2386,7 +1857,7 @@ function abrirPlayer(
     ) {
 
         alert(
-            "Este conteúdo não possui URL de reprodução."
+            "Este conteúdo não possui URL."
         );
 
         return;
@@ -2406,45 +1877,17 @@ function abrirPlayer(
         );
 
 
-    const titulo =
-        document.getElementById(
-            "playerTitle"
-        );
-
-
-    if (
-        !modal ||
-        !video
-    ) {
-
-        alert(
-            "Player não encontrado."
-        );
-
-        return;
-
-    }
-
-
-    titulo.textContent =
+    document.getElementById(
+        "playerTitle"
+    ).textContent =
         canal.nome;
 
-
-    /* -----------------------------------------------------
-       DESTRUIR HLS ANTERIOR
-    ----------------------------------------------------- */
 
     if (hls) {
 
         try {
-
             hls.destroy();
-
-        } catch(e) {
-
-            console.warn(e);
-
-        }
+        } catch(e) {}
 
         hls = null;
 
@@ -2468,15 +1911,9 @@ function abrirPlayer(
         canal.url.trim();
 
 
-    console.log(
-        "REPRODUZINDO:",
-        url
-    );
-
-
-    /* =====================================================
-       HLS M3U8
-    ===================================================== */
+    /*
+       HLS
+    */
 
     if (
         url
@@ -2487,10 +1924,6 @@ function abrirPlayer(
     ) {
 
 
-        /* -------------------------------------------------
-           HLS NATIVO
-        ------------------------------------------------- */
-
         if (
             video.canPlayType(
                 "application/vnd.apple.mpegurl"
@@ -2500,21 +1933,15 @@ function abrirPlayer(
             video.src =
                 url;
 
-
             video.play()
                 .catch(
-                    function() {}
+                    () => {}
                 );
-
 
             return;
 
         }
 
-
-        /* -------------------------------------------------
-           HLS.JS
-        ------------------------------------------------- */
 
         if (
             window.Hls &&
@@ -2526,9 +1953,6 @@ function abrirPlayer(
 
                     enableWorker:
                         true,
-
-                    lowLatencyMode:
-                        false,
 
                     backBufferLength:
                         30
@@ -2552,7 +1976,7 @@ function abrirPlayer(
 
                     video.play()
                         .catch(
-                            function() {}
+                            () => {}
                         );
 
                 }
@@ -2567,21 +1991,9 @@ function abrirPlayer(
                 ) {
 
                     console.error(
-                        "HLS ERROR:",
+                        "HLS:",
                         data
                     );
-
-
-                    if (
-                        data.fatal
-                    ) {
-
-                        mostrarStatus(
-                            "❌ Erro na reprodução HLS.",
-                            "error"
-                        );
-
-                    }
 
                 }
             );
@@ -2591,20 +2003,12 @@ function abrirPlayer(
 
         }
 
-
-        alert(
-            "Seu navegador não possui suporte HLS."
-        );
-
-
-        return;
-
     }
 
 
-    /* =====================================================
-       MP4 / OUTROS FORMATOS
-    ===================================================== */
+    /*
+       MP4
+    */
 
     video.src =
         url;
@@ -2615,22 +2019,15 @@ function abrirPlayer(
 
     video.play()
         .catch(
-            function(erro) {
-
-                console.log(
-                    "Autoplay bloqueado:",
-                    erro
-                );
-
-            }
+            () => {}
         );
 
 }
 
 
-/* =========================================================
+/* =====================================================
    FECHAR PLAYER
-========================================================= */
+===================================================== */
 
 function fecharPlayer() {
 
@@ -2643,9 +2040,7 @@ function fecharPlayer() {
     if (hls) {
 
         try {
-
             hls.destroy();
-
         } catch(e) {}
 
         hls = null;
@@ -2653,110 +2048,62 @@ function fecharPlayer() {
     }
 
 
-    if (video) {
+    video.pause();
 
-        video.pause();
+    video.removeAttribute(
+        "src"
+    );
 
-        video.removeAttribute(
-            "src"
-        );
-
-        video.load();
-
-    }
+    video.load();
 
 
-    const modal =
-        document.getElementById(
-            "playerModal"
-        );
-
-
-    if (modal) {
-
-        modal.style.display =
-            "none";
-
-    }
+    document.getElementById(
+        "playerModal"
+    ).style.display =
+        "none";
 
 }
 
 
-/* =========================================================
+/* =====================================================
    MOSTRAR APP
-========================================================= */
+===================================================== */
 
 function mostrarApp() {
 
-    const home =
-        document.getElementById(
-            "home"
-        );
+    document.getElementById(
+        "home"
+    ).style.display =
+        "none";
 
 
-    const app =
-        document.getElementById(
-            "app"
-        );
-
-
-    if (home) {
-
-        home.style.display =
-            "none";
-
-    }
-
-
-    if (app) {
-
-        app.style.display =
-            "block";
-
-    }
+    document.getElementById(
+        "app"
+    ).style.display =
+        "block";
 
 }
 
-
-/* =========================================================
-   MOSTRAR INÍCIO
-========================================================= */
 
 function mostrarInicio() {
 
-    const home =
-        document.getElementById(
-            "home"
-        );
+    document.getElementById(
+        "app"
+    ).style.display =
+        "none";
 
 
-    const app =
-        document.getElementById(
-            "app"
-        );
-
-
-    if (app) {
-
-        app.style.display =
-            "none";
-
-    }
-
-
-    if (home) {
-
-        home.style.display =
-            "flex";
-
-    }
+    document.getElementById(
+        "home"
+    ).style.display =
+        "flex";
 
 }
 
 
-/* =========================================================
+/* =====================================================
    STATUS
-========================================================= */
+===================================================== */
 
 function mostrarStatus(
     texto,
@@ -2769,13 +2116,6 @@ function mostrarStatus(
         );
 
 
-    if (!status) {
-
-        return;
-
-    }
-
-
     status.textContent =
         texto;
 
@@ -2785,8 +2125,7 @@ function mostrarStatus(
 
 
     if (
-        tipo ===
-        "ok"
+        tipo === "ok"
     ) {
 
         status.classList.add(
@@ -2797,8 +2136,7 @@ function mostrarStatus(
 
 
     if (
-        tipo ===
-        "error"
+        tipo === "error"
     ) {
 
         status.classList.add(
@@ -2810,54 +2148,41 @@ function mostrarStatus(
 }
 
 
-/* =========================================================
+/* =====================================================
    LISTA DE TESTE
-========================================================= */
+===================================================== */
 
 function carregarExemplo() {
 
-    mostrarApp();
-
-
-    mostrarStatus(
-        "⏳ Carregando lista de teste...",
-        "normal"
-    );
-
-
     const exemplo = `#EXTM3U
 
-#EXTINF:-1 tvg-logo="" group-title="TV AO VIVO",Canal HLS de Teste
+#EXTINF:-1 group-title="TV AO VIVO",Canal HLS de Teste
 https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8
 
-#EXTINF:-1 tvg-logo="" group-title="Filmes",Big Buck Bunny
+#EXTINF:-1 group-title="Filmes",Big Buck Bunny
 https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
 
-#EXTINF:-1 tvg-logo="" group-title="Filmes",Elephants Dream
+#EXTINF:-1 group-title="Filmes",Elephants Dream
 https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4
 
-#EXTINF:-1 tvg-logo="" group-title="Música",Vídeo Musical de Teste
+#EXTINF:-1 group-title="Música",Vídeo Musical de Teste
 https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4
 `;
 
 
-    setTimeout(
-        function() {
+    mostrarApp();
 
-            processarM3U(
-                exemplo
-            );
 
-        },
-        300
+    processarM3U(
+        exemplo
     );
 
 }
 
 
-/* =========================================================
-   FECHAR MODAIS CLICANDO FORA
-========================================================= */
+/* =====================================================
+   FECHAR MODAIS
+===================================================== */
 
 window.addEventListener(
     "click",
@@ -2868,6 +2193,10 @@ window.addEventListener(
                 "manualModal"
             );
 
+        const xtream =
+            document.getElementById(
+                "xtreamModal"
+            );
 
         const player =
             document.getElementById(
@@ -2887,6 +2216,16 @@ window.addEventListener(
 
         if (
             event.target ===
+            xtream
+        ) {
+
+            fecharXtream();
+
+        }
+
+
+        if (
+            event.target ===
             player
         ) {
 
@@ -2898,9 +2237,9 @@ window.addEventListener(
 );
 
 
-/* =========================================================
-   TECLA ESC
-========================================================= */
+/* =====================================================
+   ESC
+===================================================== */
 
 document.addEventListener(
     "keydown",
@@ -2913,6 +2252,8 @@ document.addEventListener(
 
             fecharManual();
 
+            fecharXtream();
+
             fecharPlayer();
 
         }
@@ -2921,67 +2262,34 @@ document.addEventListener(
 );
 
 
-/* =========================================================
-   ENTER NO CAMPO M3U
-========================================================= */
+/* =====================================================
+   URL SALVA
+===================================================== */
 
-const campoM3U =
-    document.getElementById(
-        "m3uInput"
-    );
+try {
 
-
-if (campoM3U) {
-
-    campoM3U.addEventListener(
-        "keydown",
-        function(event) {
-
-            if (
-                event.key ===
-                "Enter"
-            ) {
-
-                event.preventDefault();
-
-                carregarM3U();
-
-            }
-
-        }
-    );
+    const salva =
+        localStorage.getItem(
+            "gc_m3u_url"
+        );
 
 
-    /* -----------------------------------------------------
-       RECUPERAR URL SALVA
-    ----------------------------------------------------- */
+    if (salva) {
 
-    try {
-
-        const urlSalva =
-            localStorage.getItem(
-                "gc_m3u_url"
-            );
-
-
-        if (urlSalva) {
-
-            campoM3U.value =
-                urlSalva;
-
-        }
-
-    } catch(e) {
-
-        console.warn(e);
+        document
+            .getElementById(
+                "m3uInput"
+            )
+            .value =
+            salva;
 
     }
 
-}
+} catch(e) {}
 
 
 console.log(
-    "GC PLAY PRO iniciado."
+    "GC PLAY PRO V2 iniciado."
 );
 
 </script>
