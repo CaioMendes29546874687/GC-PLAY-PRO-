@@ -238,6 +238,9 @@ video{width:100%;height:100%;background:#000;outline:none;}
     display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;height:100dvh;
     width:100vw;background:var(--bg-main);position:fixed;top:0;left:0;z-index:3000;gap:15px;color:#fff;
 }
+/* Fallback: even if JavaScript or a CDN fails, the home screen must open. */
+.loading-home-screen{animation:gcBootFallback 2.2s forwards;}
+@keyframes gcBootFallback{0%,68%{opacity:1;visibility:visible;pointer-events:auto;}100%{opacity:0;visibility:hidden;pointer-events:none;}}
 #modalSeries,#modalAdultoPin{
     position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:4500;
     background:rgba(0,0,0,.88);backdrop-filter:blur(8px);padding:20px;
@@ -313,7 +316,7 @@ video{width:100%;height:100%;background:#000;outline:none;}
     </p>
 </div>
 
-<div id="viewAuth" class="smart-container" style="display:none;">
+<div id="viewAuth" class="smart-container" style="display:flex;">
     <div class="main-content-area">
         <div>
             <div class="top-brand-bar">
@@ -450,6 +453,22 @@ video{width:100%;height:100%;background:#000;outline:none;}
         </div>
     </div>
 </div>
+
+<script>
+(function(){
+    try{
+        var loader=document.getElementById("loadingHomeScreen");
+        var auth=document.getElementById("viewAuth");
+        if(auth) auth.style.display="flex";
+        if(loader){
+            setTimeout(function(){
+                loader.style.display="none";
+                if(auth) auth.style.display="flex";
+            },2500);
+        }
+    }catch(e){}
+})();
+</script>
 
 <script>
 const SUPABASE_URL =
