@@ -1,44 +1,19 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
 <meta charset="UTF-8">
-
-<meta name="viewport"
-      content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#050505">
-
 <title>GC PLAY PRO</title>
 
 <style>
+*{box-sizing:border-box}
 
-/* =========================================================
-   BASE
-========================================================= */
-
-:root{
-    --bg:#050505;
-    --panel:#101010;
-    --panel2:#171717;
-    --line:#292929;
-    --text:#f5f5f5;
-    --muted:#999;
-    --green:#39ff14;
-    --red:#ff4545;
-}
-
-*{
-    box-sizing:border-box;
-}
-
-html,
-body{
+html,body{
     margin:0;
     padding:0;
-    min-height:100%;
-    background:var(--bg);
-    color:var(--text);
+    background:#050505;
+    color:#fff;
     font-family:Arial,Helvetica,sans-serif;
 }
 
@@ -46,9 +21,7 @@ body{
     min-height:100vh;
 }
 
-button,
-input,
-select{
+button,input,select{
     font:inherit;
 }
 
@@ -60,34 +33,30 @@ button{
     display:none!important;
 }
 
-
-/* =========================================================
-   HEADER
-========================================================= */
+/* HEADER */
 
 header{
     position:sticky;
     top:0;
-    z-index:30;
-    background:rgba(5,5,5,.97);
-    border-bottom:1px solid var(--line);
+    z-index:50;
+    background:#050505;
+    border-bottom:1px solid #242424;
 }
 
 .top{
     max-width:1400px;
     margin:auto;
     min-height:76px;
-    padding:10px 16px;
+    padding:10px 18px;
     display:flex;
     align-items:center;
     gap:10px;
 }
 
 .logo{
-    color:var(--green);
-    font-size:28px;
+    color:#39ff14;
+    font-size:29px;
     font-weight:900;
-    letter-spacing:1px;
     white-space:nowrap;
 }
 
@@ -95,10 +64,7 @@ header{
     flex:1;
 }
 
-
-/* =========================================================
-   BOTÕES
-========================================================= */
+/* BOTÕES */
 
 .btn{
     border:1px solid #333;
@@ -106,37 +72,33 @@ header{
     color:#fff;
     border-radius:12px;
     padding:12px 16px;
-    transition:.18s;
 }
 
 .btn:hover{
-    border-color:var(--green);
+    border-color:#39ff14;
 }
 
 .btn.primary{
-    background:var(--green);
+    background:#39ff14;
     color:#000;
-    border-color:var(--green);
+    border-color:#39ff14;
     font-weight:900;
 }
 
 .btn.danger{
-    color:#ff8585;
+    color:#ff7777;
 }
 
-
-/* =========================================================
-   MAIN
-========================================================= */
+/* MAIN */
 
 main{
     max-width:1400px;
     margin:auto;
-    padding:20px 16px 40px;
+    padding:20px 18px 50px;
 }
 
 .hero{
-    padding:20px 4px 14px;
+    padding:18px 4px;
 }
 
 .hero h1{
@@ -146,85 +108,69 @@ main{
 
 .hero p{
     margin:0;
-    color:var(--muted);
+    color:#999;
     font-size:20px;
     line-height:1.4;
     max-width:800px;
 }
 
-
-/* =========================================================
-   STATUS
-========================================================= */
+/* STATUS */
 
 .status{
-    margin:14px 0;
-    padding:12px 14px;
-    border:1px solid var(--line);
+    padding:13px 15px;
+    margin:12px 0;
     border-radius:12px;
+    border:1px solid #333;
     background:#0c0c0c;
-    color:#bbb;
+    color:#aaa;
 }
 
 .status.ok{
-    color:#baffb1;
-    border-color:#168b0d;
+    border-color:#198b12;
+    color:#b8ffb0;
 }
 
-.status.err{
-    color:#ffb1b1;
-    border-color:#922222;
+.status.error{
+    border-color:#a52626;
+    color:#ffaaaa;
 }
 
-
-/* =========================================================
-   LISTAS
-========================================================= */
+/* LISTAS */
 
 .lists{
     display:flex;
     gap:8px;
     overflow-x:auto;
-    padding:10px 0;
-    scrollbar-width:none;
-}
-
-.lists::-webkit-scrollbar{
-    display:none;
+    padding:8px 0 14px;
 }
 
 .pill{
     border:1px solid #333;
-    background:#101010;
+    background:#111;
     color:#fff;
     border-radius:999px;
-    padding:10px 15px;
+    padding:10px 16px;
     white-space:nowrap;
 }
 
 .pill.active{
-    border-color:var(--green);
-    color:var(--green);
+    color:#39ff14;
+    border-color:#39ff14;
 }
 
-
-/* =========================================================
-   CONTROLES
-========================================================= */
+/* TOOLBAR */
 
 .toolbar{
     display:flex;
     gap:10px;
-    align-items:center;
     flex-wrap:wrap;
-    margin:12px 0;
+    margin:10px 0;
 }
 
 .search{
     flex:1;
     min-width:220px;
-    max-width:520px;
-    padding:13px 14px;
+    padding:14px;
     border-radius:12px;
     border:1px solid #333;
     background:#0e0e0e;
@@ -233,73 +179,56 @@ main{
 }
 
 .search:focus{
-    border-color:var(--green);
+    border-color:#39ff14;
 }
 
-.toolbar select{
+select{
     padding:13px 14px;
     border-radius:12px;
     border:1px solid #333;
-    background:#0e0e0e;
+    background:#111;
     color:#fff;
+    min-width:170px;
 }
 
-
-/* =========================================================
-   CONTADOR
-========================================================= */
+/* CONTADOR */
 
 .counter{
     color:#888;
-    font-size:13px;
-    margin:8px 0;
+    font-size:14px;
+    margin:12px 0;
 }
 
-
-/* =========================================================
-   GRID
-========================================================= */
+/* GRID */
 
 .grid{
     display:grid;
-    grid-template-columns:
-        repeat(
-            auto-fill,
-            minmax(190px,1fr)
-        );
+    grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
     gap:12px;
+    width:100%;
 }
 
-
-/* =========================================================
-   CARD
-========================================================= */
+/* CARD */
 
 .card{
-    background:
-        linear-gradient(
-            180deg,
-            #161616,
-            #0b0b0b
-        );
-
-    border:1px solid #262626;
+    min-width:0;
+    border:1px solid #292929;
     border-radius:14px;
     overflow:hidden;
-    min-height:160px;
+    background:#101010;
 }
 
-.card button{
+.cardBtn{
     width:100%;
+    padding:0;
     border:0;
     background:transparent;
-    color:inherit;
+    color:#fff;
     text-align:left;
-    padding:0;
 }
 
 .thumb{
-    height:110px;
+    height:120px;
     background:#080808;
     display:flex;
     align-items:center;
@@ -314,137 +243,88 @@ main{
 }
 
 .noimg{
-    font-size:34px;
     color:#333;
+    font-size:38px;
 }
 
-.ct{
+.cardText{
     padding:10px;
 }
 
-.ct b{
-    display:block;
+.cardTitle{
     font-size:14px;
+    font-weight:bold;
     line-height:1.3;
 }
 
-.ct small{
-    display:block;
-    margin-top:5px;
+.cardGroup{
+    margin-top:6px;
     color:#777;
+    font-size:12px;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
 }
 
-
-/* =========================================================
-   CARD DE SÉRIE
-========================================================= */
-
-.seriesCard{
-    min-height:190px;
-}
-
-.seriesCard .thumb{
-    height:135px;
-}
-
-.seriesInfo{
-    padding:10px;
-}
-
-.seriesInfo b{
-    display:block;
-    font-size:15px;
-    line-height:1.25;
-}
-
-.seriesInfo small{
-    display:block;
-    margin-top:6px;
-    color:#888;
-}
-
-
-/* =========================================================
-   PAGINAÇÃO
-========================================================= */
+/* PAGINAÇÃO */
 
 .pagination{
     display:flex;
-    align-items:center;
     justify-content:center;
-    gap:8px;
+    align-items:center;
     flex-wrap:wrap;
-    padding:25px 0 10px;
+    gap:7px;
+    padding:25px 0;
 }
 
-.pageInfo{
-    color:#999;
-    min-width:130px;
-    text-align:center;
-}
-
-.pageBtn{
+.page{
     min-width:42px;
-    padding:10px 12px;
-    border-radius:10px;
+    padding:10px;
+    border-radius:9px;
     border:1px solid #333;
     background:#111;
     color:#fff;
 }
 
-.pageBtn.active{
-    border-color:var(--green);
-    color:var(--green);
+.page.active{
+    color:#39ff14;
+    border-color:#39ff14;
 }
 
-.pageBtn:disabled{
+.page:disabled{
     opacity:.35;
-    cursor:not-allowed;
 }
 
-
-/* =========================================================
-   EMPTY
-========================================================= */
-
-.empty{
-    grid-column:1/-1;
-    text-align:center;
-    padding:60px 15px;
-    color:#777;
+.pageInfo{
+    color:#888;
+    padding:0 8px;
 }
 
-
-/* =========================================================
-   MODAL
-========================================================= */
+/* MODAL */
 
 .modal{
     position:fixed;
     inset:0;
-    z-index:80;
-    background:rgba(0,0,0,.82);
+    z-index:100;
+    background:rgba(0,0,0,.85);
     display:flex;
     align-items:center;
     justify-content:center;
-    padding:16px;
+    padding:15px;
 }
 
 .box{
-    width:min(650px,100%);
+    width:min(700px,100%);
     max-height:92vh;
     overflow:auto;
-    background:#101010;
+    background:#111;
     border:1px solid #333;
     border-radius:17px;
     padding:20px;
 }
 
 .box h2{
-    margin:0 0 16px;
+    margin-top:0;
 }
 
 .field{
@@ -460,7 +340,7 @@ main{
 
 .field input{
     width:100%;
-    padding:13px;
+    padding:14px;
     border-radius:10px;
     border:1px solid #333;
     background:#080808;
@@ -469,115 +349,79 @@ main{
 }
 
 .field input:focus{
-    border-color:var(--green);
+    border-color:#39ff14;
 }
 
 .actions{
     display:flex;
-    gap:8px;
     justify-content:flex-end;
+    gap:8px;
     flex-wrap:wrap;
     margin-top:18px;
 }
 
-
-/* =========================================================
-   LIST MANAGER
-========================================================= */
+/* LIST MANAGER */
 
 .listRow{
+    border:1px solid #292929;
+    background:#0b0b0b;
+    border-radius:12px;
+    padding:12px;
+    margin:8px 0;
     display:flex;
     align-items:center;
     gap:10px;
-    padding:12px;
-    border:1px solid #292929;
-    border-radius:12px;
-    background:#0b0b0b;
-    margin:8px 0;
 }
 
-.listRow .name{
-    font-weight:800;
+.listName{
+    font-weight:bold;
 }
 
-.listRow .url{
-    color:#777;
+.listURL{
+    color:#666;
     font-size:12px;
-    margin-top:4px;
     overflow:hidden;
-    text-overflow:ellipsis;
     white-space:nowrap;
+    text-overflow:ellipsis;
 }
 
+/* PLAYER */
 
-/* =========================================================
-   PLAYER
-========================================================= */
-
-.playerModal .box{
+.playerBox{
     width:min(1100px,100%);
+    background:#111;
+    border:1px solid #333;
+    border-radius:15px;
     padding:10px;
 }
 
-.playerHeader{
+.playerHead{
     display:flex;
     align-items:center;
     gap:10px;
-    padding:5px 4px 10px;
+    padding:5px;
 }
 
 .playerTitle{
     flex:1;
-    font-weight:800;
+    font-weight:bold;
 }
 
-.playerWrap{
-    background:#000;
-    border-radius:10px;
-    overflow:hidden;
-}
-
-.playerWrap video{
+video{
     width:100%;
+    max-height:75vh;
     display:block;
     background:#000;
-    max-height:72vh;
+    border-radius:10px;
 }
 
 .playerStatus{
-    padding:10px 5px;
     color:#888;
     font-size:13px;
+    padding:10px 5px;
 }
 
-
-/* =========================================================
-   TOAST
-========================================================= */
-
-#toast{
-    position:fixed;
-    left:50%;
-    bottom:20px;
-    transform:translateX(-50%);
-    z-index:120;
-    background:#171717;
-    border:1px solid #333;
-    padding:12px 16px;
-    border-radius:11px;
-    max-width:90%;
-    text-align:center;
-    display:none;
-}
-
-
-/* =========================================================
-   MODAL SÉRIE
-========================================================= */
-
-.seriesModal .box{
-    width:min(800px,100%);
-}
+/* SÉRIES */
 
 .season{
     border:1px solid #292929;
@@ -586,31 +430,30 @@ main{
     overflow:hidden;
 }
 
-.seasonTitle{
+.seasonBtn{
     width:100%;
-    padding:13px;
-    border:0;
-    background:#171717;
+    padding:14px;
+    background:#181818;
     color:#fff;
+    border:0;
     text-align:left;
-    font-weight:800;
+    font-weight:bold;
 }
 
-.episodeList{
+.episodes{
     display:none;
 }
 
-.episodeList.open{
+.episodes.open{
     display:block;
 }
 
 .episode{
     display:flex;
-    gap:10px;
     align-items:center;
-    padding:11px;
+    gap:10px;
     border-top:1px solid #292929;
-    background:#0c0c0c;
+    padding:10px;
 }
 
 .episodeName{
@@ -618,24 +461,24 @@ main{
     font-size:14px;
 }
 
+/* TOAST */
 
-/* =========================================================
-   DESKTOP
-========================================================= */
-
-@media(min-width:900px){
-
-    .top{
-        padding-left:22px;
-        padding-right:22px;
-    }
-
+#toast{
+    position:fixed;
+    left:50%;
+    bottom:20px;
+    transform:translateX(-50%);
+    z-index:200;
+    background:#181818;
+    border:1px solid #333;
+    padding:12px 17px;
+    border-radius:12px;
+    display:none;
+    max-width:90%;
+    text-align:center;
 }
 
-
-/* =========================================================
-   MOBILE
-========================================================= */
+/* MOBILE */
 
 @media(max-width:650px){
 
@@ -649,15 +492,11 @@ main{
     }
 
     .top .btn{
-        padding:10px 12px;
+        padding:10px 11px;
     }
 
     main{
         padding:12px;
-    }
-
-    .hero{
-        padding-top:18px;
     }
 
     .hero h1{
@@ -669,45 +508,33 @@ main{
     }
 
     .grid{
-        grid-template-columns:
-            repeat(
-                2,
-                minmax(
-                    0,
-                    1fr
-                )
-            );
+        grid-template-columns:repeat(2,minmax(0,1fr));
         gap:8px;
     }
 
     .thumb{
-        height:90px;
+        height:95px;
     }
 
-    .seriesCard .thumb{
-        height:105px;
-    }
-
-    .ct{
+    .cardText{
         padding:8px;
     }
 
-    .ct b{
+    .cardTitle{
         font-size:12px;
     }
 
-    .ct small{
-        font-size:11px;
+    .cardGroup{
+        font-size:10px;
     }
 
     .search{
         width:100%;
-        max-width:none;
         min-width:0;
         order:1;
     }
 
-    .toolbar select{
+    select{
         flex:1;
     }
 
@@ -716,643 +543,463 @@ main{
     }
 
     .listRow{
-        align-items:flex-start;
         flex-wrap:wrap;
     }
-
 }
-
 </style>
 </head>
 
-
 <body>
 
-
-<!-- =========================================================
-     HEADER
-========================================================= -->
-
 <header>
+    <div class="top">
 
-<div class="top">
+        <div class="logo">
+            GC PLAY PRO
+        </div>
 
-<div class="logo">
-GC PLAY PRO
-</div>
+        <div class="grow"></div>
 
-<div class="grow"></div>
+        <button class="btn" onclick="openLists()">
+            LISTAS
+        </button>
 
-<button
-    class="btn"
-    onclick="openLists()"
->
-LISTAS
-</button>
+        <button class="btn primary" onclick="openM3U()">
+            + M3U
+        </button>
 
-<button
-    class="btn primary"
-    onclick="openM3U()"
->
-+ M3U
-</button>
-
-</div>
-
+    </div>
 </header>
 
 
-
-<!-- =========================================================
-     MAIN
-========================================================= -->
-
 <main>
 
+    <section class="hero">
 
-<section class="hero">
+        <h1>
+            Sua TV, do seu jeito.
+        </h1>
 
-<h1>
-Sua TV, do seu jeito.
-</h1>
+        <p>
+            Cada lista utiliza seu próprio servidor.
+            O GC PLAY PRO não fica preso a nenhum servidor específico.
+        </p>
 
-<p>
-Cada lista utiliza seu próprio servidor.
-O GC PLAY PRO não fica preso a nenhum servidor específico.
-</p>
-
-</section>
-
+    </section>
 
 
-<div
-    id="status"
-    class="status hidden"
-></div>
+    <div id="status" class="status hidden"></div>
 
 
-
-<div
-    id="listPills"
-    class="lists"
-></div>
+    <div id="listPills" class="lists"></div>
 
 
+    <div class="toolbar">
 
-<div class="toolbar">
+        <select id="category">
+            <option value="ALL">
+                Todas
+            </option>
+        </select>
 
-<input
-    id="search"
-    class="search"
-    placeholder="Pesquisar canal, filme, série..."
-    autocomplete="off"
->
+        <input
+            id="search"
+            class="search"
+            placeholder="Pesquisar canal, filme, série..."
+            autocomplete="off"
+        >
 
-<select
-    id="cat"
->
-<option value="ALL">
-Todas
-</option>
-</select>
+        <button
+            id="refresh"
+            class="btn"
+        >
+            ↻ Atualizar
+        </button>
 
-<button
-    class="btn"
-    id="refreshBtn"
->
-↻ Atualizar
-</button>
-
-</div>
+    </div>
 
 
-
-<div
-    id="counter"
-    class="counter"
-></div>
-
+    <div
+        id="counter"
+        class="counter"
+    ></div>
 
 
-<div
-    id="grid"
-    class="grid"
-></div>
+    <div
+        id="grid"
+        class="grid"
+    ></div>
 
 
-
-<div
-    id="pagination"
-    class="pagination"
-></div>
-
+    <div
+        id="pagination"
+        class="pagination"
+    ></div>
 
 </main>
 
 
-
-<!-- =========================================================
+<!-- =====================================================
      MODAL M3U
-========================================================= -->
+====================================================== -->
 
 <div
     id="m3uModal"
     class="modal hidden"
 >
 
-<div class="box">
+    <div class="box">
 
-<h2>
-Adicionar lista M3U
-</h2>
+        <h2>
+            Adicionar lista M3U
+        </h2>
 
-<div class="field">
+        <div class="field">
 
-<label>
-Nome da lista
-</label>
+            <label>
+                Nome da lista
+            </label>
 
-<input
-    id="mName"
-    placeholder="Minha TV"
->
+            <input
+                id="m3uName"
+                placeholder="Minha TV"
+            >
 
-</div>
-
-
-<div class="field">
-
-<label>
-URL M3U normal
-</label>
-
-<input
-    id="mUrl"
-    placeholder="http://servidor/get.php?..."
->
-
-</div>
+        </div>
 
 
-<p
-    style="
-        color:#888;
-        font-size:13px;
-        line-height:1.5;
-    "
->
-Use a URL M3U normal da sua lista.
-Cada lista pode utilizar seu próprio servidor.
-</p>
+        <div class="field">
+
+            <label>
+                URL M3U
+            </label>
+
+            <input
+                id="m3uURL"
+                placeholder="http://servidor/get.php?..."
+            >
+
+        </div>
 
 
-<div class="actions">
+        <p style="color:#888;font-size:13px;line-height:1.5">
 
-<button
-    class="btn"
-    onclick="closeM3U()"
->
-Cancelar
-</button>
+            Você pode cadastrar várias listas.
+            Cada lista pode utilizar um servidor diferente.
 
-<button
-    class="btn primary"
-    id="saveM3UBtn"
->
-Salvar e carregar
-</button>
+        </p>
 
-</div>
 
-</div>
+        <div class="actions">
+
+            <button
+                class="btn"
+                onclick="closeM3U()"
+            >
+                Cancelar
+            </button>
+
+            <button
+                id="addM3U"
+                class="btn primary"
+            >
+                Salvar e carregar
+            </button>
+
+        </div>
+
+    </div>
 
 </div>
 
 
-
-<!-- =========================================================
+<!-- =====================================================
      MODAL LISTAS
-========================================================= -->
+====================================================== -->
 
 <div
     id="listsModal"
     class="modal hidden"
 >
 
-<div class="box">
+    <div class="box">
 
-<h2>
-Minhas listas
-</h2>
+        <h2>
+            Minhas listas
+        </h2>
 
-<div id="listRows"></div>
+        <div id="listRows"></div>
 
-<div class="actions">
+        <div class="actions">
 
-<button
-    class="btn"
-    onclick="closeLists()"
->
-Fechar
-</button>
+            <button
+                class="btn"
+                onclick="closeLists()"
+            >
+                Fechar
+            </button>
 
-<button
-    class="btn primary"
-    onclick="
-        closeLists();
-        openM3U();
-    "
->
-+ Adicionar
-</button>
+            <button
+                class="btn primary"
+                onclick="
+                    closeLists();
+                    openM3U();
+                "
+            >
+                + Adicionar
+            </button>
+
+        </div>
+
+    </div>
 
 </div>
 
-</div>
 
-</div>
-
-
-
-<!-- =========================================================
+<!-- =====================================================
      MODAL SÉRIE
-========================================================= -->
+====================================================== -->
 
 <div
     id="seriesModal"
-    class="modal seriesModal hidden"
+    class="modal hidden"
 >
 
-<div class="box">
+    <div class="box">
 
-<div class="playerHeader">
+        <div class="playerHead">
 
-<div
-    id="seriesTitle"
-    class="playerTitle"
->
-Série
-</div>
+            <div
+                id="seriesTitle"
+                class="playerTitle"
+            >
+                Série
+            </div>
 
-<button
-    class="btn"
-    onclick="closeSeries()"
->
-✕
-</button>
+            <button
+                class="btn"
+                onclick="closeSeries()"
+            >
+                ✕
+            </button>
 
-</div>
+        </div>
 
-<div
-    id="seriesContent"
-></div>
+        <div id="seriesContent"></div>
 
-</div>
+    </div>
 
 </div>
 
 
-
-<!-- =========================================================
+<!-- =====================================================
      MODAL PLAYER
-========================================================= -->
+====================================================== -->
 
 <div
     id="playerModal"
-    class="modal playerModal hidden"
+    class="modal hidden"
 >
 
-<div class="box">
+    <div class="playerBox">
 
-<div class="playerHeader">
+        <div class="playerHead">
 
-<div
-    id="playerName"
-    class="playerTitle"
->
-Player
-</div>
+            <div
+                id="playerTitle"
+                class="playerTitle"
+            >
+                Player
+            </div>
 
-<button
-    class="btn"
-    onclick="closePlayer()"
->
-✕
-</button>
+            <button
+                class="btn"
+                onclick="closePlayer()"
+            >
+                ✕
+            </button>
 
-</div>
+        </div>
 
+        <video
+            id="video"
+            controls
+            playsinline
+        ></video>
 
-<div class="playerWrap">
+        <div
+            id="playerStatus"
+            class="playerStatus"
+        >
+            Preparando...
+        </div>
 
-<video
-    id="video"
-    controls
-    playsinline
-    autoplay
-></video>
-
-</div>
-
-
-<div
-    id="playerStatus"
-    class="playerStatus"
->
-Conectando...
-</div>
+    </div>
 
 </div>
-
-</div>
-
 
 
 <div id="toast"></div>
 
-
-
-<!-- =========================================================
-     PLAYERS
-========================================================= -->
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.0/dist/mpegts.min.js"></script>
 
 
-
 <script>
 
-/* =========================================================
+/* =====================================================
    CONFIGURAÇÃO
-========================================================= */
+====================================================== */
 
 const PROXY_URL =
 "https://kuzgdvpdqmocklsgyzvt.supabase.co/functions/v1/gcplay-proxy";
 
-const STORAGE_KEY =
-"gcplay_pro_v6";
+const STORAGE =
+"GC_PLAY_PRO_LISTS_V10";
 
-const ITEMS_PER_PAGE = 100;
+const PER_PAGE =
+100;
 
 
-/* =========================================================
+/* =====================================================
    ESTADO
-========================================================= */
+====================================================== */
 
-let state = {
+let lists = [];
 
-    lists: [],
+let currentList = null;
 
-    current: null,
+let items = [];
 
-    items: [],
+let filteredItems = [];
 
-    page: 1,
+let seriesGroups = [];
 
-    filtered: [],
+let currentPage = 1;
 
-    seriesGroups: [],
+let hlsPlayer = null;
 
-    viewMode: "normal"
-
-};
+let tsPlayer = null;
 
 
-let hls = null;
+/* =====================================================
+   HELPERS
+====================================================== */
 
-let mpegPlayer = null;
-
-
-/* =========================================================
-   ELEMENTOS
-========================================================= */
-
-const $ = id =>
-    document.getElementById(id);
+function $(id){
+    return document.getElementById(id);
+}
 
 
-/* =========================================================
-   ESCAPE
-========================================================= */
+function escapeHTML(text){
 
-function escapeHTML(value){
-
-    return String(value ?? "")
-        .replace(
-            /[&<>"']/g,
-            char => ({
-
-                "&":"&amp;",
-                "<":"&lt;",
-                ">":"&gt;",
-                '"':"&quot;",
-                "'":"&#039;"
-
-            }[char])
-        );
+    return String(text || "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
 
 }
 
 
-/* =========================================================
-   TOAST
-========================================================= */
+function showStatus(text,type="ok"){
 
-function toast(message){
+    const el = $("status");
 
-    const el =
-        $("toast");
-
-    el.textContent =
-        message;
-
-    el.style.display =
-        "block";
-
-    clearTimeout(
-        window.__toast
-    );
-
-    window.__toast =
-        setTimeout(
-            () => {
-
-                el.style.display =
-                    "none";
-
-            },
-            3000
-        );
-
-}
-
-
-/* =========================================================
-   STATUS
-========================================================= */
-
-function setStatus(
-    text,
-    ok = true
-){
-
-    const el =
-        $("status");
-
-    el.textContent =
-        text;
+    el.textContent = text;
 
     el.className =
         "status " +
         (
-            ok
-            ? "ok"
-            : "err"
+            type === "error"
+            ? "error"
+            : "ok"
         );
 
-    el.classList.remove(
-        "hidden"
+    el.classList.remove("hidden");
+
+}
+
+
+function toast(text){
+
+    const el = $("toast");
+
+    el.textContent = text;
+
+    el.style.display = "block";
+
+    clearTimeout(window.__toast);
+
+    window.__toast =
+        setTimeout(() => {
+            el.style.display = "none";
+        },3000);
+
+}
+
+
+function saveLists(){
+
+    localStorage.setItem(
+        STORAGE,
+        JSON.stringify(lists)
     );
 
 }
 
 
-/* =========================================================
-   STORAGE
-========================================================= */
-
-function saveState(){
+function loadLists(){
 
     try{
 
-        localStorage.setItem(
-
-            STORAGE_KEY,
-
-            JSON.stringify(
-                state.lists
-            )
-
-        );
-
-    }
-
-    catch(error){
-
-        console.warn(
-            "Não foi possível salvar:",
-            error
-        );
-
-    }
-
-}
-
-
-function loadState(){
-
-    try{
-
-        state.lists =
+        lists =
             JSON.parse(
-
-                localStorage.getItem(
-                    STORAGE_KEY
-                ) ||
+                localStorage.getItem(STORAGE)
+                ||
                 "[]"
-
             );
 
-        if(
-            !Array.isArray(
-                state.lists
-            )
-        ){
-
-            state.lists = [];
-
+        if(!Array.isArray(lists)){
+            lists=[];
         }
 
-    }
+    }catch(e){
 
-    catch(error){
-
-        state.lists = [];
+        lists=[];
 
     }
 
 }
 
 
-/* =========================================================
-   URL DO PROXY
-========================================================= */
+/* =====================================================
+   PROXY
+====================================================== */
 
-function proxyURL(
-    target,
-    mode
-){
+function proxyURL(url,mode){
 
     return (
-
         PROXY_URL +
-
         "?mode=" +
-
-        encodeURIComponent(
-            mode
-        ) +
-
+        encodeURIComponent(mode) +
         "&url=" +
-
-        encodeURIComponent(
-            target
-        )
-
+        encodeURIComponent(url)
     );
 
 }
 
 
-/* =========================================================
-   NORMALIZAR URL
-========================================================= */
+/* =====================================================
+   EXTINF
+====================================================== */
 
-function normalizeURL(url){
+function parseExtinf(line){
 
-    url =
-        String(
-            url || ""
-        ).trim();
-
-    if(!url){
-
-        return "";
-
-    }
-
-    if(
-        url.startsWith("//")
-    ){
-
-        return "http:" + url;
-
-    }
-
-    return url;
-
-}
-
-
-/* =========================================================
-   PARSER EXTINF
-========================================================= */
-
-function parseEXTINF(line){
-
-    const data = {};
+    const result = {};
 
     const regex =
         /([\w-]+)="([^"]*)"/g;
@@ -1360,128 +1007,80 @@ function parseEXTINF(line){
     let match;
 
     while(
-        (
-            match =
-            regex.exec(line)
-        )
+        (match=regex.exec(line))
     ){
 
-        data[
+        result[
             match[1].toLowerCase()
         ] =
-            match[2];
+        match[2];
 
     }
+
 
     const comma =
         line.indexOf(",");
 
-    data.title =
 
+    result.title =
         comma >= 0
-
         ?
-
-        line
-            .slice(
-                comma + 1
-            )
-            .trim()
-
+        line.slice(comma+1).trim()
         :
-
         "Sem nome";
 
-    return data;
+
+    return result;
 
 }
 
 
-/* =========================================================
-   CLASSIFICAÇÃO
-========================================================= */
+/* =====================================================
+   CATEGORIA
+====================================================== */
 
-function classify(
-    metadata,
-    url
-){
+function detectCategory(meta,url){
 
-    const group =
-        (
-            metadata[
-                "group-title"
-            ] ||
-            ""
-        )
-        .toLowerCase();
+    const text = (
 
-    const title =
-        (
-            metadata.title ||
-            ""
-        )
-        .toLowerCase();
-
-    const address =
-        (
-            url ||
-            ""
-        )
-        .toLowerCase();
-
-    const combined =
-        group +
+        (meta.title || "") +
         " " +
-        title;
+        (meta["group-title"] || "") +
+        " " +
+        url
+
+    ).toLowerCase();
 
 
     if(
-        /adult|18\+|xxx|erotic|adulto/
-        .test(combined)
+        /adult|adulto|18\+|xxx|porn/
+        .test(text)
     ){
-
         return "Adult";
-
     }
 
 
     if(
-        /series?|série|season|temporada|episode|episódio/
-        .test(combined)
-
-        ||
-
-        /\/series?\//
-        .test(address)
+        /series|serie|série|season|temporada|episode|episodio|episódio/
+        .test(text)
     ){
-
         return "Series";
-
     }
 
 
     if(
-        /movie|filme|film|vod|cinema/
-        .test(combined)
-
-        ||
-
-        /\/movies?\//
-        .test(address)
+        /movie|movies|filme|films|vod|cinema/
+        .test(text)
     ){
-
         return "Films";
-
     }
 
 
     if(
-        /music|música|radio/
-        .test(combined)
+        /music|musica|música|radio/
+        .test(text)
     ){
-
         return "Music";
-
     }
 
 
@@ -1490,248 +1089,151 @@ function classify(
 }
 
 
-/* =========================================================
+/* =====================================================
    ADICIONAR ITEM
-========================================================= */
+====================================================== */
 
-function addItem(
-    metadata,
-    url
-){
-
-    url =
-        normalizeURL(
-            url
-        );
+function addItem(meta,url){
 
     if(!url){
-
         return;
-
     }
 
-    metadata =
-        metadata ||
-        {
-            title:"Canal"
-        };
 
+    const item = {
 
-    state.items.push({
-
-        id:
-            state.items.length,
+        id:items.length,
 
         name:
-            metadata.title
+            meta.title
             ||
-            metadata[
-                "tvg-name"
-            ]
+            meta["tvg-name"]
             ||
             "Sem nome",
 
-        url:
-
-            url,
+        url:url,
 
         logo:
-
-            metadata[
-                "tvg-logo"
-            ]
+            meta["tvg-logo"]
             ||
             "",
 
         group:
-
-            metadata[
-                "group-title"
-            ]
+            meta["group-title"]
             ||
             "Sem categoria",
 
-        tvgId:
-
-            metadata[
-                "tvg-id"
-            ]
-            ||
-            "",
-
         category:
-
-            classify(
-                metadata,
+            detectCategory(
+                meta,
                 url
-            ),
+            )
 
-        raw:
-            metadata
+    };
 
-    });
+
+    items.push(item);
 
 }
 
 
-/* =========================================================
-   NOME DA SÉRIE
-========================================================= */
+/* =====================================================
+   AGRUPAMENTO DE SÉRIES
+====================================================== */
 
-function getSeriesName(
-    item
-){
+function seriesName(item){
 
     let name =
-        item.name
-        ||
-        "Série sem nome";
+        item.name;
 
-
-    /*
-       Remove padrões comuns de episódio.
-    */
 
     name =
         name.replace(
-
             /\bS\d{1,3}\s*E\d{1,3}\b/gi,
-
             ""
-
         );
 
 
     name =
         name.replace(
-
             /\b\d{1,3}x\d{1,3}\b/gi,
-
             ""
-
         );
 
 
     name =
         name.replace(
-
-            /\btemporada\s*\d+\b/gi,
-
+            /\bSeason\s*\d+\b/gi,
             ""
-
         );
 
 
     name =
         name.replace(
-
-            /\bseason\s*\d+\b/gi,
-
+            /\bTemporada\s*\d+\b/gi,
             ""
-
         );
 
 
     name =
         name.replace(
-
-            /\bepis[oó]dio\s*\d+\b/gi,
-
+            /\bEpisode\s*\d+\b/gi,
             ""
-
         );
 
 
     name =
         name.replace(
-
-            /\bepisode\s*\d+\b/gi,
-
+            /\bEpis[oó]dio\s*\d+\b/gi,
             ""
-
-        );
-
-
-    name =
-        name.replace(
-
-            /[\[\(]\s*(?:S\d+|E\d+|S\d+\s*E\d+)[^\]\)]*[\]\)]/gi,
-
-            ""
-
         );
 
 
     return name
-        .replace(
-            /\s+/g,
-            " "
-        )
-        .replace(
-            /[-|:]+\s*$/,
-            ""
-        )
+        .replace(/\s+/g," ")
         .trim();
 
 }
 
 
-/* =========================================================
-   TEMPORADA DO ITEM
-========================================================= */
+function seasonNumber(item){
 
-function getSeasonNumber(
-    item
-){
-
-    const text =
+    let text =
         item.name +
         " " +
         item.url;
 
 
-    let match =
+    let m =
         text.match(
             /\bS(\d{1,3})\b/i
         );
 
 
-    if(match){
-
-        return Number(
-            match[1]
-        );
-
+    if(m){
+        return Number(m[1]);
     }
 
 
-    match =
+    m =
         text.match(
-            /\bseason[\s._-]*(\d{1,3})\b/i
+            /\bSeason[\s._-]*(\d{1,3})\b/i
         );
 
 
-    if(match){
-
-        return Number(
-            match[1]
-        );
-
+    if(m){
+        return Number(m[1]);
     }
 
 
-    match =
+    m =
         text.match(
-            /\btemporada[\s._-]*(\d{1,3})\b/i
+            /\bTemporada[\s._-]*(\d{1,3})\b/i
         );
 
 
-    if(match){
-
-        return Number(
-            match[1]
-        );
-
+    if(m){
+        return Number(m[1]);
     }
 
 
@@ -1740,13 +1242,7 @@ function getSeasonNumber(
 }
 
 
-/* =========================================================
-   EPISÓDIO
-========================================================= */
-
-function getEpisodeNumber(
-    item
-){
+function episodeNumber(item){
 
     const text =
         item.name +
@@ -1754,48 +1250,25 @@ function getEpisodeNumber(
         item.url;
 
 
-    let match =
+    let m =
         text.match(
             /\bE(\d{1,3})\b/i
         );
 
 
-    if(match){
-
-        return Number(
-            match[1]
-        );
-
+    if(m){
+        return Number(m[1]);
     }
 
 
-    match =
+    m =
         text.match(
             /\b\d{1,3}x(\d{1,3})\b/i
         );
 
 
-    if(match){
-
-        return Number(
-            match[1]
-        );
-
-    }
-
-
-    match =
-        text.match(
-            /\b(?:epis[oó]dio|episode)[\s._-]*(\d{1,3})\b/i
-        );
-
-
-    if(match){
-
-        return Number(
-            match[1]
-        );
-
+    if(m){
+        return Number(m[1]);
     }
 
 
@@ -1804,63 +1277,39 @@ function getEpisodeNumber(
 }
 
 
-/* =========================================================
-   AGRUPAR SÉRIES
-========================================================= */
-
-function buildSeriesGroups(){
+function buildSeries(){
 
     const map =
         new Map();
 
 
     for(
-        const item
-        of state.items
+        const item of items
     ){
 
         if(
-            item.category !==
-            "Series"
+            item.category !== "Series"
         ){
-
             continue;
-
         }
 
 
         const name =
-            getSeriesName(
-                item
-            );
+            seriesName(item);
 
 
         const key =
-            name
-                .toLowerCase()
-                .replace(
-                    /\s+/g,
-                    " "
-                )
-                .trim();
+            name.toLowerCase();
 
 
-        if(
-            !map.has(key)
-        ){
+        if(!map.has(key)){
 
             map.set(
                 key,
                 {
-
-                    name:
-                        name,
-
-                    logo:
-                        item.logo,
-
+                    name:name,
+                    logo:item.logo,
                     items:[]
-
                 }
             );
 
@@ -1875,52 +1324,42 @@ function buildSeriesGroups(){
     }
 
 
-    state.seriesGroups =
+    seriesGroups =
         Array.from(
             map.values()
         );
 
 
-    state.seriesGroups
-        .sort(
-            (a,b) =>
-                a.name.localeCompare(
-                    b.name
-                )
-        );
+    seriesGroups.sort(
+        (a,b)=>
+            a.name.localeCompare(
+                b.name
+            )
+    );
 
 }
 
 
-/* =========================================================
+/* =====================================================
    CATEGORIAS
-========================================================= */
+====================================================== */
 
-function buildCategories(){
+function updateCategories(){
 
     const select =
-        $("cat");
-
-    const old =
-        select.value;
-
+        $("category");
 
     const counts = {};
 
 
     for(
-        const item
-        of state.items
+        const item of items
     ){
 
-        counts[
-            item.category
-        ] =
-
+        counts[item.category] =
             (
-                counts[
-                    item.category
-                ] ||
+                counts[item.category]
+                ||
                 0
             ) + 1;
 
@@ -1928,45 +1367,37 @@ function buildCategories(){
 
 
     let html =
-        '<option value="ALL">' +
-        'Todas (' +
-        state.items.length +
-        ')' +
-        '</option>';
+        '<option value="ALL">Todas (' +
+        items.length +
+        ')</option>';
 
 
-    const order = [
-
-        "TV",
-        "Films",
-        "Series",
-        "Music",
-        "Adult"
-
-    ];
+    const order =
+        [
+            "TV",
+            "Films",
+            "Series",
+            "Music",
+            "Adult"
+        ];
 
 
     for(
-        const category
-        of order
+        const cat of order
     ){
 
         if(
-            counts[category]
+            counts[cat]
         ){
 
             html +=
-
                 '<option value="' +
-                category +
+                cat +
                 '">' +
-
-                category +
-
+                cat +
                 " (" +
-                counts[category] +
+                counts[cat] +
                 ")" +
-
                 "</option>";
 
         }
@@ -1974,144 +1405,20 @@ function buildCategories(){
     }
 
 
-    for(
-        const category
-        of Object.keys(
-            counts
-        )
-        .filter(
-            c =>
-                !order.includes(c)
-        )
-        .sort()
-    ){
-
-        html +=
-
-            '<option value="' +
-            escapeHTML(category) +
-            '">' +
-
-            escapeHTML(category) +
-
-            " (" +
-            counts[category] +
-            ")" +
-
-            "</option>";
-
-    }
-
-
     select.innerHTML =
         html;
 
-
-    if(
-        Array.from(
-            select.options
-        )
-        .some(
-            option =>
-                option.value === old
-        )
-    ){
-
-        select.value =
-            old;
-
-    }
-
 }
 
 
-/* =========================================================
-   PILLS DE LISTAS
-========================================================= */
+/* =====================================================
+   FILTRAR
+====================================================== */
 
-function renderListPills(){
-
-    const el =
-        $("listPills");
-
-
-    el.innerHTML =
-        state.lists
-        .map(
-            list =>
-
-                '<button class="pill ' +
-
-                (
-                    list.id ===
-                    state.current
-                    ?
-                    "active"
-                    :
-                    ""
-                ) +
-
-                '" data-list-id="' +
-                escapeHTML(list.id) +
-                '">' +
-
-                escapeHTML(
-                    list.name
-                ) +
-
-                "</button>"
-
-        )
-        .join("");
-
-
-    el
-        .querySelectorAll(
-            "[data-list-id]"
-        )
-        .forEach(
-            button => {
-
-                button.onclick =
-                    () =>
-                        selectList(
-                            button.dataset.listId
-                        );
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   MODO DA TELA
-========================================================= */
-
-function updateViewMode(){
+function filterItems(){
 
     const category =
-        $("cat").value;
-
-
-    state.viewMode =
-        category ===
-        "Series"
-        ?
-        "series"
-        :
-        "normal";
-
-}
-
-
-/* =========================================================
-   PREPARAR FILTRO
-========================================================= */
-
-function prepareFiltered(){
-
-    updateViewMode();
+        $("category").value;
 
 
     const search =
@@ -2121,55 +1428,32 @@ function prepareFiltered(){
             .toLowerCase();
 
 
-    const category =
-        $("cat").value;
-
-
     /*
        SÉRIES
     */
 
     if(
-        category ===
-        "Series"
+        category === "Series"
     ){
 
-        state.filtered =
-            state.seriesGroups
-            .filter(
-                series => {
+        filteredItems =
+            seriesGroups.filter(
+                serie => {
 
                     if(!search){
-
                         return true;
-
                     }
 
 
                     return (
-
-                        series.name
+                        serie.name
                             .toLowerCase()
-                            .includes(
-                                search
-                            )
-
-                        ||
-
-                        series.items.some(
-                            item =>
-
-                                item.name
-                                    .toLowerCase()
-                                    .includes(
-                                        search
-                                    )
-                        )
-
+                            .includes(search)
                     );
 
                 }
             );
+
 
         return;
 
@@ -2177,56 +1461,36 @@ function prepareFiltered(){
 
 
     /*
-       OUTRAS CATEGORIAS
+       NORMAL
     */
 
-    state.filtered =
-        state.items
-        .filter(
+    filteredItems =
+        items.filter(
             item => {
 
                 const categoryOK =
 
-                    category ===
-                    "ALL"
-
+                    category === "ALL"
                     ||
-
-                    item.category ===
-                    category;
+                    item.category === category;
 
 
                 const searchOK =
 
                     !search
-
                     ||
-
                     (
-
                         item.name +
-
                         " " +
-
-                        item.group +
-
-                        " " +
-
-                        item.url
-
+                        item.group
                     )
                     .toLowerCase()
-                    .includes(
-                        search
-                    );
+                    .includes(search);
 
 
                 return (
-
-                    categoryOK
-                    &&
+                    categoryOK &&
                     searchOK
-
                 );
 
             }
@@ -2235,70 +1499,59 @@ function prepareFiltered(){
 }
 
 
-/* =========================================================
-   RENDER
-========================================================= */
+/* =====================================================
+   RENDER PRINCIPAL
+====================================================== */
 
 function render(){
 
-    prepareFiltered();
+    filterItems();
 
 
     const total =
-        state.filtered.length;
+        filteredItems.length;
 
 
     const totalPages =
         Math.max(
             1,
             Math.ceil(
-                total /
-                ITEMS_PER_PAGE
+                total / PER_PAGE
             )
         );
 
 
     if(
-        state.page >
-        totalPages
+        currentPage > totalPages
     ){
 
-        state.page =
+        currentPage =
             totalPages;
 
     }
 
 
     if(
-        state.page < 1
+        currentPage < 1
     ){
 
-        state.page = 1;
+        currentPage=1;
 
     }
 
 
     const start =
         (
-            state.page -
-            1
+            currentPage-1
         ) *
-        ITEMS_PER_PAGE;
+        PER_PAGE;
 
 
     const pageItems =
-        state.filtered.slice(
-
+        filteredItems.slice(
             start,
-
-            start +
-            ITEMS_PER_PAGE
-
+            start+PER_PAGE
         );
-
-
-    const grid =
-        $("grid");
 
 
     /*
@@ -2307,68 +1560,44 @@ function render(){
 
     if(total){
 
-        const first =
-            start + 1;
+        $("counter").textContent =
 
-        const last =
+            "Mostrando " +
+            (start+1) +
+            "–" +
             Math.min(
-                start +
-                ITEMS_PER_PAGE,
+                start+PER_PAGE,
                 total
-            );
+            ) +
+            " de " +
+            total;
 
+    }else{
 
         $("counter").textContent =
-
-            state.viewMode ===
-            "series"
-
-            ?
-
-            (
-                "Mostrando séries " +
-                first +
-                "–" +
-                last +
-                " de " +
-                total
-            )
-
-            :
-
-            (
-                "Mostrando " +
-                first +
-                "–" +
-                last +
-                " de " +
-                total
-            );
-
-    }
-
-    else{
-
-        $("counter").textContent =
-            "Nenhum resultado";
+            "Nenhum item encontrado.";
 
     }
 
 
     /*
-       GRID VAZIO
+       GRID
     */
 
-    if(
-        !pageItems.length
-    ){
+    const grid =
+        $("grid");
+
+
+    if(!pageItems.length){
 
         grid.innerHTML =
-
-            '<div class="empty">' +
-
+            '<div style="' +
+            'grid-column:1/-1;' +
+            'text-align:center;' +
+            'padding:60px;' +
+            'color:#777' +
+            '">' +
             "Nenhum item encontrado." +
-
             "</div>";
 
 
@@ -2382,20 +1611,20 @@ function render(){
 
 
     /*
-       SÉRIES
+       IMPORTANTE:
+       SERIES
     */
 
     if(
-        state.viewMode ===
-        "series"
+        $("category").value === "Series"
     ){
 
         grid.innerHTML =
             pageItems
-            .map(
-                renderSeriesCard
-            )
-            .join("");
+                .map(
+                    renderSeriesCard
+                )
+                .join("");
 
     }
 
@@ -2403,234 +1632,208 @@ function render(){
 
         grid.innerHTML =
             pageItems
-            .map(
-                renderItemCard
-            )
-            .join("");
+                .map(
+                    renderCard
+                )
+                .join("");
 
     }
 
 
-    /*
-       PAGINAÇÃO
-    */
+    bindCards();
+
 
     renderPagination(
         totalPages
     );
 
-
-    /*
-       Eventos
-    */
-
-    bindGridEvents();
-
 }
 
 
-/* =========================================================
+/* =====================================================
    CARD NORMAL
-========================================================= */
+====================================================== */
 
-function renderItemCard(
-    item
-){
+function renderCard(item){
 
-    const image =
-
-        item.logo
-
-        ?
-
-        '<img loading="lazy" src="' +
-
-        escapeHTML(
-            item.logo
-        ) +
-
-        '" onerror="this.style.display=\'none\'">'
-
-        :
-
-        '<div class="noimg">▶</div>';
+    let image;
 
 
-    return
+    if(item.logo){
+
+        image =
+            '<img loading="lazy" src="' +
+            escapeHTML(item.logo) +
+            '" ' +
+            'onerror="this.parentElement.innerHTML=\'<div class=noimg>▶</div>\'">';
+
+    }else{
+
+        image =
+            '<div class="noimg">▶</div>';
+
+    }
+
+
+    return (
 
         '<div class="card">' +
 
-            '<button data-play="' +
+            '<button ' +
+            'class="cardBtn" ' +
+            'data-play="' +
             item.id +
             '">' +
 
                 '<div class="thumb">' +
-
                     image +
+                '</div>' +
 
-                "</div>" +
+                '<div class="cardText">' +
 
-                '<div class="ct">' +
+                    '<div class="cardTitle">' +
+                        escapeHTML(
+                            item.name
+                        ) +
+                    '</div>' +
 
-                    "<b>" +
+                    '<div class="cardGroup">' +
+                        escapeHTML(
+                            item.group
+                        ) +
+                    '</div>' +
 
-                    escapeHTML(
-                        item.name
-                    ) +
+                '</div>' +
 
-                    "</b>" +
+            '</button>' +
 
-                    "<small>" +
+        '</div>'
 
-                    escapeHTML(
-                        item.group
-                    ) +
-
-                    " • " +
-
-                    escapeHTML(
-                        item.category
-                    ) +
-
-                    "</small>" +
-
-                "</div>" +
-
-            "</button>" +
-
-        "</div>";
+    );
 
 }
 
 
-/* =========================================================
+/* =====================================================
    CARD SÉRIE
-========================================================= */
+====================================================== */
 
-function renderSeriesCard(
-    series
-){
+function renderSeriesCard(serie){
 
-    const image =
+    let image;
 
-        series.logo
 
-        ?
+    if(serie.logo){
 
-        '<img loading="lazy" src="' +
+        image =
+            '<img loading="lazy" src="' +
+            escapeHTML(serie.logo) +
+            '" ' +
+            'onerror="this.parentElement.innerHTML=\'<div class=noimg>▶</div>\'">';
 
-        escapeHTML(
-            series.logo
-        ) +
+    }else{
 
-        '" onerror="this.style.display=\'none\'">'
+        image =
+            '<div class="noimg">▶</div>';
 
-        :
-
-        '<div class="noimg">▶</div>';
+    }
 
 
     const seasons =
         new Set(
-            series.items.map(
-                getSeasonNumber
+            serie.items.map(
+                seasonNumber
             )
         );
 
 
-    return
+    return (
 
-        '<div class="card seriesCard">' +
+        '<div class="card">' +
 
-            '<button data-series="' +
-
+            '<button ' +
+            'class="cardBtn" ' +
+            'data-series="' +
             escapeHTML(
-                series.name
+                serie.name
             ) +
-
             '">' +
 
                 '<div class="thumb">' +
-
                     image +
+                '</div>' +
 
-                "</div>" +
+                '<div class="cardText">' +
 
-                '<div class="seriesInfo">' +
+                    '<div class="cardTitle">' +
+                        escapeHTML(
+                            serie.name
+                        ) +
+                    '</div>' +
 
-                    "<b>" +
+                    '<div class="cardGroup">' +
 
-                    escapeHTML(
-                        series.name
-                    ) +
+                        seasons.size +
+                        " temporada(s) • " +
+                        serie.items.length +
+                        " episódio(s)" +
 
-                    "</b>" +
+                    '</div>' +
 
-                    "<small>" +
+                '</div>' +
 
-                    seasons.size +
+            '</button>' +
 
-                    " temporada(s) • " +
+        '</div>'
 
-                    series.items.length +
-
-                    " episódio(s)" +
-
-                    "</small>" +
-
-                "</div>" +
-
-            "</button>" +
-
-        "</div>";
+    );
 
 }
 
 
-/* =========================================================
-   EVENTOS DO GRID
-========================================================= */
+/* =====================================================
+   EVENTOS DOS CARDS
+====================================================== */
 
-function bindGridEvents(){
+function bindCards(){
 
-    $("grid")
+    document
         .querySelectorAll(
             "[data-play]"
         )
         .forEach(
             button => {
 
-                button.onclick = () => {
+                button.onclick =
+                    function(){
 
-                    const id =
-                        Number(
-                            button.dataset.play
+                        playItem(
+                            Number(
+                                this.dataset.play
+                            )
                         );
 
-                    playItem(
-                        id
-                    );
-
-                };
+                    };
 
             }
         );
 
 
-    $("grid")
+    document
         .querySelectorAll(
             "[data-series]"
         )
         .forEach(
             button => {
 
-                button.onclick = () => {
+                button.onclick =
+                    function(){
 
-                    openSeries(
-                        button.dataset.series
-                    );
+                        openSeries(
+                            this.dataset.series
+                        );
 
-                };
+                    };
 
             }
         );
@@ -2638,13 +1841,11 @@ function bindGridEvents(){
 }
 
 
-/* =========================================================
+/* =====================================================
    PAGINAÇÃO
-========================================================= */
+====================================================== */
 
-function renderPagination(
-    totalPages
-){
+function renderPagination(totalPages){
 
     const el =
         $("pagination");
@@ -2666,109 +1867,82 @@ function renderPagination(
 
 
     html +=
-
-        '<button class="pageBtn" ' +
-
+        '<button class="page" ' +
         'data-page="prev" ' +
-
         (
-            state.page <= 1
-            ?
-            "disabled"
-            :
-            ""
+            currentPage === 1
+            ? "disabled"
+            : ""
         ) +
-
         '>‹</button>';
 
-
-    /*
-       Janela de páginas
-    */
 
     let start =
         Math.max(
             1,
-            state.page - 2
+            currentPage-2
         );
 
 
     let end =
         Math.min(
             totalPages,
-            start + 4
+            start+4
         );
 
 
     if(
-        end - start < 4
+        end-start < 4
     ){
 
         start =
             Math.max(
                 1,
-                end - 4
+                end-4
             );
 
     }
 
 
     for(
-        let i = start;
-        i <= end;
+        let i=start;
+        i<=end;
         i++
     ){
 
         html +=
 
-            '<button class="pageBtn ' +
-
+            '<button class="page ' +
             (
-                i === state.page
-                ?
-                "active"
-                :
-                ""
+                i === currentPage
+                ? "active"
+                : ""
             ) +
-
             '" data-page="' +
             i +
             '">' +
-
             i +
-
-            "</button>";
+            '</button>';
 
     }
 
 
     html +=
-
         '<span class="pageInfo">' +
-
-        state.page +
-
+        currentPage +
         " / " +
-
         totalPages +
-
         "</span>";
 
 
     html +=
-
-        '<button class="pageBtn" ' +
-
+        '<button class="page" ' +
         'data-page="next" ' +
-
         (
-            state.page >= totalPages
-            ?
-            "disabled"
-            :
-            ""
+            currentPage === totalPages
+            ? "disabled"
+            : ""
         ) +
-
         '>›</button>';
 
 
@@ -2783,66 +1957,46 @@ function renderPagination(
         .forEach(
             button => {
 
-                button.onclick = () => {
+                button.onclick =
+                    function(){
 
-                    const value =
-                        button.dataset.page;
+                        const value =
+                            this.dataset.page;
 
-
-                    if(
-                        value ===
-                        "prev"
-                    ){
 
                         if(
-                            state.page > 1
+                            value === "prev"
                         ){
 
-                            state.page--;
+                            currentPage--;
+
+                        }
+                        else if(
+                            value === "next"
+                        ){
+
+                            currentPage++;
+
+                        }
+                        else{
+
+                            currentPage =
+                                Number(
+                                    value
+                                );
 
                         }
 
-                    }
 
-                    else if(
-                        value ===
-                        "next"
-                    ){
-
-                        if(
-                            state.page <
-                            totalPages
-                        ){
-
-                            state.page++;
-
-                        }
-
-                    }
-
-                    else{
-
-                        state.page =
-                            Number(
-                                value
-                            );
-
-                    }
+                        render();
 
 
-                    render();
+                        window.scrollTo({
+                            top:0,
+                            behavior:"smooth"
+                        });
 
-
-                    window.scrollTo({
-
-                        top:0,
-
-                        behavior:
-                            "smooth"
-
-                    });
-
-                };
+                    };
 
             }
         );
@@ -2850,249 +2004,57 @@ function renderPagination(
 }
 
 
-/* =========================================================
-   PESQUISA COM DEBOUNCE
-========================================================= */
+/* =====================================================
+   CARREGAR M3U
+====================================================== */
 
-let searchTimer = null;
+async function loadM3U(list){
 
-
-$("search")
-    .addEventListener(
-        "input",
-        () => {
-
-            clearTimeout(
-                searchTimer
-            );
+    currentList =
+        list;
 
 
-            searchTimer =
-                setTimeout(
-                    () => {
+    items = [];
 
-                        state.page =
-                            1;
+    filteredItems = [];
 
-                        render();
+    seriesGroups = [];
 
-                    },
-                    250
-                );
-
-        }
-    );
+    currentPage = 1;
 
 
-/* =========================================================
-   CATEGORIA
-========================================================= */
-
-$("cat")
-    .addEventListener(
-        "change",
-        () => {
-
-            state.page =
-                1;
-
-            render();
-
-        }
-    );
+    renderPills();
 
 
-/* =========================================================
-   ATUALIZAR
-========================================================= */
-
-$("refreshBtn")
-    .addEventListener(
-        "click",
-        refreshCurrent
-    );
-
-
-/* =========================================================
-   MODAL M3U
-========================================================= */
-
-function openM3U(){
-
-    $("m3uModal")
-        .classList
-        .remove(
-            "hidden"
-        );
-
-}
-
-
-function closeM3U(){
-
-    $("m3uModal")
-        .classList
-        .add(
-            "hidden"
-        );
-
-}
-
-
-$("saveM3UBtn")
-    .addEventListener(
-        "click",
-        saveM3U
-    );
-
-
-/* =========================================================
-   SALVAR M3U
-========================================================= */
-
-async function saveM3U(){
-
-    const name =
-        $("mName")
-            .value
-            .trim()
-        ||
-        "Minha TV";
-
-
-    const url =
-        $("mUrl")
-            .value
-            .trim();
-
-
-    if(
-        !/^https?:\/\//i
-        .test(url)
-    ){
-
-        toast(
-            "Informe uma URL HTTP ou HTTPS válida."
-        );
-
-        return;
-
-    }
-
-
-    const list = {
-
-        id:
-            crypto.randomUUID(),
-
-        name:
-            name,
-
-        url:
-            url,
-
-        createdAt:
-            new Date()
-                .toISOString(),
-
-        updatedAt:
-            null
-
-    };
-
-
-    state.lists.push(
-        list
-    );
-
-
-    saveState();
-
-
-    closeM3U();
-
-
-    $("mName").value =
-        "";
-
-    $("mUrl").value =
+    $("grid").innerHTML =
         "";
 
 
-    await loadList(
-        list
-    );
-
-}
+    $("pagination").innerHTML =
+        "";
 
 
-/* =========================================================
-   CARREGAR LISTA
-========================================================= */
-
-async function loadList(
-    list
-){
-
-    state.current =
-        list.id;
-
-    state.items =
-        [];
-
-    state.filtered =
-        [];
-
-    state.seriesGroups =
-        [];
-
-    state.page =
-        1;
-
-
-    renderListPills();
-
-    buildCategories();
-
-    render();
-
-
-    setStatus(
-
-        "Conectando ao servidor de " +
-        list.name +
-        "...",
-
-        true
-
+    showStatus(
+        "Conectando ao servidor..."
     );
 
 
     try{
 
+        const url =
+            proxyURL(
+                list.url,
+                "playlist"
+            );
+
+
         const response =
             await fetch(
-
-                proxyURL(
-                    list.url,
-                    "playlist"
-                ),
-
+                url,
                 {
-
                     method:"GET",
-
-                    cache:"no-store",
-
-                    headers:{
-
-                        "Accept":
-                            "application/x-mpegURL,text/plain,*/*"
-
-                    }
-
+                    cache:"no-store"
                 }
-
             );
 
 
@@ -3100,44 +2062,30 @@ async function loadList(
             !response.ok
         ){
 
-            const errorText =
+            const text =
                 await response.text();
 
 
             throw new Error(
-
-                errorText
-                ||
-                (
-                    "HTTP " +
-                    response.status
-                )
-
+                text ||
+                "HTTP " +
+                response.status
             );
 
         }
 
 
-        if(
-            !response.body
-        ){
+        if(!response.body){
 
             throw new Error(
-                "O navegador não disponibilizou o fluxo."
+                "O servidor não retornou um fluxo."
             );
 
         }
 
 
-        /*
-        =====================================================
-        STREAMING
-        =====================================================
-        */
-
         const reader =
-            response.body
-                .getReader();
+            response.body.getReader();
 
 
         const decoder =
@@ -3148,17 +2096,10 @@ async function loadList(
 
         let buffer = "";
 
-        let metadata =
-            null;
+        let meta = null;
 
-        let total = 0;
+        let count = 0;
 
-
-        /*
-        =====================================================
-        LER POR PARTES
-        =====================================================
-        */
 
         while(true){
 
@@ -3166,17 +2107,12 @@ async function loadList(
                 await reader.read();
 
 
-            if(
-                result.done
-            ){
-
+            if(result.done){
                 break;
-
             }
 
 
             buffer +=
-
                 decoder.decode(
                     result.value,
                     {
@@ -3192,24 +2128,19 @@ async function loadList(
 
 
             buffer =
-                lines.pop()
-                ||
-                "";
+                lines.pop() || "";
 
 
             for(
-                const rawLine
-                of lines
+                const raw of lines
             ){
 
                 const line =
-                    rawLine.trim();
+                    raw.trim();
 
 
                 if(!line){
-
                     continue;
-
                 }
 
 
@@ -3219,8 +2150,8 @@ async function loadList(
                     )
                 ){
 
-                    metadata =
-                        parseEXTINF(
+                    meta =
+                        parseExtinf(
                             line
                         );
 
@@ -3238,60 +2169,34 @@ async function loadList(
                 }
 
 
-                const url =
-                    normalizeURL(
+                if(
+                    meta
+                ){
+
+                    addItem(
+                        meta,
                         line
                     );
 
+                    meta=null;
 
-                if(!url){
+                    count++;
 
-                    continue;
-
-                }
-
-
-                addItem(
-                    metadata,
-                    url
-                );
-
-
-                metadata =
-                    null;
-
-
-                total++;
-
-
-                /*
-                =============================================
-                A CADA 100 ITENS
-                =============================================
-                */
-
-                if(
-                    total % 100 === 0
-                ){
-
-                    setStatus(
-
-                        total +
-                        " itens encontrados...",
-
-                        true
-
-                    );
-
-
-                    /*
-                       NÃO renderiza 100 vezes.
-                       Apenas atualiza a informação.
-                    */
 
                     if(
-                        total % 1000 === 0
+                        count % 1000 === 0
                     ){
+
+                        showStatus(
+                            count +
+                            " itens encontrados..."
+                        );
+
+
+                        /*
+                           Devolve controle
+                           ao navegador.
+                        */
 
                         await new Promise(
                             resolve =>
@@ -3311,9 +2216,7 @@ async function loadList(
 
 
         /*
-        =====================================================
-        FINAL DO DECODER
-        =====================================================
+           Última linha
         */
 
         buffer +=
@@ -3327,38 +2230,15 @@ async function loadList(
 
 
         for(
-            const rawLine
-            of lastLines
+            const raw of lastLines
         ){
 
             const line =
-                rawLine.trim();
-
-
-            if(!line){
-
-                continue;
-
-            }
+                raw.trim();
 
 
             if(
-                line.startsWith(
-                    "#EXTINF"
-                )
-            ){
-
-                metadata =
-                    parseEXTINF(
-                        line
-                    );
-
-                continue;
-
-            }
-
-
-            if(
+                !line ||
                 line.startsWith("#")
             ){
 
@@ -3367,42 +2247,24 @@ async function loadList(
             }
 
 
-            const url =
-                normalizeURL(
+            if(meta){
+
+                addItem(
+                    meta,
                     line
                 );
 
-
-            if(!url){
-
-                continue;
+                meta=null;
 
             }
-
-
-            addItem(
-                metadata,
-                url
-            );
-
-
-            metadata =
-                null;
 
         }
 
 
-        /*
-        =====================================================
-        AGRUPAR SÉRIES
-        =====================================================
-        */
-
-        setStatus(
+        showStatus(
             "Organizando " +
-            state.items.length +
-            " itens...",
-            true
+            items.length +
+            " itens..."
         );
 
 
@@ -3415,45 +2277,35 @@ async function loadList(
         );
 
 
-        buildSeriesGroups();
+        buildSeries();
 
-
-        list.updatedAt =
-            new Date()
-                .toISOString();
-
-
-        saveState();
-
-
-        buildCategories();
-
-
-        state.page =
-            1;
-
+        updateCategories();
 
         render();
 
 
-        setStatus(
+        showStatus(
 
-            state.items.length +
+            items.length +
             " itens carregados de " +
             list.name +
-            ".",
-
-            true
+            "."
 
         );
+
+
+        list.updatedAt =
+            new Date().toISOString();
+
+
+        saveLists();
 
 
         toast(
-            "Lista carregada com sucesso."
+            "Lista carregada!"
         );
 
     }
-
     catch(error){
 
         console.error(
@@ -3462,13 +2314,10 @@ async function loadList(
         );
 
 
-        setStatus(
-
+        showStatus(
             "Erro ao carregar: " +
             error.message,
-
-            false
-
+            "error"
         );
 
 
@@ -3481,20 +2330,177 @@ async function loadList(
 }
 
 
-/* =========================================================
+/* =====================================================
+   PILLS
+====================================================== */
+
+function renderPills(){
+
+    const el =
+        $("listPills");
+
+
+    el.innerHTML =
+        lists
+            .map(
+                list =>
+
+                    '<button class="pill ' +
+                    (
+                        currentList &&
+                        currentList.id === list.id
+                        ?
+                        "active"
+                        :
+                        ""
+                    ) +
+                    '" data-list="' +
+                    escapeHTML(list.id) +
+                    '">' +
+                    escapeHTML(list.name) +
+                    '</button>'
+            )
+            .join("");
+
+
+    el
+        .querySelectorAll(
+            "[data-list]"
+        )
+        .forEach(
+            button => {
+
+                button.onclick =
+                    function(){
+
+                        const list =
+                            lists.find(
+                                x =>
+                                    x.id ===
+                                    this.dataset.list
+                            );
+
+
+                        if(list){
+                            loadM3U(list);
+                        }
+
+                    };
+
+            }
+        );
+
+}
+
+
+/* =====================================================
+   MODAL M3U
+====================================================== */
+
+function openM3U(){
+
+    $("m3uModal")
+        .classList
+        .remove("hidden");
+
+}
+
+
+function closeM3U(){
+
+    $("m3uModal")
+        .classList
+        .add("hidden");
+
+}
+
+
+$("addM3U")
+.addEventListener(
+    "click",
+    async function(){
+
+        const name =
+            $("m3uName")
+                .value
+                .trim()
+            ||
+            "Minha TV";
+
+
+        const url =
+            $("m3uURL")
+                .value
+                .trim();
+
+
+        if(
+            !/^https?:\/\//i.test(url)
+        ){
+
+            toast(
+                "Digite uma URL M3U válida."
+            );
+
+            return;
+
+        }
+
+
+        const list = {
+
+            id:
+                crypto.randomUUID(),
+
+            name:
+                name,
+
+            url:
+                url,
+
+            updatedAt:
+                null
+
+        };
+
+
+        lists.push(
+            list
+        );
+
+
+        saveLists();
+
+
+        $("m3uName").value =
+            "";
+
+        $("m3uURL").value =
+            "";
+
+
+        closeM3U();
+
+
+        await loadM3U(
+            list
+        );
+
+    }
+);
+
+
+/* =====================================================
    LISTAS
-========================================================= */
+====================================================== */
 
 function openLists(){
 
     renderListManager();
 
-
     $("listsModal")
         .classList
-        .remove(
-            "hidden"
-        );
+        .remove("hidden");
 
 }
 
@@ -3503,9 +2509,7 @@ function closeLists(){
 
     $("listsModal")
         .classList
-        .add(
-            "hidden"
-        );
+        .add("hidden");
 
 }
 
@@ -3516,15 +2520,12 @@ function renderListManager(){
         $("listRows");
 
 
-    if(
-        !state.lists.length
-    ){
+    if(!lists.length){
 
         el.innerHTML =
-
-            '<div class="empty">' +
+            '<p style="color:#777">' +
             'Nenhuma lista cadastrada.' +
-            '</div>';
+            '</p>';
 
         return;
 
@@ -3532,75 +2533,74 @@ function renderListManager(){
 
 
     el.innerHTML =
+        lists
+            .map(
+                list =>
 
-        state.lists
-        .map(
-            list =>
+                    '<div class="listRow">' +
 
-                '<div class="listRow">' +
+                        '<div class="grow">' +
 
-                    '<div class="grow">' +
+                            '<div class="listName">' +
+                                escapeHTML(
+                                    list.name
+                                ) +
+                            '</div>' +
 
-                        '<div class="name">' +
-
-                        escapeHTML(
-                            list.name
-                        ) +
-
-                        '</div>' +
-
-                        '<div class="url">' +
-
-                        escapeHTML(
-                            list.url
-                        ) +
+                            '<div class="listURL">' +
+                                escapeHTML(
+                                    list.url
+                                ) +
+                            '</div>' +
 
                         '</div>' +
 
-                    '</div>' +
+                        '<button class="btn" ' +
+                        'data-load="' +
+                        escapeHTML(list.id) +
+                        '">' +
+                        'Carregar' +
+                        '</button>' +
 
-                    '<button class="btn" data-edit="' +
+                        '<button class="btn danger" ' +
+                        'data-delete="' +
+                        escapeHTML(list.id) +
+                        '">' +
+                        'Excluir' +
+                        '</button>' +
 
-                    escapeHTML(
-                        list.id
-                    ) +
-
-                    '">' +
-
-                    'Editar' +
-
-                    '</button>' +
-
-                    '<button class="btn danger" data-delete="' +
-
-                    escapeHTML(
-                        list.id
-                    ) +
-
-                    '">' +
-
-                    'Excluir' +
-
-                    '</button>' +
-
-                '</div>'
-
-        )
-        .join("");
+                    '</div>'
+            )
+            .join("");
 
 
     el
         .querySelectorAll(
-            "[data-edit]"
+            "[data-load]"
         )
         .forEach(
             button => {
 
                 button.onclick =
-                    () =>
-                        editList(
-                            button.dataset.edit
-                        );
+                    function(){
+
+                        const list =
+                            lists.find(
+                                x =>
+                                    x.id ===
+                                    this.dataset.load
+                            );
+
+
+                        if(list){
+
+                            closeLists();
+
+                            loadM3U(list);
+
+                        }
+
+                    };
 
             }
         );
@@ -3614,10 +2614,37 @@ function renderListManager(){
             button => {
 
                 button.onclick =
-                    () =>
-                        deleteList(
-                            button.dataset.delete
-                        );
+                    function(){
+
+                        const id =
+                            this.dataset.delete;
+
+
+                        if(
+                            !confirm(
+                                "Excluir esta lista?"
+                            )
+                        ){
+
+                            return;
+
+                        }
+
+
+                        lists =
+                            lists.filter(
+                                x =>
+                                    x.id !== id
+                            );
+
+
+                        saveLists();
+
+                        renderListManager();
+
+                        renderPills();
+
+                    };
 
             }
         );
@@ -3625,242 +2652,27 @@ function renderListManager(){
 }
 
 
-/* =========================================================
-   EDITAR
-========================================================= */
-
-function editList(
-    id
-){
-
-    const list =
-        state.lists.find(
-            item =>
-                item.id === id
-        );
-
-
-    if(!list){
-
-        return;
-
-    }
-
-
-    const name =
-        prompt(
-            "Nome da lista:",
-            list.name
-        );
-
-
-    if(
-        name === null
-    ){
-
-        return;
-
-    }
-
-
-    const url =
-        prompt(
-            "URL M3U:",
-            list.url
-        );
-
-
-    if(
-        url === null
-    ){
-
-        return;
-
-    }
-
-
-    if(
-        !/^https?:\/\//i
-        .test(
-            url.trim()
-        )
-    ){
-
-        toast(
-            "URL inválida."
-        );
-
-        return;
-
-    }
-
-
-    list.name =
-        name.trim()
-        ||
-        "Minha TV";
-
-
-    list.url =
-        url.trim();
-
-
-    saveState();
-
-
-    renderListManager();
-
-
-    loadList(
-        list
-    );
-
-}
-
-
-/* =========================================================
-   EXCLUIR
-========================================================= */
-
-function deleteList(
-    id
-){
-
-    if(
-        !confirm(
-            "Excluir esta lista?"
-        )
-    ){
-
-        return;
-
-    }
-
-
-    state.lists =
-        state.lists.filter(
-            list =>
-                list.id !== id
-        );
-
-
-    if(
-        state.current === id
-    ){
-
-        state.current =
-            null;
-
-        state.items =
-            [];
-
-        state.filtered =
-            [];
-
-        state.seriesGroups =
-            [];
-
-    }
-
-
-    saveState();
-
-
-    renderListManager();
-
-    renderListPills();
-
-    buildCategories();
-
-    render();
-
-}
-
-
-/* =========================================================
-   SELECIONAR LISTA
-========================================================= */
-
-function selectList(
-    id
-){
-
-    const list =
-        state.lists.find(
-            item =>
-                item.id === id
-        );
-
-
-    if(list){
-
-        loadList(
-            list
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   ATUALIZAR
-========================================================= */
-
-async function refreshCurrent(){
-
-    const list =
-        state.lists.find(
-            item =>
-                item.id ===
-                state.current
-        );
-
-
-    if(!list){
-
-        toast(
-            "Adicione uma lista primeiro."
-        );
-
-        return;
-
-    }
-
-
-    await loadList(
-        list
-    );
-
-}
-
-
-/* =========================================================
+/* =====================================================
    SÉRIES
-========================================================= */
+====================================================== */
 
-function openSeries(
-    seriesName
-){
+function openSeries(name){
 
-    const series =
-        state.seriesGroups.find(
-            item =>
-                item.name ===
-                seriesName
+    const serie =
+        seriesGroups.find(
+            x =>
+                x.name === name
         );
 
 
-    if(!series){
-
+    if(!serie){
         return;
-
     }
 
 
     $("seriesTitle")
         .textContent =
-        series.name;
+        serie.name;
 
 
     const seasons =
@@ -3868,24 +2680,19 @@ function openSeries(
 
 
     for(
-        const episode
-        of series.items
+        const item of serie.items
     ){
 
-        const season =
-            getSeasonNumber(
-                episode
-            );
+        const s =
+            seasonNumber(item);
 
 
         if(
-            !seasons.has(
-                season
-            )
+            !seasons.has(s)
         ){
 
             seasons.set(
-                season,
+                s,
                 []
             );
 
@@ -3893,135 +2700,113 @@ function openSeries(
 
 
         seasons
-            .get(season)
-            .push(
-                episode
-            );
+            .get(s)
+            .push(item);
 
     }
 
 
-    const seasonNumbers =
+    const nums =
         Array.from(
             seasons.keys()
         )
         .sort(
-            (a,b) =>
-                a - b
+            (a,b)=>a-b
         );
 
 
     $("seriesContent").innerHTML =
+        nums
+            .map(
+                season => {
 
-        seasonNumbers
-        .map(
-            season => {
-
-                const episodes =
-                    seasons
-                        .get(
-                            season
-                        )
-                        .sort(
-                            (a,b) =>
-                                getEpisodeNumber(a) -
-                                getEpisodeNumber(b)
-                        );
+                    const episodes =
+                        seasons
+                            .get(season)
+                            .sort(
+                                (a,b)=>
+                                    episodeNumber(a) -
+                                    episodeNumber(b)
+                            );
 
 
-                return
+                    return (
 
-                    '<div class="season">' +
+                        '<div class="season">' +
 
-                        '<button class="seasonTitle">' +
+                            '<button class="seasonBtn">' +
 
-                        'Temporada ' +
-                        season +
+                                'Temporada ' +
+                                season +
+                                ' (' +
+                                episodes.length +
+                                ' episódios)' +
 
-                        ' (' +
-                        episodes.length +
-                        ' episódios)' +
+                            '</button>' +
 
-                        '</button>' +
+                            '<div class="episodes">' +
 
-                        '<div class="episodeList">' +
+                                episodes
+                                    .map(
+                                        episode =>
 
-                            episodes
-                            .map(
-                                episode =>
+                                            '<div class="episode">' +
 
-                                    '<div class="episode">' +
+                                                '<div class="episodeName">' +
 
-                                        '<div class="episodeName">' +
+                                                    escapeHTML(
+                                                        episode.name
+                                                    ) +
 
-                                        escapeHTML(
-                                            episode.name
-                                        ) +
+                                                '</div>' +
 
-                                        '</div>' +
+                                                '<button class="btn primary" ' +
+                                                'data-episode="' +
+                                                episode.id +
+                                                '">' +
+                                                '▶' +
+                                                '</button>' +
 
-                                        '<button class="btn primary" data-episode="' +
+                                            '</div>'
+                                    )
+                                    .join("") +
 
-                                        episode.id +
+                            '</div>' +
 
-                                        '">' +
+                        '</div>'
 
-                                        '▶' +
+                    );
 
-                                        '</button>' +
-
-                                    '</div>'
-
-                            )
-                            .join("") +
-
-                        '</div>' +
-
-                    '</div>';
-
-            }
-        )
-        .join("");
+                }
+            )
+            .join("");
 
 
     $("seriesModal")
         .classList
-        .remove(
-            "hidden"
-        );
+        .remove("hidden");
 
-
-    /*
-       Abrir/fechar temporadas
-    */
 
     $("seriesContent")
         .querySelectorAll(
-            ".seasonTitle"
+            ".seasonBtn"
         )
         .forEach(
             button => {
 
-                button.onclick = () => {
+                button.onclick =
+                    function(){
 
-                    const list =
-                        button
-                            .nextElementSibling;
+                        this
+                            .nextElementSibling
+                            .classList
+                            .toggle("open");
 
-
-                    list.classList.toggle(
-                        "open"
-                    );
-
-                };
+                    };
 
             }
         );
 
-
-    /*
-       Episódios
-    */
 
     $("seriesContent")
         .querySelectorAll(
@@ -4030,22 +2815,20 @@ function openSeries(
         .forEach(
             button => {
 
-                button.onclick = () => {
+                button.onclick =
+                    function(){
 
-                    const id =
-                        Number(
-                            button.dataset.episode
-                        );
-
-
-                    closeSeries();
+                        const id =
+                            Number(
+                                this.dataset.episode
+                            );
 
 
-                    playItem(
-                        id
-                    );
+                        closeSeries();
 
-                };
+                        playItem(id);
+
+                    };
 
             }
         );
@@ -4057,48 +2840,40 @@ function closeSeries(){
 
     $("seriesModal")
         .classList
-        .add(
-            "hidden"
-        );
+        .add("hidden");
 
 }
 
 
-/* =========================================================
+/* =====================================================
    PLAYER
-========================================================= */
+====================================================== */
 
 function closePlayer(){
 
     $("playerModal")
         .classList
-        .add(
-            "hidden"
-        );
+        .add("hidden");
 
 
-    if(hls){
+    if(hlsPlayer){
 
         try{
-            hls.destroy();
-        }
-        catch(e){}
+            hlsPlayer.destroy();
+        }catch(e){}
 
-        hls =
-            null;
+        hlsPlayer=null;
 
     }
 
 
-    if(mpegPlayer){
+    if(tsPlayer){
 
         try{
-            mpegPlayer.destroy();
-        }
-        catch(e){}
+            tsPlayer.destroy();
+        }catch(e){}
 
-        mpegPlayer =
-            null;
+        tsPlayer=null;
 
     }
 
@@ -4109,8 +2884,7 @@ function closePlayer(){
 
     try{
         video.pause();
-    }
-    catch(e){}
+    }catch(e){}
 
 
     video.removeAttribute(
@@ -4123,36 +2897,19 @@ function closePlayer(){
 }
 
 
-function playerStatus(
-    text
-){
-
-    $("playerStatus")
-        .textContent =
-        text;
-
-}
-
-
-/* =========================================================
-   REPRODUZIR
-========================================================= */
-
-function playItem(
-    id
-){
+function playItem(id){
 
     const item =
-        state.items.find(
-            channel =>
-                channel.id === id
+        items.find(
+            x =>
+                x.id === id
         );
 
 
     if(!item){
 
         toast(
-            "Canal não encontrado."
+            "Item não encontrado."
         );
 
         return;
@@ -4160,59 +2917,72 @@ function playItem(
     }
 
 
-    closePlayer();
-
-
-    $("playerName")
+    $("playerTitle")
         .textContent =
         item.name;
 
 
+    $("playerStatus")
+        .textContent =
+        "Conectando ao servidor...";
+
+
     $("playerModal")
         .classList
-        .remove(
-            "hidden"
-        );
-
-
-    playerStatus(
-        "Conectando ao servidor..."
-    );
+        .remove("hidden");
 
 
     const video =
         $("video");
 
 
-    /*
-    ========================================================
-    SEMPRE PASSAR PELO PROXY
-    ========================================================
-    */
-
-    const streamURL =
+    const url =
         proxyURL(
             item.url,
             "media"
         );
 
 
-    const original =
-        item.url
-            .toLowerCase();
+    /*
+       Limpar players anteriores
+    */
+
+    if(hlsPlayer){
+
+        try{
+            hlsPlayer.destroy();
+        }catch(e){}
+
+        hlsPlayer=null;
+
+    }
+
+
+    if(tsPlayer){
+
+        try{
+            tsPlayer.destroy();
+        }catch(e){}
+
+        tsPlayer=null;
+
+    }
+
+
+    video.removeAttribute(
+        "src"
+    );
+
+    video.load();
 
 
     /*
-    ========================================================
-    HLS
-    ========================================================
+       HLS
     */
 
     if(
-        /\.m3u8(?:$|\?)/i
-        .test(
-            original
-        )
+        /\.m3u8(?:\?|$)/i
+        .test(item.url)
     ){
 
         if(
@@ -4220,59 +2990,55 @@ function playItem(
             Hls.isSupported()
         ){
 
-            hls =
+            hlsPlayer =
                 new Hls({
 
-                    enableWorker:
-                        true,
+                    enableWorker:true,
 
-                    lowLatencyMode:
-                        false,
+                    lowLatencyMode:false,
 
-                    enableStashBuffer:
-                        true
+                    enableStashBuffer:true
 
                 });
 
 
-            hls.loadSource(
-                streamURL
-            );
-
-
-            hls.attachMedia(
+            hlsPlayer.attachMedia(
                 video
             );
 
 
-            hls.on(
+            hlsPlayer.loadSource(
+                url
+            );
+
+
+            hlsPlayer.on(
                 Hls.Events.MANIFEST_PARSED,
-                () => {
+                function(){
 
-                    playerStatus(
-                        "HLS conectado."
-                    );
-
+                    $("playerStatus")
+                        .textContent =
+                        "HLS conectado.";
 
                     video
                         .play()
                         .catch(
-                            () => {}
+                            ()=>{}
                         );
 
                 }
             );
 
 
-            hls.on(
+            hlsPlayer.on(
                 Hls.Events.ERROR,
-                (
+                function(
                     event,
                     data
-                ) => {
+                ){
 
                     console.error(
-                        "HLS:",
+                        "HLS ERROR",
                         data
                     );
 
@@ -4282,13 +3048,9 @@ function playItem(
                         data.fatal
                     ){
 
-                        playerStatus(
-                            "Erro HLS: " +
-                            (
-                                data.details ||
-                                "falha fatal"
-                            )
-                        );
+                        $("playerStatus")
+                            .textContent =
+                            "Erro no HLS.";
 
                     }
 
@@ -4296,30 +3058,16 @@ function playItem(
             );
 
         }
-
-        else if(
-            video.canPlayType(
-                "application/vnd.apple.mpegurl"
-            )
-        ){
+        else{
 
             video.src =
-                streamURL;
-
+                url;
 
             video
                 .play()
                 .catch(
-                    () => {}
+                    ()=>{}
                 );
-
-        }
-
-        else{
-
-            playerStatus(
-                "Este navegador não suporta HLS."
-            );
 
         }
 
@@ -4330,125 +3078,170 @@ function playItem(
 
 
     /*
-    ========================================================
-    MPEG-TS
-    ========================================================
+       MPEG-TS
     */
 
     if(
-        typeof mpegts ===
-        "undefined"
+        window.mpegts &&
+        mpegts.isSupported()
     ){
 
-        playerStatus(
-            "mpegts.js não carregou."
-        );
+        try{
 
-        return;
+            tsPlayer =
+                mpegts.createPlayer(
 
-    }
+                    {
+                        type:"mpegts",
+                        isLive:true,
+                        url:url
+                    },
+
+                    {
+                        enableWorker:true,
+                        enableStashBuffer:true,
+                        stashInitialSize:128
+                    }
+
+                );
 
 
-    try{
-
-        mpegPlayer =
-            mpegts.createPlayer(
-
-                {
-
-                    type:
-                        "mpegts",
-
-                    isLive:
-                        true,
-
-                    url:
-                        streamURL
-
-                },
-
-                {
-
-                    enableWorker:
-                        true,
-
-                    enableStashBuffer:
-                        true,
-
-                    stashInitialSize:
-                        128
-
-                }
-
+            tsPlayer.attachMediaElement(
+                video
             );
 
 
-        mpegPlayer.attachMediaElement(
-            video
-        );
+            tsPlayer.load();
 
 
-        mpegPlayer.load();
+            tsPlayer.play()
+                .catch(
+                    ()=>{}
+                );
 
 
-        mpegPlayer.play()
+            $("playerStatus")
+                .textContent =
+                "MPEG-TS conectado.";
+
+        }
+        catch(error){
+
+            console.error(
+                error
+            );
+
+
+            $("playerStatus")
+                .textContent =
+                "Erro no MPEG-TS: " +
+                error.message;
+
+        }
+
+    }
+    else{
+
+        /*
+           Última tentativa:
+           navegador diretamente
+        */
+
+        video.src =
+            url;
+
+
+        video
+            .play()
             .catch(
-                () => {}
+                ()=>{}
             );
 
 
-        mpegPlayer.on(
-            mpegts.Events.ERROR,
-            (
-                type,
-                detail,
-                info
-            ) => {
-
-                console.error(
-                    "MPEGTS:",
-                    type,
-                    detail,
-                    info
-                );
-
-
-                playerStatus(
-                    "Falha ao reproduzir MPEG-TS."
-                );
-
-            }
-        );
-
-
-        playerStatus(
-            "MPEG-TS conectado."
-        );
-
-    }
-
-    catch(error){
-
-        console.error(
-            error
-        );
-
-
-        playerStatus(
-
-            "Erro no player: " +
-            error.message
-
-        );
+        $("playerStatus")
+            .textContent =
+            "Tentando reprodução direta...";
 
     }
 
 }
 
 
-/* =========================================================
-   FECHAR MODAIS AO CLICAR FORA
-========================================================= */
+/* =====================================================
+   EVENTOS
+====================================================== */
+
+$("category")
+.addEventListener(
+    "change",
+    function(){
+
+        currentPage=1;
+
+        render();
+
+    }
+);
+
+
+let searchTimer;
+
+
+$("search")
+.addEventListener(
+    "input",
+    function(){
+
+        clearTimeout(
+            searchTimer
+        );
+
+
+        searchTimer =
+            setTimeout(
+                function(){
+
+                    currentPage=1;
+
+                    render();
+
+                },
+                250
+            );
+
+    }
+);
+
+
+$("refresh")
+.addEventListener(
+    "click",
+    function(){
+
+        if(
+            currentList
+        ){
+
+            loadM3U(
+                currentList
+            );
+
+        }
+        else{
+
+            toast(
+                "Nenhuma lista selecionada."
+            );
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   FECHAR MODAIS CLICANDO FORA
+====================================================== */
 
 [
     "m3uModal",
@@ -4460,66 +3253,48 @@ function playItem(
     id => {
 
         $(id)
-            .addEventListener(
-                "click",
-                event => {
+        .addEventListener(
+            "click",
+            function(event){
 
-                    if(
-                        event.target ===
-                        $(id)
-                    ){
+                if(
+                    event.target === this
+                ){
 
-                        $(id)
-                            .classList
-                            .add(
-                                "hidden"
-                            );
-
-                    }
+                    this
+                        .classList
+                        .add("hidden");
 
                 }
-            );
+
+            }
+        );
 
     }
 );
 
 
-/* =========================================================
+/* =====================================================
    INICIALIZAÇÃO
-========================================================= */
+====================================================== */
 
-loadState();
+loadLists();
 
-
-renderListPills();
-
-
-buildCategories();
+renderPills();
 
 
-if(
-    state.lists.length
-){
+if(lists.length){
 
-    /*
-       Recupera a primeira lista.
-    */
-
-    loadList(
-        state.lists[0]
+    loadM3U(
+        lists[0]
     );
 
 }
-
 else{
 
-    $("grid").innerHTML =
-
-        '<div class="empty">' +
-
-        'Adicione sua primeira lista M3U para começar.' +
-
-        '</div>';
+    $("counter")
+        .textContent =
+        "Adicione uma lista M3U para começar.";
 
 }
 
