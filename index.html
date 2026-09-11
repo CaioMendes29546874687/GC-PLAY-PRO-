@@ -2,29 +2,50 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#28D905">
+<meta name="mobile-web-app-capable" content="yes">
 <title>GC PLAY PRO</title>
 
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<link rel="stylesheet"
+ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
 <style>
+:root{
+    --green:#28D905;
+    --green2:#1ba903;
+    --bg:#030503;
+    --card:#0a110a;
+    --card2:#0d160d;
+    --hover:#142614;
+    --border:#173817;
+    --text:#efffef;
+    --muted:#789078;
+    --danger:#ff5555;
+    --yellow:#ffd000;
+}
+
 *{
     box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Arial,Helvetica,sans-serif;
     -webkit-tap-highlight-color:transparent;
 }
 
 html,body{
-    margin:0;
-    padding:0;
-    background:#050505;
-    color:#fff;
-    font-family:Arial,Helvetica,sans-serif;
+    width:100%;
+    height:100%;
+    background:var(--bg);
+    color:var(--text);
 }
 
 body{
-    min-height:100vh;
+    overflow:hidden;
 }
 
 button,
@@ -37,505 +58,737 @@ button{
     cursor:pointer;
 }
 
-.topbar{
-    position:sticky;
-    top:0;
-    z-index:50;
-    height:108px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:20px 24px;
-    background:#050505;
-    border-bottom:1px solid #222;
-}
-
-.logo{
-    color:#28ff18;
-    font-size:38px;
-    font-weight:900;
-    letter-spacing:-1px;
-}
-
-.top-actions{
-    display:flex;
-    gap:14px;
-}
-
-.btn{
-    border:1px solid #333;
-    background:#111;
-    color:#fff;
-    border-radius:18px;
-    padding:16px 24px;
-    font-size:24px;
-    min-height:60px;
-}
-
-.btn:hover{
-    border-color:#28ff18;
-}
-
-.btn-green{
-    background:#28ff18;
-    color:#050505;
-    border-color:#28ff18;
-    font-weight:900;
-}
-
-.btn-danger{
-    background:#160606;
-    border-color:#8d2222;
-    color:#ff7777;
-}
-
-main{
-    max-width:1400px;
-    margin:auto;
-    padding:36px 24px 80px;
-}
-
-.hero h1{
-    font-size:52px;
-    margin:0 0 12px;
-}
-
-.hero p{
-    color:#999;
-    font-size:28px;
-    line-height:1.25;
-    max-width:850px;
-    margin:0 0 40px;
-}
-
-.status{
-    border:1px solid #199e18;
-    border-radius:18px;
-    padding:18px 22px;
-    font-size:24px;
-    margin-bottom:28px;
-    color:#a8ff9f;
-    background:#091009;
-}
-
-.status.error{
-    border-color:#8f2222;
-    color:#ff9d9d;
-    background:#120606;
-}
-
-.status.info{
-    border-color:#555;
-    color:#ccc;
-    background:#0d0d0d;
-}
-
-.list-name{
-    display:inline-block;
-    border:1px solid #28ff18;
-    color:#28ff18;
-    border-radius:30px;
-    padding:12px 24px;
-    font-size:24px;
-    margin-bottom:30px;
-}
-
-.controls{
-    display:grid;
-    grid-template-columns:280px 200px 1fr;
-    gap:14px;
-    margin-bottom:24px;
-}
-
-.control{
-    width:100%;
-    min-height:70px;
-    border:1px solid #333;
-    border-radius:18px;
-    background:#111;
-    color:#fff;
-    padding:12px 20px;
-    font-size:22px;
+button:focus,
+input:focus,
+select:focus{
     outline:none;
 }
 
-.control:focus{
-    border-color:#28ff18;
+.hidden{
+    display:none!important;
 }
 
-select.control{
-    appearance:auto;
+/* =========================
+   APLICATIVO
+========================= */
+
+#app{
+    width:100%;
+    height:100vh;
+    height:100dvh;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    padding:12px;
+    overflow:hidden;
 }
 
-.pagination-info{
-    color:#888;
-    font-size:20px;
-    margin-bottom:16px;
+/* =========================
+   CABEÇALHO
+========================= */
+
+.header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 15px;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    flex-shrink:0;
 }
+
+.logo{
+    font-size:21px;
+    font-weight:900;
+    letter-spacing:2px;
+    white-space:nowrap;
+}
+
+.logo span{
+    color:var(--green);
+    text-shadow:0 0 15px rgba(40,217,5,.5);
+}
+
+.header-space{
+    flex:1;
+}
+
+.btn{
+    border:1px solid var(--border);
+    background:#071007;
+    color:#fff;
+    border-radius:8px;
+    padding:9px 13px;
+    font-weight:700;
+    transition:.2s;
+}
+
+.btn:hover,
+.btn:focus{
+    border-color:var(--green);
+    color:var(--green);
+}
+
+.btn-green{
+    border-color:var(--green);
+    color:var(--green);
+    background:rgba(40,217,5,.08);
+}
+
+.btn-red{
+    border-color:#663333;
+    color:#ff7777;
+}
+
+.btn:disabled{
+    opacity:.35;
+    cursor:not-allowed;
+}
+
+/* =========================
+   STATUS
+========================= */
+
+.status{
+    width:100%;
+    padding:9px 12px;
+    background:#071007;
+    border:1px solid var(--border);
+    border-radius:8px;
+    color:var(--muted);
+    font-size:13px;
+    flex-shrink:0;
+}
+
+.status.ok{
+    color:var(--green);
+    border-color:#225922;
+}
+
+.status.error{
+    color:#ff7777;
+    border-color:#673333;
+}
+
+/* =========================
+   LISTAS
+========================= */
+
+.lists-bar{
+    display:flex;
+    gap:7px;
+    overflow-x:auto;
+    flex-shrink:0;
+    padding-bottom:2px;
+}
+
+.list-pill{
+    white-space:nowrap;
+    border:1px solid var(--border);
+    background:#071007;
+    color:var(--muted);
+    border-radius:20px;
+    padding:7px 13px;
+    font-weight:700;
+}
+
+.list-pill.active{
+    color:var(--green);
+    border-color:var(--green);
+    background:rgba(40,217,5,.1);
+}
+
+/* =========================
+   ABAS
+========================= */
+
+.tabs{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    flex-shrink:0;
+    padding-bottom:2px;
+}
+
+.tab{
+    white-space:nowrap;
+    border:1px solid var(--border);
+    background:var(--card);
+    color:#fff;
+    border-radius:9px;
+    padding:10px 15px;
+    font-weight:800;
+    transition:.2s;
+}
+
+.tab:hover{
+    border-color:var(--green);
+}
+
+.tab.active{
+    color:var(--green);
+    border-color:var(--green);
+    background:rgba(40,217,5,.09);
+    box-shadow:0 0 16px rgba(40,217,5,.15);
+}
+
+/* =========================
+   ÁREA PRINCIPAL
+========================= */
+
+.workspace{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 400px;
+    gap:10px;
+    min-height:0;
+    flex:1;
+}
+
+.catalog{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px;
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+    overflow:hidden;
+}
+
+.catalog-tools{
+    display:flex;
+    gap:8px;
+    margin-bottom:10px;
+    flex-shrink:0;
+}
+
+.search{
+    flex:1;
+    min-width:0;
+    background:#040804;
+    border:1px solid var(--border);
+    color:#fff;
+    border-radius:8px;
+    padding:10px 12px;
+}
+
+.search:focus{
+    border-color:var(--green);
+}
+
+.group-select{
+    width:220px;
+    background:#040804;
+    border:1px solid var(--border);
+    color:#fff;
+    border-radius:8px;
+    padding:10px 12px;
+}
+
+.group-select:focus{
+    border-color:var(--green);
+}
+
+/* =========================
+   GRID
+========================= */
 
 .grid{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
     display:grid;
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    gap:16px;
+    grid-template-columns:repeat(auto-fill,minmax(145px,1fr));
+    gap:10px;
+    align-content:start;
+    padding-right:3px;
+    padding-bottom:15px;
 }
 
-.card{
-    background:#0c0c0c;
-    border:1px solid #292929;
-    border-radius:20px;
+.media-card{
+    background:#050905;
+    border:1px solid var(--border);
+    border-radius:9px;
     overflow:hidden;
-    min-height:250px;
-    transition:.15s;
+    transition:.2s;
 }
 
-.card:hover{
-    border-color:#28ff18;
+.media-card:hover,
+.media-card:focus-within{
+    border-color:var(--green);
+    background:var(--hover);
     transform:translateY(-2px);
+    box-shadow:0 0 18px rgba(40,217,5,.13);
 }
 
-.card-img{
+.media-card button{
     width:100%;
-    height:160px;
-    background:#080808;
+    background:none;
+    border:0;
+    color:#fff;
+    text-align:left;
+    padding:0;
+}
+
+.poster{
+    width:100%;
+    height:165px;
+    background:#000;
     display:flex;
     align-items:center;
     justify-content:center;
     overflow:hidden;
 }
 
-.card-img img{
+.poster img{
     width:100%;
     height:100%;
     object-fit:cover;
 }
 
-.play-icon{
-    font-size:58px;
-    color:#333;
+.poster-icon{
+    font-size:35px;
+    color:var(--green);
 }
 
-.card-body{
-    padding:16px;
+.media-info{
+    padding:9px;
 }
 
-.card-title{
-    font-size:21px;
-    font-weight:800;
+.media-title{
+    display:block;
+    color:#fff;
+    font-size:12px;
+    font-weight:700;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
 }
 
-.card-meta{
-    color:#777;
-    margin-top:8px;
-    font-size:17px;
+.media-group{
+    display:block;
+    color:var(--muted);
+    font-size:10px;
+    margin-top:5px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 
-.empty{
-    text-align:center;
-    color:#777;
-    font-size:24px;
-    padding:70px 20px;
-}
+/* =========================
+   PAGINAÇÃO
+========================= */
 
-.loading{
-    text-align:center;
-    padding:80px 20px;
-    color:#aaa;
-    font-size:25px;
-}
-
-.modal-bg{
-    position:fixed;
-    inset:0;
-    z-index:100;
-    background:rgba(0,0,0,.85);
-    display:none;
+.pagination{
+    display:flex;
     align-items:center;
     justify-content:center;
-    padding:20px;
+    gap:10px;
+    padding-top:9px;
+    flex-shrink:0;
 }
 
-.modal-bg.open{
-    display:flex;
+.page-info{
+    min-width:120px;
+    text-align:center;
+    color:var(--muted);
+    font-size:12px;
 }
+
+/* =========================
+   PLAYER
+========================= */
+
+.player{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    min-height:0;
+}
+
+.video-box{
+    width:100%;
+    height:250px;
+    background:#000;
+    border:1px solid var(--border);
+    border-radius:9px;
+    overflow:hidden;
+    flex-shrink:0;
+}
+
+.video-box video{
+    width:100%;
+    height:100%;
+    background:#000;
+    display:block;
+}
+
+.now-playing{
+    background:#050905;
+    border:1px solid var(--border);
+    border-radius:9px;
+    padding:12px;
+    flex:1;
+    min-height:0;
+}
+
+.now-title{
+    color:var(--green);
+    font-weight:800;
+    font-size:14px;
+    margin-bottom:6px;
+    word-break:break-word;
+}
+
+.now-status{
+    color:var(--muted);
+    font-size:12px;
+}
+
+/* =========================
+   EMPTY
+========================= */
+
+.empty{
+    grid-column:1/-1;
+    text-align:center;
+    padding:60px 20px;
+    color:var(--muted);
+}
+
+.empty i{
+    font-size:40px;
+    color:var(--green);
+    margin-bottom:12px;
+}
+
+/* =========================
+   MODAIS
+========================= */
 
 .modal{
-    width:min(700px,100%);
-    max-height:90vh;
-    overflow:auto;
-    background:#111;
-    border:1px solid #333;
-    border-radius:24px;
-    padding:28px;
+    position:fixed;
+    inset:0;
+    z-index:1000;
+    background:rgba(0,0,0,.9);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
 }
 
-.modal h2{
-    margin:0 0 24px;
-    font-size:30px;
+.modal-box{
+    width:100%;
+    max-width:650px;
+    max-height:90vh;
+    overflow:auto;
+    background:#091009;
+    border:1px solid var(--green);
+    border-radius:14px;
+    padding:20px;
+    box-shadow:0 0 40px rgba(40,217,5,.25);
+}
+
+.modal-title{
+    color:var(--green);
+    font-size:17px;
+    font-weight:900;
+    margin-bottom:16px;
 }
 
 .field{
-    margin-bottom:18px;
+    margin-bottom:13px;
 }
 
 .field label{
     display:block;
-    color:#aaa;
-    margin-bottom:8px;
-    font-size:18px;
+    color:var(--muted);
+    font-size:12px;
+    margin-bottom:6px;
 }
 
 .field input{
     width:100%;
-    background:#080808;
+    background:#030503;
+    border:1px solid var(--border);
     color:#fff;
-    border:1px solid #444;
-    border-radius:14px;
-    padding:17px;
-    font-size:19px;
-    outline:none;
+    border-radius:8px;
+    padding:12px;
 }
 
 .field input:focus{
-    border-color:#28ff18;
+    border-color:var(--green);
 }
 
 .modal-actions{
     display:flex;
-    gap:12px;
     justify-content:flex-end;
-    margin-top:25px;
+    gap:8px;
+    margin-top:16px;
 }
+
+/* =========================
+   LISTAS SALVAS
+========================= */
 
 .saved-list{
     display:flex;
-    flex-direction:column;
-    gap:10px;
-    margin-bottom:20px;
-}
-
-.saved-item{
-    display:flex;
     align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    border:1px solid #333;
-    background:#090909;
-    border-radius:14px;
-    padding:14px;
+    gap:8px;
+    padding:10px;
+    margin-bottom:8px;
+    background:#050905;
+    border:1px solid var(--border);
+    border-radius:9px;
 }
 
 .saved-info{
+    flex:1;
     min-width:0;
 }
 
 .saved-name{
-    font-weight:bold;
-    font-size:19px;
-}
-
-.saved-url{
-    color:#777;
+    display:block;
+    color:#fff;
+    font-weight:800;
     font-size:13px;
     overflow:hidden;
     text-overflow:ellipsis;
     white-space:nowrap;
-    max-width:420px;
 }
 
-.saved-actions{
-    display:flex;
-    gap:8px;
-}
-
-.small-btn{
-    border:1px solid #333;
-    background:#151515;
-    color:#fff;
-    border-radius:10px;
-    padding:10px 14px;
-}
-
-.small-btn:hover{
-    border-color:#28ff18;
-}
-
-.player-bg{
-    position:fixed;
-    inset:0;
-    z-index:200;
-    background:#000;
-    display:none;
-    flex-direction:column;
-}
-
-.player-bg.open{
-    display:flex;
-}
-
-.player-top{
-    height:70px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:10px 16px;
-    background:#080808;
-    border-bottom:1px solid #222;
-}
-
-.player-title{
-    font-size:21px;
-    font-weight:bold;
+.saved-url{
+    display:block;
+    color:var(--muted);
+    font-size:10px;
+    margin-top:4px;
     overflow:hidden;
     text-overflow:ellipsis;
     white-space:nowrap;
 }
 
-.player-close{
-    width:48px;
-    height:48px;
-    border-radius:50%;
-    border:1px solid #444;
-    background:#111;
-    color:#fff;
-    font-size:28px;
-}
+/* =========================
+   SÉRIES
+========================= */
 
-.video-area{
-    flex:1;
+.series-seasons{
     display:flex;
-    align-items:center;
-    justify-content:center;
-    background:#000;
+    gap:7px;
+    overflow-x:auto;
+    padding-bottom:10px;
+    margin-bottom:10px;
 }
 
-video{
-    width:100%;
-    height:100%;
-    object-fit:contain;
-    background:#000;
+.season{
+    white-space:nowrap;
+    background:#050905;
+    color:var(--muted);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:8px 12px;
 }
 
-.player-message{
-    position:absolute;
-    left:50%;
-    top:50%;
-    transform:translate(-50%,-50%);
-    color:#aaa;
-    text-align:center;
-    font-size:20px;
-    display:none;
-    z-index:3;
-    width:90%;
+.season.active{
+    color:var(--green);
+    border-color:var(--green);
 }
 
-.series-box{
-    margin-top:15px;
-    border-top:1px solid #333;
-    padding-top:15px;
+.episodes{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
 }
 
 .episode{
-    display:block;
-    width:100%;
-    text-align:left;
-    border:1px solid #333;
-    background:#0a0a0a;
-    color:#fff;
-    border-radius:12px;
-    padding:14px;
-    margin-bottom:8px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:11px;
+    background:#050905;
+    border:1px solid var(--border);
+    border-radius:8px;
+    cursor:pointer;
 }
 
 .episode:hover{
-    border-color:#28ff18;
+    border-color:var(--green);
+    background:var(--hover);
 }
 
-@media(max-width:1000px){
-    .grid{
-        grid-template-columns:repeat(3,minmax(0,1fr));
+.episode-number{
+    width:35px;
+    height:35px;
+    border-radius:50%;
+    background:rgba(40,217,5,.1);
+    border:1px solid var(--green);
+    color:var(--green);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+}
+
+.episode-name{
+    flex:1;
+    min-width:0;
+    color:#fff;
+    font-size:12px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+/* =========================
+   PIN
+========================= */
+
+.pin-input{
+    text-align:center;
+    font-size:24px!important;
+    letter-spacing:8px;
+}
+
+/* =========================
+   LOADER
+========================= */
+
+#loader{
+    position:fixed;
+    inset:0;
+    z-index:5000;
+    background:rgba(0,0,0,.94);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.loader-box{
+    width:min(420px,90%);
+    background:#091009;
+    border:1px solid var(--green);
+    border-radius:14px;
+    padding:28px;
+    text-align:center;
+    box-shadow:0 0 35px rgba(40,217,5,.25);
+}
+
+.spinner{
+    width:55px;
+    height:55px;
+    border:3px solid #173617;
+    border-top-color:var(--green);
+    border-radius:50%;
+    margin:0 auto 18px;
+    animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+    to{transform:rotate(360deg)}
+}
+
+.loader-text{
+    color:var(--green);
+    font-weight:800;
+    font-size:13px;
+}
+
+/* =========================
+   DISPOSITIVO
+========================= */
+
+.device-box{
+    text-align:center;
+}
+
+.device-code{
+    color:var(--green);
+    font-weight:900;
+    font-size:18px;
+    letter-spacing:2px;
+    margin:8px 0;
+}
+
+.qr-box{
+    background:#fff;
+    padding:10px;
+    border-radius:8px;
+    width:max-content;
+    margin:15px auto;
+}
+
+/* =========================
+   RESPONSIVO
+========================= */
+
+@media(max-width:900px){
+
+    body{
+        overflow:auto;
+    }
+
+    #app{
+        height:auto;
+        min-height:100vh;
+        min-height:100dvh;
+        overflow:visible;
+    }
+
+    .workspace{
+        grid-template-columns:1fr;
+        grid-template-rows:minmax(400px,1fr) auto;
+    }
+
+    .player{
+        min-height:340px;
+    }
+
+    .video-box{
+        height:210px;
     }
 }
 
-@media(max-width:700px){
-    .topbar{
-        height:86px;
-        padding:14px 20px;
+@media(max-width:600px){
+
+    #app{
+        padding:8px;
+    }
+
+    .header{
+        flex-wrap:wrap;
     }
 
     .logo{
-        font-size:30px;
-    }
-
-    .top-actions{
-        gap:8px;
-    }
-
-    .top-actions .btn{
-        padding:12px 16px;
-        min-height:52px;
         font-size:18px;
     }
 
-    main{
-        padding:28px 20px 60px;
-    }
-
-    .hero h1{
-        font-size:38px;
-    }
-
-    .hero p{
-        font-size:22px;
-    }
-
-    .controls{
-        grid-template-columns:1fr;
-    }
-
     .grid{
         grid-template-columns:repeat(2,minmax(0,1fr));
-        gap:12px;
+        gap:7px;
     }
 
-    .card-img{
-        height:125px;
+    .poster{
+        height:135px;
     }
 
-    .card-title{
-        font-size:17px;
+    .catalog-tools{
+        flex-wrap:wrap;
     }
 
-    .card-meta{
-        font-size:14px;
+    .group-select{
+        width:100%;
     }
 
-    .modal{
-        padding:20px;
-    }
-}
-
-@media(max-width:430px){
-    .logo{
-        font-size:25px;
+    .video-box{
+        height:190px;
     }
 
-    .grid{
-        grid-template-columns:repeat(2,minmax(0,1fr));
-    }
-
-    .card{
-        min-height:210px;
-    }
-
-    .card-img{
-        height:105px;
-    }
-
-    .play-icon{
-        font-size:42px;
+    .saved-list{
+        flex-wrap:wrap;
     }
 }
 </style>
@@ -543,216 +796,513 @@ video{
 
 <body>
 
-<header class="topbar">
+<!-- =====================================================
+     LOADER
+===================================================== -->
 
-    <div class="logo">GC PLAY PRO</div>
-
-    <div class="top-actions">
-        <button class="btn" id="btnListas">LISTAS</button>
-        <button class="btn btn-green" id="btnAddM3U">+ M3U</button>
-    </div>
-
-</header>
-
-
-<main>
-
-    <section class="hero">
-
-        <h1>Sua TV, do seu jeito.</h1>
-
-        <p>
-            Cada lista utiliza seu próprio servidor.
-            O GC PLAY PRO não fica preso a nenhum servidor específico.
-        </p>
-
-    </section>
-
-
-    <div id="status" class="status info">
-        Nenhuma lista carregada.
-    </div>
-
-
-    <div id="listName" class="list-name" style="display:none;"></div>
-
-
-    <section id="contentArea">
-
-        <div class="controls">
-
-            <select id="category" class="control">
-                <option value="all">Todas (0)</option>
-            </select>
-
-            <button id="btnRefresh" class="btn">
-                ↻ Atualizar
-            </button>
-
-            <input
-                id="search"
-                class="control"
-                type="search"
-                placeholder="Pesquisar canal, filme, série..."
-                autocomplete="off"
-            >
-
-        </div>
-
-
-        <div id="paginationInfo" class="pagination-info"></div>
-
-        <div id="grid" class="grid"></div>
-
-        <div id="loading" class="loading" style="display:none;">
+<div id="loader" class="hidden">
+    <div class="loader-box">
+        <div class="spinner"></div>
+        <div id="loaderText" class="loader-text">
             Carregando...
         </div>
-
-    </section>
-
-</main>
+    </div>
+</div>
 
 
-<!-- MODAL ADICIONAR M3U -->
+<!-- =====================================================
+     APLICATIVO
+===================================================== -->
 
-<div id="m3uModal" class="modal-bg">
+<div id="app">
 
-    <div class="modal">
+    <header class="header">
 
-        <h2>Adicionar lista M3U</h2>
-
-        <div class="field">
-
-            <label>Nome da lista</label>
-
-            <input
-                id="m3uName"
-                type="text"
-                placeholder="Ex.: Minha TV"
-            >
-
+        <div class="logo">
+            GC PLAY <span>PRO</span>
         </div>
 
-        <div class="field">
+        <div class="header-space"></div>
 
-            <label>URL da lista M3U</label>
-
-            <input
-                id="m3uUrl"
-                type="url"
-                placeholder="http://servidor.com/get.php?..."
-                autocomplete="off"
-            >
-
-        </div>
-
-        <div class="modal-actions">
-
-            <button
+        <button type="button"
                 class="btn"
-                id="btnCancelM3U">
-                Cancelar
-            </button>
+                id="deviceBtn">
+            <i class="fa-solid fa-mobile-screen"></i>
+            DISPOSITIVO
+        </button>
 
-            <button
+        <button type="button"
+                class="btn"
+                id="listsBtn">
+            <i class="fa-solid fa-list"></i>
+            LISTAS
+        </button>
+
+        <button type="button"
                 class="btn btn-green"
-                id="btnLoadM3U">
-                CARREGAR LISTA
-            </button>
+                id="addBtn">
+            <i class="fa-solid fa-plus"></i>
+            M3U
+        </button>
 
-        </div>
+    </header>
 
+
+    <div id="status" class="status">
+        Nenhuma lista carregada. Adicione uma M3U para começar.
     </div>
 
-</div>
+
+    <div id="listsBar" class="lists-bar"></div>
 
 
-<!-- MODAL LISTAS -->
+    <div id="tabs" class="tabs">
 
-<div id="listasModal" class="modal-bg">
+        <button type="button"
+                class="tab active"
+                data-category="live">
+            📺 TV
+        </button>
 
-    <div class="modal">
+        <button type="button"
+                class="tab"
+                data-category="vod">
+            🎬 FILMES
+        </button>
 
-        <h2>Minhas listas</h2>
+        <button type="button"
+                class="tab"
+                data-category="series">
+            📚 SÉRIES
+        </button>
 
-        <div id="savedLists" class="saved-list"></div>
+        <button type="button"
+                class="tab"
+                data-category="music">
+            🎵 MÚSICA
+        </button>
 
-        <div class="modal-actions">
-
-            <button
-                class="btn"
-                id="btnCloseListas">
-                Fechar
-            </button>
-
-            <button
-                class="btn btn-green"
-                id="btnNewList">
-                + Nova M3U
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- MODAL SÉRIE -->
-
-<div id="seriesModal" class="modal-bg">
-
-    <div class="modal">
-
-        <h2 id="seriesTitle">Série</h2>
-
-        <div id="seriesEpisodes"></div>
-
-        <div class="modal-actions">
-
-            <button
-                class="btn"
-                id="btnCloseSeries">
-                Fechar
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- PLAYER -->
-
-<div id="playerBg" class="player-bg">
-
-    <div class="player-top">
-
-        <div id="playerTitle" class="player-title">
-            Reproduzindo
-        </div>
-
-        <button
-            id="playerClose"
-            class="player-close">
-            ×
+        <button type="button"
+                class="tab"
+                data-category="adult">
+            🔞 ADULTO
         </button>
 
     </div>
 
-    <div class="video-area">
 
-        <video
-            id="video"
-            controls
-            playsinline
-            autoplay>
-        </video>
+    <div class="workspace">
 
-        <div
-            id="playerMessage"
-            class="player-message">
+        <!-- =========================
+             CATÁLOGO
+        ========================== -->
+
+        <section class="catalog">
+
+            <div class="catalog-tools">
+
+                <input
+                    id="search"
+                    class="search"
+                    type="search"
+                    placeholder="Pesquisar..."
+                    autocomplete="off">
+
+                <select id="group"
+                        class="group-select">
+                    <option value="ALL">
+                        Todas as categorias
+                    </option>
+                </select>
+
+            </div>
+
+
+            <div id="grid" class="grid">
+
+                <div class="empty">
+                    <i class="fa-solid fa-tv"></i>
+                    <br>
+                    Adicione uma lista M3U para começar.
+                </div>
+
+            </div>
+
+
+            <div class="pagination">
+
+                <button type="button"
+                        class="btn"
+                        id="prev">
+                    ‹
+                </button>
+
+                <span id="pageInfo"
+                      class="page-info">
+                    0–0 de 0
+                </span>
+
+                <button type="button"
+                        class="btn"
+                        id="next">
+                    ›
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             PLAYER
+        ========================== -->
+
+        <aside class="player">
+
+            <div class="video-box">
+
+                <video
+                    id="video"
+                    controls
+                    playsinline
+                    preload="metadata">
+                </video>
+
+            </div>
+
+
+            <div class="now-playing">
+
+                <div id="nowTitle"
+                     class="now-title">
+                    Nenhuma mídia selecionada
+                </div>
+
+                <div id="nowStatus"
+                     class="now-status">
+                    Escolha um conteúdo para reproduzir.
+                </div>
+
+            </div>
+
+
+            <button type="button"
+                    class="btn"
+                    id="stop">
+
+                <i class="fa-solid fa-stop"></i>
+                Parar reprodução
+
+            </button>
+
+        </aside>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     MODAL ADICIONAR M3U
+===================================================== -->
+
+<div id="addModal"
+     class="modal hidden">
+
+    <div class="modal-box">
+
+        <div class="modal-title">
+            <i class="fa-solid fa-link"></i>
+            ADICIONAR LISTA M3U
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Nome da lista
+            </label>
+
+            <input
+                id="listName"
+                type="text"
+                placeholder="Minha TV">
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                URL completa da M3U
+            </label>
+
+            <input
+                id="listUrl"
+                type="url"
+                placeholder="http://servidor/..."
+                autocomplete="off">
+
+        </div>
+
+
+        <div style="
+            color:var(--muted);
+            font-size:12px;
+            line-height:1.5;
+        ">
+
+            Cada lista pode utilizar um servidor diferente.
+            O aplicativo não fica preso a um servidor IPTV específico.
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button type="button"
+                    class="btn"
+                    data-close="addModal">
+                Cancelar
+            </button>
+
+            <button type="button"
+                    class="btn btn-green"
+                    id="saveList">
+                Salvar e carregar
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     MODAL LISTAS
+===================================================== -->
+
+<div id="listsModal"
+     class="modal hidden">
+
+    <div class="modal-box">
+
+        <div class="modal-title">
+            <i class="fa-solid fa-list"></i>
+            MINHAS LISTAS M3U
+        </div>
+
+
+        <div id="savedLists"></div>
+
+
+        <div class="modal-actions">
+
+            <button type="button"
+                    class="btn"
+                    data-close="listsModal">
+                Fechar
+            </button>
+
+            <button type="button"
+                    class="btn btn-green"
+                    id="newListFromModal">
+                + Adicionar M3U
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     MODAL PIN ADULTO
+===================================================== -->
+
+<div id="pinModal"
+     class="modal hidden">
+
+    <div class="modal-box"
+         style="max-width:360px">
+
+        <div class="modal-title"
+             style="text-align:center">
+
+            <i class="fa-solid fa-lock"></i>
+            CONTROLE PARENTAL
+
+        </div>
+
+
+        <div style="
+            color:var(--muted);
+            font-size:12px;
+            text-align:center;
+            margin-bottom:12px;
+        ">
+
+            Digite a senha de 4 números.
+
+        </div>
+
+
+        <div class="field">
+
+            <input
+                id="pin"
+                class="pin-input"
+                type="password"
+                maxlength="4"
+                inputmode="numeric"
+                placeholder="••••">
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button type="button"
+                    class="btn"
+                    data-close="pinModal">
+                Cancelar
+            </button>
+
+            <button type="button"
+                    class="btn btn-green"
+                    id="pinOk">
+                Confirmar
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     MODAL SÉRIES
+===================================================== -->
+
+<div id="seriesModal"
+     class="modal hidden">
+
+    <div class="modal-box">
+
+        <div style="
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+        ">
+
+            <div id="seriesTitle"
+                 class="modal-title"
+                 style="margin-bottom:0">
+                Série
+            </div>
+
+            <button type="button"
+                    class="btn"
+                    data-close="seriesModal">
+                ✕
+            </button>
+
+        </div>
+
+
+        <div id="seasonTabs"
+             class="series-seasons"
+             style="margin-top:15px">
+        </div>
+
+
+        <div id="episodes"
+             class="episodes">
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     MODAL DISPOSITIVO
+===================================================== -->
+
+<div id="deviceModal"
+     class="modal hidden">
+
+    <div class="modal-box"
+         style="max-width:400px">
+
+        <div class="modal-title"
+             style="text-align:center">
+
+            <i class="fa-solid fa-mobile-screen"></i>
+            ATIVAÇÃO DO DISPOSITIVO
+
+        </div>
+
+
+        <div class="device-box">
+
+            <div style="
+                color:var(--muted);
+                font-size:12px;
+            ">
+                Código deste aparelho
+            </div>
+
+
+            <div id="deviceCode"
+                 class="device-code">
+                GERANDO...
+            </div>
+
+
+            <div id="qr"
+                 class="qr-box">
+            </div>
+
+
+            <div style="
+                color:var(--muted);
+                font-size:11px;
+                line-height:1.5;
+            ">
+
+                Escaneie o QR Code pelo celular
+                para acessar a página de ativação.
+
+            </div>
+
+
+            <div id="activationStatus"
+                 style="
+                    margin-top:12px;
+                    color:var(--green);
+                    font-size:12px;
+                    font-weight:800;
+                 ">
+                AGUARDANDO
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button type="button"
+                    class="btn"
+                    data-close="deviceModal">
+                Fechar
+            </button>
+
         </div>
 
     </div>
@@ -766,484 +1316,992 @@ video{
    CONFIGURAÇÃO
 ========================================================= */
 
-const PROXY_URL =
-    "https://kuzgdvpdqmocklsgyzvt.supabase.co/functions/v1/gcplay-proxy";
+(function(){
+
+"use strict";
 
 
-/*
-   Quantidade de itens mostrados por página.
+var SUPABASE =
+    "https://kuzgdvpdqmocklsgyzvt.supabase.co";
 
-   A lista pode possuir centenas de milhares de itens.
-   Não colocamos todos os cards no DOM ao mesmo tempo.
-*/
-const PAGE_SIZE = 100;
+
+var PLAYLIST_PROXY =
+    SUPABASE +
+    "/functions/v1/gcplay-proxy";
+
+
+var ACTIVATE =
+    SUPABASE +
+    "/functions/v1/activate-device";
+
+
+var ACTIVATION_PAGE =
+    "https://caiomendes29546874687.github.io/GC-PLAY-PRO-/connect.html";
+
+
+var PAGE_SIZE = 100;
+
+
+var FALLBACK =
+    "data:image/svg+xml;charset=UTF-8," +
+    encodeURIComponent(
+        "<svg xmlns='http://www.w3.org/2000/svg' width='400' height='500'>" +
+        "<rect width='100%' height='100%' fill='#030503'/>" +
+        "<text x='50%' y='45%' dominant-baseline='middle' text-anchor='middle' fill='#28D905' font-size='50'>▶</text>" +
+        "<text x='50%' y='58%' dominant-baseline='middle' text-anchor='middle' fill='#789078' font-size='22'>GC PLAY PRO</text>" +
+        "</svg>"
+    );
 
 
 /* =========================================================
    ESTADO
 ========================================================= */
 
-let listas = [];
+var state = {
 
-let listaAtual = null;
+    list:null,
 
-let itens = [];
+    items:[],
 
-let itensFiltrados = [];
+    category:"live",
 
-let paginaAtual = 1;
+    group:"ALL",
 
-let hls = null;
+    page:1,
 
+    hls:null,
 
-/* =========================================================
-   ELEMENTOS
-========================================================= */
+    ts:null,
 
-const statusEl = document.getElementById("status");
+    deviceId:null,
 
-const listNameEl = document.getElementById("listName");
+    activationCode:null,
 
-const gridEl = document.getElementById("grid");
+    adultPin:
+        localStorage.getItem("gcplay_adult_pin") ||
+        "0000"
 
-const loadingEl = document.getElementById("loading");
-
-const categoryEl = document.getElementById("category");
-
-const searchEl = document.getElementById("search");
-
-const paginationInfoEl =
-    document.getElementById("paginationInfo");
-
-const m3uModal =
-    document.getElementById("m3uModal");
-
-const listasModal =
-    document.getElementById("listasModal");
-
-const seriesModal =
-    document.getElementById("seriesModal");
-
-const playerBg =
-    document.getElementById("playerBg");
-
-const video =
-    document.getElementById("video");
-
-const playerTitle =
-    document.getElementById("playerTitle");
-
-const playerMessage =
-    document.getElementById("playerMessage");
+};
 
 
-/* =========================================================
-   UTILITÁRIOS
-========================================================= */
+var lists = [];
 
-function mostrarStatus(texto, tipo="info"){
+try{
 
-    statusEl.textContent = texto;
-
-    statusEl.className = "status " + tipo;
-
-}
-
-
-function escaparHTML(text){
-
-    if(text === null || text === undefined){
-        return "";
-    }
-
-    return String(text)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-}
-
-
-function abrirModal(modal){
-
-    modal.classList.add("open");
-
-}
-
-
-function fecharModal(modal){
-
-    modal.classList.remove("open");
-
-}
-
-
-/* =========================================================
-   STORAGE
-========================================================= */
-
-function salvarListas(){
-
-    try{
-
-        localStorage.setItem(
-            "gcplay_pro_listas",
-            JSON.stringify(listas)
+    lists =
+        JSON.parse(
+            localStorage.getItem("gcplay_lists") ||
+            "[]"
         );
 
-    }catch(e){
-
-        console.warn(
-            "Não foi possível salvar as listas.",
-            e
-        );
-
+    if(!Array.isArray(lists)){
+        lists=[];
     }
 
-}
+}catch(e){
 
-
-function carregarListasStorage(){
-
-    try{
-
-        const dados =
-            localStorage.getItem("gcplay_pro_listas");
-
-        if(!dados){
-            listas = [];
-            return;
-        }
-
-        const obj = JSON.parse(dados);
-
-        if(Array.isArray(obj)){
-            listas = obj;
-        }else{
-            listas = [];
-        }
-
-    }catch(e){
-
-        listas = [];
-
-    }
+    lists=[];
 
 }
 
 
 /* =========================================================
-   MODAL M3U
+   ATALHO DOM
 ========================================================= */
 
-function abrirM3U(){
+function $(id){
 
-    document.getElementById("m3uName").value = "";
-
-    document.getElementById("m3uUrl").value = "";
-
-    abrirModal(m3uModal);
-
-    setTimeout(() => {
-
-        document
-            .getElementById("m3uName")
-            .focus();
-
-    },100);
+    return document.getElementById(id);
 
 }
 
 
-function fecharM3U(){
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
 
-    fecharModal(m3uModal);
+function esc(value){
+
+    return String(value || "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
 
 }
 
 
-async function adicionarM3U(){
+/* =========================================================
+   NORMALIZAÇÃO
+========================================================= */
 
-    const nome =
-        document
-            .getElementById("m3uName")
-            .value
-            .trim();
+function norm(value){
 
-    const url =
-        document
-            .getElementById("m3uUrl")
-            .value
-            .trim();
+    return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"")
+        .toLowerCase()
+        .replace(/\s+/g," ")
+        .trim();
 
-    if(!nome){
+}
 
-        alert("Digite um nome para a lista.");
 
-        return;
+/* =========================================================
+   ID
+========================================================= */
 
-    }
-
-    if(!url){
-
-        alert("Cole o link M3U.");
-
-        return;
-
-    }
+function makeId(){
 
     if(
-        !url.startsWith("http://") &&
-        !url.startsWith("https://")
+        window.crypto &&
+        typeof window.crypto.randomUUID === "function"
     ){
 
-        alert(
-            "O link precisa começar com http:// ou https://"
-        );
-
-        return;
+        return window.crypto.randomUUID();
 
     }
 
-    const novaLista = {
-
-        id:
-            Date.now().toString(36) +
-            Math.random().toString(36).slice(2),
-
-        nome: nome,
-
-        url: url
-
-    };
-
-    /*
-       Se já existir uma lista com o mesmo nome,
-       substitui.
-    */
-
-    listas =
-        listas.filter(
-            item =>
-                item.nome.toLowerCase() !==
-                nome.toLowerCase()
-        );
-
-    listas.push(novaLista);
-
-    salvarListas();
-
-    fecharM3U();
-
-    await carregarLista(novaLista);
+    return Date.now().toString(36) +
+        Math.random().toString(36).substring(2);
 
 }
 
 
 /* =========================================================
-   LISTAS SALVAS
+   PROXY
 ========================================================= */
 
-function abrirListas(){
+function proxy(url,mode){
 
-    renderizarListas();
-
-    abrirModal(listasModal);
+    return PLAYLIST_PROXY +
+        "?mode=" +
+        encodeURIComponent(mode) +
+        "&url=" +
+        encodeURIComponent(url);
 
 }
 
 
-function renderizarListas(){
+/* =========================================================
+   STATUS
+========================================================= */
 
-    const container =
-        document.getElementById("savedLists");
+function setStatus(text,type){
 
-    container.innerHTML = "";
+    $("status").textContent=text;
 
-    if(listas.length === 0){
+    $("status").className =
+        "status" +
+        (type ? " "+type : "");
 
-        container.innerHTML =
-            `<div class="empty">
-                Nenhuma lista salva.
-             </div>`;
+}
 
-        return;
 
+/* =========================================================
+   LOADER
+========================================================= */
+
+function loader(show,text){
+
+    if(text){
+        $("loaderText").textContent=text;
     }
 
-    listas.forEach(lista => {
+    $("loader").classList.toggle(
+        "hidden",
+        !show
+    );
 
-        const div =
-            document.createElement("div");
+}
 
-        div.className = "saved-item";
 
-        div.innerHTML = `
+/* =========================================================
+   SALVAR LISTAS
+========================================================= */
 
-            <div class="saved-info">
+function saveLists(){
 
-                <div class="saved-name">
-                    ${escaparHTML(lista.nome)}
-                </div>
+    localStorage.setItem(
+        "gcplay_lists",
+        JSON.stringify(lists)
+    );
 
-                <div class="saved-url">
-                    ${escaparHTML(lista.url)}
-                </div>
+}
 
-            </div>
 
-            <div class="saved-actions">
+/* =========================================================
+   LISTAS NO TOPO
+========================================================= */
 
-                <button
-                    class="small-btn"
-                    data-action="open"
-                    data-id="${escaparHTML(lista.id)}">
-                    Abrir
-                </button>
+function renderListPills(){
 
-                <button
-                    class="small-btn"
-                    data-action="delete"
-                    data-id="${escaparHTML(lista.id)}">
-                    Excluir
-                </button>
+    var html="";
 
-            </div>
-        `;
+    lists.forEach(function(list){
 
-        container.appendChild(div);
+        html +=
+            '<button type="button" ' +
+            'class="list-pill ' +
+            (
+                state.list &&
+                state.list.id===list.id
+                    ? "active"
+                    : ""
+            ) +
+            '" data-list-id="' +
+            esc(list.id) +
+            '">' +
+            esc(list.name) +
+            '</button>';
 
     });
 
-}
+    $("listsBar").innerHTML=html;
 
 
-async function abrirListaSalva(id){
+    Array.prototype.forEach.call(
+        document.querySelectorAll("[data-list-id]"),
+        function(button){
 
-    const lista =
-        listas.find(
-            item => item.id === id
-        );
+            button.onclick=function(){
 
-    if(!lista){
+                var id =
+                    button.getAttribute(
+                        "data-list-id"
+                    );
 
-        alert("Lista não encontrada.");
+                var list =
+                    lists.find(function(item){
+                        return item.id===id;
+                    });
 
-        return;
+                if(list){
+                    loadList(list);
+                }
 
-    }
+            };
 
-    fecharModal(listasModal);
-
-    await carregarLista(lista);
-
-}
-
-
-function excluirLista(id){
-
-    const lista =
-        listas.find(
-            item => item.id === id
-        );
-
-    if(!lista){
-        return;
-    }
-
-    if(
-        !confirm(
-            `Excluir a lista "${lista.nome}"?`
-        )
-    ){
-
-        return;
-
-    }
-
-    listas =
-        listas.filter(
-            item => item.id !== id
-        );
-
-    salvarListas();
-
-    if(
-        listaAtual &&
-        listaAtual.id === id
-    ){
-
-        listaAtual = null;
-
-        itens = [];
-
-        itensFiltrados = [];
-
-        gridEl.innerHTML = "";
-
-        listNameEl.style.display = "none";
-
-        mostrarStatus(
-            "Lista excluída.",
-            "info"
-        );
-
-    }
-
-    renderizarListas();
+        }
+    );
 
 }
 
 
 /* =========================================================
-   CARREGAMENTO DA M3U
+   MODAL LISTAS
 ========================================================= */
 
-async function carregarLista(lista){
+function renderSavedLists(){
 
-    mostrarStatus(
-        "Conectando ao servidor da lista...",
-        "info"
+    if(!lists.length){
+
+        $("savedLists").innerHTML =
+            '<div class="empty" style="padding:30px">' +
+            '<i class="fa-solid fa-list"></i><br>' +
+            'Nenhuma lista salva.' +
+            '</div>';
+
+        return;
+
+    }
+
+
+    var html="";
+
+    lists.forEach(function(list){
+
+        html +=
+            '<div class="saved-list">' +
+
+                '<div class="saved-info">' +
+
+                    '<span class="saved-name">' +
+                        esc(list.name) +
+                    '</span>' +
+
+                    '<span class="saved-url">' +
+                        esc(list.url) +
+                    '</span>' +
+
+                '</div>' +
+
+                '<button type="button" ' +
+                    'class="btn" ' +
+                    'data-open-list="' +
+                    esc(list.id) +
+                    '">' +
+                    'Abrir' +
+                '</button>' +
+
+                '<button type="button" ' +
+                    'class="btn btn-red" ' +
+                    'data-delete-list="' +
+                    esc(list.id) +
+                    '">' +
+                    'Excluir' +
+                '</button>' +
+
+            '</div>';
+
+    });
+
+
+    $("savedLists").innerHTML=html;
+
+
+    Array.prototype.forEach.call(
+        document.querySelectorAll("[data-open-list]"),
+        function(button){
+
+            button.onclick=function(){
+
+                var id =
+                    button.getAttribute(
+                        "data-open-list"
+                    );
+
+                var list =
+                    lists.find(function(item){
+                        return item.id===id;
+                    });
+
+                if(!list)return;
+
+                $("listsModal").classList.add("hidden");
+
+                loadList(list);
+
+            };
+
+        }
     );
 
-    loadingEl.style.display = "block";
 
-    gridEl.innerHTML = "";
+    Array.prototype.forEach.call(
+        document.querySelectorAll("[data-delete-list]"),
+        function(button){
 
-    itens = [];
+            button.onclick=function(){
 
-    itensFiltrados = [];
+                var id =
+                    button.getAttribute(
+                        "data-delete-list"
+                    );
 
-    paginaAtual = 1;
+                if(
+                    !confirm(
+                        "Deseja realmente excluir esta lista?"
+                    )
+                ){
+                    return;
+                }
 
-    listaAtual = lista;
 
-    listNameEl.textContent = lista.nome;
+                lists =
+                    lists.filter(function(item){
+                        return item.id!==id;
+                    });
 
-    listNameEl.style.display = "inline-block";
+
+                saveLists();
+
+                renderSavedLists();
+
+                renderListPills();
+
+
+                if(
+                    state.list &&
+                    state.list.id===id
+                ){
+
+                    state.list=null;
+                    state.items=[];
+                    state.page=1;
+
+                    render();
+
+                    setStatus(
+                        "Lista excluída."
+                    );
+
+                }
+
+            };
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   PARSER EXTINF
+========================================================= */
+
+function findComma(line){
+
+    var quote=null;
+
+    for(
+        var i=0;
+        i<line.length;
+        i++
+    ){
+
+        var c=line[i];
+
+        if(c==='"' || c==="'"){
+
+            if(quote===null){
+                quote=c;
+            }else if(quote===c){
+                quote=null;
+            }
+
+        }else if(c==="," && quote===null){
+
+            return i;
+
+        }
+
+    }
+
+    return -1;
+
+}
+
+
+/* =========================================================
+   ATRIBUTOS
+========================================================= */
+
+function extAttrs(line){
+
+    var attrs={};
+
+    var regex =
+        /([a-zA-Z0-9_-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s]+))/g;
+
+    var match;
+
+    while(
+        (match=regex.exec(line))
+    ){
+
+        attrs[
+            match[1].toLowerCase()
+        ] =
+            (
+                match[2] !== undefined
+                    ? match[2]
+                    : (
+                        match[3] !== undefined
+                            ? match[3]
+                            : (
+                                match[4] !== undefined
+                                    ? match[4]
+                                    : ""
+                            )
+                    )
+            ).trim();
+
+    }
+
+    return attrs;
+
+}
+
+
+/* =========================================================
+   EPISÓDIO
+========================================================= */
+
+function episodeInfo(name){
+
+    var m;
+
+    m =
+        String(name || "")
+        .match(
+            /\bS(\d{1,3})\s*[-._ ]?\s*E(\d{1,4})\b/i
+        );
+
+    if(m){
+
+        return {
+            season:parseInt(m[1],10),
+            episode:parseInt(m[2],10)
+        };
+
+    }
+
+
+    m =
+        String(name || "")
+        .match(
+            /\bT(\d{1,3})\s*[-._ ]?\s*E(\d{1,4})\b/i
+        );
+
+    if(m){
+
+        return {
+            season:parseInt(m[1],10),
+            episode:parseInt(m[2],10)
+        };
+
+    }
+
+
+    m =
+        String(name || "")
+        .match(
+            /\b(\d{1,3})x(\d{1,4})\b/i
+        );
+
+    if(m){
+
+        return {
+            season:parseInt(m[1],10),
+            episode:parseInt(m[2],10)
+        };
+
+    }
+
+
+    return null;
+
+}
+
+
+/* =========================================================
+   CLASSIFICAÇÃO
+========================================================= */
+
+function classify(group,name,url){
+
+    var text =
+        norm(
+            group +
+            " " +
+            name
+        );
+
+
+    /* ADULTO PRIMEIRO */
+
+    if(
+        /adult|adulto|xxx|porn|porno|18\+|private|privado|erotic|erotico|sex/.test(text)
+    ){
+
+        return "adult";
+
+    }
+
+
+    /* MÚSICA */
+
+    if(
+        /music|musica|musical|radio|clip|clipe|concert|mtv|audio/.test(text)
+    ){
+
+        return "music";
+
+    }
+
+
+    /* SÉRIES */
+
+    if(
+        episodeInfo(name) ||
+        /series?|serie|temporada|season|episode|episodio/.test(text) ||
+        /\/series?\//i.test(url)
+    ){
+
+        return "series";
+
+    }
+
+
+    /* FILMES */
+
+    if(
+        /movie|movies|filme|filmes|cinema|vod|film|netflix|prime video|disney|hbo|\bmax\b/.test(text) ||
+        /\/movies?\//i.test(url)
+    ){
+
+        return "vod";
+
+    }
+
+
+    /* TV */
+
+    return "live";
+
+}
+
+
+/* =========================================================
+   PARSER M3U
+========================================================= */
+
+function parseM3U(text,baseUrl){
+
+    var lines =
+        String(text || "")
+        .replace(/^\uFEFF/,"")
+        .replace(/\r\n/g,"\n")
+        .replace(/\r/g,"\n")
+        .split("\n");
+
+
+    var result=[];
+
+    var current=null;
+
+    var extGroup="";
+
+
+    for(
+        var i=0;
+        i<lines.length;
+        i++
+    ){
+
+        var line =
+            lines[i].trim();
+
+
+        if(!line){
+            continue;
+        }
+
+
+        /* EXTGRP */
+
+        if(
+            /^#EXTGRP:/i.test(line)
+        ){
+
+            extGroup =
+                line
+                .substring(8)
+                .trim();
+
+            continue;
+
+        }
+
+
+        /* EXTINF */
+
+        if(
+            /^#EXTINF:/i.test(line)
+        ){
+
+            var comma =
+                findComma(line);
+
+            var title =
+                comma>=0
+                    ? line.substring(comma+1).trim()
+                    : "Sem título";
+
+
+            var attrs =
+                extAttrs(line);
+
+
+            current={
+
+                name:
+                    attrs["tvg-name"] ||
+                    title ||
+                    "Sem título",
+
+                logo:
+                    attrs["tvg-logo"] ||
+                    attrs["logo"] ||
+                    "",
+
+                group:
+                    attrs["group-title"] ||
+                    extGroup ||
+                    "Geral",
+
+                tvgId:
+                    attrs["tvg-id"] ||
+                    "",
+
+                url:"",
+                referrer:"",
+                userAgent:""
+
+            };
+
+
+            extGroup="";
+
+            continue;
+
+        }
+
+
+        /* VLC OPTIONS */
+
+        if(
+            /^#EXTVLCOPT:/i.test(line)
+        ){
+
+            if(!current){
+                continue;
+            }
+
+
+            var option =
+                line.substring(11);
+
+            var equal =
+                option.indexOf("=");
+
+
+            if(equal>=0){
+
+                var key =
+                    option
+                    .substring(0,equal)
+                    .trim()
+                    .toLowerCase();
+
+                var value =
+                    option
+                    .substring(equal+1)
+                    .trim();
+
+
+                if(
+                    key==="http-referrer"
+                ){
+
+                    current.referrer=value;
+
+                }
+
+
+                if(
+                    key==="http-user-agent"
+                ){
+
+                    current.userAgent=value;
+
+                }
+
+            }
+
+            continue;
+
+        }
+
+
+        /* COMENTÁRIOS */
+
+        if(line.charAt(0)==="#"){
+            continue;
+        }
+
+
+        /* URL */
+
+        if(current){
+
+            var url=line;
+
+
+            try{
+
+                if(
+                    baseUrl &&
+                    !/^https?:\/\//i.test(url) &&
+                    !/^rtmp:\/\//i.test(url) &&
+                    !/^rtsp:\/\//i.test(url)
+                ){
+
+                    url =
+                        new URL(
+                            url,
+                            baseUrl
+                        ).href;
+
+                }
+
+            }catch(e){}
+
+
+            current.url=url;
+
+
+            if(url){
+
+                current.category =
+                    classify(
+                        current.group,
+                        current.name,
+                        url
+                    );
+
+
+                result.push(current);
+
+            }
+
+
+            current=null;
+
+        }
+
+    }
+
+
+    return result;
+
+}
+
+
+/* =========================================================
+   ABRIR ADICIONAR
+========================================================= */
+
+function openAdd(){
+
+    $("listName").value="";
+    $("listUrl").value="";
+
+    $("addModal")
+        .classList.remove("hidden");
+
+
+    setTimeout(
+        function(){
+            $("listName").focus();
+        },
+        100
+    );
+
+}
+
+
+/* =========================================================
+   ADICIONAR LISTA
+========================================================= */
+
+function addList(){
+
+    var name =
+        $("listName")
+        .value
+        .trim() ||
+        "Minha TV";
+
+
+    var url =
+        $("listUrl")
+        .value
+        .trim();
+
+
+    if(
+        !/^https?:\/\//i.test(url)
+    ){
+
+        alert(
+            "A URL da M3U precisa começar com http:// ou https://"
+        );
+
+        return;
+
+    }
+
+
+    var list={
+
+        id:makeId(),
+
+        name:name,
+
+        url:url,
+
+        createdAt:
+            new Date().toISOString()
+
+    };
+
+
+    lists.push(list);
+
+    saveLists();
+
+    $("addModal")
+        .classList.add("hidden");
+
+
+    renderListPills();
+
+    loadList(list);
+
+}
+
+
+/* =========================================================
+   CARREGAR LISTA
+========================================================= */
+
+async function loadList(list){
+
+    if(!list || !list.url){
+        return;
+    }
+
+
+    state.list=list;
+
+    state.items=[];
+
+    state.page=1;
+
+    state.category="live";
+
+    state.group="ALL";
+
+
+    renderListPills();
+
+    setTabs();
+
+    render();
+
+
+    loader(
+        true,
+        "Conectando ao servidor..."
+    );
+
+
+    setStatus(
+        "Carregando "+list.name+"..."
+    );
 
 
     try{
 
-        /*
-          IMPORTANTE:
-
-          O navegador NÃO acessa diretamente o servidor IPTV.
-
-          A requisição vai para o Supabase Proxy.
-          Assim cada lista pode ter seu próprio servidor.
-        */
-
-        const endpoint =
-            PROXY_URL +
-            "?mode=playlist&url=" +
-            encodeURIComponent(lista.url);
-
-
-        const resposta =
+        var response =
             await fetch(
-                endpoint,
+                proxy(
+                    list.url,
+                    "playlist"
+                ),
                 {
                     method:"GET",
                     cache:"no-store"
@@ -1251,79 +2309,32 @@ async function carregarLista(lista){
             );
 
 
-        const texto =
-            await resposta.text();
+        var text =
+            await response.text();
 
 
-        let dados = null;
-
-        try{
-
-            dados = JSON.parse(texto);
-
-        }catch(e){
-
-            dados = null;
-
-        }
-
-
-        if(!resposta.ok){
+        if(!response.ok){
 
             throw new Error(
-                dados?.error ||
-                texto ||
-                `HTTP ${resposta.status}`
+                text ||
+                "HTTP "+response.status
             );
 
         }
 
 
-        if(
-            dados &&
-            dados.success === false
-        ){
-
-            throw new Error(
-                dados.error ||
-                "O servidor recusou a lista."
-            );
-
-        }
-
-
-        /*
-          O proxy pode retornar:
-
-          - texto M3U diretamente
-          - JSON contendo playlist
-        */
-
-        let m3u = texto;
+        loader(
+            true,
+            "Processando lista M3U..."
+        );
 
 
         if(
-            dados &&
-            typeof dados.playlist === "string"
-        ){
-
-            m3u = dados.playlist;
-
-        }
-
-        else if(
-            dados &&
-            typeof dados.data === "string"
-        ){
-
-            m3u = dados.data;
-
-        }
-
-
-        if(
-            !m3u ||
-            !m3u.includes("#EXT")
+            !text ||
+            (
+                text.indexOf("#EXTM3U")<0 &&
+                text.indexOf("#EXTINF")<0
+            )
         ){
 
             throw new Error(
@@ -1333,62 +2344,102 @@ async function carregarLista(lista){
         }
 
 
-        mostrarStatus(
-            "Processando a lista...",
-            "info"
+        /*
+         * Processamento em pequenos blocos
+         * para não travar a interface.
+         */
+
+        await new Promise(
+            function(resolve){
+
+                setTimeout(
+                    function(){
+
+                        state.items =
+                            parseM3U(
+                                text,
+                                list.url
+                            );
+
+                        resolve();
+
+                    },
+                    20
+                );
+
+            }
         );
 
 
-        /*
-          Parser progressivo.
-        */
-
-        itens =
-            parseM3U(m3u);
-
-
-        if(itens.length === 0){
+        if(!state.items.length){
 
             throw new Error(
-                "Nenhum item foi encontrado na lista."
+                "Nenhum item foi encontrado na M3U."
             );
 
         }
 
 
-        /*
-          Guarda a lista atualizada.
-        */
+        list.updatedAt =
+            new Date().toISOString();
 
-        listaAtual = lista;
 
-        aplicarFiltro();
+        saveLists();
 
-        mostrarStatus(
-            `${itens.length.toLocaleString("pt-BR")} itens carregados de ${lista.nome}.`,
+
+        state.page=1;
+
+
+        buildGroups();
+
+        render();
+
+
+        var count =
+            state.items.length
+            .toLocaleString("pt-BR");
+
+
+        var stats =
+            count +
+            " itens carregados • " +
+            list.name;
+
+
+        setStatus(
+            stats,
             "ok"
         );
 
-    }
-    catch(error){
 
-        console.error(error);
+    }catch(error){
 
-        mostrarStatus(
+        console.error(
+            "GC PLAY PRO:",
+            error
+        );
+
+
+        state.items=[];
+
+        render();
+
+
+        setStatus(
             "Erro ao carregar: " +
-            error.message,
+            (
+                error &&
+                error.message
+                    ? error.message
+                    : "Erro desconhecido"
+            ),
             "error"
         );
 
-        gridEl.innerHTML =
-            `<div class="empty">
-                Não foi possível carregar a lista.
-             </div>`;
 
-    }
-    finally{
+    }finally{
 
-        loadingEl.style.display = "none";
+        loader(false);
 
     }
 
@@ -1396,351 +2447,172 @@ async function carregarLista(lista){
 
 
 /* =========================================================
-   PARSER M3U
+   TABS
 ========================================================= */
 
-function parseM3U(text){
+function setTabs(){
 
-    const resultado = [];
+    Array.prototype.forEach.call(
+        document.querySelectorAll(".tab"),
+        function(button){
 
-    const linhas =
-        text
-            .replace(/\r/g,"")
-            .split("\n");
-
-
-    let info = null;
-
-
-    for(let i=0; i<linhas.length; i++){
-
-        const linha =
-            linhas[i].trim();
-
-
-        if(!linha){
-            continue;
-        }
-
-
-        if(linha.startsWith("#EXTINF")){
-
-            info =
-                interpretarEXTINF(linha);
-
-            continue;
+            button.classList.toggle(
+                "active",
+                button.getAttribute(
+                    "data-category"
+                )===state.category
+            );
 
         }
-
-
-        if(
-            info &&
-            (
-                linha.startsWith("http://") ||
-                linha.startsWith("https://")
-            )
-        ){
-
-            const item = {
-
-                id:
-                    resultado.length + 1,
-
-                name:
-                    info.name ||
-                    "Sem nome",
-
-                group:
-                    info.group ||
-                    "Outros",
-
-                logo:
-                    info.logo ||
-                    "",
-
-                tvgId:
-                    info.tvgId ||
-                    "",
-
-                tvgName:
-                    info.tvgName ||
-                    "",
-
-                url:
-                    linha,
-
-                type:
-                    detectarTipo(
-                        info.name,
-                        info.group,
-                        linha
-                    )
-
-            };
-
-
-            resultado.push(item);
-
-            info = null;
-
-        }
-
-    }
-
-
-    return resultado;
+    );
 
 }
 
 
 /* =========================================================
-   EXTINF
+   TROCAR CATEGORIA
 ========================================================= */
 
-function interpretarEXTINF(linha){
+function switchCategory(category){
 
-    const resultado = {
+    state.category=category;
 
-        name:"",
-        group:"",
-        logo:"",
-        tvgId:"",
-        tvgName:""
+    state.group="ALL";
 
-    };
+    state.page=1;
+
+    setTabs();
+
+    buildGroups();
+
+    render();
+
+}
 
 
-    const match =
-        linha.match(
-            /#EXTINF:[^,]*,(.*)$/i
+/* =========================================================
+   CATEGORIA ADULTO
+========================================================= */
+
+function requestAdult(){
+
+    $("pin").value="";
+
+    $("pinModal")
+        .classList.remove("hidden");
+
+
+    setTimeout(
+        function(){
+            $("pin").focus();
+        },
+        100
+    );
+
+}
+
+
+/* =========================================================
+   VALIDAR PIN
+========================================================= */
+
+function validatePin(){
+
+    var pin =
+        $("pin")
+        .value
+        .trim();
+
+
+    if(
+        pin===state.adultPin
+    ){
+
+        $("pinModal")
+            .classList.add("hidden");
+
+
+        switchCategory("adult");
+
+
+    }else{
+
+        alert(
+            "Senha incorreta."
         );
 
-
-    if(match){
-
-        resultado.name =
-            match[1].trim();
-
     }
-
-
-    const attrs = [
-
-        ["group","group-title"],
-
-        ["logo","tvg-logo"],
-
-        ["tvgId","tvg-id"],
-
-        ["tvgName","tvg-name"]
-
-    ];
-
-
-    attrs.forEach(([campo,atributo]) => {
-
-        const regex =
-            new RegExp(
-                atributo +
-                '="([^"]*)"',
-                "i"
-            );
-
-        const match =
-            linha.match(regex);
-
-        if(match){
-
-            resultado[campo] =
-                match[1];
-
-        }
-
-    });
-
-
-    /*
-      Alguns servidores usam aspas simples.
-    */
-
-    if(!resultado.group){
-
-        const match =
-            linha.match(
-                /group-title='([^']*)'/i
-            );
-
-        if(match){
-
-            resultado.group =
-                match[1];
-
-        }
-
-    }
-
-
-    if(!resultado.logo){
-
-        const match =
-            linha.match(
-                /tvg-logo='([^']*)'/i
-            );
-
-        if(match){
-
-            resultado.logo =
-                match[1];
-
-        }
-
-    }
-
-
-    return resultado;
 
 }
 
 
 /* =========================================================
-   DETECTAR TIPO
+   GRUPOS
 ========================================================= */
 
-function detectarTipo(nome,grupo,url){
+function buildGroups(){
 
-    const texto =
-        (
-            (nome || "") +
-            " " +
-            (grupo || "") +
-            " " +
-            (url || "")
-        ).toLowerCase();
+    var map={};
 
 
-    if(
-        texto.includes("adult") ||
-        texto.includes("xxx") ||
-        texto.includes("18+")
-    ){
+    state.items
+        .filter(function(item){
+            return item.category===state.category;
+        })
+        .forEach(function(item){
 
-        return "adult";
-
-    }
-
-
-    if(
-        texto.includes("series") ||
-        texto.includes("séries") ||
-        texto.includes("serie") ||
-        texto.includes("season") ||
-        texto.includes("/series/") ||
-        texto.includes("/series")
-    ){
-
-        return "series";
-
-    }
+            var group =
+                item.group ||
+                "Geral";
 
 
-    if(
-        texto.includes("filmes") ||
-        texto.includes("films") ||
-        texto.includes("movie") ||
-        texto.includes("/movie/") ||
-        texto.includes("/vod/")
-    ){
-
-        return "films";
-
-    }
-
-
-    if(
-        texto.includes("music") ||
-        texto.includes("música")
-    ){
-
-        return "music";
-
-    }
-
-
-    return "tv";
-
-}
-
-
-/* =========================================================
-   CATEGORIAS
-========================================================= */
-
-function reconstruirCategorias(){
-
-    categoryEl.innerHTML = "";
-
-    const categorias = {
-
-        all:{
-            nome:"Todas",
-            count:itens.length
-        },
-
-        tv:{
-            nome:"TV",
-            count:0
-        },
-
-        films:{
-            nome:"Films",
-            count:0
-        },
-
-        series:{
-            nome:"Series",
-            count:0
-        },
-
-        music:{
-            nome:"Music",
-            count:0
-        },
-
-        adult:{
-            nome:"Adult",
-            count:0
-        }
-
-    };
-
-
-    itens.forEach(item => {
-
-        if(
-            categorias[item.type]
-        ){
-
-            categorias[item.type].count++;
-
-        }
-
-    });
-
-
-    Object.entries(categorias)
-        .forEach(([valor,obj]) => {
-
-            const option =
-                document.createElement("option");
-
-            option.value = valor;
-
-            option.textContent =
-                `${obj.nome} (${obj.count.toLocaleString("pt-BR")})`;
-
-            categoryEl.appendChild(option);
+            map[norm(group)] =
+                group;
 
         });
+
+
+    var groups =
+        Object.keys(map)
+        .map(function(key){
+            return map[key];
+        })
+        .sort(function(a,b){
+
+            return a.localeCompare(
+                b,
+                "pt-BR",
+                {
+                    sensitivity:"base"
+                }
+            );
+
+        });
+
+
+    var html =
+        '<option value="ALL">' +
+        'Todas as categorias' +
+        '</option>';
+
+
+    groups.forEach(
+        function(group){
+
+            html +=
+                '<option value="' +
+                esc(group) +
+                '">' +
+                esc(group) +
+                '</option>';
+
+        }
+    );
+
+
+    $("group").innerHTML=html;
+
+    $("group").value="ALL";
 
 }
 
@@ -1749,64 +2621,69 @@ function reconstruirCategorias(){
    FILTRO
 ========================================================= */
 
-function aplicarFiltro(){
+function getFiltered(){
 
-    reconstruirCategorias();
+    var items =
+        state.items.filter(
+            function(item){
 
-
-    const categoria =
-        categoryEl.value || "all";
-
-
-    const busca =
-        searchEl.value
-            .trim()
-            .toLowerCase();
-
-
-    itensFiltrados =
-        itens.filter(item => {
-
-            if(
-                categoria !== "all" &&
-                item.type !== categoria
-            ){
-
-                return false;
+                return (
+                    item.category===
+                    state.category
+                );
 
             }
+        );
 
 
-            if(busca){
+    if(
+        state.group!=="ALL"
+    ){
 
-                const texto =
-                    (
-                        item.name +
-                        " " +
-                        item.group +
-                        " " +
-                        item.tvgName
-                    ).toLowerCase();
+        var group =
+            norm(state.group);
 
-                if(
-                    !texto.includes(busca)
-                ){
 
-                    return false;
+        items =
+            items.filter(
+                function(item){
+
+                    return (
+                        norm(item.group)===
+                        group
+                    );
 
                 }
+            );
 
-            }
-
-
-            return true;
-
-        });
+    }
 
 
-    paginaAtual = 1;
+    var search =
+        norm(
+            $("search").value
+        );
 
-    renderizarPagina();
+
+    if(search){
+
+        items =
+            items.filter(
+                function(item){
+
+                    return norm(
+                        item.name +
+                        " " +
+                        item.group
+                    ).indexOf(search)>=0;
+
+                }
+            );
+
+    }
+
+
+    return items;
 
 }
 
@@ -1815,311 +2692,262 @@ function aplicarFiltro(){
    RENDER
 ========================================================= */
 
-function renderizarPagina(){
+function render(){
 
-    gridEl.innerHTML = "";
+    var items =
+        getFiltered();
 
 
-    if(itensFiltrados.length === 0){
+    var total =
+        items.length;
 
-        paginationInfoEl.textContent = "";
 
-        gridEl.innerHTML =
-            `<div class="empty">
-                Nenhum item encontrado.
-             </div>`;
+    var pages =
+        Math.max(
+            1,
+            Math.ceil(
+                total/PAGE_SIZE
+            )
+        );
 
-        return;
+
+    if(
+        state.page>pages
+    ){
+
+        state.page=pages;
 
     }
 
 
-    const total =
-        itensFiltrados.length;
-
-
-    const inicio =
-        (paginaAtual - 1) *
+    var start =
+        (state.page-1) *
         PAGE_SIZE;
 
 
-    const fim =
+    var end =
         Math.min(
-            inicio + PAGE_SIZE,
+            start+PAGE_SIZE,
             total
         );
 
 
-    paginationInfoEl.textContent =
-        `Mostrando ${(inicio+1).toLocaleString("pt-BR")}–${fim.toLocaleString("pt-BR")} de ${total.toLocaleString("pt-BR")}`;
+    var visible =
+        items.slice(
+            start,
+            end
+        );
 
 
-    const fragment =
-        document.createDocumentFragment();
+    if(!visible.length){
+
+        $("grid").innerHTML =
+            '<div class="empty">' +
+            '<i class="fa-solid fa-folder-open"></i>' +
+            '<br>' +
+            'Nenhum conteúdo encontrado.' +
+            '</div>';
+
+    }else{
+
+        var html="";
 
 
-    for(
-        let i=inicio;
-        i<fim;
-        i++
-    ){
+        visible.forEach(
+            function(item,index){
 
-        const item =
-            itensFiltrados[i];
+                var realIndex =
+                    start+index;
 
 
-        const card =
-            document.createElement("div");
-
-        card.className = "card";
+                var poster;
 
 
-        let imagem = "";
+                if(item.logo){
 
-        if(item.logo){
+                    poster =
+                        '<img loading="lazy" ' +
+                        'src="' +
+                        esc(
+                            proxy(
+                                item.logo,
+                                "image"
+                            )
+                        ) +
+                        '" ' +
+                        'data-fallback="1" ' +
+                        'alt="">';
 
-            imagem = `
-                <img
-                    src="${escaparHTML(item.logo)}"
-                    loading="lazy"
-                    onerror="this.style.display='none'">
-            `;
+                }else{
 
-        }
+                    poster =
+                        '<div class="poster-icon">' +
+                        '▶' +
+                        '</div>';
 
-
-        card.innerHTML = `
-
-            <div class="card-img">
-
-                ${
-                    imagem ||
-                    `<div class="play-icon">▶</div>`
                 }
 
-            </div>
 
-            <div class="card-body">
+                html +=
 
-                <div class="card-title">
-                    ${escaparHTML(item.name)}
-                </div>
+                    '<div class="media-card">' +
 
-                <div class="card-meta">
-                    ${tipoTexto(item.type)}
-                    ${item.group ? " | " + escaparHTML(item.group) : ""}
-                </div>
+                        '<button type="button" ' +
+                        'data-play-index="' +
+                        realIndex +
+                        '">' +
 
-            </div>
+                            '<div class="poster">' +
+                                poster +
+                            '</div>' +
 
-        `;
+                            '<div class="media-info">' +
 
+                                '<span class="media-title">' +
+                                    esc(item.name) +
+                                '</span>' +
 
-        card.addEventListener(
-            "click",
-            () => abrirItem(item)
+                                '<span class="media-group">' +
+                                    esc(item.group) +
+                                '</span>' +
+
+                            '</div>' +
+
+                        '</button>' +
+
+                    '</div>';
+
+            }
         );
 
 
-        fragment.appendChild(card);
-
-    }
+        $("grid").innerHTML=html;
 
 
-    gridEl.appendChild(fragment);
+        Array.prototype.forEach.call(
+            $("grid").querySelectorAll(
+                "[data-play-index]"
+            ),
+            function(button){
+
+                button.onclick=function(){
+
+                    var index =
+                        Number(
+                            button.getAttribute(
+                                "data-play-index"
+                            )
+                        );
 
 
-    renderizarPaginacao(total);
-
-}
-
-
-/* =========================================================
-   TEXTO TIPO
-========================================================= */
-
-function tipoTexto(tipo){
-
-    switch(tipo){
-
-        case "tv":
-            return "Canais";
-
-        case "films":
-            return "Filmes";
-
-        case "series":
-            return "Séries";
-
-        case "music":
-            return "Música";
-
-        case "adult":
-            return "Adult";
-
-        default:
-            return "Mídia";
-
-    }
-
-}
+                    var item =
+                        items[index];
 
 
-/* =========================================================
-   PAGINAÇÃO
-========================================================= */
+                    if(
+                        state.category==="series"
+                    ){
 
-function renderizarPaginacao(total){
+                        openSeries(item);
 
-    const paginas =
-        Math.ceil(
-            total / PAGE_SIZE
+                    }else{
+
+                        play(item);
+
+                    }
+
+                };
+
+            }
         );
 
 
-    if(paginas <= 1){
-        return;
+        Array.prototype.forEach.call(
+            $("grid").querySelectorAll(
+                "img[data-fallback]"
+            ),
+            function(img){
+
+                img.onerror=function(){
+
+                    img.onerror=null;
+
+                    img.src=FALLBACK;
+
+                };
+
+            }
+        );
+
     }
 
 
-    const nav =
-        document.createElement("div");
-
-    nav.style.cssText =
-        `
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        gap:10px;
-        margin-top:30px;
-        flex-wrap:wrap;
-        `;
+    $("pageInfo").textContent =
+        total
+            ? (
+                (start+1) +
+                "–" +
+                end +
+                " de " +
+                total.toLocaleString("pt-BR")
+            )
+            : "0–0 de 0";
 
 
-    const anterior =
-        document.createElement("button");
-
-    anterior.className = "btn";
-
-    anterior.textContent = "‹ Anterior";
-
-    anterior.disabled =
-        paginaAtual <= 1;
+    $("prev").disabled =
+        state.page<=1;
 
 
-    anterior.onclick = () => {
-
-        if(paginaAtual > 1){
-
-            paginaAtual--;
-
-            renderizarPagina();
-
-            window.scrollTo({
-                top:0,
-                behavior:"smooth"
-            });
-
-        }
-
-    };
-
-
-    const proxima =
-        document.createElement("button");
-
-    proxima.className = "btn";
-
-    proxima.textContent = "Próxima ›";
-
-    proxima.disabled =
-        paginaAtual >= paginas;
-
-
-    proxima.onclick = () => {
-
-        if(paginaAtual < paginas){
-
-            paginaAtual++;
-
-            renderizarPagina();
-
-            window.scrollTo({
-                top:0,
-                behavior:"smooth"
-            });
-
-        }
-
-    };
-
-
-    const info =
-        document.createElement("span");
-
-    info.style.color = "#888";
-
-    info.textContent =
-        `Página ${paginaAtual} de ${paginas}`;
-
-
-    nav.appendChild(anterior);
-
-    nav.appendChild(info);
-
-    nav.appendChild(proxima);
-
-
-    gridEl.parentElement
-        .appendChild(nav);
+    $("next").disabled =
+        state.page>=pages;
 
 }
 
 
 /* =========================================================
-   ABRIR ITEM
+   PLAYER - DESTRUIR
 ========================================================= */
 
-function abrirItem(item){
+function destroyPlayer(){
 
-    if(!item || !item.url){
-        return;
-    }
+    if(state.hls){
 
+        try{
+            state.hls.destroy();
+        }catch(e){}
 
-    /*
-       Série:
-
-       Mantemos o comportamento simples e seguro.
-       Se houver vários episódios relacionados,
-       o usuário pode selecionar o episódio.
-    */
-
-    if(item.type === "series"){
-
-        abrirPlayer(item);
-
-        return;
+        state.hls=null;
 
     }
 
 
-    abrirPlayer(item);
+    if(state.ts){
 
-}
+        try{
+            state.ts.destroy();
+        }catch(e){}
+
+        state.ts=null;
+
+    }
 
 
-/* =========================================================
-   CONSTRUIR URL DO PROXY DE MÍDIA
-========================================================= */
+    var video=$("video");
 
-function urlMediaProxy(url){
 
-    return (
-        PROXY_URL +
-        "?mode=media&url=" +
-        encodeURIComponent(url)
+    try{
+        video.pause();
+    }catch(e){}
+
+
+    video.removeAttribute(
+        "src"
     );
+
+
+    try{
+        video.load();
+    }catch(e){}
 
 }
 
@@ -2128,357 +2956,1044 @@ function urlMediaProxy(url){
    PLAYER
 ========================================================= */
 
-async function abrirPlayer(item){
-
-    playerTitle.textContent =
-        item.name || "Reproduzindo";
-
-
-    playerMessage.style.display =
-        "none";
-
-
-    playerMessage.textContent = "";
-
-
-    abrirModal(playerBg);
-
-
-    pararPlayer();
-
-
-    const originalURL =
-        item.url;
-
-
-    const proxyURL =
-        urlMediaProxy(originalURL);
-
-
-    /*
-      Primeiro tentamos determinar o formato.
-    */
-
-    const urlLower =
-        originalURL.toLowerCase();
-
-
-    const ehHLS =
-        urlLower.includes(".m3u8") ||
-        urlLower.includes("output=hls") ||
-        urlLower.includes("type=hls");
-
-
-    try{
-
-        if(ehHLS){
-
-            await tocarHLS(
-                proxyURL
-            );
-
-            return;
-
-        }
-
-
-        /*
-          MPEG-TS:
-
-          O navegador normalmente não reproduz
-          MPEG-TS puro no elemento <video>.
-
-          Por isso o proxy pode entregar o fluxo
-          quando o servidor disponibilizar formato
-          compatível.
-
-          Tentamos primeiro a reprodução nativa.
-        */
-
-        await tocarNativo(
-            proxyURL
-        );
-
-    }
-    catch(error){
-
-        console.error(
-            "Erro no player:",
-            error
-        );
-
-
-        mostrarMensagemPlayer(
-            "Não foi possível reproduzir este conteúdo."
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   HLS
-========================================================= */
-
-function tocarHLS(url){
-
-    return new Promise(
-        (resolve,reject) => {
-
-            if(
-                video.canPlayType(
-                    "application/vnd.apple.mpegurl"
-                )
-            ){
-
-                video.src = url;
-
-                video.onloadedmetadata =
-                    () => {
-
-                        video.play()
-                            .catch(()=>{});
-
-                        resolve();
-
-                    };
-
-
-                video.onerror =
-                    () => {
-
-                        reject(
-                            new Error(
-                                "Falha no HLS nativo."
-                            )
-                        );
-
-                    };
-
-
-                return;
-
-            }
-
-
-            if(
-                window.Hls &&
-                Hls.isSupported()
-            ){
-
-                hls =
-                    new Hls({
-                        enableWorker:true,
-                        lowLatencyMode:false,
-                        backBufferLength:30
-                    });
-
-
-                hls.loadSource(url);
-
-                hls.attachMedia(video);
-
-
-                hls.on(
-                    Hls.Events.MANIFEST_PARSED,
-                    () => {
-
-                        video.play()
-                            .catch(()=>{});
-
-                        resolve();
-
-                    }
-                );
-
-
-                hls.on(
-                    Hls.Events.ERROR,
-                    (event,data) => {
-
-                        if(
-                            data &&
-                            data.fatal
-                        ){
-
-                            reject(
-                                new Error(
-                                    "Erro fatal no HLS."
-                                )
-                            );
-
-                        }
-
-                    }
-                );
-
-
-                return;
-
-            }
-
-
-            reject(
-                new Error(
-                    "Este navegador não suporta HLS."
-                )
-            );
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   PLAYER NATIVO
-========================================================= */
-
-function tocarNativo(url){
-
-    return new Promise(
-        (resolve,reject) => {
-
-            video.src = url;
-
-            const sucesso =
-                () => {
-
-                    video.play()
-                        .catch(()=>{});
-
-                    resolve();
-
-                };
-
-
-            const erro =
-                () => {
-
-                    reject(
-                        new Error(
-                            "Falha na reprodução."
-                        )
-                    );
-
-                };
-
-
-            video.onloadedmetadata =
-                sucesso;
-
-            video.onerror =
-                erro;
-
-
-            /*
-              Alguns servidores demoram
-              para começar a responder.
-            */
-
-            setTimeout(
-                () => {
-
-                    if(
-                        video.readyState >= 2
-                    ){
-
-                        sucesso();
-
-                    }
-
-                },
-                3000
-            );
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   MENSAGEM DO PLAYER
-========================================================= */
-
-function mostrarMensagemPlayer(texto){
-
-    playerMessage.textContent =
-        texto;
-
-    playerMessage.style.display =
-        "block";
-
-}
-
-
-/* =========================================================
-   PARAR PLAYER
-========================================================= */
-
-function pararPlayer(){
-
-    try{
-
-        if(hls){
-
-            hls.destroy();
-
-            hls = null;
-
-        }
-
-    }catch(e){}
-
-
-    try{
-
-        video.pause();
-
-        video.removeAttribute("src");
-
-        video.load();
-
-    }catch(e){}
-
-}
-
-
-/* =========================================================
-   FECHAR PLAYER
-========================================================= */
-
-function fecharPlayer(){
-
-    pararPlayer();
-
-    fecharModal(playerBg);
-
-}
-
-
-/* =========================================================
-   ATUALIZAR
-========================================================= */
-
-async function atualizarLista(){
-
-    if(!listaAtual){
-
-        mostrarStatus(
-            "Nenhuma lista carregada.",
-            "info"
-        );
+function play(item){
+
+    if(
+        !item ||
+        !item.url
+    ){
 
         return;
 
     }
 
 
-    await carregarLista(
-        listaAtual
+    destroyPlayer();
+
+
+    $("nowTitle")
+        .textContent =
+        item.name ||
+        "Reproduzindo";
+
+
+    $("nowStatus")
+        .textContent =
+        "Conectando...";
+
+
+    var video =
+        $("video");
+
+
+    var originalUrl =
+        item.url.trim();
+
+
+    var mediaUrl =
+        proxy(
+            originalUrl,
+            "media"
+        );
+
+
+    var lower =
+        originalUrl.toLowerCase();
+
+
+    /*
+     * HLS
+     */
+
+    if(
+        /\.m3u8(\?|$)/i.test(
+            lower
+        )
+    ){
+
+        if(
+            window.Hls &&
+            Hls.isSupported()
+        ){
+
+            state.hls =
+                new Hls({
+
+                    enableWorker:true,
+
+                    lowLatencyMode:false,
+
+                    backBufferLength:30,
+
+                    maxBufferLength:30,
+
+                    maxMaxBufferLength:60,
+
+                    manifestLoadingMaxRetry:3,
+
+                    levelLoadingMaxRetry:3,
+
+                    fragLoadingMaxRetry:3
+
+                });
+
+
+            state.hls.loadSource(
+                mediaUrl
+            );
+
+
+            state.hls.attachMedia(
+                video
+            );
+
+
+            state.hls.on(
+                Hls.Events.MANIFEST_PARSED,
+                function(){
+
+                    $("nowStatus")
+                        .textContent =
+                        "HLS conectado.";
+
+                    video
+                        .play()
+                        .catch(
+                            function(){}
+                        );
+
+                }
+            );
+
+
+            state.hls.on(
+                Hls.Events.ERROR,
+                function(event,data){
+
+                    console.warn(
+                        "HLS ERROR:",
+                        data
+                    );
+
+
+                    if(
+                        data &&
+                        data.fatal
+                    ){
+
+                        $("nowStatus")
+                            .textContent =
+                            "Falha HLS: " +
+                            (
+                                data.type ||
+                                "erro"
+                            );
+
+                    }
+
+                }
+            );
+
+
+        }else if(
+            video.canPlayType(
+                "application/vnd.apple.mpegurl"
+            )
+        ){
+
+            video.src=mediaUrl;
+
+            video.play()
+                .catch(
+                    function(){}
+                );
+
+            $("nowStatus")
+                .textContent =
+                "HLS nativo conectado.";
+
+        }else{
+
+            $("nowStatus")
+                .textContent =
+                "HLS não suportado neste aparelho.";
+
+        }
+
+
+        return;
+
+    }
+
+
+    /*
+     * MP4 / WEBM / OGG
+     */
+
+    if(
+        /\.mp4(\?|$)/i.test(lower) ||
+        /\.webm(\?|$)/i.test(lower) ||
+        /\.ogg(\?|$)/i.test(lower)
+    ){
+
+        video.src=mediaUrl;
+
+        video.play()
+            .catch(
+                function(){}
+            );
+
+        $("nowStatus")
+            .textContent =
+            "Vídeo conectado.";
+
+        return;
+
+    }
+
+
+    /*
+     * MPEG-TS
+     *
+     * ESTA É A PARTE PRINCIPAL
+     * PARA OS CANAIS .TS
+     */
+
+    if(
+        window.mpegts &&
+        typeof mpegts.isSupported==="function" &&
+        mpegts.isSupported()
+    ){
+
+        try{
+
+            state.ts =
+                mpegts.createPlayer(
+
+                    {
+                        type:"mpegts",
+
+                        isLive:
+                            item.category==="live" ||
+                            /\.ts(\?|$)/i.test(
+                                lower
+                            ),
+
+                        url:mediaUrl
+
+                    },
+
+                    {
+
+                        enableWorker:true,
+
+                        enableStashBuffer:true,
+
+                        stashInitialSize:128,
+
+                        lazyLoad:false,
+
+                        autoCleanupSourceBuffer:true
+
+                    }
+
+                );
+
+
+            state.ts.attachMediaElement(
+                video
+            );
+
+
+            state.ts.load();
+
+
+            state.ts.play()
+                .catch(
+                    function(){}
+                );
+
+
+            $("nowStatus")
+                .textContent =
+                "MPEG-TS conectado.";
+
+
+            return;
+
+        }catch(error){
+
+            console.error(
+                "MPEG-TS:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /*
+     * ÚLTIMA TENTATIVA
+     */
+
+    video.src=mediaUrl;
+
+    video.play()
+        .catch(
+            function(){}
+        );
+
+
+    $("nowStatus")
+        .textContent =
+        "Tentando reprodução direta.";
+
+}
+
+
+/* =========================================================
+   PARAR
+========================================================= */
+
+function stop(){
+
+    destroyPlayer();
+
+
+    $("nowTitle")
+        .textContent =
+        "Nenhuma mídia selecionada";
+
+
+    $("nowStatus")
+        .textContent =
+        "Escolha um conteúdo para reproduzir.";
+
+}
+
+
+/* =========================================================
+   AGRUPAMENTO DE SÉRIES
+========================================================= */
+
+function buildSeriesGroups(){
+
+    var map={};
+
+
+    state.items
+        .filter(function(item){
+
+            return item.category==="series";
+
+        })
+        .forEach(function(item){
+
+            var info =
+                episodeInfo(
+                    item.name
+                );
+
+
+            var base =
+                item.name;
+
+
+            if(info){
+
+                base =
+                    base
+                    .replace(
+                        /\bS\d{1,3}\s*[-._ ]?\s*E\d{1,4}\b/ig,
+                        ""
+                    )
+                    .replace(
+                        /\bT\d{1,3}\s*[-._ ]?\s*E\d{1,4}\b/ig,
+                        ""
+                    )
+                    .replace(
+                        /\b\d{1,3}x\d{1,4}\b/ig,
+                        ""
+                    )
+                    .replace(
+                        /[-|:_]+$/g,
+                        ""
+                    )
+                    .trim();
+
+            }
+
+
+            if(!base){
+                base=item.name;
+            }
+
+
+            var key =
+                norm(base);
+
+
+            if(!map[key]){
+
+                map[key]={
+
+                    name:base,
+
+                    logo:item.logo || "",
+
+                    group:item.group || "Séries",
+
+                    seasons:{}
+
+                };
+
+            }
+
+
+            if(!info){
+
+                info={
+                    season:1,
+                    episode:
+                        Object.keys(
+                            map[key].seasons[1] || {}
+                        ).length+1
+                };
+
+            }
+
+
+            if(
+                !map[key].seasons[
+                    info.season
+                ]
+            ){
+
+                map[key].seasons[
+                    info.season
+                ]=[];
+
+            }
+
+
+            map[key].seasons[
+                info.season
+            ].push({
+
+                name:item.name,
+
+                url:item.url,
+
+                logo:item.logo,
+
+                group:item.group,
+
+                episode:info.episode,
+
+                referrer:item.referrer,
+
+                userAgent:item.userAgent
+
+            });
+
+        });
+
+
+    return Object.keys(map)
+        .map(function(key){
+            return map[key];
+        })
+        .sort(function(a,b){
+
+            return a.name.localeCompare(
+                b.name,
+                "pt-BR",
+                {
+                    sensitivity:"base"
+                }
+            );
+
+        });
+
+}
+
+
+/* =========================================================
+   ABRIR SÉRIE
+========================================================= */
+
+function openSeries(item){
+
+    /*
+     * Primeiro tenta encontrar a série correspondente
+     * na lista completa.
+     */
+
+    var series =
+        buildSeriesGroups();
+
+
+    var selected=null;
+
+
+    var itemNorm =
+        norm(item.name);
+
+
+    series.forEach(
+        function(serie){
+
+            var titleNorm =
+                norm(serie.name);
+
+
+            if(
+                itemNorm.indexOf(titleNorm)>=0 ||
+                titleNorm.indexOf(itemNorm)>=0
+            ){
+
+                selected=serie;
+
+            }
+
+        }
     );
+
+
+    /*
+     * Se não encontrou pelo título,
+     * cria uma série com o próprio item.
+     */
+
+    if(!selected){
+
+        selected={
+
+            name:item.name,
+
+            logo:item.logo,
+
+            group:item.group,
+
+            seasons:{
+
+                1:[{
+
+                    name:item.name,
+
+                    url:item.url,
+
+                    logo:item.logo,
+
+                    group:item.group,
+
+                    episode:1
+
+                }]
+
+            }
+
+        };
+
+    }
+
+
+    $("seriesTitle")
+        .textContent =
+        selected.name;
+
+
+    $("seriesModal")
+        .classList.remove("hidden");
+
+
+    var seasons =
+        Object.keys(
+            selected.seasons
+        )
+        .sort(function(a,b){
+            return Number(a)-Number(b);
+        });
+
+
+    var tabs="";
+
+
+    seasons.forEach(
+        function(season,index){
+
+            tabs +=
+                '<button type="button" ' +
+                'class="season ' +
+                (
+                    index===0
+                        ? "active"
+                        : ""
+                ) +
+                '" data-season="' +
+                esc(season) +
+                '">' +
+                "Temporada " +
+                esc(season) +
+                '</button>';
+
+        }
+    );
+
+
+    $("seasonTabs").innerHTML=tabs;
+
+
+    function renderSeason(season){
+
+        Array.prototype.forEach.call(
+            $("seasonTabs").querySelectorAll(
+                ".season"
+            ),
+            function(button){
+
+                button.classList.toggle(
+                    "active",
+                    button.getAttribute(
+                        "data-season"
+                    )===String(season)
+                );
+
+            }
+        );
+
+
+        var episodes =
+            selected.seasons[
+                season
+            ] || [];
+
+
+        episodes =
+            episodes.slice()
+            .sort(function(a,b){
+
+                return (
+                    Number(a.episode) -
+                    Number(b.episode)
+                );
+
+            });
+
+
+        var html="";
+
+
+        episodes.forEach(
+            function(ep){
+
+                html +=
+
+                    '<div class="episode" ' +
+                    'data-episode="' +
+                    esc(
+                        ep.url
+                    ) +
+                    '">' +
+
+                        '<div class="episode-number">' +
+                            esc(
+                                ep.episode
+                            ) +
+                        '</div>' +
+
+                        '<div class="episode-name">' +
+                            esc(ep.name) +
+                        '</div>' +
+
+                        '<i class="fa-solid fa-play" ' +
+                        'style="color:var(--green)">' +
+                        '</i>' +
+
+                    '</div>';
+
+            }
+        );
+
+
+        $("episodes").innerHTML =
+            html ||
+            '<div class="empty" style="padding:30px">' +
+            'Nenhum episódio encontrado.' +
+            '</div>';
+
+
+        Array.prototype.forEach.call(
+            $("episodes").querySelectorAll(
+                "[data-episode]"
+            ),
+            function(button){
+
+                button.onclick=function(){
+
+                    var url =
+                        button.getAttribute(
+                            "data-episode"
+                        );
+
+
+                    var ep =
+                        episodes.find(
+                            function(x){
+                                return x.url===url;
+                            }
+                        );
+
+
+                    $("seriesModal")
+                        .classList.add("hidden");
+
+
+                    if(ep){
+
+                        play({
+
+                            name:
+                                selected.name +
+                                " - T" +
+                                season +
+                                "E" +
+                                ep.episode,
+
+                            url:ep.url,
+
+                            logo:ep.logo,
+
+                            group:"Séries",
+
+                            category:"series"
+
+                        });
+
+                    }
+
+                };
+
+            }
+        );
+
+    }
+
+
+    Array.prototype.forEach.call(
+        $("seasonTabs").querySelectorAll(
+            ".season"
+        ),
+        function(button){
+
+            button.onclick=function(){
+
+                renderSeason(
+                    button.getAttribute(
+                        "data-season"
+                    )
+                );
+
+            };
+
+        }
+    );
+
+
+    if(seasons.length){
+
+        renderSeason(
+            seasons[0]
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   DISPOSITIVO
+========================================================= */
+
+function initDevice(){
+
+    var deviceId =
+        localStorage.getItem(
+            "gcplay_device_id"
+        );
+
+
+    if(!deviceId){
+
+        if(
+            window.crypto &&
+            typeof window.crypto.randomUUID==="function"
+        ){
+
+            deviceId =
+                window.crypto.randomUUID();
+
+        }else{
+
+            deviceId =
+                makeId();
+
+        }
+
+
+        localStorage.setItem(
+            "gcplay_device_id",
+            deviceId
+        );
+
+    }
+
+
+    var code =
+        localStorage.getItem(
+            "gcplay_activation_code"
+        );
+
+
+    if(
+        !/^[A-Z0-9]{6}$/i.test(
+            String(code || "")
+        )
+    ){
+
+        var chars =
+            "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+
+        code="";
+
+
+        for(
+            var i=0;
+            i<6;
+            i++
+        ){
+
+            code +=
+                chars[
+                    Math.floor(
+                        Math.random() *
+                        chars.length
+                    )
+                ];
+
+        }
+
+
+        localStorage.setItem(
+            "gcplay_activation_code",
+            code
+        );
+
+    }
+
+
+    state.deviceId=deviceId;
+
+    state.activationCode =
+        String(code)
+        .toUpperCase();
+
+
+    $("deviceCode")
+        .textContent =
+        "GC-" +
+        deviceId
+            .replace(/-/g,"")
+            .substring(0,8)
+            .toUpperCase();
+
+
+    $("qr").innerHTML="";
+
+
+    try{
+
+        new QRCode(
+            $("qr"),
+            {
+
+                text:
+                    ACTIVATION_PAGE +
+                    "?device=" +
+                    encodeURIComponent(
+                        deviceId
+                    ) +
+                    "&code=" +
+                    encodeURIComponent(
+                        state.activationCode
+                    ),
+
+                width:150,
+
+                height:150
+
+            }
+        );
+
+    }catch(e){
+
+        $("qr").textContent =
+            state.activationCode;
+
+    }
+
+}
+
+
+/* =========================================================
+   REGISTRAR DISPOSITIVO
+========================================================= */
+
+async function registerDevice(){
+
+    try{
+
+        var response =
+            await fetch(
+                ACTIVATE,
+                {
+
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        action:"register",
+
+                        device_id:
+                            state.deviceId,
+
+                        activation_code:
+                            state.activationCode
+
+                    })
+
+                }
+            );
+
+
+        if(response.ok){
+
+            $("activationStatus")
+                .textContent =
+                "DISPOSITIVO REGISTRADO";
+
+        }
+
+    }catch(error){
+
+        console.warn(
+            "Ativação:",
+            error
+        );
+
+        $("activationStatus")
+            .textContent =
+            "AGUARDANDO CONEXÃO";
+
+    }
+
+}
+
+
+/* =========================================================
+   STATUS DO DISPOSITIVO
+========================================================= */
+
+async function checkDeviceStatus(){
+
+    if(!state.deviceId){
+        return;
+    }
+
+
+    try{
+
+        var response =
+            await fetch(
+                ACTIVATE,
+                {
+
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        action:"status",
+
+                        device_id:
+                            state.deviceId
+
+                    })
+
+                }
+            );
+
+
+        if(!response.ok){
+            return;
+        }
+
+
+        var data =
+            await response.json();
+
+
+        if(
+            data &&
+            data.success &&
+            data.device
+        ){
+
+            if(
+                data.device.status==="active"
+            ){
+
+                $("activationStatus")
+                    .textContent =
+                    "APARELHO ATIVADO";
+
+            }else if(
+                data.device.status==="blocked"
+            ){
+
+                $("activationStatus")
+                    .textContent =
+                    "APARELHO BLOQUEADO";
+
+            }else{
+
+                $("activationStatus")
+                    .textContent =
+                    "AGUARDANDO ATIVAÇÃO";
+
+            }
+
+        }
+
+    }catch(e){
+
+        console.warn(
+            "Status:",
+            e
+        );
+
+    }
 
 }
 
@@ -2487,287 +4002,317 @@ async function atualizarLista(){
    EVENTOS
 ========================================================= */
 
+function bind(){
 
-/* + M3U */
+    /* + M3U */
 
-document
-    .getElementById("btnAddM3U")
-    .addEventListener(
-        "click",
-        abrirM3U
-    );
+    $("addBtn").onclick=
+        openAdd;
 
 
-/* LISTAS */
+    /* LISTAS */
 
-document
-    .getElementById("btnListas")
-    .addEventListener(
-        "click",
-        abrirListas
-    );
+    $("listsBtn").onclick=function(){
 
+        renderSavedLists();
 
-/* cancelar */
+        $("listsModal")
+            .classList.remove("hidden");
 
-document
-    .getElementById("btnCancelM3U")
-    .addEventListener(
-        "click",
-        fecharM3U
-    );
+    };
 
 
-/* carregar */
+    /* DISPOSITIVO */
 
-document
-    .getElementById("btnLoadM3U")
-    .addEventListener(
-        "click",
-        adicionarM3U
-    );
+    $("deviceBtn").onclick=function(){
 
+        $("deviceModal")
+            .classList.remove("hidden");
 
-/* nova lista */
+        checkDeviceStatus();
 
-document
-    .getElementById("btnNewList")
-    .addEventListener(
-        "click",
-        () => {
-
-            fecharModal(
-                listasModal
-            );
-
-            abrirM3U();
-
-        }
-    );
+    };
 
 
-/* fechar listas */
+    /* NOVA LISTA */
 
-document
-    .getElementById("btnCloseListas")
-    .addEventListener(
-        "click",
-        () => {
+    $("newListFromModal").onclick=function(){
 
-            fecharModal(
-                listasModal
-            );
+        $("listsModal")
+            .classList.add("hidden");
 
-        }
-    );
+        openAdd();
+
+    };
 
 
-/* atualizar */
+    /* SALVAR */
 
-document
-    .getElementById("btnRefresh")
-    .addEventListener(
-        "click",
-        atualizarLista
-    );
+    $("saveList").onclick=
+        addList;
 
 
-/* categoria */
+    /* FECHAR MODAIS */
 
-categoryEl.addEventListener(
-    "change",
-    aplicarFiltro
-);
+    Array.prototype.forEach.call(
+        document.querySelectorAll(
+            "[data-close]"
+        ),
+        function(button){
 
+            button.onclick=function(){
 
-/* pesquisa */
+                var id =
+                    button.getAttribute(
+                        "data-close"
+                    );
 
-searchEl.addEventListener(
-    "input",
-    () => {
+                $(id)
+                    .classList.add("hidden");
 
-        /*
-          Evita reconstruções excessivas
-          enquanto o usuário digita.
-        */
-
-        clearTimeout(
-            searchEl._timer
-        );
-
-        searchEl._timer =
-            setTimeout(
-                aplicarFiltro,
-                120
-            );
-
-    }
-);
-
-
-/* fechar série */
-
-document
-    .getElementById("btnCloseSeries")
-    .addEventListener(
-        "click",
-        () => {
-
-            fecharModal(
-                seriesModal
-            );
+            };
 
         }
     );
 
 
-/* fechar player */
+    /* TABS */
 
-document
-    .getElementById("playerClose")
-    .addEventListener(
-        "click",
-        fecharPlayer
-    );
+    Array.prototype.forEach.call(
+        document.querySelectorAll(".tab"),
+        function(button){
+
+            button.onclick=function(){
+
+                var category =
+                    button.getAttribute(
+                        "data-category"
+                    );
 
 
-/* ações das listas */
+                if(
+                    category==="adult"
+                ){
 
-document
-    .getElementById("savedLists")
-    .addEventListener(
-        "click",
-        async event => {
+                    requestAdult();
 
-            const botao =
-                event.target.closest(
-                    "button[data-action]"
+                    return;
+
+                }
+
+
+                switchCategory(
+                    category
                 );
 
-            if(!botao){
-                return;
-            }
-
-
-            const action =
-                botao.dataset.action;
-
-            const id =
-                botao.dataset.id;
-
-
-            if(action === "open"){
-
-                await abrirListaSalva(id);
-
-            }
-
-
-            if(action === "delete"){
-
-                excluirLista(id);
-
-            }
+            };
 
         }
     );
 
 
-/* Enter no nome */
+    /* PIN */
 
-document
-    .getElementById("m3uName")
-    .addEventListener(
+    $("pinOk").onclick=
+        validatePin;
+
+
+    $("pin").addEventListener(
         "keydown",
-        event => {
-
-            if(event.key === "Enter"){
-
-                document
-                    .getElementById("m3uUrl")
-                    .focus();
-
-            }
-
-        }
-    );
-
-
-/* Enter na URL */
-
-document
-    .getElementById("m3uUrl")
-    .addEventListener(
-        "keydown",
-        event => {
-
-            if(event.key === "Enter"){
-
-                adicionarM3U();
-
-            }
-
-        }
-    );
-
-
-/*
-  Clicar fora do modal fecha.
-*/
-
-[
-    m3uModal,
-    listasModal,
-    seriesModal
-].forEach(modal => {
-
-    modal.addEventListener(
-        "click",
-        event => {
+        function(event){
 
             if(
-                event.target === modal
+                event.key==="Enter"
             ){
 
-                fecharModal(modal);
+                event.preventDefault();
+
+                validatePin();
 
             }
 
         }
     );
 
-});
+
+    /* PESQUISA */
+
+    $("search").oninput=function(){
+
+        state.page=1;
+
+        render();
+
+    };
+
+
+    /* GRUPO */
+
+    $("group").onchange=function(){
+
+        state.group =
+            this.value;
+
+        state.page=1;
+
+        render();
+
+    };
+
+
+    /* PAGINAÇÃO */
+
+    $("prev").onclick=function(){
+
+        if(state.page>1){
+
+            state.page--;
+
+            render();
+
+        }
+
+    };
+
+
+    $("next").onclick=function(){
+
+        var total =
+            getFiltered().length;
+
+
+        var pages =
+            Math.max(
+                1,
+                Math.ceil(
+                    total/PAGE_SIZE
+                )
+            );
+
+
+        if(
+            state.page<pages
+        ){
+
+            state.page++;
+
+            render();
+
+        }
+
+    };
+
+
+    /* STOP */
+
+    $("stop").onclick=
+        stop;
+
+
+    /* ESC */
+
+    document.addEventListener(
+        "keydown",
+        function(event){
+
+            if(
+                event.key==="Escape"
+            ){
+
+                document.querySelectorAll(
+                    ".modal"
+                ).forEach(
+                    function(modal){
+
+                        modal.classList.add(
+                            "hidden"
+                        );
+
+                    }
+                );
+
+            }
+
+        }
+    );
+
+
+    /*
+     * Impede comportamento indesejado
+     * do botão voltar/recarregar em
+     * formulários e evita submit.
+     */
+
+    document.addEventListener(
+        "submit",
+        function(event){
+
+            event.preventDefault();
+
+        }
+    );
+
+}
 
 
 /* =========================================================
    INICIALIZAÇÃO
 ========================================================= */
 
-function iniciar(){
+function init(){
 
-    carregarListasStorage();
+    try{
+
+        initDevice();
+
+        bind();
+
+        renderListPills();
+
+        render();
+
+        registerDevice();
 
 
-    /*
-      NÃO carregamos automaticamente uma lista
-      sem o usuário pedir.
+        /*
+         * Verifica ativação a cada 15 segundos,
+         * sem recarregar a página.
+         */
 
-      Isso evita aquela espera de 1 minuto e meio
-      ao abrir o aplicativo.
-    */
-
-    if(listas.length > 0){
-
-        mostrarStatus(
-            `${listas.length} lista(s) salva(s). Toque em LISTAS para abrir.`,
-            "info"
+        setInterval(
+            checkDeviceStatus,
+            15000
         );
 
-    }else{
 
-        mostrarStatus(
-            "Adicione sua lista M3U para começar.",
-            "info"
+        /*
+         * Se já existir uma lista salva,
+         * NÃO baixa automaticamente.
+         *
+         * Isso evita que uma M3U enorme seja
+         * baixada sem o usuário pedir.
+         */
+
+        if(lists.length){
+
+            setStatus(
+                lists.length +
+                " lista(s) salva(s). " +
+                "Escolha uma lista para carregar."
+            );
+
+        }
+
+
+    }catch(error){
+
+        console.error(
+            "Erro inicial:",
+            error
+        );
+
+        setStatus(
+            "GC PLAY PRO iniciado."
         );
 
     }
@@ -2775,37 +4320,26 @@ function iniciar(){
 }
 
 
-iniciar();
-
-
 /* =========================================================
-   PREVENIR ERROS NÃO TRATADOS
+   START
 ========================================================= */
 
-window.addEventListener(
-    "error",
-    event => {
+if(
+    document.readyState==="loading"
+){
 
-        console.error(
-            "Erro JavaScript:",
-            event.error || event.message
-        );
+    document.addEventListener(
+        "DOMContentLoaded",
+        init
+    );
 
-    }
-);
+}else{
 
+    init();
 
-window.addEventListener(
-    "unhandledrejection",
-    event => {
+}
 
-        console.error(
-            "Promise rejeitada:",
-            event.reason
-        );
-
-    }
-);
+})();
 
 </script>
 
