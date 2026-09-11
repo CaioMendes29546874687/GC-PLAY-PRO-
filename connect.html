@@ -5,350 +5,855 @@
 
 <meta
     name="viewport"
-    content="width=device-width,initial-scale=1.0"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
 >
 
-<meta name="theme-color" content="#030503">
+<meta
+    name="theme-color"
+    content="#020402"
+>
 
 <title>GC PLAY PRO - Ativação</title>
 
 <style>
 
+:root{
+    --green:#16ff00;
+    --green-dark:#0a7d00;
+    --bg:#020402;
+    --panel:#071007;
+    --border:#183518;
+    --text:#f4f4f4;
+    --muted:#829582;
+    --danger:#ff4141;
+}
+
 *{
     box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html,
+body{
+    width:100%;
+    min-height:100%;
+    background:
+        radial-gradient(
+            circle at center,
+            #0b180b 0%,
+            #030603 48%,
+            #000 100%
+        );
+    color:var(--text);
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
 }
 
 body{
-    margin:0;
     min-height:100vh;
     display:flex;
-    align-items:center;
     justify-content:center;
+    align-items:center;
     padding:20px;
-    background:#030503;
-    color:#fff;
-    font-family:Arial,sans-serif;
 }
 
-.box{
+.container{
     width:100%;
-    max-width:480px;
-    background:#0a0f0a;
-    border:1px solid #28d905;
-    border-radius:18px;
-    padding:28px;
+    max-width:630px;
+}
+
+.panel{
+
+    width:100%;
+
+    background:
+        linear-gradient(
+            145deg,
+            #091009,
+            #030503
+        );
+
+    border:1px solid var(--green);
+
+    border-radius:26px;
+
+    padding:
+        48px
+        46px
+        40px;
+
     box-shadow:
-        0 0 35px rgba(40,217,5,.35);
+        0 0 25px rgba(22,255,0,.20),
+        0 0 70px rgba(22,255,0,.08),
+        inset 0 0 35px rgba(22,255,0,.025);
+
 }
 
 .logo{
+
     text-align:center;
-    font-size:25px;
+
+    font-size:44px;
+
     font-weight:900;
+
     letter-spacing:2px;
+
+    color:#fff;
+
     margin-bottom:8px;
+
 }
 
 .logo span{
-    color:#28d905;
+    color:var(--green);
 }
 
 .subtitle{
+
     text-align:center;
-    color:#719071;
-    font-size:13px;
-    margin-bottom:25px;
+
+    color:#879b87;
+
+    font-size:20px;
+
+    letter-spacing:1px;
+
+    margin-bottom:38px;
+
+}
+
+.field{
+    margin-bottom:22px;
 }
 
 label{
+
     display:block;
-    color:#8ca88c;
-    font-size:12px;
-    margin-bottom:7px;
+
+    color:#9aae9a;
+
+    font-size:18px;
+
+    margin-bottom:9px;
+
 }
 
-input{
+.input{
+
     width:100%;
-    padding:14px;
-    border-radius:9px;
-    border:1px solid #183718;
-    background:#030503;
+
+    height:64px;
+
+    background:#020302;
+
+    border:1px solid #183418;
+
+    border-radius:12px;
+
     color:#fff;
-    font-size:16px;
+
+    font-size:21px;
+
+    padding:0 20px;
+
     outline:none;
-    margin-bottom:15px;
+
+    transition:.2s;
+
 }
 
-input:focus{
-    border-color:#28d905;
-    box-shadow:0 0 15px rgba(40,217,5,.2);
+.input:focus{
+
+    border-color:var(--green);
+
+    box-shadow:
+        0 0 12px rgba(22,255,0,.12);
+
 }
 
-button{
+.input[readonly]{
+    color:#a6b7a6;
+}
+
+.activation-code{
+
+    text-transform:uppercase;
+
+    letter-spacing:3px;
+
+    font-weight:bold;
+
+}
+
+.button{
+
     width:100%;
-    border:1px solid #28d905;
-    background:#102010;
-    color:#28d905;
-    padding:14px;
-    border-radius:9px;
-    font-size:14px;
-    font-weight:800;
+
+    height:72px;
+
+    border:0;
+
+    border-radius:13px;
+
+    background:var(--green);
+
+    color:#020302;
+
+    font-size:21px;
+
+    font-weight:900;
+
     cursor:pointer;
+
+    margin-top:4px;
+
+    transition:.15s;
+
 }
 
-button:hover{
-    background:#28d905;
-    color:#030503;
+.button:hover{
+
+    filter:brightness(1.08);
+
+    transform:translateY(-1px);
+
+}
+
+.button:active{
+
+    transform:scale(.99);
+
+}
+
+.button:disabled{
+
+    opacity:.5;
+
+    cursor:not-allowed;
+
+    transform:none;
+
+}
+
+.message{
+
+    margin-top:26px;
+
+    min-height:60px;
+
+    border-radius:12px;
+
+    border:1px solid #183518;
+
+    background:#030703;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    text-align:center;
+
+    padding:15px;
+
+    font-size:17px;
+
+    color:#839683;
+
+}
+
+.message.success{
+
+    border-color:#147a14;
+
+    color:#73ff73;
+
+    background:#061006;
+
+}
+
+.message.error{
+
+    border-color:var(--danger);
+
+    color:#ff6868;
+
+    background:#100404;
+
+}
+
+.message.loading{
+
+    color:#a5b9a5;
+
+}
+
+.device-id-box{
+
+    margin-top:25px;
+
+    border:1px dashed #244624;
+
+    border-radius:12px;
+
+    padding:17px;
+
+    color:#718071;
+
+    font-size:15px;
+
+    word-break:break-all;
+
+    line-height:1.5;
+
+}
+
+.device-id-box strong{
+    color:#9aac9a;
 }
 
 .status{
-    margin-top:18px;
-    padding:12px;
-    border-radius:9px;
-    background:#050905;
-    border:1px solid #143314;
-    color:#8ca88c;
-    font-size:13px;
+
+    margin-top:15px;
+
     text-align:center;
-    word-break:break-word;
+
+    font-size:14px;
+
+    color:#617061;
+
 }
 
-.status.ok{
-    color:#28d905;
-    border-color:#28d905;
+.status.active{
+    color:var(--green);
 }
 
-.status.error{
-    color:#ff4040;
-    border-color:#ff4040;
+.spinner{
+
+    display:inline-block;
+
+    width:17px;
+
+    height:17px;
+
+    border:2px solid #344534;
+
+    border-top-color:var(--green);
+
+    border-radius:50%;
+
+    vertical-align:-4px;
+
+    margin-right:7px;
+
+    animation:
+        spin .8s linear infinite;
+
 }
 
-.device-info{
-    margin-top:18px;
-    padding:12px;
-    border:1px dashed #1b421b;
-    border-radius:9px;
-    color:#709070;
-    font-size:11px;
-    word-break:break-all;
+@keyframes spin{
+
+    to{
+        transform:rotate(360deg);
+    }
+
+}
+
+@media(max-width:600px){
+
+    body{
+        padding:12px;
+    }
+
+    .panel{
+
+        padding:
+            42px
+            26px
+            30px;
+
+        border-radius:24px;
+
+    }
+
+    .logo{
+        font-size:38px;
+    }
+
+    .subtitle{
+        font-size:18px;
+        margin-bottom:32px;
+    }
+
+    label{
+        font-size:17px;
+    }
+
+    .input{
+        height:62px;
+        font-size:19px;
+    }
+
+    .button{
+        height:70px;
+        font-size:19px;
+    }
+
+}
+
+@media(max-width:380px){
+
+    .panel{
+        padding:
+            34px
+            18px
+            25px;
+    }
+
+    .logo{
+        font-size:31px;
+    }
+
+    .subtitle{
+        font-size:15px;
+    }
+
 }
 
 </style>
+
 </head>
 
 <body>
 
-<div class="box">
+<div class="container">
 
-    <div class="logo">
-        GC PLAY <span>PRO</span>
-    </div>
+    <div class="panel">
 
-    <div class="subtitle">
-        ATIVAÇÃO DO DISPOSITIVO
-    </div>
+        <div class="logo">
+            GC PLAY <span>PRO</span>
+        </div>
 
+        <div class="subtitle">
+            ATIVAÇÃO DO DISPOSITIVO
+        </div>
 
-    <label>
-        Código de ativação
-    </label>
+        <!-- =================================================
+             CÓDIGO
+        ================================================== -->
 
-    <input
-        id="codigo"
-        type="text"
-        maxlength="6"
-        autocomplete="off"
-        autocapitalize="characters"
-        placeholder="Ex.: ABC123"
-    >
+        <div class="field">
 
+            <label for="activationCode">
+                Código de ativação
+            </label>
 
-    <label>
-        URL da sua lista M3U
-    </label>
+            <input
+                id="activationCode"
+                class="input activation-code"
+                type="text"
+                maxlength="6"
+                autocomplete="off"
+                autocapitalize="characters"
+                placeholder="Digite o código"
+            >
 
-    <input
-        id="playlist"
-        type="url"
-        autocomplete="off"
-        placeholder="http:// ou https://"
-    >
+        </div>
 
+        <!-- =================================================
+             M3U
+        ================================================== -->
 
-    <button
-        id="btnAtivar"
-        type="button"
-    >
-        ATIVAR DISPOSITIVO
-    </button>
+        <div class="field">
 
+            <label for="playlistUrl">
+                URL da sua lista M3U
+            </label>
 
-    <div
-        id="status"
-        class="status"
-    >
-        Informe o código e a lista M3U.
-    </div>
+            <input
+                id="playlistUrl"
+                class="input"
+                type="url"
+                autocomplete="off"
+                placeholder="http://servidor/sua-lista.m3u"
+            >
 
+        </div>
 
-    <div class="device-info">
+        <!-- =================================================
+             BOTÃO
+        ================================================== -->
 
-        ID do dispositivo:
-
-        <strong
-            id="deviceId"
+        <button
+            id="activateButton"
+            class="button"
+            type="button"
         >
-            —
-        </strong>
+            ATIVAR DISPOSITIVO
+        </button>
+
+        <!-- =================================================
+             MENSAGEM
+        ================================================== -->
+
+        <div
+            id="message"
+            class="message"
+        >
+            Aguardando ativação...
+        </div>
+
+        <!-- =================================================
+             ID
+        ================================================== -->
+
+        <div
+            id="deviceIdBox"
+            class="device-id-box"
+        >
+            <strong>ID do dispositivo:</strong>
+            <span id="deviceId">Gerando...</span>
+        </div>
+
+        <div
+            id="status"
+            class="status"
+        >
+            Detectando dispositivo...
+        </div>
 
     </div>
 
 </div>
 
-
 <script>
-
 "use strict";
 
+/* =========================================================
+   CONFIGURAÇÃO
+========================================================= */
 
-const SUPABASE =
+const SUPABASE_URL =
     "https://kuzgdvpdqmocklsgyzvt.supabase.co";
 
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_2qV7Uw-99dQlVcXluSuikw_YZGClN13";
 
-const ACTIVATE =
-    SUPABASE +
+const ACTIVATE_FUNCTION =
+    SUPABASE_URL +
     "/functions/v1/activate-device";
 
+/*
+ * MUITO IMPORTANTE:
+ *
+ * Esta é a mesma chave utilizada no index.html.
+ *
+ * Isso faz o connect.html e o aplicativo
+ * compartilharem o mesmo ID.
+ */
 
-const params =
-    new URLSearchParams(
-        window.location.search
-    );
+const DEVICE_STORAGE_KEY =
+    "gcplay_pro_device_id_v5";
 
+const ACTIVATION_STORAGE_KEY =
+    "gcplay_pro_activation_code_v5";
 
-const deviceFromURL =
-    params.get("device") || "";
+const PLAYLIST_STORAGE_KEY =
+    "gcplay_pro_activated_playlist_v5";
 
+/* =========================================================
+   ELEMENTOS
+========================================================= */
 
-const codeFromURL =
-    params.get("code") || "";
-
-
-const deviceInput =
+const deviceIdElement =
     document.getElementById(
         "deviceId"
     );
 
-
-const codigoInput =
+const activationCodeInput =
     document.getElementById(
-        "codigo"
+        "activationCode"
     );
 
-
-const playlistInput =
+const playlistUrlInput =
     document.getElementById(
-        "playlist"
+        "playlistUrl"
     );
 
+const activateButton =
+    document.getElementById(
+        "activateButton"
+    );
 
-const statusBox =
+const message =
+    document.getElementById(
+        "message"
+    );
+
+const status =
     document.getElementById(
         "status"
     );
 
+/* =========================================================
+   UUID
+========================================================= */
 
-const btn =
-    document.getElementById(
-        "btnAtivar"
+function generateUUID(){
+
+    if(
+        window.crypto &&
+        typeof crypto.randomUUID ===
+        "function"
+    ){
+
+        return crypto.randomUUID();
+
+    }
+
+    /*
+     * Fallback para navegadores antigos,
+     * inclusive algumas Smart TVs.
+     */
+
+    return (
+        "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
+    ).replace(
+        /[xy]/g,
+        function(c){
+
+            const r =
+                Math.random() * 16 | 0;
+
+            const v =
+                c === "x"
+                    ? r
+                    : (r & 0x3) | 0x8;
+
+            return v.toString(16);
+
+        }
     );
 
+}
 
-let deviceId =
-    deviceFromURL.trim();
+/* =========================================================
+   VALIDAR UUID
+========================================================= */
 
+function isValidUUID(id){
 
-/*
- * Se o QR trouxe o device, usamos ele.
- *
- * Se não trouxe, o administrador pode informar
- * o ID manualmente no código abaixo futuramente.
- */
-
-if(deviceId){
-
-    document.getElementById(
-        "deviceId"
-    ).textContent =
-        deviceId;
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+        .test(
+            String(id || "")
+        );
 
 }
 
+/* =========================================================
+   OBTER ID DO DISPOSITIVO
+========================================================= */
 
-if(codeFromURL){
+function getDeviceId(){
 
-    codigoInput.value =
-        codeFromURL
-        .trim()
-        .toUpperCase();
+    let id =
+        localStorage.getItem(
+            DEVICE_STORAGE_KEY
+        );
+
+    /*
+     * Primeiro tenta recuperar o ID existente.
+     */
+
+    if(
+        isValidUUID(id)
+    ){
+
+        return id;
+
+    }
+
+    /*
+     * Se não existe, cria um novo.
+     */
+
+    id =
+        generateUUID();
+
+    localStorage.setItem(
+        DEVICE_STORAGE_KEY,
+        id
+    );
+
+    return id;
 
 }
 
+/* =========================================================
+   DEVICE ID
+========================================================= */
 
-function status(texto,tipo){
+const deviceId =
+    getDeviceId();
 
-    statusBox.textContent =
-        texto;
+deviceIdElement.textContent =
+    deviceId;
 
-    statusBox.className =
-        "status " +
+/* =========================================================
+   DETECTAR APARELHO
+========================================================= */
+
+function detectDevice(){
+
+    const ua =
+        String(
+            navigator.userAgent || ""
+        ).toLowerCase();
+
+    const width =
+        window.innerWidth || 0;
+
+    const height =
+        window.innerHeight || 0;
+
+    const touch =
+        Number(
+            navigator.maxTouchPoints || 0
+        ) > 0;
+
+    const tv =
+        /smart-tv|smarttv|hbbtv|webos|tizen|netcast|viera|nettv|googletv|android tv|aftb|aftm|bravia|roku|hisense|philips|opera tv|appletv/
+            .test(ua);
+
+    const androidTV =
+        /android/.test(ua) &&
         (
-            tipo || ""
+            /tv|googletv|aftb|aftm/
+                .test(ua)
         );
+
+    let type = "PC";
+
+    if(
+        tv ||
+        androidTV
+    ){
+
+        type = "SMART TV";
+
+    }else if(
+        /mobile|iphone|ipod|windows phone/
+            .test(ua)
+    ){
+
+        type = "CELULAR";
+
+    }else if(
+        /ipad|tablet/
+            .test(ua) ||
+        (
+            /android/.test(ua) &&
+            width >= 600
+        )
+    ){
+
+        type = "TABLET";
+
+    }
+
+    status.textContent =
+        "Dispositivo detectado: " +
+        type +
+        " • " +
+        width +
+        " × " +
+        height;
+
+    return {
+        type,
+        width,
+        height,
+        touch
+    };
 
 }
 
+detectDevice();
 
-function validarUUID(valor){
+/* =========================================================
+   RECUPERAR CÓDIGO SALVO
+========================================================= */
 
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-        .test(
-            String(valor || "")
-        );
+const savedCode =
+    localStorage.getItem(
+        ACTIVATION_STORAGE_KEY
+    );
 
-}
+if(savedCode){
 
-
-function validarCodigo(valor){
-
-    return /^[A-Z0-9]{6}$/
-        .test(
-            String(valor || "")
-            .trim()
-            .toUpperCase()
-        );
+    activationCodeInput.value =
+        savedCode;
 
 }
 
+/* =========================================================
+   RECUPERAR M3U SALVA
+========================================================= */
 
-function validarURL(valor){
+const savedPlaylist =
+    localStorage.getItem(
+        PLAYLIST_STORAGE_KEY
+    );
+
+if(savedPlaylist){
+
+    playlistUrlInput.value =
+        savedPlaylist;
+
+}
+
+/* =========================================================
+   VALIDAR CÓDIGO
+========================================================= */
+
+activationCodeInput.addEventListener(
+    "input",
+    function(){
+
+        this.value =
+            this.value
+                .toUpperCase()
+                .replace(
+                    /[^A-Z0-9]/g,
+                    ""
+                )
+                .slice(0,6);
+
+    }
+);
+
+/* =========================================================
+   VALIDAR URL
+========================================================= */
+
+function isValidHttpUrl(url){
 
     try{
 
-        const u =
-            new URL(
-                String(valor || "")
-                .trim()
-            );
+        const parsed =
+            new URL(url);
 
         return (
-            u.protocol ===
-                "http:" ||
-            u.protocol ===
-                "https:"
+            parsed.protocol === "http:" ||
+            parsed.protocol === "https:"
         );
 
-    }catch(error){
+    }catch{
 
         return false;
 
@@ -356,27 +861,54 @@ function validarURL(valor){
 
 }
 
+/* =========================================================
+   MENSAGEM
+========================================================= */
 
-async function ativar(){
+function setMessage(
+    text,
+    type=""
+){
 
-    const codigo =
-        codigoInput.value
-        .trim()
-        .toUpperCase();
+    message.className =
+        "message";
 
+    if(type){
 
-    const playlist =
-        playlistInput.value
-        .trim();
+        message.classList.add(
+            type
+        );
 
+    }
+
+    message.textContent =
+        text;
+
+}
+
+/* =========================================================
+   ATIVAR
+========================================================= */
+
+async function activateDevice(){
+
+    /*
+     * Recupera novamente para garantir
+     * que estamos usando o mesmo ID.
+     */
+
+    const currentDeviceId =
+        localStorage.getItem(
+            DEVICE_STORAGE_KEY
+        );
 
     if(
-        !validarUUID(
-            deviceId
+        !isValidUUID(
+            currentDeviceId
         )
     ){
 
-        status(
+        setMessage(
             "ID do dispositivo inválido.",
             "error"
         );
@@ -385,249 +917,454 @@ async function ativar(){
 
     }
 
+    const activationCode =
+        activationCodeInput.value
+            .trim()
+            .toUpperCase();
+
+    const playlistUrl =
+        playlistUrlInput.value
+            .trim();
+
+    /*
+     * Código.
+     */
 
     if(
-        !validarCodigo(
-            codigo
-        )
+        !/^[A-Z0-9]{6}$/
+            .test(
+                activationCode
+            )
     ){
 
-        status(
-            "O código deve possuir 6 caracteres.",
+        setMessage(
+            "Digite um código de ativação com 6 caracteres.",
             "error"
         );
 
-        codigoInput.focus();
+        activationCodeInput.focus();
 
         return;
 
     }
 
+    /*
+     * M3U.
+     */
 
     if(
-        !validarURL(
-            playlist
+        !isValidHttpUrl(
+            playlistUrl
         )
     ){
 
-        status(
-            "Informe uma URL M3U válida começando com http:// ou https://",
+        setMessage(
+            "Informe uma URL HTTP ou HTTPS válida para a lista M3U.",
             "error"
         );
 
-        playlistInput.focus();
+        playlistUrlInput.focus();
 
         return;
 
     }
 
+    /*
+     * Estado visual.
+     */
 
-    btn.disabled=true;
+    activateButton.disabled =
+        true;
 
-    btn.textContent =
+    activateButton.textContent =
         "ATIVANDO...";
 
+    status.innerHTML =
+        '<span class="spinner"></span>Conectando ao servidor de ativação...';
 
-    status(
-        "Enviando ativação para o GC PLAY PRO...",
-        ""
+    setMessage(
+        "Verificando dispositivo..."
     );
-
 
     try{
 
-        const resposta =
-            await fetch(
-                ACTIVATE,
-                {
+        /*
+         * IMPORTANTE:
+         *
+         * O ID vai exatamente como UUID.
+         */
 
+        const payload = {
+
+            action:"activate",
+
+            device_id:
+                currentDeviceId,
+
+            activation_code:
+                activationCode,
+
+            playlist_url:
+                playlistUrl
+
+        };
+
+        console.log(
+            "GC PLAY PRO - ativação:",
+            {
+                action:payload.action,
+                device_id:payload.device_id,
+                activation_code:payload.activation_code
+            }
+        );
+
+        const response =
+            await fetch(
+                ACTIVATE_FUNCTION,
+                {
                     method:"POST",
 
                     headers:{
                         "Content-Type":
+                            "application/json",
+
+                        "apikey":
+                            SUPABASE_PUBLISHABLE_KEY,
+
+                        "Authorization":
+                            "Bearer " +
+                            SUPABASE_PUBLISHABLE_KEY,
+
+                        "Accept":
                             "application/json"
                     },
 
-                    body:JSON.stringify({
-
-                        action:
-                            "activate",
-
-                        device_id:
-                            deviceId,
-
-                        activation_code:
-                            codigo,
-
-                        playlist_url:
-                            playlist
-
-                    })
-
+                    body:
+                        JSON.stringify(
+                            payload
+                        )
                 }
             );
 
+        const raw =
+            await response.text();
 
-        const resultado =
-            await resposta
-            .json()
-            .catch(
-                ()=>({})
-            );
+        let data = null;
 
+        try{
 
-        console.log(
-            "Resposta ativação:",
-            resultado
-        );
+            data =
+                JSON.parse(raw);
 
-
-        if(
-            !resposta.ok ||
-            !resultado.success
-        ){
+        }catch{
 
             throw new Error(
-                resultado.error ||
-                (
-                    "Erro HTTP " +
-                    resposta.status
-                )
+                "O servidor retornou uma resposta inválida."
             );
 
         }
 
-
-        status(
-            "DISPOSITIVO ATIVADO COM SUCESSO!",
-            "ok"
+        console.log(
+            "GC PLAY PRO - resposta:",
+            data
         );
 
+        if(
+            !response.ok
+        ){
+
+            throw new Error(
+                data?.error ||
+                data?.message ||
+                "Erro HTTP " +
+                response.status
+            );
+
+        }
+
+        if(
+            data?.success !== true
+        ){
+
+            throw new Error(
+                data?.error ||
+                data?.message ||
+                "Não foi possível ativar o dispositivo."
+            );
+
+        }
 
         /*
-         * Guarda a informação localmente.
+         * SUCESSO
          */
 
         localStorage.setItem(
-            "gcplay_device_id",
-            deviceId
+            DEVICE_STORAGE_KEY,
+            currentDeviceId
         );
-
 
         localStorage.setItem(
-            "gcplay_activation_code",
-            codigo
+            ACTIVATION_STORAGE_KEY,
+            activationCode
         );
-
 
         localStorage.setItem(
-            "gcplay_remote_playlist",
-            playlist
+            PLAYLIST_STORAGE_KEY,
+            playlistUrl
         );
-
-
-        btn.textContent =
-            "ATIVADO";
-
 
         /*
-         * Depois de 1,5 segundo volta para o player.
+         * Atualiza tela.
          */
 
-        setTimeout(
-            ()=>{
+        activateButton.textContent =
+            "DISPOSITIVO ATIVADO";
 
-                window.location.href =
-                    "./index.html";
+        activateButton.disabled =
+            true;
 
-            },
-            1500
+        setMessage(
+            "✓ DISPOSITIVO ATIVADO COM SUCESSO!",
+            "success"
         );
 
+        status.className =
+            "status active";
+
+        status.textContent =
+            "GC PLAY PRO está pronto para uso.";
+
+        /*
+         * Se a API devolver dispositivo,
+         * mostra informações.
+         */
+
+        if(
+            data.device
+        ){
+
+            const device =
+                data.device;
+
+            let extra =
+                "Dispositivo ativo.";
+
+            if(
+                device.expires_at
+            ){
+
+                const expiration =
+                    new Date(
+                        device.expires_at
+                    );
+
+                if(
+                    !Number.isNaN(
+                        expiration.getTime()
+                    )
+                ){
+
+                    extra +=
+                        " Expira em " +
+                        expiration.toLocaleDateString(
+                            "pt-BR"
+                        ) +
+                        ".";
+
+                }
+
+            }
+
+            status.textContent =
+                extra;
+
+        }
 
     }catch(error){
 
         console.error(
-            "Erro ativação:",
+            "GC PLAY PRO - erro:",
             error
         );
 
-
-        status(
+        setMessage(
             error?.message ||
-            "Não foi possível ativar o dispositivo.",
+            "Erro ao ativar dispositivo.",
             "error"
         );
 
+        status.className =
+            "status";
 
-        btn.disabled=false;
+        status.textContent =
+            "Verifique o código e tente novamente.";
 
-        btn.textContent =
+        activateButton.disabled =
+            false;
+
+        activateButton.textContent =
             "ATIVAR DISPOSITIVO";
 
     }
 
 }
 
+/* =========================================================
+   BOTÃO
+========================================================= */
 
-btn.addEventListener(
+activateButton.addEventListener(
     "click",
-    ativar
+    activateDevice
 );
 
+/* =========================================================
+   ENTER
+========================================================= */
 
-codigoInput.addEventListener(
-    "input",
-    ()=>{
+document.addEventListener(
+    "keydown",
+    function(event){
 
-        codigoInput.value =
-            codigoInput.value
-            .replace(
-                /[^a-zA-Z0-9]/g,
-                ""
-            )
-            .toUpperCase()
-            .substring(
-                0,
-                6
+        if(
+            event.key === "Enter"
+        ){
+
+            const active =
+                document.activeElement;
+
+            if(
+                active ===
+                    activationCodeInput ||
+                active ===
+                    playlistUrlInput
+            ){
+
+                event.preventDefault();
+
+                activateDevice();
+
+            }
+
+        }
+
+    }
+);
+
+/* =========================================================
+   ATUALIZAÇÃO DE ORIENTAÇÃO
+========================================================= */
+
+window.addEventListener(
+    "resize",
+    detectDevice
+);
+
+window.addEventListener(
+    "orientationchange",
+    function(){
+
+        setTimeout(
+            detectDevice,
+            300
+        );
+
+    }
+);
+
+/* =========================================================
+   VERIFICAR STATUS AO ABRIR
+========================================================= */
+
+async function checkExistingStatus(){
+
+    const code =
+        localStorage.getItem(
+            ACTIVATION_STORAGE_KEY
+        );
+
+    if(
+        !code ||
+        !isValidUUID(deviceId)
+    ){
+
+        return;
+
+    }
+
+    try{
+
+        const response =
+            await fetch(
+                ACTIVATE_FUNCTION,
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json",
+
+                        "apikey":
+                            SUPABASE_PUBLISHABLE_KEY,
+
+                        "Authorization":
+                            "Bearer " +
+                            SUPABASE_PUBLISHABLE_KEY
+                    },
+
+                    body:
+                        JSON.stringify({
+                            action:"status",
+
+                            device_id:
+                                deviceId,
+
+                            activation_code:
+                                code
+                        })
+                }
             );
 
-    }
-);
-
-
-codigoInput.addEventListener(
-    "keydown",
-    event=>{
+        const data =
+            await response.json();
 
         if(
-            event.key ===
-            "Enter"
+            data?.success &&
+            data.device
         ){
 
-            ativar();
+            const device =
+                data.device;
+
+            if(
+                String(
+                    device.status || ""
+                ).toLowerCase() ===
+                "active"
+            ){
+
+                status.className =
+                    "status active";
+
+                status.textContent =
+                    "✓ Este dispositivo já está ativo.";
+
+            }
 
         }
 
-    }
-);
+    }catch(error){
 
-
-playlistInput.addEventListener(
-    "keydown",
-    event=>{
-
-        if(
-            event.key ===
-            "Enter"
-        ){
-
-            ativar();
-
-        }
+        console.warn(
+            "Status inicial:",
+            error
+        );
 
     }
-);
+
+}
+
+checkExistingStatus();
 
 </script>
 
