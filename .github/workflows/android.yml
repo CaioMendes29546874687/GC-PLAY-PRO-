@@ -33,53 +33,69 @@ jobs:
       - name: Criar projeto Android
         run: npx cap add android
 
-      - name: Configurar Android TV
+      - name: Configurar compatibilidade Android TV
         shell: bash
         run: |
-          MANIFEST="android/app/src/main/AndroidManifest.xml"
-
           python3 - <<'PY'
           from pathlib import Path
 
           manifest = Path("android/app/src/main/AndroidManifest.xml")
           text = manifest.read_text()
 
-          # Suporte Android TV
-          if 'android.software.leanback' not in text:
-              text = text.replace(
-                  '<manifest',
-                  '<manifest\n'
-                  '    xmlns:tools="http://schemas.android.com/tools"',
-                  1
-              )
+          # -------------------------------------------------
+          # Android TV: permitir instalação em dispositivos
+          # que não possuem tela touchscreen.
+          # -------------------------------------------------
 
-              text = text.replace(
-                  '>',
-                  '>\n'
-                  '    <uses-feature '
-                  'android:name="android.software.leanback" '
-                  'android:required="false" />\n'
-                  '    <uses-feature '
-                  'android:name="android.hardware.touchscreen" '
-                  'android:required="false" />',
-                  1
-              )
+          touchscreen = 'android.hardware.touchscreen'
 
-          # Adiciona LEANBACK_LAUNCHER na MainActivity
-          if 'android.intent.category.LEANBACK_LAUNCHER' not in text:
-              text = text.replace(
-                  '<category android:name="android.intent.category.LAUNCHER" />',
-                  '<category android:name="android.intent.category.LAUNCHER" />\n'
-                  '                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />',
-                  1
-              )
+          if touchscreen not in text:
+              marker = '    <application'
+
+              tv_features = '''    <uses-feature
+                  android:name="android.software.leanback"
+                  android:required="false" />
+
+              <uses-feature
+                  android:name="android.hardware.touchscreen"
+                  android:required="false" />
+
+          '''
+
+              if marker in text:
+                  text = text.replace(
+                      marker,
+                      tv_features + marker,
+                      1
+                  )
+
+          # -------------------------------------------------
+          # Android TV Launcher
+          # -------------------------------------------------
+
+          leanback_launcher = 'android.intent.category.LEANBACK_LAUNCHER'
+
+          if leanback_launcher not in text:
+              launcher = '<category android:name="android.intent.category.LAUNCHER" />'
+
+              replacement = launcher + '''
+                          <category android:name="android.intent.category.LEANBACK_LAUNCHER" />'''
+
+              if launcher in text:
+                  text = text.replace(
+                      launcher,
+                      replacement,
+                      1
+                  )
 
           manifest.write_text(text)
+
+          print("AndroidManifest.xml configurado para Android TV.")
           PY
 
-      - name: Verificar Manifest Android TV
+      - name: Verificar AndroidManifest
         run: |
-          echo "===== AndroidManifest.xml ====="
+          echo "===== ANDROID MANIFEST ====="
           cat android/app/src/main/AndroidManifest.xml
 
       - name: Sincronizar aplicativo
