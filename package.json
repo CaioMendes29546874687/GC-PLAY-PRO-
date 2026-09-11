@@ -1,0 +1,16 @@
+{
+  "name": "gc-play-pro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GC PLAY PRO",
+  "scripts": {
+    "build": "echo GC PLAY PRO",
+    "android": "npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/core": "^7.4.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.3"
+  }
+}
