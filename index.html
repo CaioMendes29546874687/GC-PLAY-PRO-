@@ -26,22 +26,21 @@
 <style>
 
 :root{
-    --green:#28D905;
+    --g:#28D905;
     --bg:#030503;
-    --card:#091009;
-    --card2:#050905;
-    --hover:#122012;
+    --card:#0b120b;
+    --hover:#132413;
     --line:#173617;
     --muted:#789078;
     --white:#efffef;
-    --danger:#ff6666;
+    --danger:#ff6b6b;
 }
 
 *{
     box-sizing:border-box;
     margin:0;
     padding:0;
-    font-family:Arial,Helvetica,sans-serif;
+    font-family:Arial,sans-serif;
     -webkit-tap-highlight-color:transparent;
 }
 
@@ -54,7 +53,7 @@ body{
 }
 
 body{
-    overflow:hidden;
+    overflow:auto;
 }
 
 button,
@@ -76,239 +75,203 @@ button:disabled{
     display:none!important;
 }
 
-/* APP */
-
 .app{
-    height:100vh;
-    height:100dvh;
-
+    width:100%;
+    min-height:100vh;
     display:flex;
     flex-direction:column;
-
     padding:12px;
     gap:10px;
 }
 
-/* TOPO */
+/* =========================================================
+   TOPO
+========================================================= */
 
 .top{
     display:flex;
     align-items:center;
     gap:10px;
-
     padding:12px 15px;
-
     background:var(--card);
-
     border:1px solid var(--line);
-
     border-radius:12px;
-
     flex-shrink:0;
 }
 
 .logo{
     font-weight:900;
-    font-size:21px;
+    font-size:22px;
     letter-spacing:2px;
 }
 
 .logo span{
-    color:var(--green);
+    color:var(--g);
 }
 
 .grow{
     flex:1;
 }
 
-/* BOTÕES */
-
 .btn{
     border:1px solid var(--line);
-
-    background:#081008;
-
+    background:#091009;
     color:#fff;
-
     border-radius:9px;
-
-    padding:9px 13px;
-
+    padding:10px 14px;
     font-weight:700;
-
     transition:.15s;
 }
 
 .btn:hover,
 .btn:focus{
-    border-color:var(--green);
-    color:var(--green);
+    border-color:var(--g);
+    color:var(--g);
 }
 
-.primary{
-    border-color:var(--green);
-    color:var(--green);
+.btn.primary{
+    border-color:var(--g);
+    color:var(--g);
     background:rgba(40,217,5,.08);
 }
 
-/* STATUS */
+.btn.device{
+    font-size:15px;
+}
+
+/* =========================================================
+   STATUS
+========================================================= */
 
 .status{
-    padding:9px 12px;
-
+    padding:10px 13px;
     border:1px solid var(--line);
-
     border-radius:9px;
-
     background:#081008;
-
     color:var(--muted);
-
     font-size:13px;
-
     flex-shrink:0;
 }
 
 .status.ok{
-    color:var(--green);
+    color:var(--g);
     border-color:#235b23;
 }
 
 .status.err{
-    color:var(--danger);
+    color:#ff7777;
     border-color:#693333;
 }
 
-/* LISTAS */
+/* =========================================================
+   LISTAS
+========================================================= */
 
 .lists-pills{
     display:flex;
     gap:7px;
-
     overflow-x:auto;
-
     padding-bottom:2px;
-
     flex-shrink:0;
+    scrollbar-width:none;
+}
+
+.lists-pills::-webkit-scrollbar{
+    display:none;
 }
 
 .pill{
     white-space:nowrap;
-
     border:1px solid var(--line);
-
     background:#071007;
-
     color:var(--muted);
-
     border-radius:20px;
-
-    padding:7px 12px;
+    padding:8px 13px;
 }
 
 .pill.active{
-    color:var(--green);
-
-    border-color:var(--green);
-
-    background:rgba(40,217,5,.10);
+    color:var(--g);
+    border-color:var(--g);
+    background:rgba(40,217,5,.1);
 }
 
-/* CATEGORIAS */
+/* =========================================================
+   CATEGORIAS
+========================================================= */
 
 .tabs{
     display:flex;
     gap:8px;
-
     overflow-x:auto;
-
     flex-shrink:0;
+    scrollbar-width:none;
+}
+
+.tabs::-webkit-scrollbar{
+    display:none;
 }
 
 .tab{
     white-space:nowrap;
-
     border:1px solid var(--line);
-
     background:var(--card);
-
     color:#fff;
-
     border-radius:9px;
-
-    padding:10px 14px;
-
+    padding:11px 15px;
     font-weight:800;
 }
 
 .tab.active{
-    color:var(--green);
-
-    border-color:var(--green);
-
+    color:var(--g);
+    border-color:var(--g);
     box-shadow:0 0 16px rgba(40,217,5,.18);
 }
 
-/* ÁREA PRINCIPAL */
+/* =========================================================
+   ÁREA PRINCIPAL
+========================================================= */
 
 .workspace{
     display:grid;
-
     grid-template-columns:minmax(0,1fr) 390px;
-
     gap:10px;
-
     min-height:0;
-
     flex:1;
 }
-
-/* CATÁLOGO */
 
 .catalog,
 .player{
     background:var(--card);
-
     border:1px solid var(--line);
-
     border-radius:12px;
-
     min-height:0;
 }
 
 .catalog{
     display:flex;
     flex-direction:column;
-
     padding:12px;
-
     overflow:hidden;
 }
 
-/* FERRAMENTAS */
+/* =========================================================
+   BUSCA
+========================================================= */
 
 .tools{
     display:flex;
-
     gap:8px;
-
     margin-bottom:10px;
-
     flex-shrink:0;
 }
 
 .search,
 .select{
     background:#050905;
-
     border:1px solid var(--line);
-
     color:#fff;
-
     border-radius:8px;
-
-    padding:10px 12px;
-
+    padding:11px 12px;
     min-width:0;
 }
 
@@ -317,92 +280,73 @@ button:disabled{
 }
 
 .select{
-    max-width:210px;
+    max-width:240px;
 }
 
 .search:focus,
 .select:focus{
     outline:none;
-    border-color:var(--green);
+    border-color:var(--g);
 }
 
-/* GRID */
+/* =========================================================
+   GRID
+========================================================= */
 
 .grid{
     flex:1;
-
     min-height:0;
-
     overflow-y:auto;
-
     display:grid;
-
-    grid-template-columns:
-        repeat(auto-fill,minmax(145px,1fr));
-
+    grid-template-columns:repeat(auto-fill,minmax(145px,1fr));
     gap:10px;
-
     align-content:start;
-
     padding-right:3px;
-
-    overscroll-behavior:contain;
+    scrollbar-width:thin;
 }
 
 .card{
     background:#050905;
-
     border:1px solid var(--line);
-
     border-radius:9px;
-
     overflow:hidden;
+    min-width:0;
 }
 
 .card:hover{
-    border-color:var(--green);
+    border-color:var(--g);
     background:var(--hover);
 }
 
 .card button{
     width:100%;
     height:100%;
-
     background:none;
-
     border:0;
-
     color:#fff;
-
     text-align:left;
-
     padding:0;
 }
 
 .thumb{
     height:165px;
-
     background:#000;
-
     display:flex;
-
     align-items:center;
-
     justify-content:center;
-
     overflow:hidden;
+    position:relative;
 }
 
 .thumb img{
     width:100%;
     height:100%;
-
     object-fit:cover;
 }
 
-.thumb-fallback{
-    color:var(--green);
-    font-size:35px;
+.thumb .fallback{
+    color:var(--g);
+    font-size:38px;
 }
 
 .ct{
@@ -411,313 +355,234 @@ button:disabled{
 
 .ct b{
     display:block;
-
     font-size:12px;
-
     white-space:nowrap;
-
     overflow:hidden;
-
     text-overflow:ellipsis;
 }
 
 .ct small{
     display:block;
-
     color:var(--muted);
-
     font-size:10px;
-
     margin-top:5px;
-
     white-space:nowrap;
-
     overflow:hidden;
-
     text-overflow:ellipsis;
 }
 
-/* PLAYER */
+/* =========================================================
+   PLAYER
+========================================================= */
 
 .player{
     padding:12px;
-
     display:flex;
-
     flex-direction:column;
-
     gap:10px;
 }
 
 .videoBox{
     height:250px;
-
     background:#000;
-
     border-radius:9px;
-
     overflow:hidden;
-
     border:1px solid var(--line);
-
     flex-shrink:0;
 }
 
 .videoBox video{
     width:100%;
     height:100%;
-
     background:#000;
+    object-fit:contain;
 }
 
 .now{
     background:#050905;
-
     border:1px solid var(--line);
-
     border-radius:9px;
-
     padding:12px;
-
     flex:1;
-
-    min-height:0;
+    min-height:100px;
 }
 
 .now b{
-    color:var(--green);
-
+    color:var(--g);
     display:block;
-
-    margin-bottom:5px;
+    margin-bottom:6px;
 }
 
 .now small{
     color:var(--muted);
+    line-height:1.5;
 }
 
-/* PAGINAÇÃO */
+/* =========================================================
+   PAGINAÇÃO
+========================================================= */
 
 .pager{
     display:flex;
-
     align-items:center;
-
     justify-content:center;
-
     gap:10px;
-
     padding-top:8px;
-
     flex-shrink:0;
 }
 
 .pager span{
     color:var(--muted);
-
     font-size:12px;
+    min-width:100px;
+    text-align:center;
 }
-
-/* VAZIO */
 
 .empty{
     grid-column:1/-1;
-
     text-align:center;
-
-    padding:50px 15px;
-
+    padding:60px 15px;
     color:var(--muted);
+    font-size:16px;
 }
 
-/* MODAL */
+/* =========================================================
+   MODAIS
+========================================================= */
 
 .modal{
     position:fixed;
-
     inset:0;
-
     background:rgba(0,0,0,.88);
-
     display:flex;
-
     align-items:center;
-
     justify-content:center;
-
     padding:16px;
-
-    z-index:50;
+    z-index:500;
 }
 
 .box{
     width:100%;
-
     max-width:620px;
-
     max-height:90vh;
-
     overflow:auto;
-
     background:#091009;
-
-    border:1px solid var(--green);
-
+    border:1px solid var(--g);
     border-radius:14px;
-
     padding:18px;
-
-    box-shadow:
-        0 0 35px rgba(40,217,5,.25);
+    box-shadow:0 0 35px rgba(40,217,5,.25);
 }
 
 .box h2{
-    font-size:17px;
-
+    font-size:18px;
     margin-bottom:15px;
-
-    color:var(--green);
+    color:var(--g);
 }
 
 .field{
-    margin-bottom:12px;
+    margin-bottom:13px;
 }
 
 .field label{
     display:block;
-
     font-size:12px;
-
     color:var(--muted);
-
-    margin-bottom:5px;
+    margin-bottom:6px;
 }
 
 .field input{
     width:100%;
-
     background:#030503;
-
     border:1px solid var(--line);
-
     color:#fff;
-
     border-radius:8px;
-
-    padding:11px;
+    padding:12px;
 }
 
 .field input:focus{
     outline:none;
+    border-color:var(--g);
+}
 
-    border-color:var(--green);
+.help{
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.5;
 }
 
 .actions{
     display:flex;
-
     gap:8px;
-
     justify-content:flex-end;
-
     margin-top:15px;
 }
 
-/* LISTA SALVA */
+/* =========================================================
+   LISTA SALVA
+========================================================= */
 
 .row{
     display:flex;
-
     align-items:center;
-
     gap:8px;
-
     border:1px solid var(--line);
-
     border-radius:9px;
-
     padding:10px;
-
     margin-bottom:8px;
-
     background:#050905;
 }
 
 .row .info{
     flex:1;
-
     min-width:0;
 }
 
 .row b{
     display:block;
-
     overflow:hidden;
-
     text-overflow:ellipsis;
-
     white-space:nowrap;
 }
 
 .row small{
     display:block;
-
     color:var(--muted);
-
     overflow:hidden;
-
     text-overflow:ellipsis;
-
     white-space:nowrap;
-
     margin-top:3px;
 }
 
-/* LOADER */
+/* =========================================================
+   LOADER
+========================================================= */
 
 .loader{
     position:fixed;
-
     inset:0;
-
-    background:rgba(0,0,0,.92);
-
-    z-index:100;
-
+    background:rgba(0,0,0,.94);
+    z-index:1000;
     display:flex;
-
     align-items:center;
-
     justify-content:center;
 }
 
 .loaderBox{
     width:min(420px,90%);
-
     text-align:center;
-
     background:#091009;
-
-    border:1px solid var(--green);
-
+    border:1px solid var(--g);
     border-radius:14px;
-
     padding:25px;
 }
 
 .spin{
     width:55px;
-
     height:55px;
-
     border:3px solid #173617;
-
-    border-top-color:var(--green);
-
+    border-top-color:var(--g);
     border-radius:50%;
-
     margin:0 auto 15px;
-
     animation:sp .8s linear infinite;
 }
 
@@ -728,67 +593,73 @@ button:disabled{
 }
 
 .loaderText{
-    color:var(--green);
-
+    color:var(--g);
     font-weight:700;
-
     font-size:13px;
 }
 
-/* DISPOSITIVO */
+/* =========================================================
+   DISPOSITIVO
+========================================================= */
 
 .qr{
     background:#fff;
-
     padding:10px;
-
     border-radius:8px;
-
     width:max-content;
-
     margin:12px auto;
 }
 
 .device{
     text-align:center;
-
     color:var(--muted);
-
     font-size:12px;
 }
 
 .device strong{
     display:block;
-
-    color:var(--green);
-
+    color:var(--g);
     font-size:14px;
-
     margin-top:5px;
 }
 
-/* RESPONSIVO */
+.activation-status{
+    text-align:center;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    color:var(--muted);
+    margin-top:10px;
+}
+
+.activation-status.active{
+    color:var(--g);
+    border-color:var(--g);
+}
+
+.activation-status.pending{
+    color:#ffd166;
+    border-color:#665522;
+}
+
+.activation-status.blocked{
+    color:#ff6666;
+    border-color:#662222;
+}
+
+/* =========================================================
+   RESPONSIVO
+========================================================= */
 
 @media(max-width:900px){
 
-    body{
-        overflow:auto;
-    }
-
-    .app{
-        height:auto;
-
-        min-height:100vh;
-
-        overflow:visible;
-    }
-
     .workspace{
         grid-template-columns:1fr;
+        grid-template-rows:auto auto;
+    }
 
-        grid-template-rows:
-            minmax(380px,1fr)
-            auto;
+    .catalog{
+        min-height:500px;
     }
 
     .player{
@@ -796,11 +667,15 @@ button:disabled{
     }
 
     .videoBox{
-        height:210px;
+        height:220px;
     }
 }
 
 @media(max-width:600px){
+
+    .app{
+        padding:8px;
+    }
 
     .top{
         flex-wrap:wrap;
@@ -810,10 +685,16 @@ button:disabled{
         font-size:18px;
     }
 
-    .grid{
-        grid-template-columns:
-            repeat(2,minmax(0,1fr));
+    .top .grow{
+        display:none;
+    }
 
+    .top .btn{
+        flex:1;
+    }
+
+    .grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
         gap:7px;
     }
 
@@ -827,7 +708,6 @@ button:disabled{
 
     .select{
         max-width:none;
-
         width:100%;
     }
 
@@ -841,6 +721,7 @@ button:disabled{
 
     .row .info{
         width:100%;
+        flex-basis:100%;
     }
 }
 
@@ -849,9 +730,9 @@ button:disabled{
 
 <body>
 
-<!-- =========================================================
+<!-- =======================================================
      LOADER
-========================================================= -->
+======================================================= -->
 
 <div id="loader" class="loader hidden">
 
@@ -871,13 +752,16 @@ button:disabled{
 </div>
 
 
-<!-- =========================================================
-     APP
-========================================================= -->
+<!-- =======================================================
+     APLICAÇÃO
+======================================================= -->
 
 <div class="app">
 
-    <!-- TOPO -->
+
+    <!-- ===================================================
+         TOPO
+    ==================================================== -->
 
     <header class="top">
 
@@ -889,11 +773,10 @@ button:disabled{
 
         <button
             type="button"
-            class="btn"
+            class="btn device"
             id="deviceBtn"
         >
-            <i class="fa-solid fa-mobile-screen"></i>
-            DISPOSITIVO
+            📱 DISPOSITIVO
         </button>
 
         <button
@@ -901,8 +784,7 @@ button:disabled{
             class="btn"
             id="listsBtn"
         >
-            <i class="fa-solid fa-list"></i>
-            LISTAS
+            ☷ LISTAS
         </button>
 
         <button
@@ -910,24 +792,27 @@ button:disabled{
             class="btn primary"
             id="addBtn"
         >
-            <i class="fa-solid fa-plus"></i>
-            M3U
+            + M3U
         </button>
 
     </header>
 
 
-    <!-- STATUS -->
+    <!-- ===================================================
+         STATUS
+    ==================================================== -->
 
     <div
         id="status"
         class="status"
     >
-        Inicializando dispositivo...
+        Nenhuma lista carregada. Adicione uma M3U para começar.
     </div>
 
 
-    <!-- LISTAS -->
+    <!-- ===================================================
+         LISTAS
+    ==================================================== -->
 
     <div
         id="pills"
@@ -935,7 +820,9 @@ button:disabled{
     ></div>
 
 
-    <!-- CATEGORIAS -->
+    <!-- ===================================================
+         CATEGORIAS
+    ==================================================== -->
 
     <div
         class="tabs"
@@ -985,20 +872,25 @@ button:disabled{
     </div>
 
 
-    <!-- WORKSPACE -->
+    <!-- ===================================================
+         WORKSPACE
+    ==================================================== -->
 
     <div class="workspace">
 
-        <!-- CATÁLOGO -->
+
+        <!-- ===============================================
+             CATÁLOGO
+        ================================================ -->
 
         <section class="catalog">
+
 
             <div class="tools">
 
                 <input
                     id="search"
                     class="search"
-                    type="search"
                     placeholder="Pesquisar..."
                     autocomplete="off"
                 >
@@ -1007,9 +899,11 @@ button:disabled{
                     id="group"
                     class="select"
                 >
+
                     <option value="ALL">
                         Todas as categorias
                     </option>
+
                 </select>
 
             </div>
@@ -1021,10 +915,7 @@ button:disabled{
             >
 
                 <div class="empty">
-
-                    Adicione uma lista M3U
-                    para carregar os conteúdos.
-
+                    Adicione uma lista M3U para carregar os conteúdos.
                 </div>
 
             </div>
@@ -1054,12 +945,16 @@ button:disabled{
 
             </div>
 
+
         </section>
 
 
-        <!-- PLAYER -->
+        <!-- ===============================================
+             PLAYER
+        ================================================ -->
 
         <aside class="player">
+
 
             <div class="videoBox">
 
@@ -1094,16 +989,18 @@ button:disabled{
                 ⏹ Parar reprodução
             </button>
 
+
         </aside>
+
 
     </div>
 
 </div>
 
 
-<!-- =========================================================
+<!-- =======================================================
      MODAL M3U
-========================================================= -->
+======================================================= -->
 
 <div
     id="addModal"
@@ -1113,7 +1010,6 @@ button:disabled{
     <div class="box">
 
         <h2>
-            <i class="fa-solid fa-link"></i>
             Adicionar lista M3U
         </h2>
 
@@ -1126,7 +1022,6 @@ button:disabled{
 
             <input
                 id="listName"
-                type="text"
                 placeholder="Minha TV"
                 autocomplete="off"
             >
@@ -1151,30 +1046,21 @@ button:disabled{
         </div>
 
 
-        <div
-            style="
-                color:var(--muted);
-                font-size:12px;
-                line-height:1.5;
-            "
-        >
+        <div class="help">
 
-            Cada lista pode usar seu próprio servidor.
-            O GC PLAY PRO não deixa um servidor IPTV
-            fixado no código.
+            Cole aqui o link M3U completo.
+            Cada lista pode possuir seu próprio servidor.
+            O servidor não fica fixado no aplicativo.
 
         </div>
 
 
         <div
-            id="m3uError"
-            style="
-                display:none;
-                color:#ff6666;
-                font-size:12px;
-                margin-top:12px;
-            "
-        ></div>
+            id="addStatus"
+            class="activation-status"
+        >
+            Aguardando URL.
+        </div>
 
 
         <div class="actions">
@@ -1192,7 +1078,6 @@ button:disabled{
                 class="btn primary"
                 id="saveList"
             >
-                <i class="fa-solid fa-cloud-arrow-down"></i>
                 Salvar e carregar
             </button>
 
@@ -1203,9 +1088,9 @@ button:disabled{
 </div>
 
 
-<!-- =========================================================
+<!-- =======================================================
      MODAL LISTAS
-========================================================= -->
+======================================================= -->
 
 <div
     id="listsModal"
@@ -1215,13 +1100,10 @@ button:disabled{
     <div class="box">
 
         <h2>
-            <i class="fa-solid fa-list"></i>
             Minhas listas M3U
         </h2>
 
-
         <div id="rows"></div>
-
 
         <div class="actions">
 
@@ -1248,9 +1130,9 @@ button:disabled{
 </div>
 
 
-<!-- =========================================================
+<!-- =======================================================
      MODAL PIN
-========================================================= -->
+======================================================= -->
 
 <div
     id="pinModal"
@@ -1259,26 +1141,19 @@ button:disabled{
 
     <div
         class="box"
-        style="
-            max-width:360px;
-            text-align:center;
-        "
+        style="max-width:360px;text-align:center"
     >
 
         <h2>
-            🔞 Controle parental
+            Controle parental
         </h2>
 
         <div
-            style="
-                color:var(--muted);
-                font-size:12px;
-                margin-bottom:10px;
-            "
+            class="help"
+            style="margin-bottom:10px"
         >
             Digite a senha para acessar Adulto.
         </div>
-
 
         <div class="field">
 
@@ -1296,7 +1171,6 @@ button:disabled{
             >
 
         </div>
-
 
         <div class="actions">
 
@@ -1323,9 +1197,9 @@ button:disabled{
 </div>
 
 
-<!-- =========================================================
+<!-- =======================================================
      MODAL DISPOSITIVO
-========================================================= -->
+======================================================= -->
 
 <div
     id="deviceModal"
@@ -1334,10 +1208,7 @@ button:disabled{
 
     <div
         class="box"
-        style="
-            max-width:380px;
-            text-align:center;
-        "
+        style="max-width:380px;text-align:center"
     >
 
         <h2>
@@ -1374,14 +1245,10 @@ button:disabled{
 
 
         <div
-            id="deviceStatusModal"
-            style="
-                margin-top:12px;
-                color:var(--muted);
-                font-size:12px;
-            "
+            id="deviceStatus"
+            class="activation-status pending"
         >
-            Verificando...
+            Verificando ativação...
         </div>
 
 
@@ -1417,34 +1284,21 @@ var SUPABASE =
     "https://kuzgdvpdqmocklsgyzvt.supabase.co";
 
 
-/*
- * Função que entrega a playlist
- */
 var PLAYLIST_FUNCTION =
     SUPABASE +
     "/functions/v1/gcplay-playlist";
 
 
-/*
- * Proxy usado para reprodução de mídia,
- * imagens e HLS.
- */
-var MEDIA_PROXY =
+var PLAYLIST_PROXY =
     SUPABASE +
     "/functions/v1/gcplay-proxy";
 
 
-/*
- * Função de ativação.
- */
 var ACTIVATE =
     SUPABASE +
     "/functions/v1/activate-device";
 
 
-/*
- * Página de ativação.
- */
 var ACTIVATION_PAGE =
     "https://caiomendes29546874687.github.io/GC-PLAY-PRO-/connect.html";
 
@@ -1452,8 +1306,99 @@ var ACTIVATION_PAGE =
 var PAGE_SIZE = 100;
 
 
-var FALLBACK_IMAGE =
-    "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=400";
+/*
+ * Quantidade máxima de itens que podemos buscar
+ * pela função paginada.
+ *
+ * 2000 páginas x 300 = 600.000 itens.
+ */
+
+var MAX_PAGES = 2000;
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function $(id){
+
+    return document.getElementById(id);
+
+}
+
+
+function esc(value){
+
+    return String(value || "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+function norm(value){
+
+    var s = String(value || "");
+
+    try{
+
+        s = s.normalize("NFD")
+            .replace(/[\u0300-\u036f]/g,"");
+
+    }catch(e){}
+
+    return s
+        .toLowerCase()
+        .replace(/\s+/g," ")
+        .trim();
+
+}
+
+
+function makeId(){
+
+    return "x" +
+        Date.now().toString(36) +
+        Math.random().toString(36).slice(2,9);
+
+}
+
+
+/* =========================================================
+   LOCAL STORAGE
+========================================================= */
+
+function getLists(){
+
+    try{
+
+        return JSON.parse(
+            localStorage.getItem("gcplay_lists") || "[]"
+        );
+
+    }catch(e){
+
+        return [];
+
+    }
+
+}
+
+
+function saveLists(){
+
+    localStorage.setItem(
+        "gcplay_lists",
+        JSON.stringify(lists)
+    );
+
+}
+
+
+var lists = getLists();
 
 
 /* =========================================================
@@ -1480,115 +1425,13 @@ var state = {
 
     activationCode:null,
 
-    activated:false,
+    activationStatus:"pending",
 
     loading:false,
 
-    loadToken:0
+    historyReady:false
 
 };
-
-
-var lists = getLists();
-
-
-/* =========================================================
-   UTILITÁRIOS
-========================================================= */
-
-function $(id){
-
-    return document.getElementById(id);
-
-}
-
-
-function esc(value){
-
-    return String(value || "")
-
-        .replace(/&/g,"&amp;")
-
-        .replace(/</g,"&lt;")
-
-        .replace(/>/g,"&gt;")
-
-        .replace(/"/g,"&quot;")
-
-        .replace(/'/g,"&#039;");
-
-}
-
-
-function norm(value){
-
-    var s = String(value || "");
-
-    if(s.normalize){
-
-        s = s.normalize("NFD")
-            .replace(/[\u0300-\u036f]/g,"");
-
-    }
-
-    return s
-        .toLowerCase()
-        .replace(/\s+/g," ")
-        .trim();
-
-}
-
-
-function makeId(){
-
-    return "x" +
-        Date.now().toString(36) +
-        Math.random()
-            .toString(36)
-            .slice(2,9);
-
-}
-
-
-/* =========================================================
-   LOCAL STORAGE
-========================================================= */
-
-function getLists(){
-
-    try{
-
-        return JSON.parse(
-            localStorage.getItem(
-                "gcplay_lists"
-            ) || "[]"
-        );
-
-    }catch(e){
-
-        return [];
-
-    }
-
-}
-
-
-function saveLists(){
-
-    try{
-
-        localStorage.setItem(
-            "gcplay_lists",
-            JSON.stringify(lists)
-        );
-
-    }catch(e){
-
-        console.error(e);
-
-    }
-
-}
 
 
 /* =========================================================
@@ -1601,481 +1444,45 @@ function setStatus(text,type){
 
     $("status").className =
         "status" +
-        (
-            type
-            ? " " + type
-            : ""
-        );
+        (type ? " " + type : "");
 
 }
 
 
-function setDeviceModalStatus(text,type){
+function setAddStatus(text,type){
 
-    var el = $("deviceStatusModal");
+    $("addStatus").textContent = text;
 
-    if(!el) return;
-
-    el.textContent = text;
-
-    el.style.color =
-        type === "ok"
-        ? "var(--green)"
-        : type === "err"
-            ? "var(--danger)"
-            : "var(--muted)";
+    $("addStatus").className =
+        "activation-status" +
+        (type ? " " + type : "");
 
 }
 
 
-function loader(show,text){
+function setDeviceStatus(text,type){
+
+    $("deviceStatus").textContent = text;
+
+    $("deviceStatus").className =
+        "activation-status " +
+        (type || "pending");
+
+}
+
+
+function loader(on,text){
 
     $("loader").className =
-        show
-        ? "loader"
-        : "loader hidden";
+        on
+            ? "loader"
+            : "loader hidden";
 
     if(text){
 
-        $("loaderText").textContent =
-            text;
+        $("loaderText").textContent = text;
 
     }
-
-}
-
-
-/* =========================================================
-   UUID
-========================================================= */
-
-function validUUID(value){
-
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-        .test(
-            String(value || "").trim()
-        );
-
-}
-
-
-function generateUUID(){
-
-    if(
-        window.crypto &&
-        typeof window.crypto.randomUUID === "function"
-    ){
-
-        return window.crypto.randomUUID();
-
-    }
-
-
-    var bytes =
-        new Uint8Array(16);
-
-
-    if(
-        window.crypto &&
-        typeof window.crypto.getRandomValues === "function"
-    ){
-
-        window.crypto.getRandomValues(bytes);
-
-    }else{
-
-        for(
-            var i=0;
-            i<16;
-            i++
-        ){
-
-            bytes[i] =
-                Math.floor(
-                    Math.random()*256
-                );
-
-        }
-
-    }
-
-
-    bytes[6] =
-        (bytes[6] & 15) | 64;
-
-    bytes[8] =
-        (bytes[8] & 63) | 128;
-
-
-    var h =
-        Array.from(bytes)
-        .map(function(b){
-
-            return b
-                .toString(16)
-                .padStart(2,"0");
-
-        })
-        .join("");
-
-
-    return [
-
-        h.slice(0,8),
-        h.slice(8,12),
-        h.slice(12,16),
-        h.slice(16,20),
-        h.slice(20,32)
-
-    ].join("-");
-
-}
-
-
-/* =========================================================
-   CÓDIGO DE ATIVAÇÃO
-========================================================= */
-
-function generateActivationCode(){
-
-    var chars =
-        "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
-    var code = "";
-
-    for(
-        var i=0;
-        i<6;
-        i++
-    ){
-
-        code +=
-            chars[
-                Math.floor(
-                    Math.random()*chars.length
-                )
-            ];
-
-    }
-
-    return code;
-
-}
-
-
-/* =========================================================
-   DISPOSITIVO
-========================================================= */
-
-function initDevice(){
-
-    var deviceId =
-        localStorage.getItem(
-            "gcplay_device_id"
-        );
-
-
-    if(
-        !deviceId ||
-        !validUUID(deviceId)
-    ){
-
-        deviceId =
-            generateUUID();
-
-        localStorage.setItem(
-            "gcplay_device_id",
-            deviceId
-        );
-
-    }
-
-
-    var code =
-        localStorage.getItem(
-            "gcplay_activation_code"
-        );
-
-
-    if(
-        !code ||
-        !/^[A-Z0-9]{6}$/i.test(code)
-    ){
-
-        code =
-            generateActivationCode();
-
-        localStorage.setItem(
-            "gcplay_activation_code",
-            code
-        );
-
-    }
-
-
-    state.deviceId =
-        deviceId;
-
-    state.activationCode =
-        String(code).toUpperCase();
-
-
-    $("deviceCode").textContent =
-        "GC-" +
-        deviceId
-            .replace(/-/g,"")
-            .substring(0,8)
-            .toUpperCase();
-
-
-    $("activationCode").textContent =
-        state.activationCode;
-
-
-    /*
-     * QR CODE
-     */
-
-    try{
-
-        $("qr").innerHTML = "";
-
-        new QRCode(
-            $("qr"),
-            {
-                text:
-                    ACTIVATION_PAGE +
-                    "?device=" +
-                    encodeURIComponent(
-                        deviceId
-                    ) +
-                    "&code=" +
-                    encodeURIComponent(
-                        state.activationCode
-                    ),
-
-                width:150,
-
-                height:150
-            }
-        );
-
-    }catch(e){
-
-        $("qr").textContent =
-            state.activationCode;
-
-    }
-
-}
-
-
-/* =========================================================
-   REGISTRAR DISPOSITIVO
-========================================================= */
-
-async function registerDevice(){
-
-    try{
-
-        var response =
-            await fetch(
-                ACTIVATE,
-                {
-                    method:"POST",
-
-                    headers:{
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:JSON.stringify({
-
-                        action:"register",
-
-                        device_id:
-                            state.deviceId,
-
-                        activation_code:
-                            state.activationCode
-
-                    }),
-
-                    cache:"no-store"
-                }
-            );
-
-
-        var data =
-            await response.json()
-                .catch(function(){
-                    return {};
-                });
-
-
-        if(
-            !response.ok ||
-            data.success === false
-        ){
-
-            console.warn(
-                "Registro:",
-                data
-            );
-
-        }
-
-    }catch(e){
-
-        console.warn(
-            "Falha ao registrar dispositivo:",
-            e
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   VERIFICAR STATUS
-========================================================= */
-
-async function checkActivation(){
-
-    try{
-
-        var response =
-            await fetch(
-                ACTIVATE,
-                {
-                    method:"POST",
-
-                    headers:{
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:JSON.stringify({
-
-                        action:"status",
-
-                        device_id:
-                            state.deviceId
-
-                    }),
-
-                    cache:"no-store"
-                }
-            );
-
-
-        var data =
-            await response.json()
-                .catch(function(){
-                    return {};
-                });
-
-
-        if(
-            !response.ok ||
-            !data.success ||
-            !data.device
-        ){
-
-            state.activated = false;
-
-            setStatus(
-                "Dispositivo aguardando ativação.",
-                "err"
-            );
-
-            setDeviceModalStatus(
-                "Aguardando ativação.",
-                "err"
-            );
-
-            return false;
-
-        }
-
-
-        var device =
-            data.device;
-
-
-        var active =
-            String(
-                device.status || ""
-            ).toLowerCase() === "active";
-
-
-        state.activated =
-            active;
-
-
-        if(active){
-
-            setStatus(
-                "Dispositivo ativo.",
-                "ok"
-            );
-
-            setDeviceModalStatus(
-                "✓ Dispositivo ativo.",
-                "ok"
-            );
-
-        }else{
-
-            setStatus(
-                "Dispositivo aguardando ativação.",
-                "err"
-            );
-
-            setDeviceModalStatus(
-                "Aguardando ativação no site.",
-                "err"
-            );
-
-        }
-
-
-        return active;
-
-
-    }catch(e){
-
-        state.activated = false;
-
-        setStatus(
-            "Não foi possível verificar a ativação.",
-            "err"
-        );
-
-        setDeviceModalStatus(
-            "Erro ao consultar ativação.",
-            "err"
-        );
-
-        return false;
-
-    }
-
-}
-
-
-/* =========================================================
-   ABRIR DISPOSITIVO
-========================================================= */
-
-function openDevice(){
-
-    $("deviceModal")
-        .className =
-        "modal";
-
-    checkActivation();
 
 }
 
@@ -2084,46 +1491,195 @@ function openDevice(){
    PROXY DE MÍDIA
 ========================================================= */
 
-function proxyMedia(url,mode){
+function mediaProxy(url,mode){
 
-    return (
-        MEDIA_PROXY +
+    return PLAYLIST_PROXY +
         "?mode=" +
-        encodeURIComponent(mode) +
+        encodeURIComponent(mode || "media") +
         "&url=" +
-        encodeURIComponent(url)
-    );
+        encodeURIComponent(url);
 
 }
 
 
 /* =========================================================
-   ATRIBUTOS EXTINF
+   CLASSIFICAÇÃO
 ========================================================= */
 
-function parseAttributes(line){
+function classify(group,title,url){
+
+    var s =
+        norm(
+            group +
+            " " +
+            title +
+            " " +
+            url
+        );
+
+
+    if(
+        /adult|adulto|xxx|porn|porno|18\+|private|privado|erotic|erotico/.test(s)
+    ){
+
+        return "adult";
+
+    }
+
+
+    if(
+        /music|musica|musical|radio|clip|clipe|concert|mtv/.test(s)
+    ){
+
+        return "music";
+
+    }
+
+
+    if(
+        /series?|série|serie|temporada|season|episode|episodio|episódio/.test(s)
+        ||
+        /\/series?\//.test(url)
+    ){
+
+        return "series";
+
+    }
+
+
+    if(
+        /movie|movies|filme|filmes|film|vod|cinema|netflix|prime video|disney|hbo|\bmax\b/.test(s)
+        ||
+        /\/movies?\//.test(url)
+    ){
+
+        return "vod";
+
+    }
+
+
+    return "live";
+
+}
+
+
+/* =========================================================
+   CONVERSÃO DOS ITENS DA EDGE FUNCTION
+========================================================= */
+
+function normalizeRemoteItem(item){
+
+    if(!item){
+
+        return null;
+
+    }
+
+
+    var name =
+        item.titulo ||
+        item.title ||
+        item.name ||
+        item["tvg-name"] ||
+        "Sem título";
+
+
+    var logo =
+        item.logo ||
+        item.tvg_logo ||
+        item["tvg-logo"] ||
+        "";
+
+
+    var group =
+        item.grupo ||
+        item.group ||
+        item["group-title"] ||
+        "Geral";
+
+
+    var url =
+        item.url ||
+        item.stream_url ||
+        item.streamUrl ||
+        "";
+
+
+    if(!url){
+
+        return null;
+
+    }
+
+
+    var category =
+        item.category ||
+        classify(
+            group,
+            name,
+            url
+        );
+
+
+    return {
+
+        name:String(name),
+
+        logo:String(logo),
+
+        group:String(group),
+
+        url:String(url),
+
+        category:String(category),
+
+        referrer:String(
+            item.referrer ||
+            item.http_referrer ||
+            ""
+        ),
+
+        userAgent:String(
+            item.userAgent ||
+            item.http_user_agent ||
+            ""
+        ),
+
+        index:
+            Number.isFinite(Number(item.index))
+                ? Number(item.index)
+                : 0
+
+    };
+
+}
+
+
+/* =========================================================
+   PARSER M3U
+========================================================= */
+
+function extAttrs(line){
 
     var attrs = {};
 
-    var regex =
+    var re =
         /([a-zA-Z0-9_-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s]+))/g;
 
-    var match;
+    var m;
 
 
-    while(
-        (match = regex.exec(line))
-    ){
+    while((m = re.exec(line))){
 
         attrs[
-            match[1].toLowerCase()
+            m[1].toLowerCase()
         ] =
             (
-                match[2] !== undefined
-                ? match[2]
-                : match[3] !== undefined
-                    ? match[3]
-                    : match[4] || ""
+                m[2] !== undefined
+                    ? m[2]
+                    : m[3] !== undefined
+                        ? m[3]
+                        : m[4] || ""
             ).trim();
 
     }
@@ -2133,10 +1689,6 @@ function parseAttributes(line){
 
 }
 
-
-/* =========================================================
-   VÍRGULA DO EXTINF
-========================================================= */
 
 function findComma(line){
 
@@ -2149,8 +1701,7 @@ function findComma(line){
         i++
     ){
 
-        var ch =
-            line[i];
+        var ch = line[i];
 
 
         if(
@@ -2158,15 +1709,11 @@ function findComma(line){
             ch === "'"
         ){
 
-            if(
-                quote === null
-            ){
+            if(quote === null){
 
                 quote = ch;
 
-            }else if(
-                quote === ch
-            ){
+            }else if(quote === ch){
 
                 quote = null;
 
@@ -2189,86 +1736,17 @@ function findComma(line){
 }
 
 
-/* =========================================================
-   CLASSIFICAR CONTEÚDO
-========================================================= */
-
-function classify(group,title,url){
-
-    var s =
-        norm(
-            group +
-            " " +
-            title +
-            " " +
-            url
-        );
-
-
-    if(
-        /adult|adulto|xxx|porn|porno|18\+|private|privado|erotic|erotico/
-            .test(s)
-    ){
-
-        return "adult";
-
-    }
-
-
-    if(
-        /music|musica|musical|radio|clip|clipe|concert|mtv/
-            .test(s)
-    ){
-
-        return "music";
-
-    }
-
-
-    if(
-        /series?|série|temporada|season|episode|episodio|episódio/
-            .test(s)
-        ||
-        /\/series?\//i.test(url)
-    ){
-
-        return "series";
-
-    }
-
-
-    if(
-        /movie|movies|filme|filmes|film|vod|cinema|netflix|prime video|disney|hbo|\bmax\b/
-            .test(s)
-        ||
-        /\/movies?\//i.test(url)
-    ){
-
-        return "vod";
-
-    }
-
-
-    return "live";
-
-}
-
-
-/* =========================================================
-   PARSER M3U
-========================================================= */
-
-function parseM3U(text,playlistUrl){
+function parseM3U(text,base){
 
     var lines =
         String(text || "")
-        .replace(/^\uFEFF/,"")
-        .replace(/\r\n/g,"\n")
-        .replace(/\r/g,"\n")
-        .split("\n");
+            .replace(/^\uFEFF/,"")
+            .replace(/\r\n/g,"\n")
+            .replace(/\r/g,"\n")
+            .split("\n");
 
 
-    var items = [];
+    var out = [];
 
     var current = null;
 
@@ -2292,27 +1770,17 @@ function parseM3U(text,playlistUrl){
         }
 
 
-        /*
-         * EXTGRP
-         */
-
         if(
             /^#EXTGRP:/i.test(line)
         ){
 
             extGroup =
-                line
-                    .substring(8)
-                    .trim();
+                line.substring(8).trim();
 
             continue;
 
         }
 
-
-        /*
-         * EXTINF
-         */
 
         if(
             /^#EXTINF:/i.test(line)
@@ -2324,14 +1792,12 @@ function parseM3U(text,playlistUrl){
 
             var title =
                 comma >= 0
-                ? line
-                    .substring(comma+1)
-                    .trim()
-                : "Sem título";
+                    ? line.substring(comma+1).trim()
+                    : "Sem título";
 
 
             var attrs =
-                parseAttributes(line);
+                extAttrs(line);
 
 
             current = {
@@ -2351,19 +1817,11 @@ function parseM3U(text,playlistUrl){
                     extGroup ||
                     "Geral",
 
-                tvgId:
-                    attrs["tvg-id"] ||
-                    "",
-
-                tvgName:
-                    attrs["tvg-name"] ||
-                    "",
-
-                url:"",
-
                 referrer:"",
 
-                userAgent:""
+                userAgent:"",
+
+                url:""
 
             };
 
@@ -2374,10 +1832,6 @@ function parseM3U(text,playlistUrl){
 
         }
 
-
-        /*
-         * VLC OPTIONS
-         */
 
         if(
             /^#EXTVLCOPT:/i.test(line)
@@ -2401,36 +1855,33 @@ function parseM3U(text,playlistUrl){
             if(pos >= 0){
 
                 var key =
-                    option
-                    .substring(0,pos)
+                    option.substring(
+                        0,
+                        pos
+                    )
                     .trim()
                     .toLowerCase();
 
 
                 var value =
-                    option
-                    .substring(pos+1)
+                    option.substring(pos+1)
                     .trim();
 
 
                 if(
-                    key ===
-                    "http-referrer"
+                    key === "http-referrer"
                 ){
 
-                    current.referrer =
-                        value;
+                    current.referrer = value;
 
                 }
 
 
                 if(
-                    key ===
-                    "http-user-agent"
+                    key === "http-user-agent"
                 ){
 
-                    current.userAgent =
-                        value;
+                    current.userAgent = value;
 
                 }
 
@@ -2442,13 +1893,7 @@ function parseM3U(text,playlistUrl){
         }
 
 
-        /*
-         * Comentários
-         */
-
-        if(
-            line.charAt(0) === "#"
-        ){
+        if(line.charAt(0)==="#"){
 
             continue;
 
@@ -2462,18 +1907,13 @@ function parseM3U(text,playlistUrl){
         }
 
 
-        /*
-         * URL
-         */
-
-        var url =
-            line;
+        var url = line;
 
 
         try{
 
             if(
-                playlistUrl &&
+                base &&
                 !/^https?:\/\//i.test(url) &&
                 !/^rtmp:\/\//i.test(url) &&
                 !/^rtsp:\/\//i.test(url)
@@ -2482,7 +1922,7 @@ function parseM3U(text,playlistUrl){
                 url =
                     new URL(
                         url,
-                        playlistUrl
+                        base
                     ).href;
 
             }
@@ -2490,26 +1930,521 @@ function parseM3U(text,playlistUrl){
         }catch(e){}
 
 
-        current.url =
-            url;
+        if(!url){
 
+            current = null;
 
-        if(url){
-
-            current.category =
-                classify(
-                    current.group,
-                    current.name,
-                    url
-                );
-
-
-            items.push(current);
+            continue;
 
         }
 
 
+        current.url = url;
+
+
+        current.category =
+            classify(
+                current.group,
+                current.name,
+                current.url
+            );
+
+
+        out.push(current);
+
+
         current = null;
+
+    }
+
+
+    return out;
+
+}
+
+
+/* =========================================================
+   FETCH JSON DA EDGE FUNCTION
+========================================================= */
+
+async function requestPlaylistPage(
+    playlistUrl,
+    offset,
+    limit,
+    withAction
+){
+
+    var body = {
+
+        device_id:
+            state.deviceId,
+
+        activation_code:
+            state.activationCode,
+
+        playlist_url:
+            playlistUrl,
+
+        offset:
+            offset,
+
+        limit:
+            limit
+
+    };
+
+
+    /*
+     * Primeira tentativa:
+     * compatibilidade com versão que exige action.
+     */
+
+    if(withAction){
+
+        body.action = "playlist";
+
+    }
+
+
+    var controller =
+        new AbortController();
+
+
+    var timer =
+        setTimeout(
+            function(){
+
+                controller.abort();
+
+            },
+            90000
+        );
+
+
+    try{
+
+        var response =
+            await fetch(
+                PLAYLIST_FUNCTION,
+                {
+
+                    method:"POST",
+
+                    mode:"cors",
+
+                    cache:"no-store",
+
+                    signal:controller.signal,
+
+                    headers:{
+                        "Content-Type":
+                            "application/json",
+
+                        "Accept":
+                            "application/json,text/plain,*/*"
+                    },
+
+                    body:
+                        JSON.stringify(body)
+
+                }
+            );
+
+
+        var raw =
+            await response.text();
+
+
+        var data = null;
+
+
+        try{
+
+            data =
+                JSON.parse(raw);
+
+        }catch(e){
+
+            data = null;
+
+        }
+
+
+        return {
+
+            response:response,
+
+            data:data,
+
+            raw:raw
+
+        };
+
+    }finally{
+
+        clearTimeout(timer);
+
+    }
+
+}
+
+
+/* =========================================================
+   VERIFICA ERRO "AÇÃO INVÁLIDA"
+========================================================= */
+
+function isInvalidAction(data,raw){
+
+    var text =
+        String(
+            data && data.error
+                ? data.error
+                : raw || ""
+        ).toLowerCase();
+
+
+    return (
+        text.indexOf("ação inválida") >= 0 ||
+        text.indexOf("acao invalida") >= 0 ||
+        text.indexOf("invalid action") >= 0
+    );
+
+}
+
+
+/* =========================================================
+   CARREGAR UMA PÁGINA
+========================================================= */
+
+async function getPageCompatible(
+    playlistUrl,
+    offset,
+    limit
+){
+
+    /*
+     * Tentativa 1:
+     * action=playlist
+     */
+
+    var first =
+        await requestPlaylistPage(
+            playlistUrl,
+            offset,
+            limit,
+            true
+        );
+
+
+    if(
+        first.data &&
+        first.data.success
+    ){
+
+        return first.data;
+
+    }
+
+
+    /*
+     * Se a função respondeu "Ação inválida",
+     * tentamos a versão sem action.
+     */
+
+    if(
+        isInvalidAction(
+            first.data,
+            first.raw
+        )
+    ){
+
+        var second =
+            await requestPlaylistPage(
+                playlistUrl,
+                offset,
+                limit,
+                false
+            );
+
+
+        if(
+            second.data &&
+            second.data.success
+        ){
+
+            return second.data;
+
+        }
+
+
+        if(second.data){
+
+            throw new Error(
+                second.data.error ||
+                "Erro ao carregar a playlist."
+            );
+
+        }
+
+
+        throw new Error(
+            "A função de playlist não retornou JSON válido."
+        );
+
+    }
+
+
+    if(first.data){
+
+        throw new Error(
+            first.data.error ||
+            "Não foi possível carregar a playlist."
+        );
+
+    }
+
+
+    throw new Error(
+        first.raw ||
+        "Resposta inválida do servidor."
+    );
+
+}
+
+
+/* =========================================================
+   CARREGAR PLAYLIST PAGINADA
+========================================================= */
+
+async function loadPlaylistFromFunction(
+    playlistUrl
+){
+
+    var all = [];
+
+    var offset = 0;
+
+    var limit = 300;
+
+    var page = 0;
+
+    var hasMore = true;
+
+
+    while(
+        hasMore &&
+        page < MAX_PAGES
+    ){
+
+        page++;
+
+
+        loader(
+            true,
+            "Carregando lista... " +
+            all.length.toLocaleString("pt-BR") +
+            " itens"
+        );
+
+
+        var result =
+            await getPageCompatible(
+                playlistUrl,
+                offset,
+                limit
+            );
+
+
+        if(
+            !result ||
+            !Array.isArray(result.items)
+        ){
+
+            throw new Error(
+                "A função não retornou uma lista de itens."
+            );
+
+        }
+
+
+        var pageItems =
+            result.items
+                .map(normalizeRemoteItem)
+                .filter(Boolean);
+
+
+        all =
+            all.concat(pageItems);
+
+
+        var returnedCount =
+            pageItems.length;
+
+
+        /*
+         * A função já informa has_more.
+         */
+
+        hasMore =
+            result.has_more === true;
+
+
+        /*
+         * Proteção contra loop infinito.
+         */
+
+        if(returnedCount <= 0){
+
+            hasMore = false;
+
+        }
+
+
+        offset =
+            Number(
+                result.next_offset
+            );
+
+
+        if(
+            !Number.isFinite(offset) ||
+            offset <= 0
+        ){
+
+            offset =
+                all.length;
+
+        }
+
+
+        /*
+         * Se recebeu menos que o limite,
+         * normalmente chegou ao fim.
+         */
+
+        if(
+            returnedCount < limit
+        ){
+
+            hasMore = false;
+
+        }
+
+    }
+
+
+    if(!all.length){
+
+        throw new Error(
+            "A playlist não possui conteúdos válidos."
+        );
+
+    }
+
+
+    return all;
+
+}
+
+
+/* =========================================================
+   FALLBACK VIA GCPLAY-PROXY
+========================================================= */
+
+async function loadPlaylistFallbackProxy(
+    playlistUrl
+){
+
+    loader(
+        true,
+        "Tentando carregamento alternativo..."
+    );
+
+
+    var response =
+        await fetch(
+            mediaProxy(
+                playlistUrl,
+                "playlist"
+            ),
+            {
+                method:"GET",
+                cache:"no-store"
+            }
+        );
+
+
+    var text =
+        await response.text();
+
+
+    if(!response.ok){
+
+        throw new Error(
+            text ||
+            "HTTP " +
+            response.status
+        );
+
+    }
+
+
+    /*
+     * Caso o proxy tenha devolvido JSON,
+     * tentamos interpretar.
+     */
+
+    try{
+
+        var json =
+            JSON.parse(text);
+
+
+        if(
+            json &&
+            Array.isArray(json.items)
+        ){
+
+            return json.items
+                .map(normalizeRemoteItem)
+                .filter(Boolean);
+
+        }
+
+
+        if(
+            json &&
+            json.error
+        ){
+
+            throw new Error(
+                json.error
+            );
+
+        }
+
+    }catch(e){
+
+        /*
+         * Não é JSON.
+         * Então tratamos como M3U.
+         */
+
+    }
+
+
+    var items =
+        parseM3U(
+            text,
+            playlistUrl
+        );
+
+
+    if(!items.length){
+
+        throw new Error(
+            "O servidor não retornou uma M3U válida."
+        );
 
     }
 
@@ -2520,579 +2455,30 @@ function parseM3U(text,playlistUrl){
 
 
 /* =========================================================
-   BUSCAR PÁGINA DA M3U
-========================================================= */
-
-async function fetchPlaylistPage(
-    playlist,
-    offset,
-    limit
-){
-
-    if(!state.deviceId){
-
-        throw new Error(
-            "Dispositivo não inicializado."
-        );
-
-    }
-
-
-    if(!state.activationCode){
-
-        throw new Error(
-            "Código de ativação não encontrado."
-        );
-
-    }
-
-
-    /*
-     * A gcplay-playlist exige:
-     *
-     * device_id
-     * activation_code
-     * playlist_url
-     * offset
-     * limit
-     */
-
-    var response =
-        await fetch(
-            PLAYLIST_FUNCTION,
-            {
-                method:"POST",
-
-                headers:{
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body:JSON.stringify({
-
-                    device_id:
-                        state.deviceId,
-
-                    activation_code:
-                        state.activationCode,
-
-                    playlist_url:
-                        playlist.url,
-
-                    offset:
-                        offset,
-
-                    limit:
-                        limit
-
-                }),
-
-                cache:"no-store"
-            }
-        );
-
-
-    var text =
-        await response.text();
-
-
-    var data;
-
-
-    try{
-
-        data =
-            JSON.parse(text);
-
-    }catch(e){
-
-        throw new Error(
-            "Resposta inválida da função de playlist."
-        );
-
-    }
-
-
-    if(
-        !response.ok ||
-        data.success === false
-    ){
-
-        throw new Error(
-            data.error ||
-            "Não foi possível carregar a M3U."
-        );
-
-    }
-
-
-    return data;
-
-}
-
-
-/* =========================================================
-   CARREGAR LISTA
-========================================================= */
-
-async function loadList(list){
-
-    if(!list || !list.url){
-
-        return;
-
-    }
-
-
-    if(
-        !/^https?:\/\//i.test(
-            list.url
-        )
-    ){
-
-        setStatus(
-            "URL M3U inválida.",
-            "err"
-        );
-
-        return;
-
-    }
-
-
-    /*
-     * Verifica ativação antes.
-     */
-
-    var active =
-        await checkActivation();
-
-
-    if(!active){
-
-        setStatus(
-            "Ative o dispositivo antes de carregar a lista.",
-            "err"
-        );
-
-        openDevice();
-
-        return;
-
-    }
-
-
-    var token =
-        ++state.loadToken;
-
-
-    state.loading = true;
-
-    state.list = list;
-
-    state.items = [];
-
-    state.cat = "live";
-
-    state.group = "ALL";
-
-    state.page = 1;
-
-
-    renderPills();
-
-    switchCategory("live");
-
-
-    loader(
-        true,
-        "Conectando à lista " +
-        list.name +
-        "..."
-    );
-
-
-    setStatus(
-        "Carregando " +
-        list.name +
-        "..."
-    );
-
-
-    try{
-
-        /*
-         * -----------------------------------------------------
-         * CARREGAMENTO EM PÁGINAS
-         * -----------------------------------------------------
-         *
-         * A função atual limita cada resposta.
-         * Usamos blocos de 300.
-         */
-
-        var offset = 0;
-
-        var limit = 300;
-
-        var totalLoaded = 0;
-
-        var safety = 0;
-
-
-        while(
-            safety < 5000
-        ){
-
-            safety++;
-
-
-            if(
-                token !== state.loadToken
-            ){
-
-                return;
-
-            }
-
-
-            loader(
-                true,
-                "Carregando conteúdos... " +
-                totalLoaded.toLocaleString("pt-BR")
-            );
-
-
-            var data =
-                await fetchPlaylistPage(
-                    list,
-                    offset,
-                    limit
-                );
-
-
-            var pageItems =
-                Array.isArray(data.items)
-                ? data.items
-                : [];
-
-
-            if(!pageItems.length){
-
-                break;
-
-            }
-
-
-            /*
-             * Converter o formato da Edge Function
-             * para o formato do player.
-             */
-
-            var parsed =
-                pageItems.map(
-                    function(item){
-
-                        var url =
-                            String(
-                                item.url || ""
-                            ).trim();
-
-
-                        return {
-
-                            name:
-                                item.titulo ||
-                                "Sem título",
-
-                            logo:
-                                item.logo ||
-                                "",
-
-                            group:
-                                item.grupo ||
-                                "Geral",
-
-                            tvgId:
-                                item.tvg_id ||
-                                "",
-
-                            tvgName:
-                                item.tvg_name ||
-                                "",
-
-                            url:
-                                url,
-
-                            referrer:
-                                item.referrer ||
-                                "",
-
-                            userAgent:
-                                item.userAgent ||
-                                "",
-
-                            category:
-                                classify(
-                                    item.grupo ||
-                                    "Geral",
-
-                                    item.titulo ||
-                                    "Sem título",
-
-                                    url
-                                )
-
-                        };
-
-                    }
-                );
-
-
-            /*
-             * Evitar duplicados.
-             */
-
-            var existing = {};
-
-            state.items.forEach(
-                function(item){
-
-                    existing[
-                        norm(
-                            item.name +
-                            "|" +
-                            item.url
-                        )
-                    ] = true;
-
-                }
-            );
-
-
-            parsed.forEach(
-                function(item){
-
-                    var key =
-                        norm(
-                            item.name +
-                            "|" +
-                            item.url
-                        );
-
-
-                    if(
-                        !existing[key]
-                    ){
-
-                        existing[key] = true;
-
-                        state.items.push(item);
-
-                    }
-
-                }
-            );
-
-
-            totalLoaded =
-                state.items.length;
-
-
-            render();
-
-
-            /*
-             * Se a função informou que acabou,
-             * paramos.
-             */
-
-            if(
-                data.has_more !== true &&
-                pageItems.length < limit
-            ){
-
-                break;
-
-            }
-
-
-            var next =
-                Number(
-                    data.next_offset
-                );
-
-
-            if(
-                !Number.isFinite(next) ||
-                next <= offset
-            ){
-
-                break;
-
-            }
-
-
-            offset = next;
-
-
-            /*
-             * Se retornou menos que o limite,
-             * normalmente acabou.
-             */
-
-            if(
-                pageItems.length < limit
-            ){
-
-                break;
-
-            }
-
-
-            /*
-             * Pequena pausa para não
-             * congelar a interface.
-             */
-
-            await new Promise(
-                function(resolve){
-                    setTimeout(
-                        resolve,
-                        10
-                    );
-                }
-            );
-
-        }
-
-
-        if(!state.items.length){
-
-            throw new Error(
-                "A playlist não retornou conteúdos."
-            );
-
-        }
-
-
-        list.updatedAt =
-            new Date().toISOString();
-
-
-        saveLists();
-
-
-        renderPills();
-
-        buildGroups();
-
-        render();
-
-
-        setStatus(
-            state.items.length
-                .toLocaleString("pt-BR") +
-            " itens carregados • " +
-            list.name,
-            "ok"
-        );
-
-
-    }catch(error){
-
-        console.error(
-            "GC PLAY PRO:",
-            error
-        );
-
-
-        var message =
-            error &&
-            error.message
-            ? error.message
-            : String(error);
-
-
-        /*
-         * Mensagem especial para ativação.
-         */
-
-        if(
-            /não está ativo|ativo|ativação|dispositivo/i
-                .test(message)
-        ){
-
-            setStatus(
-                "Dispositivo não está ativo. Abra DISPOSITIVO.",
-                "err"
-            );
-
-        }else{
-
-            setStatus(
-                "Erro ao carregar: " +
-                message,
-                "err"
-            );
-
-        }
-
-
-    }finally{
-
-        state.loading = false;
-
-        loader(false);
-
-    }
-
-}
-
-
-/* =========================================================
-   PILLS DAS LISTAS
+   RENDERIZA LISTAS
 ========================================================= */
 
 function renderPills(){
 
-    var container =
-        $("pills");
-
-
-    if(!lists.length){
-
-        container.innerHTML = "";
-
-        return;
-
-    }
-
-
-    container.innerHTML =
+    $("pills").innerHTML =
         lists.map(
-            function(list){
+            function(l){
 
                 return (
 
                     '<button ' +
-
                     'type="button" ' +
-
                     'class="pill ' +
-
                     (
                         state.list &&
-                        state.list.id === list.id
-                        ? "active"
-                        : ""
+                        state.list.id === l.id
+                            ? "active"
+                            : ""
                     ) +
-
                     '" data-list="' +
-                    esc(list.id) +
+                    esc(l.id) +
                     '">' +
-
-                    esc(list.name) +
-
+                    esc(l.name) +
                     '</button>'
 
                 );
@@ -3102,8 +2488,8 @@ function renderPills(){
 
 
     Array.prototype.forEach.call(
-        container.querySelectorAll(
-            "[data-list]"
+        document.querySelectorAll(
+            ".pill"
         ),
         function(button){
 
@@ -3117,11 +2503,13 @@ function renderPills(){
 
 
                     var list =
-                        lists.find(
+                        lists.filter(
                             function(x){
+
                                 return x.id === id;
+
                             }
-                        );
+                        )[0];
 
 
                     if(list){
@@ -3146,14 +2534,12 @@ function buildGroups(){
 
     var map = {};
 
+
     state.items
         .filter(
             function(item){
 
-                return (
-                    item.category ===
-                    state.cat
-                );
+                return item.category === state.cat;
 
             }
         )
@@ -3167,8 +2553,7 @@ function buildGroups(){
 
                 map[
                     norm(group)
-                ] =
-                    group;
+                ] = group;
 
             }
         );
@@ -3176,23 +2561,23 @@ function buildGroups(){
 
     var groups =
         Object.keys(map)
-        .map(
-            function(key){
+            .map(
+                function(key){
 
-                return map[key];
+                    return map[key];
 
-            }
-        )
-        .sort(
-            function(a,b){
+                }
+            )
+            .sort(
+                function(a,b){
 
-                return a.localeCompare(
-                    b,
-                    "pt-BR"
-                );
+                    return a.localeCompare(
+                        b,
+                        "pt-BR"
+                    );
 
-            }
-        );
+                }
+            );
 
 
     $("group").innerHTML =
@@ -3200,23 +2585,19 @@ function buildGroups(){
         'Todas as categorias' +
         '</option>' +
 
-        groups
-        .map(
+        groups.map(
             function(group){
 
                 return (
-
                     '<option value="' +
                     esc(group) +
                     '">' +
                     esc(group) +
                     '</option>'
-
                 );
 
             }
-        )
-        .join("");
+        ).join("");
 
 
     state.group = "ALL";
@@ -3225,10 +2606,10 @@ function buildGroups(){
 
 
 /* =========================================================
-   FILTRAR
+   FILTRO
 ========================================================= */
 
-function filteredItems(){
+function filtered(){
 
     var query =
         norm(
@@ -3236,14 +2617,11 @@ function filteredItems(){
         );
 
 
-    var array =
+    var result =
         state.items.filter(
             function(item){
 
-                return (
-                    item.category ===
-                    state.cat
-                );
+                return item.category === state.cat;
 
             }
         );
@@ -3253,8 +2631,8 @@ function filteredItems(){
         state.group !== "ALL"
     ){
 
-        array =
-            array.filter(
+        result =
+            result.filter(
                 function(item){
 
                     return (
@@ -3270,8 +2648,8 @@ function filteredItems(){
 
     if(query){
 
-        array =
-            array.filter(
+        result =
+            result.filter(
                 function(item){
 
                     return (
@@ -3279,7 +2657,8 @@ function filteredItems(){
                             item.name +
                             " " +
                             item.group
-                        ).indexOf(query) >= 0
+                        )
+                        .indexOf(query) >= 0
                     );
 
                 }
@@ -3288,7 +2667,7 @@ function filteredItems(){
     }
 
 
-    return array;
+    return result;
 
 }
 
@@ -3300,7 +2679,7 @@ function filteredItems(){
 function render(){
 
     var array =
-        filteredItems();
+        filtered();
 
 
     var pages =
@@ -3329,9 +2708,7 @@ function render(){
 
     var end =
         Math.min(
-            start +
-            PAGE_SIZE,
-
+            start + PAGE_SIZE,
             array.length
         );
 
@@ -3351,13 +2728,11 @@ function render(){
 
         grid.innerHTML =
             '<div class="empty">' +
-
             (
                 state.items.length
-                ? "Nenhum conteúdo encontrado nesta categoria."
-                : "Adicione uma lista M3U para começar."
+                    ? "Nenhum conteúdo encontrado nesta categoria."
+                    : "Adicione uma lista M3U para começar."
             ) +
-
             '</div>';
 
     }else{
@@ -3366,38 +2741,33 @@ function render(){
             page.map(
                 function(item,index){
 
-                    var logo;
+                    var realIndex =
+                        start + index;
+
+
+                    var logoHtml;
 
 
                     if(item.logo){
 
-                        logo =
-                            '<img ' +
-
-                            'src="' +
+                        logoHtml =
+                            '<img src="' +
                             esc(
-                                proxyMedia(
+                                mediaProxy(
                                     item.logo,
                                     "image"
                                 )
                             ) +
                             '" ' +
-
                             'loading="lazy" ' +
+                            'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'">' +
 
-                            'onerror="' +
-                            "this.onerror=null;" +
-                            "this.src='" +
-                            esc(FALLBACK_IMAGE) +
-                            "'" +
-                            '>';
+                            '<span class="fallback" style="display:none">▶</span>';
 
                     }else{
 
-                        logo =
-                            '<div class="thumb-fallback">' +
-                            '▶' +
-                            '</div>';
+                        logoHtml =
+                            '<span class="fallback">▶</span>';
 
                     }
 
@@ -3407,29 +2777,25 @@ function render(){
                         '<div class="card">' +
 
                             '<button ' +
-
-                                'type="button" ' +
-
-                                'data-play="' +
-                                index +
-                                '">' +
+                            'type="button" ' +
+                            'data-index="' +
+                            realIndex +
+                            '">' +
 
                                 '<div class="thumb">' +
-
-                                    logo +
-
+                                    logoHtml +
                                 '</div>' +
 
                                 '<div class="ct">' +
 
                                     '<b>' +
-                                    esc(item.name) +
+                                        esc(item.name) +
                                     '</b>' +
 
                                     '<small>' +
-                                    esc(item.group) +
-                                    ' • ' +
-                                    esc(item.category) +
+                                        esc(item.group) +
+                                        ' • ' +
+                                        esc(item.category) +
                                     '</small>' +
 
                                 '</div>' +
@@ -3441,13 +2807,12 @@ function render(){
                     );
 
                 }
-            )
-            .join("");
+            ).join("");
 
 
         Array.prototype.forEach.call(
             grid.querySelectorAll(
-                "[data-play]"
+                "[data-index]"
             ),
             function(button){
 
@@ -3457,20 +2822,16 @@ function render(){
                         var index =
                             Number(
                                 button.getAttribute(
-                                    "data-play"
+                                    "data-index"
                                 )
                             );
 
 
                         var item =
-                            page[index];
+                            array[index];
 
 
-                        if(item){
-
-                            playItem(item);
-
-                        }
+                        play(item);
 
                     };
 
@@ -3482,14 +2843,14 @@ function render(){
 
     $("pageInfo").textContent =
         array.length
-        ? (
-            (start + 1) +
-            "–" +
-            end +
-            " de " +
-            array.length
-        )
-        : "0–0 de 0";
+            ? (
+                (start + 1) +
+                "–" +
+                end +
+                " de " +
+                array.length.toLocaleString("pt-BR")
+            )
+            : "0–0 de 0";
 
 
     $("prev").disabled =
@@ -3499,7 +2860,6 @@ function render(){
     $("next").disabled =
         state.page >= pages;
 
-
 }
 
 
@@ -3507,26 +2867,24 @@ function render(){
    TROCAR CATEGORIA
 ========================================================= */
 
-function switchCategory(category){
+function switchCat(cat){
 
     state.cat =
-        category;
+        cat;
 
-    state.page = 1;
+    state.page =
+        1;
 
 
     Array.prototype.forEach.call(
-        document.querySelectorAll(
-            ".tab"
-        ),
+        document.querySelectorAll(".tab"),
         function(button){
 
             button.classList.toggle(
                 "active",
-
                 button.getAttribute(
                     "data-cat"
-                ) === category
+                ) === cat
             );
 
         }
@@ -3539,24 +2897,551 @@ function switchCategory(category){
 
 
     /*
-     * Mantém o usuário no topo
-     * do catálogo.
+     * Não recarrega a página.
      */
 
-    $("grid").scrollTop = 0;
+    try{
+
+        window.scrollTo({
+            top:0,
+            behavior:"smooth"
+        });
+
+    }catch(e){}
 
 }
 
 
 /* =========================================================
-   DESTRUIR PLAYER
+   CARREGAR LISTA
+========================================================= */
+
+async function loadList(list){
+
+    if(
+        !list ||
+        !list.url
+    ){
+
+        return;
+
+    }
+
+
+    if(state.loading){
+
+        return;
+
+    }
+
+
+    state.loading = true;
+
+    state.list = list;
+
+    state.items = [];
+
+    state.cat = "live";
+
+    state.group = "ALL";
+
+    state.page = 1;
+
+
+    renderPills();
+
+    switchCat("live");
+
+
+    setStatus(
+        "Conectando ao servidor da lista..."
+    );
+
+
+    setAddStatus(
+        "Carregando...",
+        "pending"
+    );
+
+
+    loader(
+        true,
+        "Verificando dispositivo..."
+    );
+
+
+    try{
+
+        /*
+         * Primeiro usamos a função segura
+         * vinculada ao dispositivo.
+         */
+
+        var items;
+
+
+        try{
+
+            items =
+                await loadPlaylistFromFunction(
+                    list.url
+                );
+
+        }catch(functionError){
+
+            var message =
+                String(
+                    functionError &&
+                    functionError.message
+                        ? functionError.message
+                        : functionError
+                );
+
+
+            /*
+             * IMPORTANTE:
+             *
+             * Só usamos o proxy alternativo
+             * quando a resposta indica problema
+             * de compatibilidade da função.
+             *
+             * Erros de ativação NÃO são ignorados.
+             */
+
+            if(
+                /ação inválida|acao invalida|invalid action|função não encontrada|function not found/i
+                    .test(message)
+            ){
+
+                items =
+                    await loadPlaylistFallbackProxy(
+                        list.url
+                    );
+
+            }else{
+
+                throw functionError;
+
+            }
+
+        }
+
+
+        if(
+            !items ||
+            !items.length
+        ){
+
+            throw new Error(
+                "Nenhum conteúdo encontrado."
+            );
+
+        }
+
+
+        state.items =
+            items;
+
+
+        /*
+         * Guarda data de atualização.
+         */
+
+        list.updatedAt =
+            new Date().toISOString();
+
+
+        saveLists();
+
+
+        buildGroups();
+
+        render();
+
+
+        setStatus(
+            state.items.length.toLocaleString("pt-BR") +
+            " itens carregados • " +
+            list.name,
+            "ok"
+        );
+
+
+        setAddStatus(
+            "Lista carregada com sucesso.",
+            "active"
+        );
+
+
+    }catch(error){
+
+        console.error(
+            "GC PLAY PRO - ERRO M3U:",
+            error
+        );
+
+
+        var errorText =
+            error &&
+            error.message
+                ? error.message
+                : String(error);
+
+
+        setStatus(
+            "Erro ao carregar: " +
+            errorText,
+            "err"
+        );
+
+
+        setAddStatus(
+            errorText,
+            "blocked"
+        );
+
+
+        /*
+         * Se não estiver ativo,
+         * deixa uma mensagem clara.
+         */
+
+        if(
+            /não está ativo|nao esta ativo|ativação|ativacao|expirada|dispositivo não encontrado/i
+                .test(errorText)
+        ){
+
+            setStatus(
+                "Dispositivo não ativado. Abra DISPOSITIVO e faça a ativação.",
+                "err"
+            );
+
+        }
+
+
+    }finally{
+
+        loader(false);
+
+        state.loading = false;
+
+    }
+
+}
+
+
+/* =========================================================
+   MODAL ADICIONAR
+========================================================= */
+
+function openAdd(){
+
+    $("listName").value = "";
+
+    $("listUrl").value = "";
+
+    setAddStatus(
+        "Aguardando URL.",
+        "pending"
+    );
+
+
+    $("addModal").className =
+        "modal";
+
+
+    setTimeout(
+        function(){
+
+            $("listName").focus();
+
+        },
+        80
+    );
+
+}
+
+
+function addList(){
+
+    var name =
+        $("listName")
+            .value
+            .trim();
+
+
+    var url =
+        $("listUrl")
+            .value
+            .trim();
+
+
+    if(!name){
+
+        name =
+            "Minha TV";
+
+    }
+
+
+    if(
+        !/^https?:\/\//i.test(url)
+    ){
+
+        setAddStatus(
+            "A URL precisa começar com http:// ou https://",
+            "blocked"
+        );
+
+        return;
+
+    }
+
+
+    var list = {
+
+        id:makeId(),
+
+        name:name,
+
+        url:url,
+
+        createdAt:
+            new Date().toISOString(),
+
+        updatedAt:
+            null
+
+    };
+
+
+    /*
+     * Se já existe exatamente a mesma URL,
+     * não cria duplicata.
+     */
+
+    var duplicate =
+        lists.filter(
+            function(item){
+
+                return (
+                    item.url === url
+                );
+
+            }
+        )[0];
+
+
+    if(duplicate){
+
+        $("addModal").className =
+            "modal hidden";
+
+        loadList(duplicate);
+
+        return;
+
+    }
+
+
+    lists.push(list);
+
+    saveLists();
+
+
+    $("addModal").className =
+        "modal hidden";
+
+
+    renderPills();
+
+
+    loadList(list);
+
+}
+
+
+/* =========================================================
+   LISTAS SALVAS
+========================================================= */
+
+function renderRows(){
+
+    if(!lists.length){
+
+        $("rows").innerHTML =
+            '<div class="empty">' +
+            'Nenhuma lista salva.' +
+            '</div>';
+
+        return;
+
+    }
+
+
+    $("rows").innerHTML =
+        lists.map(
+            function(list){
+
+                return (
+
+                    '<div class="row">' +
+
+                        '<div class="info">' +
+
+                            '<b>' +
+                                esc(list.name) +
+                            '</b>' +
+
+                            '<small>' +
+                                esc(list.url) +
+                            '</small>' +
+
+                        '</div>' +
+
+                        '<button ' +
+                        'type="button" ' +
+                        'class="btn" ' +
+                        'data-load="' +
+                        esc(list.id) +
+                        '">' +
+                            'Abrir' +
+                        '</button>' +
+
+                        '<button ' +
+                        'type="button" ' +
+                        'class="btn" ' +
+                        'data-del="' +
+                        esc(list.id) +
+                        '">' +
+                            'Excluir' +
+                        '</button>' +
+
+                    '</div>'
+
+                );
+
+            }
+        ).join("");
+
+
+    Array.prototype.forEach.call(
+        document.querySelectorAll(
+            "[data-load]"
+        ),
+        function(button){
+
+            button.onclick =
+                function(){
+
+                    var id =
+                        button.getAttribute(
+                            "data-load"
+                        );
+
+
+                    var list =
+                        lists.filter(
+                            function(item){
+
+                                return item.id === id;
+
+                            }
+                        )[0];
+
+
+                    $("listsModal").className =
+                        "modal hidden";
+
+
+                    if(list){
+
+                        loadList(list);
+
+                    }
+
+                };
+
+        }
+    );
+
+
+    Array.prototype.forEach.call(
+        document.querySelectorAll(
+            "[data-del]"
+        ),
+        function(button){
+
+            button.onclick =
+                function(){
+
+                    var id =
+                        button.getAttribute(
+                            "data-del"
+                        );
+
+
+                    if(
+                        !confirm(
+                            "Excluir esta lista?"
+                        )
+                    ){
+
+                        return;
+
+                    }
+
+
+                    lists =
+                        lists.filter(
+                            function(item){
+
+                                return item.id !== id;
+
+                            }
+                        );
+
+
+                    saveLists();
+
+
+                    if(
+                        state.list &&
+                        state.list.id === id
+                    ){
+
+                        state.list = null;
+
+                        state.items = [];
+
+                        destroyPlayer();
+
+                        render();
+
+                        setStatus(
+                            "Lista excluída."
+                        );
+
+                    }
+
+
+                    renderPills();
+
+                    renderRows();
+
+                };
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   PLAYER
 ========================================================= */
 
 function destroyPlayer(){
-
-    /*
-     * HLS
-     */
 
     if(state.hls){
 
@@ -3571,39 +3456,13 @@ function destroyPlayer(){
     }
 
 
-    /*
-     * MPEG-TS
-     */
-
     if(state.ts){
-
-        try{
-
-            state.ts.pause();
-
-        }catch(e){}
-
-
-        try{
-
-            state.ts.unload();
-
-        }catch(e){}
-
-
-        try{
-
-            state.ts.detachMediaElement();
-
-        }catch(e){}
-
 
         try{
 
             state.ts.destroy();
 
         }catch(e){}
-
 
         state.ts = null;
 
@@ -3621,12 +3480,11 @@ function destroyPlayer(){
     }catch(e){}
 
 
-    video.removeAttribute(
-        "src"
-    );
-
-
     try{
+
+        video.removeAttribute(
+            "src"
+        );
 
         video.load();
 
@@ -3636,10 +3494,10 @@ function destroyPlayer(){
 
 
 /* =========================================================
-   REPRODUZIR
+   REPRODUÇÃO
 ========================================================= */
 
-function playItem(item){
+function play(item){
 
     if(
         !item ||
@@ -3669,33 +3527,24 @@ function playItem(item){
     var raw =
         String(
             item.url
-        );
-
-
-    var lower =
-        raw.toLowerCase();
+        )
+        .toLowerCase();
 
 
     /*
-     * Sempre passa mídia pelo proxy.
+     * HLS
      */
 
-    var mediaUrl =
-        proxyMedia(
-            raw,
-            "media"
-        );
-
-
-    /* =====================================================
-       HLS
-    ===================================================== */
-
     if(
-        /\.m3u8(\?|$)/i.test(
-            lower
-        )
+        /\.m3u8(\?|$)/i.test(raw)
     ){
+
+        var hlsUrl =
+            mediaProxy(
+                item.url,
+                "media"
+            );
+
 
         if(
             window.Hls &&
@@ -3711,13 +3560,15 @@ function playItem(item){
 
                     backBufferLength:30,
 
-                    maxBufferLength:30
+                    maxBufferLength:30,
+
+                    maxMaxBufferLength:60
 
                 });
 
 
             state.hls.loadSource(
-                mediaUrl
+                hlsUrl
             );
 
 
@@ -3728,7 +3579,6 @@ function playItem(item){
 
             state.hls.on(
                 Hls.Events.MANIFEST_PARSED,
-
                 function(){
 
                     video
@@ -3738,8 +3588,7 @@ function playItem(item){
                         );
 
 
-                    $("nowStatus")
-                        .textContent =
+                    $("nowStatus").textContent =
                         "HLS conectado.";
 
                 }
@@ -3748,27 +3597,24 @@ function playItem(item){
 
             state.hls.on(
                 Hls.Events.ERROR,
-
-                function(
-                    event,
-                    data
-                ){
+                function(event,data){
 
                     if(
                         data &&
                         data.fatal
                     ){
 
-                        $("nowStatus")
-                            .textContent =
+                        $("nowStatus").textContent =
                             "Falha HLS: " +
-                            data.type;
+                            (
+                                data.type ||
+                                "erro"
+                            );
 
                     }
 
                 }
             );
-
 
         }else if(
             video.canPlayType(
@@ -3777,7 +3623,7 @@ function playItem(item){
         ){
 
             video.src =
-                mediaUrl;
+                hlsUrl;
 
 
             video
@@ -3787,14 +3633,12 @@ function playItem(item){
                 );
 
 
-            $("nowStatus")
-                .textContent =
+            $("nowStatus").textContent =
                 "HLS nativo conectado.";
 
         }else{
 
-            $("nowStatus")
-                .textContent =
+            $("nowStatus").textContent =
                 "HLS não suportado neste aparelho.";
 
         }
@@ -3805,19 +3649,21 @@ function playItem(item){
     }
 
 
-    /* =====================================================
-       MP4 / WEBM / OGG
-    ===================================================== */
+    /*
+     * MP4 / WEBM / OGG
+     */
 
     if(
-        /\.mp4(\?|$)/i.test(lower) ||
-        /\.webm(\?|$)/i.test(lower) ||
-        /\.ogg(\?|$)/i.test(lower) ||
-        /\.ogv(\?|$)/i.test(lower)
+        /\.mp4(\?|$)/i.test(raw) ||
+        /\.webm(\?|$)/i.test(raw) ||
+        /\.ogg(\?|$)/i.test(raw)
     ){
 
         video.src =
-            mediaUrl;
+            mediaProxy(
+                item.url,
+                "media"
+            );
 
 
         video
@@ -3827,8 +3673,7 @@ function playItem(item){
             );
 
 
-        $("nowStatus")
-            .textContent =
+        $("nowStatus").textContent =
             "Vídeo conectado.";
 
 
@@ -3837,16 +3682,25 @@ function playItem(item){
     }
 
 
-    /* =====================================================
-       MPEG-TS
-    ===================================================== */
+    /*
+     * MPEG-TS
+     *
+     * IMPORTANTE:
+     * esta é a reprodução usada pelas
+     * URLs /live/.../*.ts
+     */
 
     if(
         window.mpegts &&
-        typeof mpegts.isSupported ===
-        "function" &&
         mpegts.isSupported()
     ){
+
+        var tsUrl =
+            mediaProxy(
+                item.url,
+                "media"
+            );
+
 
         try{
 
@@ -3854,19 +3708,19 @@ function playItem(item){
                 mpegts.createPlayer(
 
                     {
+
                         type:"mpegts",
 
                         isLive:
                             item.category === "live" ||
-                            /\.ts(\?|$)/i.test(
-                                lower
-                            ),
+                            /\.ts(\?|$)/i.test(raw),
 
-                        url:mediaUrl
+                        url:tsUrl
 
                     },
 
                     {
+
                         enableWorker:true,
 
                         enableStashBuffer:true,
@@ -3883,21 +3737,30 @@ function playItem(item){
             );
 
 
+            state.ts.on(
+                mpegts.Events.ERROR,
+                function(){
+
+                    $("nowStatus").textContent =
+                        "Erro na transmissão MPEG-TS.";
+
+                }
+            );
+
+
             state.ts.load();
 
 
-            state.ts.play()
+            state.ts
+                .play()
                 .catch(
                     function(){}
                 );
 
 
-            $("nowStatus")
-                .textContent =
+            $("nowStatus").textContent =
                 "MPEG-TS conectado.";
 
-
-            return;
 
         }catch(error){
 
@@ -3906,17 +3769,28 @@ function playItem(item){
                 error
             );
 
+
+            $("nowStatus").textContent =
+                "Falha ao iniciar MPEG-TS.";
+
         }
+
+
+        return;
 
     }
 
 
-    /* =====================================================
-       ÚLTIMA TENTATIVA
-    ===================================================== */
+    /*
+     * Última tentativa:
+     * reprodução direta.
+     */
 
     video.src =
-        mediaUrl;
+        mediaProxy(
+            item.url,
+            "media"
+        );
 
 
     video
@@ -3926,469 +3800,193 @@ function playItem(item){
         );
 
 
-    $("nowStatus")
-        .textContent =
+    $("nowStatus").textContent =
         "Tentando reprodução direta.";
 
 }
 
 
 /* =========================================================
-   MODAL ADICIONAR
+   DISPOSITIVO
 ========================================================= */
 
-function openAdd(){
+function isValidUUID(value){
 
-    $("listName").value =
-        "";
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+        .test(
+            String(value || "")
+        );
 
-    $("listUrl").value =
-        "";
-
-    $("m3uError").style.display =
-        "none";
+}
 
 
-    $("addModal").className =
-        "modal";
+function generateUUID(){
+
+    if(
+        window.crypto &&
+        typeof window.crypto.randomUUID ===
+            "function"
+    ){
+
+        return window.crypto.randomUUID();
+
+    }
 
 
-    setTimeout(
-        function(){
-
-            $("listName").focus();
-
-        },
-        50
+    return (
+        makeId() +
+        "-" +
+        makeId() +
+        "-" +
+        makeId()
+    )
+    .substring(
+        0,
+        36
     );
 
 }
 
 
+function generateActivationCode(){
+
+    var chars =
+        "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+
+    var result = "";
+
+
+    for(
+        var i=0;
+        i<6;
+        i++
+    ){
+
+        result +=
+            chars[
+                Math.floor(
+                    Math.random() *
+                    chars.length
+                )
+            ];
+
+    }
+
+
+    return result;
+
+}
+
+
 /* =========================================================
-   SALVAR M3U
+   INIT DEVICE
 ========================================================= */
 
-async function addList(){
+function initDevice(){
 
-    var name =
-        $("listName")
-            .value
-            .trim() ||
-        "Minha TV";
-
-
-    var url =
-        $("listUrl")
-            .value
-            .trim();
-
-
-    $("m3uError").style.display =
-        "none";
+    var deviceId =
+        localStorage.getItem(
+            "gcplay_device_id"
+        );
 
 
     if(
-        !/^https?:\/\//i.test(url)
+        !deviceId ||
+        !isValidUUID(deviceId)
     ){
 
-        $("m3uError").textContent =
-            "A URL precisa começar com http:// ou https://";
+        deviceId =
+            generateUUID();
 
 
-        $("m3uError").style.display =
-            "block";
-
-
-        return;
+        localStorage.setItem(
+            "gcplay_device_id",
+            deviceId
+        );
 
     }
 
 
-    /*
-     * Não deixa adicionar duas
-     * listas exatamente iguais.
-     */
-
-    var duplicate =
-        lists.find(
-            function(item){
-
-                return item.url === url;
-
-            }
+    var code =
+        localStorage.getItem(
+            "gcplay_activation_code"
         );
 
 
-    if(duplicate){
+    if(
+        !code ||
+        !/^[A-Z0-9]{6}$/i.test(code)
+    ){
 
-        $("addModal").className =
-            "modal hidden";
+        code =
+            generateActivationCode();
 
 
-        await loadList(
-            duplicate
+        localStorage.setItem(
+            "gcplay_activation_code",
+            code
         );
 
-
-        return;
-
     }
 
 
-    var list = {
-
-        id:makeId(),
-
-        name:name,
-
-        url:url,
-
-        createdAt:
-            new Date()
-            .toISOString(),
-
-        updatedAt:null
-
-    };
+    state.deviceId =
+        deviceId;
 
 
-    lists.push(
-        list
-    );
+    state.activationCode =
+        String(code)
+            .toUpperCase();
 
 
-    saveLists();
+    $("deviceCode").textContent =
+        "GC-" +
+        deviceId
+            .replace(/-/g,"")
+            .substring(0,8)
+            .toUpperCase();
 
 
-    $("addModal").className =
-        "modal hidden";
-
-
-    renderPills();
-
-
-    await loadList(
-        list
-    );
-
-}
-
-
-/* =========================================================
-   LISTAS SALVAS
-========================================================= */
-
-function renderRows(){
-
-    var rows =
-        $("rows");
-
-
-    if(!lists.length){
-
-        rows.innerHTML =
-            '<div class="empty">' +
-            'Nenhuma lista salva.' +
-            '</div>';
-
-        return;
-
-    }
-
-
-    rows.innerHTML =
-        lists.map(
-            function(list){
-
-                return (
-
-                    '<div class="row">' +
-
-                        '<div class="info">' +
-
-                            '<b>' +
-                            esc(list.name) +
-                            '</b>' +
-
-                            '<small>' +
-                            esc(list.url) +
-                            '</small>' +
-
-                        '</div>' +
-
-                        '<button ' +
-                        'type="button" ' +
-                        'class="btn" ' +
-                        'data-load="' +
-                        esc(list.id) +
-                        '">' +
-
-                        'Abrir' +
-
-                        '</button>' +
-
-                        '<button ' +
-                        'type="button" ' +
-                        'class="btn" ' +
-                        'data-del="' +
-                        esc(list.id) +
-                        '">' +
-
-                        'Excluir' +
-
-                        '</button>' +
-
-                    '</div>'
-
-                );
-
-            }
-        )
-        .join("");
+    $("activationCode").textContent =
+        state.activationCode;
 
 
     /*
-     * ABRIR
-     */
-
-    Array.prototype.forEach.call(
-        rows.querySelectorAll(
-            "[data-load]"
-        ),
-        function(button){
-
-            button.onclick =
-                function(){
-
-                    var id =
-                        button.getAttribute(
-                            "data-load"
-                        );
-
-
-                    var list =
-                        lists.find(
-                            function(item){
-
-                                return item.id === id;
-
-                            }
-                        );
-
-
-                    if(!list){
-
-                        return;
-
-                    }
-
-
-                    $("listsModal")
-                        .className =
-                        "modal hidden";
-
-
-                    loadList(
-                        list
-                    );
-
-                };
-
-        }
-    );
-
-
-    /*
-     * EXCLUIR
-     */
-
-    Array.prototype.forEach.call(
-        rows.querySelectorAll(
-            "[data-del]"
-        ),
-        function(button){
-
-            button.onclick =
-                function(){
-
-                    var id =
-                        button.getAttribute(
-                            "data-del"
-                        );
-
-
-                    if(
-                        !confirm(
-                            "Excluir esta lista?"
-                        )
-                    ){
-
-                        return;
-
-                    }
-
-
-                    lists =
-                        lists.filter(
-                            function(item){
-
-                                return (
-                                    item.id !== id
-                                );
-
-                            }
-                        );
-
-
-                    saveLists();
-
-
-                    if(
-                        state.list &&
-                        state.list.id === id
-                    ){
-
-                        destroyPlayer();
-
-                        state.list =
-                            null;
-
-                        state.items =
-                            [];
-
-                        render();
-
-                        setStatus(
-                            "Lista excluída."
-                        );
-
-                    }
-
-
-                    renderPills();
-
-                    renderRows();
-
-                };
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   FECHAR MODAIS
-========================================================= */
-
-function closeModal(id){
-
-    var modal =
-        $(id);
-
-
-    if(modal){
-
-        modal.className =
-            "modal hidden";
-
-    }
-
-}
-
-
-/* =========================================================
-   HISTÓRICO DO NAVEGADOR
-========================================================= */
-
-function setupHistory(){
-
-    /*
-     * NÃO usamos history.pushState
-     * para cada clique de conteúdo.
-     *
-     * Apenas categorias.
+     * QR CODE
      */
 
     try{
 
-        history.replaceState(
+        $("qr").innerHTML = "";
+
+
+        new QRCode(
+            $("qr"),
             {
-                gcplay:true,
 
-                cat:state.cat
-            },
-            "",
-            location.href
-        );
-
-    }catch(e){}
-
-
-    window.addEventListener(
-        "popstate",
-        function(event){
-
-            /*
-             * Se voltar para um estado
-             * interno do GC PLAY.
-             */
-
-            if(
-                event.state &&
-                event.state.gcplay
-            ){
-
-                var cat =
-                    event.state.cat ||
-                    "live";
-
-
-                state.cat =
-                    cat;
-
-
-                Array.prototype.forEach.call(
-                    document.querySelectorAll(
-                        ".tab"
+                text:
+                    ACTIVATION_PAGE +
+                    "?device=" +
+                    encodeURIComponent(
+                        deviceId
+                    ) +
+                    "&code=" +
+                    encodeURIComponent(
+                        state.activationCode
                     ),
-                    function(button){
 
-                        button.classList.toggle(
-                            "active",
+                width:150,
 
-                            button.getAttribute(
-                                "data-cat"
-                            ) === cat
-                        );
-
-                    }
-                );
-
-
-                buildGroups();
-
-                render();
+                height:150
 
             }
+        );
 
-        }
-    );
+    }catch(error){
 
-
-    /*
-     * Impede o navegador de tentar
-     * restaurar uma posição antiga
-     * de scroll do documento.
-     */
-
-    if(
-        "scrollRestoration" in history
-    ){
-
-        history.scrollRestoration =
-            "manual";
+        $("qr").textContent =
+            state.activationCode;
 
     }
 
@@ -4396,52 +3994,346 @@ function setupHistory(){
 
 
 /* =========================================================
-   TROCAR CATEGORIA COM HISTÓRICO
+   REGISTRAR DISPOSITIVO
 ========================================================= */
 
-function changeCategory(category){
+async function registerDevice(){
 
-    state.cat =
-        category;
+    if(
+        !state.deviceId ||
+        !state.activationCode
+    ){
 
-    state.page =
-        1;
+        return;
+
+    }
 
 
-    Array.prototype.forEach.call(
-        document.querySelectorAll(
-            ".tab"
-        ),
-        function(button){
+    try{
 
-            button.classList.toggle(
-                "active",
+        var response =
+            await fetch(
+                ACTIVATE,
+                {
 
-                button.getAttribute(
-                    "data-cat"
-                ) === category
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            action:"register",
+
+                            device_id:
+                                state.deviceId,
+
+                            activation_code:
+                                state.activationCode
+
+                        })
+
+                }
+            );
+
+
+        var result =
+            await response.json()
+                .catch(
+                    function(){
+
+                        return {};
+
+                    }
+                );
+
+
+        if(
+            result &&
+            result.success
+        ){
+
+            if(
+                result.device &&
+                result.device.activation_code
+            ){
+
+                state.activationCode =
+                    String(
+                        result.device.activation_code
+                    )
+                    .toUpperCase();
+
+
+                localStorage.setItem(
+                    "gcplay_activation_code",
+                    state.activationCode
+                );
+
+
+                $("activationCode").textContent =
+                    state.activationCode;
+
+            }
+
+        }
+
+
+    }catch(error){
+
+        console.warn(
+            "Registro dispositivo:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   STATUS DISPOSITIVO
+========================================================= */
+
+async function checkDeviceStatus(){
+
+    if(
+        !state.deviceId
+    ){
+
+        return null;
+
+    }
+
+
+    try{
+
+        var response =
+            await fetch(
+                ACTIVATE,
+                {
+
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            action:"status",
+
+                            device_id:
+                                state.deviceId
+
+                        })
+
+                }
+            );
+
+
+        var result =
+            await response.json()
+                .catch(
+                    function(){
+
+                        return {};
+
+                    }
+                );
+
+
+        if(
+            !response.ok ||
+            !result.success
+        ){
+
+            return null;
+
+        }
+
+
+        if(result.device){
+
+            var device =
+                result.device;
+
+
+            if(
+                device.activation_code &&
+                /^[A-Z0-9]{6}$/.test(
+                    String(
+                        device.activation_code
+                    )
+                )
+            ){
+
+                state.activationCode =
+                    String(
+                        device.activation_code
+                    )
+                    .toUpperCase();
+
+
+                localStorage.setItem(
+                    "gcplay_activation_code",
+                    state.activationCode
+                );
+
+
+                $("activationCode").textContent =
+                    state.activationCode;
+
+            }
+
+
+            state.activationStatus =
+                String(
+                    device.status ||
+                    "pending"
+                )
+                .toLowerCase();
+
+
+            if(
+                state.activationStatus ===
+                "active"
+            ){
+
+                setDeviceStatus(
+                    "✓ DISPOSITIVO ATIVO",
+                    "active"
+                );
+
+            }else if(
+                state.activationStatus ===
+                "blocked"
+            ){
+
+                setDeviceStatus(
+                    "✕ DISPOSITIVO BLOQUEADO",
+                    "blocked"
+                );
+
+            }else{
+
+                setDeviceStatus(
+                    "Aguardando ativação pelo site...",
+                    "pending"
+                );
+
+            }
+
+
+            return device;
+
+        }
+
+
+    }catch(error){
+
+        console.warn(
+            "Status dispositivo:",
+            error
+        );
+
+    }
+
+
+    return null;
+
+}
+
+
+/* =========================================================
+   POLLING DE ATIVAÇÃO
+========================================================= */
+
+function startActivationPolling(){
+
+    checkDeviceStatus();
+
+
+    setInterval(
+        function(){
+
+            checkDeviceStatus();
+
+        },
+        15000
+    );
+
+}
+
+
+/* =========================================================
+   HISTORY / VOLTAR
+========================================================= */
+
+function initHistory(){
+
+    try{
+
+        if(
+            "scrollRestoration" in
+            history
+        ){
+
+            history.scrollRestoration =
+                "manual";
+
+        }
+
+
+        if(
+            !history.state ||
+            !history.state.gcplay
+        ){
+
+            history.replaceState(
+                {
+                    gcplay:true,
+
+                    cat:"live"
+
+                },
+                "",
+                location.href
             );
 
         }
-    );
 
 
-    buildGroups();
+        state.historyReady =
+            true;
 
-    render();
+    }catch(e){}
+
+}
 
 
-    $("grid").scrollTop =
-        0;
+function pushCategoryHistory(cat){
+
+    if(!state.historyReady){
+
+        return;
+
+    }
 
 
     try{
 
         history.pushState(
             {
+
                 gcplay:true,
 
-                cat:category
+                cat:cat
 
             },
             "",
@@ -4451,6 +4343,68 @@ function changeCategory(category){
     }catch(e){}
 
 }
+
+
+window.addEventListener(
+    "popstate",
+    function(event){
+
+        /*
+         * Se for um estado interno do GC PLAY,
+         * apenas muda a categoria.
+         *
+         * Não faz pushState novamente.
+         */
+
+        if(
+            event.state &&
+            event.state.gcplay
+        ){
+
+            var cat =
+                event.state.cat ||
+                "live";
+
+
+            state.cat =
+                cat;
+
+
+            state.page =
+                1;
+
+
+            Array.prototype.forEach.call(
+                document.querySelectorAll(".tab"),
+                function(button){
+
+                    button.classList.toggle(
+                        "active",
+                        button.getAttribute(
+                            "data-cat"
+                        ) === cat
+                    );
+
+                }
+            );
+
+
+            buildGroups();
+
+            render();
+
+
+            return;
+
+        }
+
+        /*
+         * Estado externo:
+         * não cria outro history.
+         */
+
+    }
+);
 
 
 /* =========================================================
@@ -4460,7 +4414,7 @@ function changeCategory(category){
 function bind(){
 
     /*
-     * M3U
+     * + M3U
      */
 
     $("addBtn").onclick =
@@ -4480,8 +4434,7 @@ function bind(){
 
             renderRows();
 
-            $("listsModal")
-                .className =
+            $("listsModal").className =
                 "modal";
 
         };
@@ -4494,22 +4447,23 @@ function bind(){
     $("deviceBtn").onclick =
         function(){
 
-            openDevice();
+            $("deviceModal").className =
+                "modal";
+
+            checkDeviceStatus();
 
         };
 
 
     /*
-     * NOVA LISTA
+     * NOVA LISTA DENTRO DE LISTAS
      */
 
     $("newFromLists").onclick =
         function(){
 
-            $("listsModal")
-                .className =
+            $("listsModal").className =
                 "modal hidden";
-
 
             openAdd();
 
@@ -4529,11 +4483,18 @@ function bind(){
             button.onclick =
                 function(){
 
-                    closeModal(
+                    var target =
                         button.getAttribute(
                             "data-close"
-                        )
-                    );
+                        );
+
+
+                    if($(target)){
+
+                        $(target).className =
+                            "modal hidden";
+
+                    }
 
                 };
 
@@ -4560,12 +4521,9 @@ function bind(){
                         );
 
 
-                    if(
-                        cat === "adult"
-                    ){
+                    if(cat === "adult"){
 
-                        $("pinModal")
-                            .className =
+                        $("pinModal").className =
                             "modal";
 
                         setTimeout(
@@ -4582,7 +4540,12 @@ function bind(){
                     }
 
 
-                    changeCategory(
+                    pushCategoryHistory(
+                        cat
+                    );
+
+
+                    switchCat(
                         cat
                     );
 
@@ -4603,26 +4566,20 @@ function bind(){
                 $("pin").value;
 
 
-            /*
-             * PIN padrão.
-             *
-             * Pode ser alterado depois.
-             */
+            if(pin === "0000"){
 
-            if(
-                pin === "0000"
-            ){
-
-                $("pinModal")
-                    .className =
+                $("pinModal").className =
                     "modal hidden";
 
-
-                $("pin").value =
-                    "";
+                $("pin").value = "";
 
 
-                changeCategory(
+                pushCategoryHistory(
+                    "adult"
+                );
+
+
+                switchCat(
                     "adult"
                 );
 
@@ -4637,16 +4594,13 @@ function bind(){
         };
 
 
-    /*
-     * ENTER NO PIN
-     */
-
     $("pin").addEventListener(
         "keydown",
         function(event){
 
             if(
-                event.key === "Enter"
+                event.key ===
+                "Enter"
             ){
 
                 $("pinOk").click();
@@ -4664,8 +4618,7 @@ function bind(){
     $("search").oninput =
         function(){
 
-            state.page =
-                1;
+            state.page = 1;
 
             render();
 
@@ -4691,7 +4644,7 @@ function bind(){
 
 
     /*
-     * ANTERIOR
+     * PAGINA ANTERIOR
      */
 
     $("prev").onclick =
@@ -4705,30 +4658,23 @@ function bind(){
 
                 render();
 
-                $("grid").scrollTop =
-                    0;
-
             }
 
         };
 
 
     /*
-     * PRÓXIMO
+     * PRÓXIMA PÁGINA
      */
 
     $("next").onclick =
         function(){
 
-            var total =
-                filteredItems().length;
-
-
             var pages =
                 Math.max(
                     1,
                     Math.ceil(
-                        total /
+                        filtered().length /
                         PAGE_SIZE
                     )
                 );
@@ -4741,9 +4687,6 @@ function bind(){
                 state.page++;
 
                 render();
-
-                $("grid").scrollTop =
-                    0;
 
             }
 
@@ -4760,13 +4703,11 @@ function bind(){
             destroyPlayer();
 
 
-            $("nowTitle")
-                .textContent =
+            $("nowTitle").textContent =
                 "Nenhuma mídia selecionada";
 
 
-            $("nowStatus")
-                .textContent =
+            $("nowStatus").textContent =
                 "Escolha um conteúdo para reproduzir.";
 
         };
@@ -4785,7 +4726,7 @@ function bind(){
 
 
     /*
-     * ENTER NO URL
+     * ENTER NA URL
      */
 
     $("listUrl").addEventListener(
@@ -4793,7 +4734,8 @@ function bind(){
         function(event){
 
             if(
-                event.key === "Enter"
+                event.key ===
+                "Enter"
             ){
 
                 addList();
@@ -4805,31 +4747,27 @@ function bind(){
 
 
     /*
-     * ESC FECHA MODAL
+     * FECHAR MODAL CLICANDO FORA
      */
 
-    document.addEventListener(
-        "keydown",
-        function(event){
+    Array.prototype.forEach.call(
+        document.querySelectorAll(
+            ".modal"
+        ),
+        function(modal){
 
-            if(
-                event.key !== "Escape"
-            ){
+            modal.addEventListener(
+                "click",
+                function(event){
 
-                return;
+                    if(
+                        event.target === modal
+                    ){
 
-            }
+                        modal.className =
+                            "modal hidden";
 
-
-            [
-                "addModal",
-                "listsModal",
-                "pinModal",
-                "deviceModal"
-            ].forEach(
-                function(id){
-
-                    closeModal(id);
+                    }
 
                 }
             );
@@ -4844,51 +4782,30 @@ function bind(){
    INICIALIZAÇÃO
 ========================================================= */
 
-async function init(){
+initHistory();
 
-    initDevice();
+initDevice();
 
-    setupHistory();
+bind();
 
-    bind();
+renderPills();
 
-    renderPills();
+render();
 
-    render();
+registerDevice();
 
-
-    /*
-     * Primeiro registra.
-     */
-
-    await registerDevice();
+startActivationPolling();
 
 
-    /*
-     * Depois consulta.
-     */
-
-    await checkActivation();
-
-
-    /*
-     * NÃO abre automaticamente
-     * nenhuma lista salva.
-     *
-     * O usuário escolhe em LISTAS.
-     */
-
-}
-
-
-/* =========================================================
-   START
-========================================================= */
-
-init();
+/*
+ * Não carrega automaticamente uma lista salva.
+ *
+ * O usuário escolhe a lista.
+ */
 
 
 })();
+
 </script>
 
 </body>
