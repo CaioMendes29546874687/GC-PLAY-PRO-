@@ -2,21 +2,11 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
->
-
-<meta
-    name="theme-color"
-    content="#020402"
->
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#020402">
 <title>GC PLAY PRO - Ativação</title>
 
 <style>
-
 :root{
     --green:#16ff00;
     --green-dark:#0a7d00;
@@ -27,31 +17,19 @@
     --muted:#829582;
     --danger:#ff4141;
 }
-
 *{
     box-sizing:border-box;
     margin:0;
     padding:0;
 }
-
-html,
-body{
+html,body{
     width:100%;
     min-height:100%;
     background:
-        radial-gradient(
-            circle at center,
-            #0b180b 0%,
-            #030603 48%,
-            #000 100%
-        );
+        radial-gradient(circle at center,#0b180b 0%,#030603 48%,#000 100%);
     color:var(--text);
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
+    font-family:Arial,Helvetica,sans-serif;
 }
-
 body{
     min-height:100vh;
     display:flex;
@@ -59,380 +37,178 @@ body{
     align-items:center;
     padding:20px;
 }
-
 .container{
     width:100%;
     max-width:630px;
 }
-
 .panel{
-
     width:100%;
-
-    background:
-        linear-gradient(
-            145deg,
-            #091009,
-            #030503
-        );
-
+    background:linear-gradient(145deg,#091009,#030503);
     border:1px solid var(--green);
-
     border-radius:26px;
-
-    padding:
-        48px
-        46px
-        40px;
-
+    padding:48px 46px 40px;
     box-shadow:
         0 0 25px rgba(22,255,0,.20),
         0 0 70px rgba(22,255,0,.08),
         inset 0 0 35px rgba(22,255,0,.025);
-
 }
-
 .logo{
-
     text-align:center;
-
     font-size:44px;
-
     font-weight:900;
-
     letter-spacing:2px;
-
     color:#fff;
-
     margin-bottom:8px;
-
 }
-
-.logo span{
-    color:var(--green);
-}
-
+.logo span{color:var(--green);}
 .subtitle{
-
     text-align:center;
-
     color:#879b87;
-
     font-size:20px;
-
     letter-spacing:1px;
-
     margin-bottom:38px;
-
 }
-
-.field{
-    margin-bottom:22px;
-}
-
+.field{margin-bottom:22px;}
 label{
-
     display:block;
-
     color:#9aae9a;
-
     font-size:18px;
-
     margin-bottom:9px;
-
 }
-
 .input{
-
     width:100%;
-
     height:64px;
-
     background:#020302;
-
     border:1px solid #183418;
-
     border-radius:12px;
-
     color:#fff;
-
     font-size:21px;
-
     padding:0 20px;
-
     outline:none;
-
     transition:.2s;
-
 }
-
 .input:focus{
-
     border-color:var(--green);
-
-    box-shadow:
-        0 0 12px rgba(22,255,0,.12);
-
+    box-shadow:0 0 12px rgba(22,255,0,.12);
 }
-
 .input[readonly]{
     color:#a6b7a6;
+    background:#050805;
 }
-
 .activation-code{
-
     text-transform:uppercase;
-
     letter-spacing:3px;
-
     font-weight:bold;
-
 }
-
 .button{
-
     width:100%;
-
     height:72px;
-
     border:0;
-
     border-radius:13px;
-
     background:var(--green);
-
     color:#020302;
-
     font-size:21px;
-
     font-weight:900;
-
     cursor:pointer;
-
     margin-top:4px;
-
     transition:.15s;
-
 }
-
 .button:hover{
-
     filter:brightness(1.08);
-
     transform:translateY(-1px);
-
 }
-
-.button:active{
-
-    transform:scale(.99);
-
-}
-
+.button:active{transform:scale(.99);}
 .button:disabled{
-
     opacity:.5;
-
     cursor:not-allowed;
-
     transform:none;
-
 }
-
 .message{
-
     margin-top:26px;
-
     min-height:60px;
-
     border-radius:12px;
-
     border:1px solid #183518;
-
     background:#030703;
-
     display:flex;
-
     align-items:center;
-
     justify-content:center;
-
     text-align:center;
-
     padding:15px;
-
     font-size:17px;
-
     color:#839683;
-
 }
-
 .message.success{
-
     border-color:#147a14;
-
     color:#73ff73;
-
     background:#061006;
-
 }
-
 .message.error{
-
     border-color:var(--danger);
-
     color:#ff6868;
-
     background:#100404;
-
 }
-
-.message.loading{
-
-    color:#a5b9a5;
-
-}
-
 .device-id-box{
-
     margin-top:25px;
-
     border:1px dashed #244624;
-
     border-radius:12px;
-
     padding:17px;
-
     color:#718071;
-
     font-size:15px;
-
     word-break:break-all;
-
     line-height:1.5;
-
 }
-
-.device-id-box strong{
-    color:#9aac9a;
-}
-
+.device-id-box strong{color:#9aac9a;}
 .status{
-
     margin-top:15px;
-
     text-align:center;
-
     font-size:14px;
-
     color:#617061;
-
 }
-
-.status.active{
-    color:var(--green);
-}
-
+.status.active{color:var(--green);}
 .spinner{
-
     display:inline-block;
-
     width:17px;
-
     height:17px;
-
     border:2px solid #344534;
-
     border-top-color:var(--green);
-
     border-radius:50%;
-
     vertical-align:-4px;
-
     margin-right:7px;
-
-    animation:
-        spin .8s linear infinite;
-
+    animation:spin .8s linear infinite;
 }
-
-@keyframes spin{
-
-    to{
-        transform:rotate(360deg);
-    }
-
-}
+@keyframes spin{to{transform:rotate(360deg);}}
 
 @media(max-width:600px){
-
-    body{
-        padding:12px;
-    }
-
+    body{padding:12px;}
     .panel{
-
-        padding:
-            42px
-            26px
-            30px;
-
+        padding:42px 26px 30px;
         border-radius:24px;
-
     }
-
-    .logo{
-        font-size:38px;
-    }
-
+    .logo{font-size:38px;}
     .subtitle{
         font-size:18px;
         margin-bottom:32px;
     }
-
-    label{
-        font-size:17px;
-    }
-
+    label{font-size:17px;}
     .input{
         height:62px;
         font-size:19px;
     }
-
     .button{
         height:70px;
         font-size:19px;
     }
-
 }
-
 @media(max-width:380px){
-
-    .panel{
-        padding:
-            34px
-            18px
-            25px;
-    }
-
-    .logo{
-        font-size:31px;
-    }
-
-    .subtitle{
-        font-size:15px;
-    }
-
+    .panel{padding:34px 18px 25px;}
+    .logo{font-size:31px;}
+    .subtitle{font-size:15px;}
 }
-
 </style>
-
 </head>
 
 <body>
-
 <div class="container">
-
     <div class="panel">
 
         <div class="logo">
@@ -443,16 +219,8 @@ label{
             ATIVAÇÃO DO DISPOSITIVO
         </div>
 
-        <!-- =================================================
-             CÓDIGO
-        ================================================== -->
-
         <div class="field">
-
-            <label for="activationCode">
-                Código de ativação
-            </label>
-
+            <label for="activationCode">Código de ativação</label>
             <input
                 id="activationCode"
                 class="input activation-code"
@@ -462,19 +230,10 @@ label{
                 autocapitalize="characters"
                 placeholder="Digite o código"
             >
-
         </div>
 
-        <!-- =================================================
-             M3U
-        ================================================== -->
-
         <div class="field">
-
-            <label for="playlistUrl">
-                URL da sua lista M3U
-            </label>
-
+            <label for="playlistUrl">URL da sua lista M3U</label>
             <input
                 id="playlistUrl"
                 class="input"
@@ -482,53 +241,26 @@ label{
                 autocomplete="off"
                 placeholder="http://servidor/sua-lista.m3u"
             >
-
         </div>
 
-        <!-- =================================================
-             BOTÃO
-        ================================================== -->
-
-        <button
-            id="activateButton"
-            class="button"
-            type="button"
-        >
+        <button id="activateButton" class="button" type="button">
             ATIVAR DISPOSITIVO
         </button>
 
-        <!-- =================================================
-             MENSAGEM
-        ================================================== -->
-
-        <div
-            id="message"
-            class="message"
-        >
+        <div id="message" class="message">
             Aguardando ativação...
         </div>
 
-        <!-- =================================================
-             ID
-        ================================================== -->
-
-        <div
-            id="deviceIdBox"
-            class="device-id-box"
-        >
+        <div id="deviceIdBox" class="device-id-box">
             <strong>ID do dispositivo:</strong>
-            <span id="deviceId">Gerando...</span>
+            <span id="deviceId">Detectando...</span>
         </div>
 
-        <div
-            id="status"
-            class="status"
-        >
+        <div id="status" class="status">
             Detectando dispositivo...
         </div>
 
     </div>
-
 </div>
 
 <script>
@@ -545,60 +277,50 @@ const SUPABASE_PUBLISHABLE_KEY =
     "sb_publishable_2qV7Uw-99dQlVcXluSuikw_YZGClN13";
 
 const ACTIVATE_FUNCTION =
-    SUPABASE_URL +
-    "/functions/v1/activate-device";
+    SUPABASE_URL + "/functions/v1/activate-device";
 
 /*
- * MUITO IMPORTANTE:
- *
- * Esta é a mesma chave utilizada no index.html.
- *
- * Isso faz o connect.html e o aplicativo
- * compartilharem o mesmo ID.
+ * IMPORTANTE:
+ * Estes nomes precisam ser os mesmos usados pelo aplicativo.
  */
-
 const DEVICE_STORAGE_KEY =
-    "gcplay_pro_device_id_v5";
+    "gcplay_device_id";
 
 const ACTIVATION_STORAGE_KEY =
-    "gcplay_pro_activation_code_v5";
+    "gcplay_activation_code";
 
 const PLAYLIST_STORAGE_KEY =
     "gcplay_pro_activated_playlist_v5";
+
+/*
+ * Parâmetros enviados pelo QR Code:
+ *
+ * ?device=UUID&code=ABC123
+ */
+const QR_DEVICE_PARAM = "device";
+const QR_CODE_PARAM = "code";
 
 /* =========================================================
    ELEMENTOS
 ========================================================= */
 
 const deviceIdElement =
-    document.getElementById(
-        "deviceId"
-    );
+    document.getElementById("deviceId");
 
 const activationCodeInput =
-    document.getElementById(
-        "activationCode"
-    );
+    document.getElementById("activationCode");
 
 const playlistUrlInput =
-    document.getElementById(
-        "playlistUrl"
-    );
+    document.getElementById("playlistUrl");
 
 const activateButton =
-    document.getElementById(
-        "activateButton"
-    );
+    document.getElementById("activateButton");
 
 const message =
-    document.getElementById(
-        "message"
-    );
+    document.getElementById("message");
 
 const status =
-    document.getElementById(
-        "status"
-    );
+    document.getElementById("status");
 
 /* =========================================================
    UUID
@@ -608,18 +330,10 @@ function generateUUID(){
 
     if(
         window.crypto &&
-        typeof crypto.randomUUID ===
-        "function"
+        typeof window.crypto.randomUUID === "function"
     ){
-
-        return crypto.randomUUID();
-
+        return window.crypto.randomUUID();
     }
-
-    /*
-     * Fallback para navegadores antigos,
-     * inclusive algumas Smart TVs.
-     */
 
     return (
         "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
@@ -636,10 +350,8 @@ function generateUUID(){
                     : (r & 0x3) | 0x8;
 
             return v.toString(16);
-
         }
     );
-
 }
 
 /* =========================================================
@@ -649,10 +361,56 @@ function generateUUID(){
 function isValidUUID(id){
 
     return /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-        .test(
-            String(id || "")
+        .test(String(id || ""));
+}
+
+/* =========================================================
+   LER PARÂMETROS DO QR
+========================================================= */
+
+function getQRParams(){
+
+    try{
+
+        const params =
+            new URLSearchParams(
+                window.location.search
+            );
+
+        let qrDevice =
+            params.get(QR_DEVICE_PARAM);
+
+        let qrCode =
+            params.get(QR_CODE_PARAM);
+
+        if(qrDevice){
+            qrDevice = qrDevice.trim();
+        }
+
+        if(qrCode){
+            qrCode =
+                qrCode
+                    .trim()
+                    .toUpperCase();
+        }
+
+        return {
+            device: qrDevice || "",
+            code: qrCode || ""
+        };
+
+    }catch(error){
+
+        console.warn(
+            "Erro ao ler parâmetros do QR:",
+            error
         );
 
+        return {
+            device:"",
+            code:""
+        };
+    }
 }
 
 /* =========================================================
@@ -661,37 +419,58 @@ function isValidUUID(id){
 
 function getDeviceId(){
 
-    let id =
+    const qr =
+        getQRParams();
+
+    /*
+     * PRIMEIRA PRIORIDADE:
+     * ID enviado pelo QR Code.
+     *
+     * Isso evita que o celular/PC gere
+     * um UUID diferente do aplicativo.
+     */
+    if(
+        qr.device &&
+        isValidUUID(qr.device)
+    ){
+
+        localStorage.setItem(
+            DEVICE_STORAGE_KEY,
+            qr.device
+        );
+
+        return qr.device;
+    }
+
+    /*
+     * SEGUNDA PRIORIDADE:
+     * ID já salvo neste navegador.
+     */
+    let savedId =
         localStorage.getItem(
             DEVICE_STORAGE_KEY
         );
 
-    /*
-     * Primeiro tenta recuperar o ID existente.
-     */
-
     if(
-        isValidUUID(id)
+        savedId &&
+        isValidUUID(savedId)
     ){
-
-        return id;
-
+        return savedId;
     }
 
     /*
-     * Se não existe, cria um novo.
+     * ÚLTIMA OPÇÃO:
+     * gerar novo UUID.
      */
-
-    id =
+    const newId =
         generateUUID();
 
     localStorage.setItem(
         DEVICE_STORAGE_KEY,
-        id
+        newId
     );
 
-    return id;
-
+    return newId;
 }
 
 /* =========================================================
@@ -732,30 +511,22 @@ function detectDevice(){
 
     const androidTV =
         /android/.test(ua) &&
-        (
-            /tv|googletv|aftb|aftm/
-                .test(ua)
-        );
+        /tv|googletv|aftb|aftm/.test(ua);
 
     let type = "PC";
 
-    if(
-        tv ||
-        androidTV
-    ){
+    if(tv || androidTV){
 
         type = "SMART TV";
 
     }else if(
-        /mobile|iphone|ipod|windows phone/
-            .test(ua)
+        /mobile|iphone|ipod|windows phone/.test(ua)
     ){
 
         type = "CELULAR";
 
     }else if(
-        /ipad|tablet/
-            .test(ua) ||
+        /ipad|tablet/.test(ua) ||
         (
             /android/.test(ua) &&
             width >= 600
@@ -763,7 +534,6 @@ function detectDevice(){
     ){
 
         type = "TABLET";
-
     }
 
     status.textContent =
@@ -780,26 +550,73 @@ function detectDevice(){
         height,
         touch
     };
-
 }
 
 detectDevice();
 
 /* =========================================================
-   RECUPERAR CÓDIGO SALVO
+   RECUPERAR CÓDIGO
 ========================================================= */
 
-const savedCode =
-    localStorage.getItem(
-        ACTIVATION_STORAGE_KEY
-    );
+function loadActivationCode(){
 
-if(savedCode){
+    const qr =
+        getQRParams();
 
-    activationCodeInput.value =
-        savedCode;
+    /*
+     * PRIMEIRA PRIORIDADE:
+     * código vindo do QR Code.
+     */
+    if(
+        /^[A-Z0-9]{6}$/.test(qr.code)
+    ){
 
+        activationCodeInput.value =
+            qr.code;
+
+        /*
+         * O usuário não precisa digitar
+         * novamente o código enviado pelo QR.
+         */
+        activationCodeInput.readOnly =
+            true;
+
+        activationCodeInput.title =
+            "Código recebido automaticamente pelo QR Code.";
+
+        localStorage.setItem(
+            ACTIVATION_STORAGE_KEY,
+            qr.code
+        );
+
+        setMessage(
+            "Código de ativação recebido pelo QR Code."
+        );
+
+        return;
+    }
+
+    /*
+     * SEGUNDA PRIORIDADE:
+     * código salvo anteriormente.
+     */
+    const savedCode =
+        localStorage.getItem(
+            ACTIVATION_STORAGE_KEY
+        );
+
+    if(
+        /^[A-Z0-9]{6}$/.test(
+            String(savedCode || "").toUpperCase()
+        )
+    ){
+
+        activationCodeInput.value =
+            String(savedCode).toUpperCase();
+    }
 }
+
+loadActivationCode();
 
 /* =========================================================
    RECUPERAR M3U SALVA
@@ -814,16 +631,19 @@ if(savedPlaylist){
 
     playlistUrlInput.value =
         savedPlaylist;
-
 }
 
 /* =========================================================
-   VALIDAR CÓDIGO
+   VALIDAR CÓDIGO DIGITADO
 ========================================================= */
 
 activationCodeInput.addEventListener(
     "input",
     function(){
+
+        if(this.readOnly){
+            return;
+        }
 
         this.value =
             this.value
@@ -833,7 +653,6 @@ activationCodeInput.addEventListener(
                     ""
                 )
                 .slice(0,6);
-
     }
 );
 
@@ -856,9 +675,7 @@ function isValidHttpUrl(url){
     }catch{
 
         return false;
-
     }
-
 }
 
 /* =========================================================
@@ -878,34 +695,29 @@ function setMessage(
         message.classList.add(
             type
         );
-
     }
 
     message.textContent =
         text;
-
 }
 
 /* =========================================================
-   ATIVAR
+   ATIVAÇÃO
 ========================================================= */
 
 async function activateDevice(){
 
     /*
-     * Recupera novamente para garantir
-     * que estamos usando o mesmo ID.
+     * Sempre usar o ID que foi definido
+     * pelo QR Code ou pelo armazenamento.
      */
-
     const currentDeviceId =
         localStorage.getItem(
             DEVICE_STORAGE_KEY
         );
 
     if(
-        !isValidUUID(
-            currentDeviceId
-        )
+        !isValidUUID(currentDeviceId)
     ){
 
         setMessage(
@@ -914,7 +726,6 @@ async function activateDevice(){
         );
 
         return;
-
     }
 
     const activationCode =
@@ -926,15 +737,12 @@ async function activateDevice(){
         playlistUrlInput.value
             .trim();
 
-    /*
-     * Código.
-     */
+    /* Código */
 
     if(
-        !/^[A-Z0-9]{6}$/
-            .test(
-                activationCode
-            )
+        !/^[A-Z0-9]{6}$/.test(
+            activationCode
+        )
     ){
 
         setMessage(
@@ -945,12 +753,9 @@ async function activateDevice(){
         activationCodeInput.focus();
 
         return;
-
     }
 
-    /*
-     * M3U.
-     */
+    /* M3U */
 
     if(
         !isValidHttpUrl(
@@ -966,12 +771,9 @@ async function activateDevice(){
         playlistUrlInput.focus();
 
         return;
-
     }
 
-    /*
-     * Estado visual.
-     */
+    /* Estado visual */
 
     activateButton.disabled =
         true;
@@ -988,12 +790,6 @@ async function activateDevice(){
 
     try{
 
-        /*
-         * IMPORTANTE:
-         *
-         * O ID vai exatamente como UUID.
-         */
-
         const payload = {
 
             action:"activate",
@@ -1006,7 +802,6 @@ async function activateDevice(){
 
             playlist_url:
                 playlistUrl
-
         };
 
         console.log(
@@ -1061,7 +856,6 @@ async function activateDevice(){
             throw new Error(
                 "O servidor retornou uma resposta inválida."
             );
-
         }
 
         console.log(
@@ -1069,9 +863,7 @@ async function activateDevice(){
             data
         );
 
-        if(
-            !response.ok
-        ){
+        if(!response.ok){
 
             throw new Error(
                 data?.error ||
@@ -1079,24 +871,20 @@ async function activateDevice(){
                 "Erro HTTP " +
                 response.status
             );
-
         }
 
-        if(
-            data?.success !== true
-        ){
+        if(data?.success !== true){
 
             throw new Error(
                 data?.error ||
                 data?.message ||
                 "Não foi possível ativar o dispositivo."
             );
-
         }
 
-        /*
-         * SUCESSO
-         */
+        /* =================================================
+           SUCESSO
+        ================================================= */
 
         localStorage.setItem(
             DEVICE_STORAGE_KEY,
@@ -1112,10 +900,6 @@ async function activateDevice(){
             PLAYLIST_STORAGE_KEY,
             playlistUrl
         );
-
-        /*
-         * Atualiza tela.
-         */
 
         activateButton.textContent =
             "DISPOSITIVO ATIVADO";
@@ -1135,13 +919,10 @@ async function activateDevice(){
             "GC PLAY PRO está pronto para uso.";
 
         /*
-         * Se a API devolver dispositivo,
-         * mostra informações.
+         * Se a API devolver informações do dispositivo,
+         * mostra a data de expiração.
          */
-
-        if(
-            data.device
-        ){
+        if(data.device){
 
             const device =
                 data.device;
@@ -1149,9 +930,7 @@ async function activateDevice(){
             let extra =
                 "Dispositivo ativo.";
 
-            if(
-                device.expires_at
-            ){
+            if(device.expires_at){
 
                 const expiration =
                     new Date(
@@ -1170,14 +949,11 @@ async function activateDevice(){
                             "pt-BR"
                         ) +
                         ".";
-
                 }
-
             }
 
             status.textContent =
                 extra;
-
         }
 
     }catch(error){
@@ -1197,16 +973,14 @@ async function activateDevice(){
             "status";
 
         status.textContent =
-            "Verifique o código e tente novamente.";
+            "Verifique os dados e tente novamente.";
 
         activateButton.disabled =
             false;
 
         activateButton.textContent =
             "ATIVAR DISPOSITIVO";
-
     }
-
 }
 
 /* =========================================================
@@ -1234,25 +1008,20 @@ document.addEventListener(
                 document.activeElement;
 
             if(
-                active ===
-                    activationCodeInput ||
-                active ===
-                    playlistUrlInput
+                active === activationCodeInput ||
+                active === playlistUrlInput
             ){
 
                 event.preventDefault();
 
                 activateDevice();
-
             }
-
         }
-
     }
 );
 
 /* =========================================================
-   ATUALIZAÇÃO DE ORIENTAÇÃO
+   ORIENTAÇÃO / TAMANHO
 ========================================================= */
 
 window.addEventListener(
@@ -1268,12 +1037,11 @@ window.addEventListener(
             detectDevice,
             300
         );
-
     }
 );
 
 /* =========================================================
-   VERIFICAR STATUS AO ABRIR
+   VERIFICAR STATUS EXISTENTE
 ========================================================= */
 
 async function checkExistingStatus(){
@@ -1287,9 +1055,7 @@ async function checkExistingStatus(){
         !code ||
         !isValidUUID(deviceId)
     ){
-
         return;
-
     }
 
     try{
@@ -1314,6 +1080,7 @@ async function checkExistingStatus(){
 
                     body:
                         JSON.stringify({
+
                             action:"status",
 
                             device_id:
@@ -1339,8 +1106,7 @@ async function checkExistingStatus(){
             if(
                 String(
                     device.status || ""
-                ).toLowerCase() ===
-                "active"
+                ).toLowerCase() === "active"
             ){
 
                 status.className =
@@ -1348,9 +1114,7 @@ async function checkExistingStatus(){
 
                 status.textContent =
                     "✓ Este dispositivo já está ativo.";
-
             }
-
         }
 
     }catch(error){
@@ -1359,14 +1123,15 @@ async function checkExistingStatus(){
             "Status inicial:",
             error
         );
-
     }
-
 }
+
+/* =========================================================
+   INICIALIZAÇÃO FINAL
+========================================================= */
 
 checkExistingStatus();
 
 </script>
-
 </body>
 </html>
