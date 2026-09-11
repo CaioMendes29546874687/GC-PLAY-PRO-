@@ -1,0 +1,48 @@
+name: Build GC PLAY PRO Android
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Gerar APK GC PLAY PRO
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Criar projeto Android
+        run: npx cap add android
+
+      - name: Sincronizar aplicativo
+        run: npx cap sync android
+
+      - name: Gerar APK de teste
+        working-directory: android
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: GC-PLAY-PRO-Android-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
