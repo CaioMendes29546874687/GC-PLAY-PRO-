@@ -1,1 +1,635 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#28D905"><title>GC PLAY PRO • Ativação</title><style>:root{--p:#28d905;--bg:#020502;--card:#091009;--line:#173717;--txt:#efffef;--muted:#739073}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:Arial;padding:20px}.box{max-width:520px;margin:30px auto;background:var(--card);border:1px solid var(--p);border-radius:16px;padding:25px;box-shadow:0 0 35px #28d90533}h1{font-size:22px}span{color:var(--p)}label{font-size:12px;color:var(--muted);display:block;margin-top:14px}input{width:100%;padding:13px;margin-top:6px;background:#020502;color:#fff;border:1px solid var(--line);border-radius:8px;font-size:15px}button{width:100%;margin-top:15px;padding:13px;border-radius:8px;border:1px solid var(--p);background:#28d90512;color:var(--p);font-weight:800;font-size:15px}.msg{margin-top:15px;padding:12px;border-radius:8px;background:#030703;border:1px solid var(--line);font-size:13px;white-space:pre-wrap}.ok{border-color:#28d90566;color:var(--p)}.err{border-color:#ff454566;color:#ff8a8a}.small{font-size:11px;color:var(--muted);word-break:break-all;line-height:1.5}</style></head><body><div class="box"><h1>GC PLAY <span>PRO</span></h1><p>Ativação remota do aparelho</p><label>ID DO APARELHO</label><input id="device"><label>CÓDIGO DE ATIVAÇÃO</label><input id="code" maxlength="6"><label>LINK M3U DO CLIENTE</label><input id="playlist" placeholder="http://... ou https://..."><button onclick="activate()">ATIVAR APARELHO</button><div id="msg" class="msg">Informe os dados e ative.</div><div id="info" class="small"></div></div><script>const END='https://kuzgdvpdqmocklsgyzvt.supabase.co/functions/v1/activate-device';const q=new URLSearchParams(location.search);device.value=q.get('device')||'';code.value=(q.get('code')||'').toUpperCase();async function activate(){const d=device.value.trim(),c=code.value.trim().toUpperCase(),p=playlist.value.trim();if(!d||!c||!/^https?:\/\//i.test(p)){msg.className='msg err';msg.textContent='Preencha ID, código e uma URL M3U válida.';return}msg.className='msg';msg.textContent='Ativando...';try{const r=await fetch(END,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'activate',device_id:d,activation_code:c,playlist_url:p})});const j=await r.json().catch(()=>({}));if(!r.ok||!j.success)throw Error(j.error||'Erro HTTP '+r.status);msg.className='msg ok';msg.textContent='APARELHO ATIVADO COM SUCESSO!\n\nO GC PLAY PRO deve detectar a ativação automaticamente.';info.textContent='Dispositivo: '+d+'\nCódigo: '+c}catch(e){msg.className='msg err';msg.textContent='Não foi possível ativar.\n\n'+e.message}}</script></body></html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0"
+>
+
+<meta name="theme-color" content="#030503">
+
+<title>GC PLAY PRO - Ativação</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    background:#030503;
+    color:#fff;
+    font-family:Arial,sans-serif;
+}
+
+.box{
+    width:100%;
+    max-width:480px;
+    background:#0a0f0a;
+    border:1px solid #28d905;
+    border-radius:18px;
+    padding:28px;
+    box-shadow:
+        0 0 35px rgba(40,217,5,.35);
+}
+
+.logo{
+    text-align:center;
+    font-size:25px;
+    font-weight:900;
+    letter-spacing:2px;
+    margin-bottom:8px;
+}
+
+.logo span{
+    color:#28d905;
+}
+
+.subtitle{
+    text-align:center;
+    color:#719071;
+    font-size:13px;
+    margin-bottom:25px;
+}
+
+label{
+    display:block;
+    color:#8ca88c;
+    font-size:12px;
+    margin-bottom:7px;
+}
+
+input{
+    width:100%;
+    padding:14px;
+    border-radius:9px;
+    border:1px solid #183718;
+    background:#030503;
+    color:#fff;
+    font-size:16px;
+    outline:none;
+    margin-bottom:15px;
+}
+
+input:focus{
+    border-color:#28d905;
+    box-shadow:0 0 15px rgba(40,217,5,.2);
+}
+
+button{
+    width:100%;
+    border:1px solid #28d905;
+    background:#102010;
+    color:#28d905;
+    padding:14px;
+    border-radius:9px;
+    font-size:14px;
+    font-weight:800;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#28d905;
+    color:#030503;
+}
+
+.status{
+    margin-top:18px;
+    padding:12px;
+    border-radius:9px;
+    background:#050905;
+    border:1px solid #143314;
+    color:#8ca88c;
+    font-size:13px;
+    text-align:center;
+    word-break:break-word;
+}
+
+.status.ok{
+    color:#28d905;
+    border-color:#28d905;
+}
+
+.status.error{
+    color:#ff4040;
+    border-color:#ff4040;
+}
+
+.device-info{
+    margin-top:18px;
+    padding:12px;
+    border:1px dashed #1b421b;
+    border-radius:9px;
+    color:#709070;
+    font-size:11px;
+    word-break:break-all;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+    <div class="logo">
+        GC PLAY <span>PRO</span>
+    </div>
+
+    <div class="subtitle">
+        ATIVAÇÃO DO DISPOSITIVO
+    </div>
+
+
+    <label>
+        Código de ativação
+    </label>
+
+    <input
+        id="codigo"
+        type="text"
+        maxlength="6"
+        autocomplete="off"
+        autocapitalize="characters"
+        placeholder="Ex.: ABC123"
+    >
+
+
+    <label>
+        URL da sua lista M3U
+    </label>
+
+    <input
+        id="playlist"
+        type="url"
+        autocomplete="off"
+        placeholder="http:// ou https://"
+    >
+
+
+    <button
+        id="btnAtivar"
+        type="button"
+    >
+        ATIVAR DISPOSITIVO
+    </button>
+
+
+    <div
+        id="status"
+        class="status"
+    >
+        Informe o código e a lista M3U.
+    </div>
+
+
+    <div class="device-info">
+
+        ID do dispositivo:
+
+        <strong
+            id="deviceId"
+        >
+            —
+        </strong>
+
+    </div>
+
+</div>
+
+
+<script>
+
+"use strict";
+
+
+const SUPABASE =
+    "https://kuzgdvpdqmocklsgyzvt.supabase.co";
+
+
+const ACTIVATE =
+    SUPABASE +
+    "/functions/v1/activate-device";
+
+
+const params =
+    new URLSearchParams(
+        window.location.search
+    );
+
+
+const deviceFromURL =
+    params.get("device") || "";
+
+
+const codeFromURL =
+    params.get("code") || "";
+
+
+const deviceInput =
+    document.getElementById(
+        "deviceId"
+    );
+
+
+const codigoInput =
+    document.getElementById(
+        "codigo"
+    );
+
+
+const playlistInput =
+    document.getElementById(
+        "playlist"
+    );
+
+
+const statusBox =
+    document.getElementById(
+        "status"
+    );
+
+
+const btn =
+    document.getElementById(
+        "btnAtivar"
+    );
+
+
+let deviceId =
+    deviceFromURL.trim();
+
+
+/*
+ * Se o QR trouxe o device, usamos ele.
+ *
+ * Se não trouxe, o administrador pode informar
+ * o ID manualmente no código abaixo futuramente.
+ */
+
+if(deviceId){
+
+    document.getElementById(
+        "deviceId"
+    ).textContent =
+        deviceId;
+
+}
+
+
+if(codeFromURL){
+
+    codigoInput.value =
+        codeFromURL
+        .trim()
+        .toUpperCase();
+
+}
+
+
+function status(texto,tipo){
+
+    statusBox.textContent =
+        texto;
+
+    statusBox.className =
+        "status " +
+        (
+            tipo || ""
+        );
+
+}
+
+
+function validarUUID(valor){
+
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+        .test(
+            String(valor || "")
+        );
+
+}
+
+
+function validarCodigo(valor){
+
+    return /^[A-Z0-9]{6}$/
+        .test(
+            String(valor || "")
+            .trim()
+            .toUpperCase()
+        );
+
+}
+
+
+function validarURL(valor){
+
+    try{
+
+        const u =
+            new URL(
+                String(valor || "")
+                .trim()
+            );
+
+        return (
+            u.protocol ===
+                "http:" ||
+            u.protocol ===
+                "https:"
+        );
+
+    }catch(error){
+
+        return false;
+
+    }
+
+}
+
+
+async function ativar(){
+
+    const codigo =
+        codigoInput.value
+        .trim()
+        .toUpperCase();
+
+
+    const playlist =
+        playlistInput.value
+        .trim();
+
+
+    if(
+        !validarUUID(
+            deviceId
+        )
+    ){
+
+        status(
+            "ID do dispositivo inválido.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    if(
+        !validarCodigo(
+            codigo
+        )
+    ){
+
+        status(
+            "O código deve possuir 6 caracteres.",
+            "error"
+        );
+
+        codigoInput.focus();
+
+        return;
+
+    }
+
+
+    if(
+        !validarURL(
+            playlist
+        )
+    ){
+
+        status(
+            "Informe uma URL M3U válida começando com http:// ou https://",
+            "error"
+        );
+
+        playlistInput.focus();
+
+        return;
+
+    }
+
+
+    btn.disabled=true;
+
+    btn.textContent =
+        "ATIVANDO...";
+
+
+    status(
+        "Enviando ativação para o GC PLAY PRO...",
+        ""
+    );
+
+
+    try{
+
+        const resposta =
+            await fetch(
+                ACTIVATE,
+                {
+
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+
+                        action:
+                            "activate",
+
+                        device_id:
+                            deviceId,
+
+                        activation_code:
+                            codigo,
+
+                        playlist_url:
+                            playlist
+
+                    })
+
+                }
+            );
+
+
+        const resultado =
+            await resposta
+            .json()
+            .catch(
+                ()=>({})
+            );
+
+
+        console.log(
+            "Resposta ativação:",
+            resultado
+        );
+
+
+        if(
+            !resposta.ok ||
+            !resultado.success
+        ){
+
+            throw new Error(
+                resultado.error ||
+                (
+                    "Erro HTTP " +
+                    resposta.status
+                )
+            );
+
+        }
+
+
+        status(
+            "DISPOSITIVO ATIVADO COM SUCESSO!",
+            "ok"
+        );
+
+
+        /*
+         * Guarda a informação localmente.
+         */
+
+        localStorage.setItem(
+            "gcplay_device_id",
+            deviceId
+        );
+
+
+        localStorage.setItem(
+            "gcplay_activation_code",
+            codigo
+        );
+
+
+        localStorage.setItem(
+            "gcplay_remote_playlist",
+            playlist
+        );
+
+
+        btn.textContent =
+            "ATIVADO";
+
+
+        /*
+         * Depois de 1,5 segundo volta para o player.
+         */
+
+        setTimeout(
+            ()=>{
+
+                window.location.href =
+                    "./index.html";
+
+            },
+            1500
+        );
+
+
+    }catch(error){
+
+        console.error(
+            "Erro ativação:",
+            error
+        );
+
+
+        status(
+            error?.message ||
+            "Não foi possível ativar o dispositivo.",
+            "error"
+        );
+
+
+        btn.disabled=false;
+
+        btn.textContent =
+            "ATIVAR DISPOSITIVO";
+
+    }
+
+}
+
+
+btn.addEventListener(
+    "click",
+    ativar
+);
+
+
+codigoInput.addEventListener(
+    "input",
+    ()=>{
+
+        codigoInput.value =
+            codigoInput.value
+            .replace(
+                /[^a-zA-Z0-9]/g,
+                ""
+            )
+            .toUpperCase()
+            .substring(
+                0,
+                6
+            );
+
+    }
+);
+
+
+codigoInput.addEventListener(
+    "keydown",
+    event=>{
+
+        if(
+            event.key ===
+            "Enter"
+        ){
+
+            ativar();
+
+        }
+
+    }
+);
+
+
+playlistInput.addEventListener(
+    "keydown",
+    event=>{
+
+        if(
+            event.key ===
+            "Enter"
+        ){
+
+            ativar();
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+</html>
