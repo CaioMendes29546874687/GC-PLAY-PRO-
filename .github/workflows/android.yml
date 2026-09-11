@@ -33,6 +33,55 @@ jobs:
       - name: Criar projeto Android
         run: npx cap add android
 
+      - name: Configurar Android TV
+        shell: bash
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          manifest = Path("android/app/src/main/AndroidManifest.xml")
+          text = manifest.read_text()
+
+          # Suporte Android TV
+          if 'android.software.leanback' not in text:
+              text = text.replace(
+                  '<manifest',
+                  '<manifest\n'
+                  '    xmlns:tools="http://schemas.android.com/tools"',
+                  1
+              )
+
+              text = text.replace(
+                  '>',
+                  '>\n'
+                  '    <uses-feature '
+                  'android:name="android.software.leanback" '
+                  'android:required="false" />\n'
+                  '    <uses-feature '
+                  'android:name="android.hardware.touchscreen" '
+                  'android:required="false" />',
+                  1
+              )
+
+          # Adiciona LEANBACK_LAUNCHER na MainActivity
+          if 'android.intent.category.LEANBACK_LAUNCHER' not in text:
+              text = text.replace(
+                  '<category android:name="android.intent.category.LAUNCHER" />',
+                  '<category android:name="android.intent.category.LAUNCHER" />\n'
+                  '                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />',
+                  1
+              )
+
+          manifest.write_text(text)
+          PY
+
+      - name: Verificar Manifest Android TV
+        run: |
+          echo "===== AndroidManifest.xml ====="
+          cat android/app/src/main/AndroidManifest.xml
+
       - name: Sincronizar aplicativo
         run: npx cap sync android
 
@@ -43,6 +92,6 @@ jobs:
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
-          name: GC-PLAY-PRO-Android-debug
+          name: GC-PLAY-PRO-Android-TV-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
