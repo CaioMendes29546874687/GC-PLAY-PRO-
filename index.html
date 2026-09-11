@@ -2,335 +2,327 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-
 <meta
     name="viewport"
-    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
 >
-
-<meta name="theme-color" content="#28D905">
+<meta name="theme-color" content="#050505">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 
 <title>GC PLAY PRO</title>
 
-<link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
->
-
-<script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-
 <style>
-
 :root{
-    --g:#28D905;
-    --bg:#030503;
-    --card:#0b120b;
-    --hover:#132413;
-    --line:#173617;
-    --muted:#789078;
-    --white:#efffef;
-    --danger:#ff6b6b;
+    --green:#00ff66;
+    --green2:#00cc55;
+    --bg:#030303;
+    --bg2:#090909;
+    --card:#101010;
+    --card2:#151515;
+    --border:#1f1f1f;
+    --text:#f5f5f5;
+    --muted:#8e8e8e;
+    --danger:#ff3838;
+    --header:64px;
+    --player-width:480px;
+    --radius:12px;
 }
 
 *{
     box-sizing:border-box;
     margin:0;
     padding:0;
-    font-family:Arial,sans-serif;
-    -webkit-tap-highlight-color:transparent;
 }
 
 html,
 body{
     width:100%;
-    min-height:100%;
+    height:100%;
+    overflow:hidden;
     background:var(--bg);
-    color:var(--white);
+    color:var(--text);
+    font-family:Arial,Helvetica,sans-serif;
 }
 
 body{
-    overflow:auto;
-}
-
-button,
-input,
-select{
-    font:inherit;
-}
-
-button{
-    cursor:pointer;
-}
-
-button:disabled{
-    opacity:.35;
-    cursor:not-allowed;
-}
-
-.hidden{
-    display:none!important;
-}
-
-.app{
-    width:100%;
-    min-height:100vh;
     display:flex;
     flex-direction:column;
-    padding:12px;
-    gap:10px;
 }
 
 /* =========================================================
-   TOPO
+   HEADER
 ========================================================= */
 
-.top{
+.header{
+    height:var(--header);
+    min-height:var(--header);
+    background:#050505;
+    border-bottom:1px solid #161616;
     display:flex;
     align-items:center;
-    gap:10px;
-    padding:12px 15px;
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:12px;
-    flex-shrink:0;
+    gap:12px;
+    padding:0 14px;
+    z-index:50;
 }
 
 .logo{
+    color:var(--green);
+    font-size:20px;
     font-weight:900;
-    font-size:22px;
-    letter-spacing:2px;
+    letter-spacing:1px;
+    white-space:nowrap;
 }
 
 .logo span{
-    color:var(--g);
+    color:#fff;
 }
 
-.grow{
-    flex:1;
+.header-actions{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-left:auto;
 }
 
 .btn{
-    border:1px solid var(--line);
-    background:#091009;
-    color:#fff;
-    border-radius:9px;
-    padding:10px 14px;
-    font-weight:700;
-    transition:.15s;
-}
-
-.btn:hover,
-.btn:focus{
-    border-color:var(--g);
-    color:var(--g);
-}
-
-.btn.primary{
-    border-color:var(--g);
-    color:var(--g);
-    background:rgba(40,217,5,.08);
-}
-
-.btn.device{
-    font-size:15px;
-}
-
-/* =========================================================
-   STATUS
-========================================================= */
-
-.status{
-    padding:10px 13px;
-    border:1px solid var(--line);
-    border-radius:9px;
-    background:#081008;
-    color:var(--muted);
+    border:1px solid #252525;
+    background:#101010;
+    color:#ddd;
+    border-radius:8px;
+    padding:9px 13px;
     font-size:13px;
-    flex-shrink:0;
+    font-weight:bold;
+    cursor:pointer;
+    transition:.15s;
+    user-select:none;
 }
 
-.status.ok{
-    color:var(--g);
-    border-color:#235b23;
+.btn:hover{
+    border-color:var(--green);
+    color:var(--green);
 }
 
-.status.err{
-    color:#ff7777;
-    border-color:#693333;
+.btn.green{
+    background:var(--green);
+    color:#000;
+    border-color:var(--green);
 }
 
-/* =========================================================
-   LISTAS
-========================================================= */
+.btn.green:hover{
+    background:#20ff78;
+    color:#000;
+}
 
-.lists-pills{
+.btn.danger{
+    color:#ff6565;
+}
+
+.device-indicator{
     display:flex;
-    gap:7px;
-    overflow-x:auto;
-    padding-bottom:2px;
-    flex-shrink:0;
-    scrollbar-width:none;
-}
-
-.lists-pills::-webkit-scrollbar{
-    display:none;
-}
-
-.pill{
+    align-items:center;
+    gap:6px;
+    border:1px solid #1b1b1b;
+    background:#0b0b0b;
+    padding:7px 9px;
+    border-radius:8px;
+    font-size:11px;
+    color:#aaa;
     white-space:nowrap;
-    border:1px solid var(--line);
-    background:#071007;
-    color:var(--muted);
-    border-radius:20px;
-    padding:8px 13px;
 }
 
-.pill.active{
-    color:var(--g);
-    border-color:var(--g);
-    background:rgba(40,217,5,.1);
+.device-indicator .dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 8px var(--green);
 }
 
 /* =========================================================
-   CATEGORIAS
+   APP
 ========================================================= */
 
-.tabs{
-    display:flex;
-    gap:8px;
-    overflow-x:auto;
-    flex-shrink:0;
-    scrollbar-width:none;
-}
-
-.tabs::-webkit-scrollbar{
-    display:none;
-}
-
-.tab{
-    white-space:nowrap;
-    border:1px solid var(--line);
-    background:var(--card);
-    color:#fff;
-    border-radius:9px;
-    padding:11px 15px;
-    font-weight:800;
-}
-
-.tab.active{
-    color:var(--g);
-    border-color:var(--g);
-    box-shadow:0 0 16px rgba(40,217,5,.18);
-}
-
-/* =========================================================
-   ÁREA PRINCIPAL
-========================================================= */
-
-.workspace{
-    display:grid;
-    grid-template-columns:minmax(0,1fr) 390px;
-    gap:10px;
-    min-height:0;
+.app{
     flex:1;
-}
-
-.catalog,
-.player{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:12px;
     min-height:0;
-}
-
-.catalog{
     display:flex;
-    flex-direction:column;
-    padding:12px;
     overflow:hidden;
 }
 
 /* =========================================================
-   BUSCA
+   SIDEBAR
 ========================================================= */
 
-.tools{
-    display:flex;
-    gap:8px;
-    margin-bottom:10px;
-    flex-shrink:0;
+.sidebar{
+    width:205px;
+    min-width:205px;
+    background:#070707;
+    border-right:1px solid #151515;
+    padding:12px;
+    overflow-y:auto;
 }
 
-.search,
-.select{
-    background:#050905;
-    border:1px solid var(--line);
-    color:#fff;
+.sidebar-title{
+    color:#666;
+    font-size:10px;
+    font-weight:bold;
+    margin:7px 8px 9px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.category{
+    width:100%;
+    border:1px solid transparent;
+    background:transparent;
+    color:#aaa;
+    text-align:left;
+    padding:11px 10px;
+    margin-bottom:4px;
     border-radius:8px;
-    padding:11px 12px;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:bold;
+}
+
+.category:hover{
+    background:#101010;
+    color:#fff;
+}
+
+.category.active{
+    background:#092013;
+    border-color:#0c5c2e;
+    color:var(--green);
+}
+
+.category .count{
+    float:right;
+    color:#555;
+    font-weight:normal;
+}
+
+.category.active .count{
+    color:#159e50;
+}
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.main{
+    flex:1;
     min-width:0;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+}
+
+.topbar{
+    min-height:54px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:9px 12px;
+    border-bottom:1px solid #141414;
+    background:#060606;
 }
 
 .search{
     flex:1;
-}
-
-.select{
-    max-width:240px;
-}
-
-.search:focus,
-.select:focus{
+    min-width:0;
+    height:36px;
+    border:1px solid #222;
     outline:none;
-    border-color:var(--g);
+    border-radius:8px;
+    background:#0d0d0d;
+    color:#fff;
+    padding:0 12px;
+    font-size:13px;
+}
+
+.search:focus{
+    border-color:#087d3a;
+}
+
+.results-info{
+    color:#777;
+    font-size:11px;
+    white-space:nowrap;
+}
+
+.content{
+    flex:1;
+    min-height:0;
+    display:flex;
+    overflow:hidden;
 }
 
 /* =========================================================
-   GRID
+   CATALOG
 ========================================================= */
 
-.grid{
+.catalog{
     flex:1;
-    min-height:0;
+    min-width:0;
     overflow-y:auto;
+    overflow-x:hidden;
+    padding:12px;
+    scroll-behavior:smooth;
+}
+
+.catalog::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar,
+.modal-body::-webkit-scrollbar{
+    width:7px;
+}
+
+.catalog::-webkit-scrollbar-thumb,
+.sidebar::-webkit-scrollbar-thumb,
+.modal-body::-webkit-scrollbar-thumb{
+    background:#222;
+    border-radius:10px;
+}
+
+.grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(145px,1fr));
+    grid-template-columns:repeat(auto-fill,minmax(155px,1fr));
     gap:10px;
-    align-content:start;
-    padding-right:3px;
-    scrollbar-width:thin;
 }
 
 .card{
-    background:#050905;
-    border:1px solid var(--line);
-    border-radius:9px;
-    overflow:hidden;
     min-width:0;
+    border:1px solid var(--border);
+    background:linear-gradient(145deg,#111,#0a0a0a);
+    border-radius:var(--radius);
+    overflow:hidden;
+    cursor:pointer;
+    transition:
+        transform .15s,
+        border-color .15s,
+        box-shadow .15s;
+    outline:none;
 }
 
 .card:hover{
-    border-color:var(--g);
-    background:var(--hover);
+    border-color:#087e3c;
+    transform:translateY(-1px);
 }
 
-.card button{
+.card.tv-focus{
+    border-color:var(--green);
+    box-shadow:
+        0 0 0 2px rgba(0,255,102,.25),
+        0 0 20px rgba(0,255,102,.15);
+    transform:scale(1.025);
+    z-index:5;
+}
+
+.card-image{
     width:100%;
-    height:100%;
-    background:none;
-    border:0;
-    color:#fff;
-    text-align:left;
-    padding:0;
-}
-
-.thumb{
-    height:165px;
-    background:#000;
+    aspect-ratio:16/9;
+    background:#050505;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -338,145 +330,265 @@ button:disabled{
     position:relative;
 }
 
-.thumb img{
+.card-image img{
     width:100%;
     height:100%;
     object-fit:cover;
 }
 
-.thumb .fallback{
-    color:var(--g);
-    font-size:38px;
+.no-image{
+    color:#333;
+    font-size:28px;
+    font-weight:bold;
 }
 
-.ct{
+.card-info{
     padding:9px;
 }
 
-.ct b{
-    display:block;
+.card-title{
     font-size:12px;
+    font-weight:bold;
+    color:#eee;
+    line-height:1.3;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+}
+
+.card-group{
+    margin-top:5px;
+    color:#666;
+    font-size:10px;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
 }
 
-.ct small{
-    display:block;
-    color:var(--muted);
-    font-size:10px;
-    margin-top:5px;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
+.badge{
+    position:absolute;
+    bottom:5px;
+    left:5px;
+    background:rgba(0,0,0,.8);
+    border:1px solid #222;
+    color:#aaa;
+    padding:3px 5px;
+    border-radius:4px;
+    font-size:9px;
 }
 
 /* =========================================================
    PLAYER
 ========================================================= */
 
-.player{
-    padding:12px;
+.player-panel{
+    width:var(--player-width);
+    min-width:var(--player-width);
+    background:#020202;
+    border-left:1px solid #151515;
     display:flex;
     flex-direction:column;
-    gap:10px;
 }
 
-.videoBox{
-    height:250px;
-    background:#000;
-    border-radius:9px;
+.player-header{
+    height:44px;
+    min-height:44px;
+    padding:0 11px;
+    display:flex;
+    align-items:center;
+    border-bottom:1px solid #151515;
+}
+
+.player-title{
+    flex:1;
+    min-width:0;
+    color:#ddd;
+    font-size:12px;
+    font-weight:bold;
+    white-space:nowrap;
     overflow:hidden;
-    border:1px solid var(--line);
-    flex-shrink:0;
+    text-overflow:ellipsis;
 }
 
-.videoBox video{
+.player-status{
+    font-size:10px;
+    color:#666;
+}
+
+.player-status.ok{
+    color:var(--green);
+}
+
+.video-wrap{
+    width:100%;
+    aspect-ratio:16/9;
+    background:#000;
+    position:relative;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+video{
     width:100%;
     height:100%;
     background:#000;
     object-fit:contain;
 }
 
-.now{
-    background:#050905;
-    border:1px solid var(--line);
-    border-radius:9px;
-    padding:12px;
-    flex:1;
-    min-height:100px;
+.player-empty{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    color:#444;
+    pointer-events:none;
 }
 
-.now b{
-    color:var(--g);
-    display:block;
+.player-empty strong{
+    color:#555;
+    font-size:14px;
+}
+
+.player-empty small{
+    font-size:10px;
+}
+
+.player-info{
+    padding:11px;
+    overflow:auto;
+    flex:1;
+}
+
+.now-title{
+    color:#fff;
+    font-size:15px;
+    font-weight:bold;
     margin-bottom:6px;
 }
 
-.now small{
-    color:var(--muted);
-    line-height:1.5;
+.now-group{
+    color:#666;
+    font-size:11px;
+}
+
+.player-buttons{
+    display:flex;
+    gap:6px;
+    margin-top:12px;
+}
+
+.player-buttons button{
+    flex:1;
 }
 
 /* =========================================================
-   PAGINAÇÃO
+   PAGINATION
 ========================================================= */
 
-.pager{
+.pagination{
+    min-height:48px;
+    border-top:1px solid #151515;
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:10px;
-    padding-top:8px;
-    flex-shrink:0;
+    gap:7px;
+    padding:7px;
+    background:#050505;
 }
 
-.pager span{
-    color:var(--muted);
-    font-size:12px;
-    min-width:100px;
-    text-align:center;
+.page-btn{
+    min-width:34px;
+    height:32px;
+    border:1px solid #222;
+    background:#0d0d0d;
+    color:#aaa;
+    border-radius:7px;
+    cursor:pointer;
+    font-weight:bold;
 }
 
-.empty{
-    grid-column:1/-1;
+.page-btn:hover{
+    border-color:var(--green);
+    color:var(--green);
+}
+
+.page-btn:disabled{
+    opacity:.3;
+    cursor:not-allowed;
+}
+
+.page-label{
+    color:#777;
+    font-size:11px;
+    min-width:90px;
     text-align:center;
-    padding:60px 15px;
-    color:var(--muted);
-    font-size:16px;
 }
 
 /* =========================================================
-   MODAIS
+   MODAL
 ========================================================= */
 
 .modal{
     position:fixed;
     inset:0;
-    background:rgba(0,0,0,.88);
-    display:flex;
+    z-index:100;
+    display:none;
     align-items:center;
     justify-content:center;
-    padding:16px;
-    z-index:500;
+    background:rgba(0,0,0,.78);
+    padding:15px;
 }
 
-.box{
-    width:100%;
-    max-width:620px;
-    max-height:90vh;
-    overflow:auto;
-    background:#091009;
-    border:1px solid var(--g);
+.modal.open{
+    display:flex;
+}
+
+.modal-box{
+    width:min(560px,100%);
+    max-height:min(720px,92vh);
+    background:#0b0b0b;
+    border:1px solid #242424;
     border-radius:14px;
-    padding:18px;
-    box-shadow:0 0 35px rgba(40,217,5,.25);
+    box-shadow:0 20px 70px rgba(0,0,0,.7);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
 }
 
-.box h2{
-    font-size:18px;
-    margin-bottom:15px;
-    color:var(--g);
+.modal-head{
+    min-height:52px;
+    display:flex;
+    align-items:center;
+    padding:0 14px;
+    border-bottom:1px solid #1d1d1d;
+}
+
+.modal-head h2{
+    font-size:15px;
+    flex:1;
+}
+
+.close{
+    border:0;
+    background:transparent;
+    color:#777;
+    font-size:22px;
+    cursor:pointer;
+    padding:5px 8px;
+}
+
+.close:hover{
+    color:#fff;
+}
+
+.modal-body{
+    overflow:auto;
+    padding:14px;
 }
 
 .field{
@@ -485,600 +597,850 @@ button:disabled{
 
 .field label{
     display:block;
-    font-size:12px;
-    color:var(--muted);
+    color:#999;
+    font-size:11px;
+    font-weight:bold;
     margin-bottom:6px;
 }
 
-.field input{
+.input{
     width:100%;
-    background:#030503;
-    border:1px solid var(--line);
+    height:40px;
+    border:1px solid #272727;
+    background:#050505;
     color:#fff;
     border-radius:8px;
-    padding:12px;
-}
-
-.field input:focus{
+    padding:0 11px;
     outline:none;
-    border-color:var(--g);
 }
 
-.help{
-    color:var(--muted);
-    font-size:12px;
-    line-height:1.5;
+.input:focus{
+    border-color:#087e3c;
 }
 
-.actions{
+.modal-footer{
+    padding:11px 14px;
+    border-top:1px solid #1d1d1d;
     display:flex;
-    gap:8px;
     justify-content:flex-end;
-    margin-top:15px;
+    gap:7px;
 }
 
 /* =========================================================
-   LISTA SALVA
+   LISTAS
 ========================================================= */
 
-.row{
+.list-item{
+    border:1px solid #202020;
+    background:#0e0e0e;
+    border-radius:9px;
+    padding:11px;
+    margin-bottom:8px;
     display:flex;
     align-items:center;
-    gap:8px;
-    border:1px solid var(--line);
-    border-radius:9px;
-    padding:10px;
-    margin-bottom:8px;
-    background:#050905;
+    gap:10px;
 }
 
-.row .info{
+.list-main{
     flex:1;
     min-width:0;
 }
 
-.row b{
-    display:block;
+.list-name{
+    color:#eee;
+    font-size:13px;
+    font-weight:bold;
+}
+
+.list-url{
+    color:#555;
+    font-size:9px;
+    margin-top:4px;
     overflow:hidden;
     text-overflow:ellipsis;
     white-space:nowrap;
 }
 
-.row small{
-    display:block;
-    color:var(--muted);
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-    margin-top:3px;
+.list-actions{
+    display:flex;
+    gap:5px;
 }
 
 /* =========================================================
-   LOADER
+   DEVICE STATUS
 ========================================================= */
 
-.loader{
+.detect-box{
+    border:1px solid #1c412b;
+    background:#06150c;
+    border-radius:10px;
+    padding:13px;
+    margin-bottom:14px;
+}
+
+.detect-title{
+    color:var(--green);
+    font-weight:bold;
+    font-size:13px;
+}
+
+.detect-line{
+    margin-top:5px;
+    color:#888;
+    font-size:11px;
+}
+
+.detect-line strong{
+    color:#ddd;
+}
+
+.status-box{
+    border:1px solid #1d1d1d;
+    background:#080808;
+    border-radius:9px;
+    padding:11px;
+    margin-top:12px;
+    color:#777;
+    font-size:11px;
+}
+
+.status-box.active{
+    border-color:#0b5b2d;
+    color:#6bd995;
+}
+
+.status-box.error{
+    border-color:#5b1818;
+    color:#ff7b7b;
+}
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+.toast-container{
+    position:fixed;
+    right:14px;
+    bottom:14px;
+    z-index:300;
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+    pointer-events:none;
+}
+
+.toast{
+    max-width:360px;
+    background:#101010;
+    border:1px solid #2a2a2a;
+    border-left:3px solid var(--green);
+    border-radius:8px;
+    padding:10px 12px;
+    color:#ddd;
+    font-size:11px;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+    animation:toastIn .2s ease;
+}
+
+.toast.error{
+    border-left-color:var(--danger);
+}
+
+@keyframes toastIn{
+    from{
+        opacity:0;
+        transform:translateY(8px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.loading{
     position:fixed;
     inset:0;
-    background:rgba(0,0,0,.94);
-    z-index:1000;
-    display:flex;
+    z-index:250;
+    background:rgba(0,0,0,.88);
+    display:none;
     align-items:center;
     justify-content:center;
+    flex-direction:column;
+    gap:12px;
 }
 
-.loaderBox{
-    width:min(420px,90%);
-    text-align:center;
-    background:#091009;
-    border:1px solid var(--g);
-    border-radius:14px;
-    padding:25px;
+.loading.show{
+    display:flex;
 }
 
-.spin{
-    width:55px;
-    height:55px;
-    border:3px solid #173617;
-    border-top-color:var(--g);
+.spinner{
+    width:38px;
+    height:38px;
+    border:3px solid #222;
+    border-top-color:var(--green);
     border-radius:50%;
-    margin:0 auto 15px;
-    animation:sp .8s linear infinite;
+    animation:spin .8s linear infinite;
 }
 
-@keyframes sp{
+@keyframes spin{
     to{
         transform:rotate(360deg);
     }
 }
 
-.loaderText{
-    color:var(--g);
-    font-weight:700;
-    font-size:13px;
+/* =========================================================
+   DEVICE: MOBILE
+========================================================= */
+
+body.device-mobile .header{
+    padding:0 9px;
+}
+
+body.device-mobile .logo{
+    font-size:16px;
+}
+
+body.device-mobile .device-indicator{
+    display:none;
+}
+
+body.device-mobile .header-actions{
+    gap:4px;
+}
+
+body.device-mobile .btn{
+    padding:8px 9px;
+    font-size:11px;
+}
+
+body.device-mobile .sidebar{
+    width:76px;
+    min-width:76px;
+    padding:7px 5px;
+}
+
+body.device-mobile .sidebar-title{
+    display:none;
+}
+
+body.device-mobile .category{
+    text-align:center;
+    padding:10px 3px;
+    font-size:9px;
+}
+
+body.device-mobile .category .count{
+    display:block;
+    float:none;
+    margin-top:3px;
+    font-size:8px;
+}
+
+body.device-mobile .content{
+    flex-direction:column;
+}
+
+body.device-mobile .catalog{
+    padding:8px;
+    order:1;
+}
+
+body.device-mobile .grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:7px;
+}
+
+body.device-mobile .card-info{
+    padding:7px;
+}
+
+body.device-mobile .card-title{
+    font-size:10px;
+}
+
+body.device-mobile .card-group{
+    font-size:8px;
+}
+
+body.device-mobile .player-panel{
+    width:100%;
+    min-width:100%;
+    height:auto;
+    min-height:235px;
+    max-height:42vh;
+    border-left:0;
+    border-top:1px solid #151515;
+    order:0;
+}
+
+body.device-mobile .player-info{
+    display:none;
+}
+
+body.device-mobile .pagination{
+    min-height:42px;
 }
 
 /* =========================================================
-   DISPOSITIVO
+   DEVICE: TABLET
 ========================================================= */
 
-.qr{
-    background:#fff;
-    padding:10px;
-    border-radius:8px;
-    width:max-content;
-    margin:12px auto;
+body.device-tablet .grid{
+    grid-template-columns:repeat(3,minmax(0,1fr));
 }
 
-.device{
-    text-align:center;
-    color:var(--muted);
+body.device-tablet .player-panel{
+    width:360px;
+    min-width:360px;
+}
+
+/* =========================================================
+   DEVICE: PC
+========================================================= */
+
+body.device-pc .grid{
+    grid-template-columns:repeat(auto-fill,minmax(165px,1fr));
+}
+
+/* =========================================================
+   DEVICE: TV
+========================================================= */
+
+body.device-tv{
+    --header:78px;
+    --player-width:580px;
+}
+
+body.device-tv .header{
+    padding:0 22px;
+}
+
+body.device-tv .logo{
+    font-size:25px;
+}
+
+body.device-tv .btn{
+    padding:12px 17px;
+    font-size:14px;
+}
+
+body.device-tv .device-indicator{
+    font-size:12px;
+    padding:10px 13px;
+}
+
+body.device-tv .sidebar{
+    width:245px;
+    min-width:245px;
+    padding:17px;
+}
+
+body.device-tv .sidebar-title{
     font-size:12px;
 }
 
-.device strong{
-    display:block;
-    color:var(--g);
+body.device-tv .category{
+    padding:15px 13px;
+    font-size:15px;
+}
+
+body.device-tv .topbar{
+    min-height:66px;
+    padding:12px 16px;
+}
+
+body.device-tv .search{
+    height:44px;
+    font-size:15px;
+}
+
+body.device-tv .results-info{
+    font-size:12px;
+}
+
+body.device-tv .catalog{
+    padding:16px;
+}
+
+body.device-tv .grid{
+    grid-template-columns:repeat(auto-fill,minmax(205px,1fr));
+    gap:13px;
+}
+
+body.device-tv .card-title{
     font-size:14px;
-    margin-top:5px;
 }
 
-.activation-status{
-    text-align:center;
-    padding:10px;
-    border-radius:8px;
-    border:1px solid var(--line);
-    color:var(--muted);
-    margin-top:10px;
+body.device-tv .card-group{
+    font-size:11px;
 }
 
-.activation-status.active{
-    color:var(--g);
-    border-color:var(--g);
+body.device-tv .card-info{
+    padding:11px;
 }
 
-.activation-status.pending{
-    color:#ffd166;
-    border-color:#665522;
+body.device-tv .player-header{
+    height:52px;
 }
 
-.activation-status.blocked{
-    color:#ff6666;
-    border-color:#662222;
+body.device-tv .player-title{
+    font-size:14px;
+}
+
+body.device-tv .player-status{
+    font-size:11px;
+}
+
+body.device-tv .now-title{
+    font-size:18px;
+}
+
+body.device-tv .now-group{
+    font-size:13px;
+}
+
+body.device-tv .pagination{
+    min-height:58px;
+}
+
+body.device-tv .page-btn{
+    height:40px;
+    min-width:45px;
+    font-size:14px;
+}
+
+body.device-tv .page-label{
+    font-size:13px;
+}
+
+body.device-tv .modal-box{
+    width:min(700px,90vw);
+}
+
+body.device-tv .modal-head{
+    min-height:64px;
+}
+
+body.device-tv .modal-head h2{
+    font-size:19px;
+}
+
+body.device-tv .input{
+    height:48px;
+    font-size:15px;
+}
+
+body.device-tv .modal-body{
+    padding:20px;
+}
+
+body.device-tv .btn{
+    outline:none;
 }
 
 /* =========================================================
-   RESPONSIVO
+   TV FOCUS
 ========================================================= */
 
-@media(max-width:900px){
+body.tv-navigation .btn:focus,
+body.tv-navigation .category:focus,
+body.tv-navigation .card:focus,
+body.tv-navigation .page-btn:focus,
+body.tv-navigation .input:focus{
+    outline:2px solid var(--green);
+    outline-offset:2px;
+}
 
-    .workspace{
-        grid-template-columns:1fr;
-        grid-template-rows:auto auto;
-    }
+/* =========================================================
+   NO RESULTS
+========================================================= */
 
-    .catalog{
-        min-height:500px;
-    }
+.empty{
+    grid-column:1/-1;
+    min-height:180px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:8px;
+    color:#444;
+}
 
-    .player{
-        min-height:330px;
-    }
+.empty strong{
+    color:#666;
+}
 
-    .videoBox{
-        height:220px;
+/* =========================================================
+   RESPONSIVE SAFETY
+========================================================= */
+
+@media(max-width:700px){
+    body:not(.device-tv) .player-panel{
+        width:340px;
+        min-width:340px;
     }
 }
 
-@media(max-width:600px){
-
-    .app{
-        padding:8px;
-    }
-
-    .top{
-        flex-wrap:wrap;
-    }
-
-    .logo{
-        font-size:18px;
-    }
-
-    .top .grow{
-        display:none;
-    }
-
-    .top .btn{
-        flex:1;
-    }
-
-    .grid{
-        grid-template-columns:repeat(2,minmax(0,1fr));
-        gap:7px;
-    }
-
-    .thumb{
-        height:135px;
-    }
-
-    .tools{
-        flex-wrap:wrap;
-    }
-
-    .select{
-        max-width:none;
+@media(max-width:520px){
+    body:not(.device-tv) .player-panel{
         width:100%;
-    }
-
-    .videoBox{
-        height:190px;
-    }
-
-    .row{
-        flex-wrap:wrap;
-    }
-
-    .row .info{
-        width:100%;
-        flex-basis:100%;
+        min-width:100%;
     }
 }
-
 </style>
+
+<!-- MPEG-TS -->
+<script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
+
+<!-- HLS -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"></script>
+
 </head>
 
 <body>
 
 <!-- =======================================================
-     LOADER
+     HEADER
 ======================================================= -->
 
-<div id="loader" class="loader hidden">
+<header class="header">
 
-    <div class="loaderBox">
-
-        <div class="spin"></div>
-
-        <div
-            class="loaderText"
-            id="loaderText"
-        >
-            Carregando...
-        </div>
-
+    <div class="logo">
+        GC <span>PLAY PRO</span>
     </div>
 
-</div>
+    <div class="device-indicator" id="deviceIndicator">
+        <span class="dot"></span>
+        <span id="deviceIndicatorText">Detectando...</span>
+    </div>
 
-
-<!-- =======================================================
-     APLICAÇÃO
-======================================================= -->
-
-<div class="app">
-
-
-    <!-- ===================================================
-         TOPO
-    ==================================================== -->
-
-    <header class="top">
-
-        <div class="logo">
-            GC PLAY <span>PRO</span>
-        </div>
-
-        <div class="grow"></div>
+    <div class="header-actions">
 
         <button
+            class="btn green"
             type="button"
-            class="btn device"
-            id="deviceBtn"
-        >
-            📱 DISPOSITIVO
-        </button>
-
-        <button
-            type="button"
-            class="btn"
-            id="listsBtn"
-        >
-            ☷ LISTAS
-        </button>
-
-        <button
-            type="button"
-            class="btn primary"
-            id="addBtn"
+            id="btnAddM3U"
         >
             + M3U
         </button>
 
-    </header>
-
-
-    <!-- ===================================================
-         STATUS
-    ==================================================== -->
-
-    <div
-        id="status"
-        class="status"
-    >
-        Nenhuma lista carregada. Adicione uma M3U para começar.
-    </div>
-
-
-    <!-- ===================================================
-         LISTAS
-    ==================================================== -->
-
-    <div
-        id="pills"
-        class="lists-pills"
-    ></div>
-
-
-    <!-- ===================================================
-         CATEGORIAS
-    ==================================================== -->
-
-    <div
-        class="tabs"
-        id="tabs"
-    >
+        <button
+            class="btn"
+            type="button"
+            id="btnLists"
+        >
+            LISTAS
+        </button>
 
         <button
+            class="btn"
             type="button"
-            class="tab active"
-            data-cat="live"
+            id="btnDevice"
+        >
+            DISPOSITIVO
+        </button>
+
+    </div>
+
+</header>
+
+<!-- =======================================================
+     APP
+======================================================= -->
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="sidebar-title">
+            Categorias
+        </div>
+
+        <button
+            class="category active"
+            type="button"
+            data-category="TV"
         >
             📺 TV
+            <span class="count" id="countTV">0</span>
         </button>
 
         <button
+            class="category"
             type="button"
-            class="tab"
-            data-cat="vod"
+            data-category="Films"
         >
             🎬 FILMES
+            <span class="count" id="countFilms">0</span>
         </button>
 
         <button
+            class="category"
             type="button"
-            class="tab"
-            data-cat="series"
+            data-category="Series"
         >
             📚 SÉRIES
+            <span class="count" id="countSeries">0</span>
         </button>
 
         <button
+            class="category"
             type="button"
-            class="tab"
-            data-cat="music"
+            data-category="Music"
         >
             🎵 MÚSICA
+            <span class="count" id="countMusic">0</span>
         </button>
 
         <button
+            class="category"
             type="button"
-            class="tab"
-            data-cat="adult"
+            data-category="Adult"
         >
             🔞 ADULTO
+            <span class="count" id="countAdult">0</span>
         </button>
 
-    </div>
+    </aside>
 
+    <!-- MAIN -->
 
-    <!-- ===================================================
-         WORKSPACE
-    ==================================================== -->
+    <main class="main">
 
-    <div class="workspace">
+        <div class="topbar">
 
-
-        <!-- ===============================================
-             CATÁLOGO
-        ================================================ -->
-
-        <section class="catalog">
-
-
-            <div class="tools">
-
-                <input
-                    id="search"
-                    class="search"
-                    placeholder="Pesquisar..."
-                    autocomplete="off"
-                >
-
-                <select
-                    id="group"
-                    class="select"
-                >
-
-                    <option value="ALL">
-                        Todas as categorias
-                    </option>
-
-                </select>
-
-            </div>
-
+            <input
+                id="searchInput"
+                class="search"
+                type="search"
+                autocomplete="off"
+                placeholder="Pesquisar canais, filmes, séries..."
+            >
 
             <div
-                id="grid"
-                class="grid"
+                class="results-info"
+                id="resultsInfo"
             >
+                0 itens
+            </div>
 
-                <div class="empty">
-                    Adicione uma lista M3U para carregar os conteúdos.
+        </div>
+
+        <div class="content">
+
+            <!-- CATALOG -->
+
+            <section class="catalog" id="catalog">
+
+                <div
+                    class="grid"
+                    id="grid"
+                ></div>
+
+            </section>
+
+            <!-- PLAYER -->
+
+            <aside class="player-panel">
+
+                <div class="player-header">
+
+                    <div
+                        class="player-title"
+                        id="playerTitle"
+                    >
+                        Nenhum conteúdo selecionado
+                    </div>
+
+                    <div
+                        class="player-status"
+                        id="playerStatus"
+                    >
+                        Aguardando
+                    </div>
+
                 </div>
 
-            </div>
+                <div class="video-wrap">
 
+                    <video
+                        id="video"
+                        controls
+                        playsinline
+                        preload="metadata"
+                    ></video>
 
-            <div class="pager">
+                    <div
+                        class="player-empty"
+                        id="playerEmpty"
+                    >
+                        <strong>GC PLAY PRO</strong>
+                        <small>Selecione um conteúdo</small>
+                    </div>
 
-                <button
-                    type="button"
-                    class="btn"
-                    id="prev"
-                >
-                    ‹
-                </button>
+                </div>
 
-                <span id="pageInfo">
-                    0–0 de 0
-                </span>
+                <div class="player-info">
 
-                <button
-                    type="button"
-                    class="btn"
-                    id="next"
-                >
-                    ›
-                </button>
+                    <div
+                        class="now-title"
+                        id="nowTitle"
+                    >
+                        Nenhum conteúdo
+                    </div>
 
-            </div>
+                    <div
+                        class="now-group"
+                        id="nowGroup"
+                    >
+                        —
+                    </div>
 
+                    <div class="player-buttons">
 
-        </section>
+                        <button
+                            class="btn"
+                            type="button"
+                            id="btnStop"
+                        >
+                            PARAR
+                        </button>
 
+                        <button
+                            class="btn"
+                            type="button"
+                            id="btnFullscreen"
+                        >
+                            TELA CHEIA
+                        </button>
 
-        <!-- ===============================================
-             PLAYER
-        ================================================ -->
+                    </div>
 
-        <aside class="player">
+                </div>
 
+            </aside>
 
-            <div class="videoBox">
+        </div>
 
-                <video
-                    id="video"
-                    controls
-                    playsinline
-                    preload="metadata"
-                ></video>
-
-            </div>
-
-
-            <div class="now">
-
-                <b id="nowTitle">
-                    Nenhuma mídia selecionada
-                </b>
-
-                <small id="nowStatus">
-                    Escolha um conteúdo para reproduzir.
-                </small>
-
-            </div>
-
+        <div class="pagination">
 
             <button
+                class="page-btn"
+                id="prevPage"
                 type="button"
-                class="btn"
-                id="stop"
             >
-                ⏹ Parar reprodução
+                ‹
             </button>
 
+            <div
+                class="page-label"
+                id="pageLabel"
+            >
+                0–0 de 0
+            </div>
 
-        </aside>
+            <button
+                class="page-btn"
+                id="nextPage"
+                type="button"
+            >
+                ›
+            </button>
 
+        </div>
 
-    </div>
+    </main>
 
 </div>
-
 
 <!-- =======================================================
      MODAL M3U
 ======================================================= -->
 
 <div
-    id="addModal"
-    class="modal hidden"
+    class="modal"
+    id="m3uModal"
 >
 
-    <div class="box">
+    <div class="modal-box">
 
-        <h2>
-            Adicionar lista M3U
-        </h2>
+        <div class="modal-head">
 
-
-        <div class="field">
-
-            <label>
-                Nome da lista
-            </label>
-
-            <input
-                id="listName"
-                placeholder="Minha TV"
-                autocomplete="off"
-            >
-
-        </div>
-
-
-        <div class="field">
-
-            <label>
-                URL M3U completa
-            </label>
-
-            <input
-                id="listUrl"
-                type="url"
-                inputmode="url"
-                placeholder="http://servidor/get.php?..."
-                autocomplete="off"
-            >
-
-        </div>
-
-
-        <div class="help">
-
-            Cole aqui o link M3U completo.
-            Cada lista pode possuir seu próprio servidor.
-            O servidor não fica fixado no aplicativo.
-
-        </div>
-
-
-        <div
-            id="addStatus"
-            class="activation-status"
-        >
-            Aguardando URL.
-        </div>
-
-
-        <div class="actions">
+            <h2>Adicionar lista M3U</h2>
 
             <button
+                class="close"
                 type="button"
-                class="btn"
-                data-close="addModal"
+                data-close="m3uModal"
             >
-                Cancelar
+                ×
+            </button>
+
+        </div>
+
+        <div class="modal-body">
+
+            <div class="field">
+
+                <label>
+                    Nome da lista
+                </label>
+
+                <input
+                    id="m3uName"
+                    class="input"
+                    type="text"
+                    placeholder="Ex.: Lista Principal"
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label>
+                    URL da lista M3U
+                </label>
+
+                <input
+                    id="m3uUrl"
+                    class="input"
+                    type="url"
+                    placeholder="http://servidor/lista.m3u"
+                >
+
+            </div>
+
+            <div
+                class="status-box"
+                id="m3uStatus"
+            >
+                A lista será salva neste dispositivo.
+            </div>
+
+        </div>
+
+        <div class="modal-footer">
+
+            <button
+                class="btn"
+                type="button"
+                data-close="m3uModal"
+            >
+                CANCELAR
             </button>
 
             <button
+                class="btn green"
                 type="button"
-                class="btn primary"
-                id="saveList"
+                id="btnSaveM3U"
             >
-                Salvar e carregar
+                SALVAR E CARREGAR
             </button>
 
         </div>
@@ -1086,108 +1448,45 @@ button:disabled{
     </div>
 
 </div>
-
 
 <!-- =======================================================
      MODAL LISTAS
 ======================================================= -->
 
 <div
+    class="modal"
     id="listsModal"
-    class="modal hidden"
 >
 
-    <div class="box">
+    <div class="modal-box">
 
-        <h2>
-            Minhas listas M3U
-        </h2>
+        <div class="modal-head">
 
-        <div id="rows"></div>
-
-        <div class="actions">
+            <h2>Minhas listas M3U</h2>
 
             <button
+                class="close"
                 type="button"
-                class="btn"
                 data-close="listsModal"
             >
-                Fechar
-            </button>
-
-            <button
-                type="button"
-                class="btn primary"
-                id="newFromLists"
-            >
-                + Adicionar
+                ×
             </button>
 
         </div>
-
-    </div>
-
-</div>
-
-
-<!-- =======================================================
-     MODAL PIN
-======================================================= -->
-
-<div
-    id="pinModal"
-    class="modal hidden"
->
-
-    <div
-        class="box"
-        style="max-width:360px;text-align:center"
-    >
-
-        <h2>
-            Controle parental
-        </h2>
 
         <div
-            class="help"
-            style="margin-bottom:10px"
-        >
-            Digite a senha para acessar Adulto.
-        </div>
+            class="modal-body"
+            id="listsContainer"
+        ></div>
 
-        <div class="field">
-
-            <input
-                id="pin"
-                type="password"
-                maxlength="4"
-                inputmode="numeric"
-                placeholder="••••"
-                style="
-                    text-align:center;
-                    font-size:22px;
-                    letter-spacing:7px;
-                "
-            >
-
-        </div>
-
-        <div class="actions">
+        <div class="modal-footer">
 
             <button
+                class="btn green"
                 type="button"
-                class="btn"
-                data-close="pinModal"
+                id="btnNewList"
             >
-                Cancelar
-            </button>
-
-            <button
-                type="button"
-                class="btn primary"
-                id="pinOk"
-            >
-                Confirmar
+                + NOVA LISTA
             </button>
 
         </div>
@@ -1195,71 +1494,106 @@ button:disabled{
     </div>
 
 </div>
-
 
 <!-- =======================================================
      MODAL DISPOSITIVO
 ======================================================= -->
 
 <div
+    class="modal"
     id="deviceModal"
-    class="modal hidden"
 >
 
-    <div
-        class="box"
-        style="max-width:380px;text-align:center"
-    >
+    <div class="modal-box">
 
-        <h2>
-            GC PLAY PRO
-        </h2>
+        <div class="modal-head">
 
-
-        <div class="device">
-
-            Identificação deste aparelho
-
-            <strong id="deviceCode">
-                GERANDO...
-            </strong>
-
-        </div>
-
-
-        <div
-            class="qr"
-            id="qr"
-        ></div>
-
-
-        <div class="device">
-
-            Código de ativação:
-
-            <strong id="activationCode">
-                —
-            </strong>
-
-        </div>
-
-
-        <div
-            id="deviceStatus"
-            class="activation-status pending"
-        >
-            Verificando ativação...
-        </div>
-
-
-        <div class="actions">
+            <h2>Dispositivo</h2>
 
             <button
+                class="close"
                 type="button"
-                class="btn"
                 data-close="deviceModal"
             >
-                Fechar
+                ×
+            </button>
+
+        </div>
+
+        <div class="modal-body">
+
+            <div class="detect-box">
+
+                <div
+                    class="detect-title"
+                    id="detectDeviceTitle"
+                >
+                    Detectando dispositivo...
+                </div>
+
+                <div
+                    class="detect-line"
+                    id="detectDeviceDetails"
+                >
+                    Aguarde.
+                </div>
+
+            </div>
+
+            <div class="field">
+
+                <label>
+                    ID DO DISPOSITIVO
+                </label>
+
+                <input
+                    id="deviceIdInput"
+                    class="input"
+                    readonly
+                >
+
+            </div>
+
+            <div class="field">
+
+                <label>
+                    CÓDIGO DE ATIVAÇÃO
+                </label>
+
+                <input
+                    id="activationCodeInput"
+                    class="input"
+                    maxlength="6"
+                    placeholder="000000"
+                >
+
+            </div>
+
+            <div
+                class="status-box"
+                id="deviceStatusBox"
+            >
+                Consultando status...
+            </div>
+
+        </div>
+
+        <div class="modal-footer">
+
+            <button
+                class="btn"
+                type="button"
+                id="btnRefreshDevice"
+            >
+                ATUALIZAR
+            </button>
+
+            <button
+                class="btn green"
+                type="button"
+                id="btnActivationPage"
+            >
+                ATIVAR DISPOSITIVO
             </button>
 
         </div>
@@ -1268,68 +1602,166 @@ button:disabled{
 
 </div>
 
+<!-- =======================================================
+     LOADING
+======================================================= -->
+
+<div
+    class="loading"
+    id="loading"
+>
+
+    <div class="spinner"></div>
+
+    <div
+        id="loadingText"
+        style="color:#aaa;font-size:12px;"
+    >
+        Carregando...
+    </div>
+
+</div>
+
+<!-- =======================================================
+     TOAST
+======================================================= -->
+
+<div
+    class="toast-container"
+    id="toastContainer"
+></div>
 
 <script>
-
-(function(){
-
 "use strict";
-
 
 /* =========================================================
    CONFIGURAÇÃO
 ========================================================= */
 
-var SUPABASE =
+const SUPABASE_URL =
     "https://kuzgdvpdqmocklsgyzvt.supabase.co";
 
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_2qV7Uw-99dQlVcXluSuikw_YZGClN13";
 
-var PLAYLIST_FUNCTION =
-    SUPABASE +
+const PLAYLIST_FUNCTION =
+    SUPABASE_URL +
     "/functions/v1/gcplay-playlist";
 
-
-var PLAYLIST_PROXY =
-    SUPABASE +
+const PLAYLIST_PROXY =
+    SUPABASE_URL +
     "/functions/v1/gcplay-proxy";
 
-
-var ACTIVATE =
-    SUPABASE +
+const ACTIVATE_FUNCTION =
+    SUPABASE_URL +
     "/functions/v1/activate-device";
 
-
-var ACTIVATION_PAGE =
+const ACTIVATION_PAGE =
     "https://caiomendes29546874687.github.io/GC-PLAY-PRO-/connect.html";
 
+const STORAGE_LISTS =
+    "gcplay_pro_m3u_lists_v5";
 
-var PAGE_SIZE = 100;
+const STORAGE_DEVICE_ID =
+    "gcplay_pro_device_id_v5";
 
+const STORAGE_ACTIVATION_CODE =
+    "gcplay_pro_activation_code_v5";
 
 /*
- * Quantidade máxima de itens que podemos buscar
- * pela função paginada.
- *
- * 2000 páginas x 300 = 600.000 itens.
+ * NÃO existe servidor IPTV fixo aqui.
+ * Cada M3U possui o próprio servidor.
  */
 
-var MAX_PAGES = 2000;
-
-
 /* =========================================================
-   HELPERS
+   ESTADO
 ========================================================= */
 
-function $(id){
+const state = {
 
-    return document.getElementById(id);
+    device: {
+        id: "",
+        activationCode: "",
+        status: "pending",
+        type: "unknown",
+        input: "unknown",
+        width: 0,
+        height: 0
+    },
 
-}
+    lists: [],
 
+    activeListId: null,
 
-function esc(value){
+    allItems: [],
 
-    return String(value || "")
+    filteredItems: [],
+
+    currentCategory: "TV",
+
+    currentPage: 1,
+
+    pageSize: 100,
+
+    selectedItem: null,
+
+    mpegPlayer: null,
+
+    hlsPlayer: null,
+
+    currentObjectUrl: null,
+
+    tvFocusIndex: 0,
+
+    lastDeviceClass: "",
+
+    loadingPlaylist: false,
+
+    historyChanging: false
+
+};
+
+/* =========================================================
+   ELEMENTOS
+========================================================= */
+
+const $ = id => document.getElementById(id);
+
+const body = document.body;
+
+const video = $("video");
+
+const grid = $("grid");
+
+const catalog = $("catalog");
+
+const searchInput = $("searchInput");
+
+const resultsInfo = $("resultsInfo");
+
+const pageLabel = $("pageLabel");
+
+const prevPage = $("prevPage");
+
+const nextPage = $("nextPage");
+
+const playerTitle = $("playerTitle");
+
+const playerStatus = $("playerStatus");
+
+const nowTitle = $("nowTitle");
+
+const nowGroup = $("nowGroup");
+
+const playerEmpty = $("playerEmpty");
+
+/* =========================================================
+   UTILIDADES
+========================================================= */
+
+function escapeHtml(value){
+
+    return String(value ?? "")
         .replace(/&/g,"&amp;")
         .replace(/</g,"&lt;")
         .replace(/>/g,"&gt;")
@@ -1338,430 +1770,842 @@ function esc(value){
 
 }
 
+function normalizeText(value){
 
-function norm(value){
-
-    var s = String(value || "");
-
-    try{
-
-        s = s.normalize("NFD")
-            .replace(/[\u0300-\u036f]/g,"");
-
-    }catch(e){}
-
-    return s
+    return String(value ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"")
         .toLowerCase()
-        .replace(/\s+/g," ")
         .trim();
 
 }
 
-
 function makeId(){
 
-    return "x" +
-        Date.now().toString(36) +
-        Math.random().toString(36).slice(2,9);
-
-}
-
-
-/* =========================================================
-   LOCAL STORAGE
-========================================================= */
-
-function getLists(){
-
-    try{
-
-        return JSON.parse(
-            localStorage.getItem("gcplay_lists") || "[]"
-        );
-
-    }catch(e){
-
-        return [];
-
+    if(
+        window.crypto &&
+        typeof crypto.randomUUID === "function"
+    ){
+        return crypto.randomUUID();
     }
 
-}
-
-
-function saveLists(){
-
-    localStorage.setItem(
-        "gcplay_lists",
-        JSON.stringify(lists)
+    return (
+        Date.now().toString(36) +
+        Math.random().toString(36).slice(2)
     );
 
 }
 
+function validHttpUrl(url){
 
-var lists = getLists();
+    try{
 
+        const u = new URL(url);
 
-/* =========================================================
-   ESTADO
-========================================================= */
-
-var state = {
-
-    list:null,
-
-    items:[],
-
-    cat:"live",
-
-    group:"ALL",
-
-    page:1,
-
-    hls:null,
-
-    ts:null,
-
-    deviceId:null,
-
-    activationCode:null,
-
-    activationStatus:"pending",
-
-    loading:false,
-
-    historyReady:false
-
-};
-
-
-/* =========================================================
-   STATUS
-========================================================= */
-
-function setStatus(text,type){
-
-    $("status").textContent = text;
-
-    $("status").className =
-        "status" +
-        (type ? " " + type : "");
-
-}
-
-
-function setAddStatus(text,type){
-
-    $("addStatus").textContent = text;
-
-    $("addStatus").className =
-        "activation-status" +
-        (type ? " " + type : "");
-
-}
-
-
-function setDeviceStatus(text,type){
-
-    $("deviceStatus").textContent = text;
-
-    $("deviceStatus").className =
-        "activation-status " +
-        (type || "pending");
-
-}
-
-
-function loader(on,text){
-
-    $("loader").className =
-        on
-            ? "loader"
-            : "loader hidden";
-
-    if(text){
-
-        $("loaderText").textContent = text;
-
-    }
-
-}
-
-
-/* =========================================================
-   PROXY DE MÍDIA
-========================================================= */
-
-function mediaProxy(url,mode){
-
-    return PLAYLIST_PROXY +
-        "?mode=" +
-        encodeURIComponent(mode || "media") +
-        "&url=" +
-        encodeURIComponent(url);
-
-}
-
-
-/* =========================================================
-   CLASSIFICAÇÃO
-========================================================= */
-
-function classify(group,title,url){
-
-    var s =
-        norm(
-            group +
-            " " +
-            title +
-            " " +
-            url
+        return (
+            u.protocol === "http:" ||
+            u.protocol === "https:"
         );
 
+    }catch{
 
-    if(
-        /adult|adulto|xxx|porn|porno|18\+|private|privado|erotic|erotico/.test(s)
-    ){
-
-        return "adult";
+        return false;
 
     }
-
-
-    if(
-        /music|musica|musical|radio|clip|clipe|concert|mtv/.test(s)
-    ){
-
-        return "music";
-
-    }
-
-
-    if(
-        /series?|série|serie|temporada|season|episode|episodio|episódio/.test(s)
-        ||
-        /\/series?\//.test(url)
-    ){
-
-        return "series";
-
-    }
-
-
-    if(
-        /movie|movies|filme|filmes|film|vod|cinema|netflix|prime video|disney|hbo|\bmax\b/.test(s)
-        ||
-        /\/movies?\//.test(url)
-    ){
-
-        return "vod";
-
-    }
-
-
-    return "live";
 
 }
 
+function showToast(message,error=false){
+
+    const container = $("toastContainer");
+
+    const el = document.createElement("div");
+
+    el.className =
+        "toast" +
+        (error ? " error" : "");
+
+    el.textContent = message;
+
+    container.appendChild(el);
+
+    setTimeout(() => {
+
+        el.remove();
+
+    },4500);
+
+}
+
+function setLoading(show,text="Carregando..."){
+
+    $("loadingText").textContent = text;
+
+    $("loading").classList.toggle(
+        "show",
+        !!show
+    );
+
+}
+
+function openModal(id){
+
+    $(id).classList.add("open");
+
+}
+
+function closeModal(id){
+
+    $(id).classList.remove("open");
+
+}
+
+function isModalOpen(){
+
+    return !!document.querySelector(
+        ".modal.open"
+    );
+
+}
 
 /* =========================================================
-   CONVERSÃO DOS ITENS DA EDGE FUNCTION
+   SISTEMA INTELIGENTE DE DETECÇÃO
 ========================================================= */
 
-function normalizeRemoteItem(item){
+function detectDevice(){
 
-    if(!item){
+    const ua =
+        String(navigator.userAgent || "")
+            .toLowerCase();
 
-        return null;
+    const platform =
+        String(
+            navigator.userAgentData?.platform ||
+            navigator.platform ||
+            ""
+        ).toLowerCase();
 
-    }
-
-
-    var name =
-        item.titulo ||
-        item.title ||
-        item.name ||
-        item["tvg-name"] ||
-        "Sem título";
-
-
-    var logo =
-        item.logo ||
-        item.tvg_logo ||
-        item["tvg-logo"] ||
-        "";
-
-
-    var group =
-        item.grupo ||
-        item.group ||
-        item["group-title"] ||
-        "Geral";
-
-
-    var url =
-        item.url ||
-        item.stream_url ||
-        item.streamUrl ||
-        "";
-
-
-    if(!url){
-
-        return null;
-
-    }
-
-
-    var category =
-        item.category ||
-        classify(
-            group,
-            name,
-            url
+    const width =
+        Math.max(
+            window.innerWidth || 0,
+            document.documentElement.clientWidth || 0
         );
 
+    const height =
+        Math.max(
+            window.innerHeight || 0,
+            document.documentElement.clientHeight || 0
+        );
+
+    const touch =
+        Number(navigator.maxTouchPoints || 0) > 0;
+
+    const coarse =
+        window.matchMedia &&
+        window.matchMedia("(pointer: coarse)").matches;
+
+    const fine =
+        window.matchMedia &&
+        window.matchMedia("(pointer: fine)").matches;
+
+    const hover =
+        window.matchMedia &&
+        window.matchMedia("(hover: hover)").matches;
+
+    /*
+     * Identificadores comuns de TVs.
+     */
+
+    const tvUa =
+        /smart-tv|smarttv|hbbtv|webos|tizen|netcast|viera|nettv|googletv|android tv|aftb|aftm|bravia|hisense|roku|philips|opera tv|inettv|tv safari|appletv/.test(ua);
+
+    const android =
+        /android/.test(ua);
+
+    const androidTv =
+        android &&
+        (
+            /android tv|googletv|aftb|aftm/.test(ua) ||
+            (
+                !touch &&
+                width >= 1200 &&
+                height >= 600 &&
+                !/chrome|firefox|edg|opera/.test(ua)
+            )
+        );
+
+    const webOS =
+        /web0s|webos/.test(ua);
+
+    const tizen =
+        /tizen/.test(ua);
+
+    const samsungTv =
+        /smarttv|tizen|samsung/.test(ua) &&
+        (
+            tvUa ||
+            /smarttv|tizen/.test(ua)
+        );
+
+    const isTV =
+        tvUa ||
+        androidTv ||
+        webOS ||
+        tizen ||
+        samsungTv;
+
+    /*
+     * iPad e tablets.
+     */
+
+    const isIpad =
+        /ipad/.test(ua) ||
+        (
+            /macintosh/.test(ua) &&
+            touch &&
+            width < 1400
+        );
+
+    const isTablet =
+        !isTV &&
+        (
+            isIpad ||
+            /tablet|ipad/.test(ua) ||
+            (
+                android &&
+                width >= 600 &&
+                !/mobile/.test(ua)
+            ) ||
+            (
+                touch &&
+                width >= 600 &&
+                width <= 1200
+            )
+        );
+
+    const isMobile =
+        !isTV &&
+        !isTablet &&
+        (
+            /mobile|iphone|ipod|windows phone|blackberry/.test(ua) ||
+            (
+                android &&
+                width < 600
+            ) ||
+            (
+                touch &&
+                width < 700
+            )
+        );
+
+    let type = "pc";
+
+    if(isTV){
+
+        type = "tv";
+
+    }else if(isMobile){
+
+        type = "mobile";
+
+    }else if(isTablet){
+
+        type = "tablet";
+
+    }else{
+
+        type = "pc";
+
+    }
+
+    /*
+     * Tipo de entrada.
+     */
+
+    let input = "mouse/teclado";
+
+    if(type === "tv"){
+
+        input = "controle remoto";
+
+    }else if(touch && coarse){
+
+        input = "toque";
+
+    }else if(fine && hover){
+
+        input = "mouse/teclado";
+
+    }else if(touch){
+
+        input = "toque";
+
+    }
 
     return {
 
-        name:String(name),
-
-        logo:String(logo),
-
-        group:String(group),
-
-        url:String(url),
-
-        category:String(category),
-
-        referrer:String(
-            item.referrer ||
-            item.http_referrer ||
-            ""
-        ),
-
-        userAgent:String(
-            item.userAgent ||
-            item.http_user_agent ||
-            ""
-        ),
-
-        index:
-            Number.isFinite(Number(item.index))
-                ? Number(item.index)
-                : 0
+        type,
+        input,
+        width,
+        height,
+        touch,
+        coarse,
+        fine,
+        hover,
+        ua,
+        platform,
+        isTV,
+        isTablet,
+        isMobile
 
     };
 
 }
 
-
 /* =========================================================
-   PARSER M3U
+   APLICA MODO DO DISPOSITIVO
 ========================================================= */
 
-function extAttrs(line){
+function applyDeviceMode(){
 
-    var attrs = {};
+    const d = detectDevice();
 
-    var re =
-        /([a-zA-Z0-9_-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s]+))/g;
+    state.device.type = d.type;
 
-    var m;
+    state.device.input = d.input;
 
+    state.device.width = d.width;
 
-    while((m = re.exec(line))){
+    state.device.height = d.height;
 
-        attrs[
-            m[1].toLowerCase()
-        ] =
-            (
-                m[2] !== undefined
-                    ? m[2]
-                    : m[3] !== undefined
-                        ? m[3]
-                        : m[4] || ""
-            ).trim();
+    /*
+     * Remove classes anteriores.
+     */
+
+    body.classList.remove(
+        "device-mobile",
+        "device-tablet",
+        "device-pc",
+        "device-tv",
+        "input-touch",
+        "input-remote",
+        "input-mouse"
+    );
+
+    body.classList.add(
+        "device-" + d.type
+    );
+
+    if(d.input === "controle remoto"){
+
+        body.classList.add(
+            "input-remote",
+            "tv-navigation"
+        );
+
+    }else if(d.input === "toque"){
+
+        body.classList.add(
+            "input-touch"
+        );
+
+    }else{
+
+        body.classList.add(
+            "input-mouse"
+        );
 
     }
 
+    const labels = {
 
-    return attrs;
+        mobile: "📱 CELULAR",
 
-}
+        tablet: "📲 TABLET",
 
+        pc: "💻 PC",
 
-function findComma(line){
+        tv: "📺 TV"
 
-    var quote = null;
+    };
 
+    const label =
+        labels[d.type] || "DISPOSITIVO";
 
-    for(
-        var i=0;
-        i<line.length;
-        i++
-    ){
+    $("deviceIndicatorText").textContent =
+        label;
 
-        var ch = line[i];
+    $("detectDeviceTitle").textContent =
+        label + " • " + d.input;
 
+    $("detectDeviceDetails").innerHTML =
+        "<strong>Tamanho:</strong> " +
+        d.width +
+        " × " +
+        d.height +
+        " px" +
+        " &nbsp;|&nbsp; " +
+        "<strong>Entrada:</strong> " +
+        escapeHtml(d.input);
 
-        if(
-            ch === '"' ||
-            ch === "'"
-        ){
+    /*
+     * Só atualiza navegação quando realmente mudou.
+     */
 
-            if(quote === null){
+    const deviceClass =
+        d.type + "|" + d.input;
 
-                quote = ch;
+    if(state.lastDeviceClass !== deviceClass){
 
-            }else if(quote === ch){
+        state.lastDeviceClass =
+            deviceClass;
 
-                quote = null;
+        if(d.type === "tv"){
 
-            }
+            body.classList.add(
+                "tv-navigation"
+            );
 
-        }else if(
-            ch === "," &&
-            quote === null
-        ){
+            setTimeout(() => {
 
-            return i;
+                focusTVElement();
+
+            },100);
 
         }
 
     }
 
-
-    return -1;
+    return d;
 
 }
 
+/* =========================================================
+   OBSERVAÇÃO DO TAMANHO DA TELA
+========================================================= */
 
-function parseM3U(text,base){
+function handleDeviceChange(){
 
-    var lines =
+    const oldType =
+        state.device.type;
+
+    const oldInput =
+        state.device.input;
+
+    const d =
+        applyDeviceMode();
+
+    if(
+        oldType !== d.type ||
+        oldInput !== d.input
+    ){
+
+        render();
+
+    }
+
+}
+
+window.addEventListener(
+    "resize",
+    handleDeviceChange,
+    {passive:true}
+);
+
+window.addEventListener(
+    "orientationchange",
+    () => {
+
+        setTimeout(
+            handleDeviceChange,
+            250
+        );
+
+    },
+    {passive:true}
+);
+
+/* =========================================================
+   GERAR / RECUPERAR DEVICE ID
+========================================================= */
+
+function getDeviceId(){
+
+    let id =
+        localStorage.getItem(
+            STORAGE_DEVICE_ID
+        );
+
+    if(
+        !id ||
+        !/^[0-9a-f-]{36}$/i.test(id)
+    ){
+
+        if(
+            window.crypto &&
+            typeof crypto.randomUUID === "function"
+        ){
+
+            id = crypto.randomUUID();
+
+        }else{
+
+            id =
+                "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
+                .replace(/[xy]/g,function(c){
+
+                    const r =
+                        Math.random()*16|0;
+
+                    const v =
+                        c === "x"
+                            ? r
+                            : (r&0x3)|0x8;
+
+                    return v.toString(16);
+
+                });
+
+        }
+
+        localStorage.setItem(
+            STORAGE_DEVICE_ID,
+            id
+        );
+
+    }
+
+    return id;
+
+}
+
+/* =========================================================
+   LISTAS
+========================================================= */
+
+function loadListsFromStorage(){
+
+    try{
+
+        const raw =
+            localStorage.getItem(
+                STORAGE_LISTS
+            );
+
+        if(!raw){
+
+            state.lists = [];
+
+            return;
+
+        }
+
+        const parsed =
+            JSON.parse(raw);
+
+        state.lists =
+            Array.isArray(parsed)
+                ? parsed
+                : [];
+
+    }catch{
+
+        state.lists = [];
+
+    }
+
+}
+
+function saveLists(){
+
+    localStorage.setItem(
+        STORAGE_LISTS,
+        JSON.stringify(state.lists)
+    );
+
+}
+
+function addList(name,url){
+
+    const item = {
+
+        id: makeId(),
+
+        name:
+            String(name || "Lista M3U")
+                .trim()
+                .slice(0,100),
+
+        url:
+            String(url || "")
+                .trim(),
+
+        createdAt:
+            new Date().toISOString()
+
+    };
+
+    state.lists.push(item);
+
+    saveLists();
+
+    return item;
+
+}
+
+function removeList(id){
+
+    state.lists =
+        state.lists.filter(
+            item => item.id !== id
+        );
+
+    saveLists();
+
+    if(state.activeListId === id){
+
+        state.activeListId = null;
+
+        state.allItems = [];
+
+        render();
+
+    }
+
+}
+
+/* =========================================================
+   RENDER LISTAS
+========================================================= */
+
+function renderLists(){
+
+    const container =
+        $("listsContainer");
+
+    if(!state.lists.length){
+
+        container.innerHTML = `
+            <div class="empty">
+                <strong>Nenhuma lista cadastrada</strong>
+                <small>Adicione uma URL M3U para começar.</small>
+            </div>
+        `;
+
+        return;
+
+    }
+
+    container.innerHTML =
+        state.lists.map(item => `
+
+            <div class="list-item">
+
+                <div class="list-main">
+
+                    <div class="list-name">
+                        ${escapeHtml(item.name)}
+                    </div>
+
+                    <div class="list-url">
+                        ${escapeHtml(item.url)}
+                    </div>
+
+                </div>
+
+                <div class="list-actions">
+
+                    <button
+                        class="btn"
+                        type="button"
+                        data-load-list="${escapeHtml(item.id)}"
+                    >
+                        ABRIR
+                    </button>
+
+                    <button
+                        class="btn danger"
+                        type="button"
+                        data-delete-list="${escapeHtml(item.id)}"
+                    >
+                        EXCLUIR
+                    </button>
+
+                </div>
+
+            </div>
+
+        `).join("");
+
+}
+
+/* =========================================================
+   M3U PARSER
+========================================================= */
+
+function parseAttributes(line){
+
+    const attrs = {};
+
+    const regex =
+        /([a-zA-Z0-9_-]+)="([^"]*)"/g;
+
+    let match;
+
+    while(
+        (match = regex.exec(line))
+    ){
+
+        attrs[
+            match[1].toLowerCase()
+        ] = match[2];
+
+    }
+
+    return attrs;
+
+}
+
+function parseExtInf(line){
+
+    const attrs =
+        parseAttributes(line);
+
+    const comma =
+        line.indexOf(",");
+
+    let title = "";
+
+    if(comma >= 0){
+
+        title =
+            line.slice(
+                comma + 1
+            ).trim();
+
+    }
+
+    return {
+
+        attrs,
+        title
+
+    };
+
+}
+
+function normalizeCategory(item){
+
+    const group =
+        normalizeText(
+            item.group || ""
+        );
+
+    const title =
+        normalizeText(
+            item.title || ""
+        );
+
+    const type =
+        normalizeText(
+            item.type || ""
+        );
+
+    /*
+     * Adult primeiro.
+     */
+
+    if(
+        /adult|xxx|porn|sex|18\+|erotic|hentai/.test(
+            group + " " + title
+        )
+    ){
+
+        return "Adult";
+
+    }
+
+    /*
+     * Filmes.
+     */
+
+    if(
+        /movie|movies|film|films|filmes|cinema/.test(
+            group
+        ) ||
+        /movie|film/.test(type)
+    ){
+
+        return "Films";
+
+    }
+
+    /*
+     * Séries.
+     */
+
+    if(
+        /series|serie|séries|temporada|season/.test(
+            group
+        ) ||
+        /series/.test(type)
+    ){
+
+        return "Series";
+
+    }
+
+    /*
+     * Música.
+     */
+
+    if(
+        /music|musica|música|radio|rádio/.test(
+            group
+        ) ||
+        /music|radio/.test(type)
+    ){
+
+        return "Music";
+
+    }
+
+    /*
+     * TV padrão.
+     */
+
+    return "TV";
+
+}
+
+function parseM3U(text,baseUrl=""){
+
+    const lines =
         String(text || "")
-            .replace(/^\uFEFF/,"")
-            .replace(/\r\n/g,"\n")
-            .replace(/\r/g,"\n")
+            .replace(/\r/g,"")
             .split("\n");
 
+    const items = [];
 
-    var out = [];
+    let current = null;
 
-    var current = null;
+    let currentGroup = "";
 
-    var extGroup = "";
+    let currentReferrer = "";
 
+    let currentUserAgent = "";
 
     for(
-        var i=0;
-        i<lines.length;
+        let i = 0;
+        i < lines.length;
         i++
     ){
 
-        var line =
-            lines[i].trim();
+        const raw =
+            lines[i];
 
+        const line =
+            raw.trim();
 
         if(!line){
 
@@ -1769,908 +2613,720 @@ function parseM3U(text,base){
 
         }
 
-
         if(
-            /^#EXTGRP:/i.test(line)
+            line.startsWith("#EXTGRP:")
         ){
 
-            extGroup =
-                line.substring(8).trim();
+            currentGroup =
+                line.slice(8).trim();
 
             continue;
 
         }
 
-
         if(
-            /^#EXTINF:/i.test(line)
+            line.startsWith(
+                "#EXTVLCOPT:http-referrer:"
+            )
         ){
 
-            var comma =
-                findComma(line);
+            currentReferrer =
+                line.slice(
+                    "#EXTVLCOPT:http-referrer:".length
+                ).trim();
 
+            continue;
 
-            var title =
-                comma >= 0
-                    ? line.substring(comma+1).trim()
-                    : "Sem título";
+        }
 
+        if(
+            line.startsWith(
+                "#EXTVLCOPT:http-user-agent:"
+            )
+        ){
 
-            var attrs =
-                extAttrs(line);
+            currentUserAgent =
+                line.slice(
+                    "#EXTVLCOPT:http-user-agent:".length
+                ).trim();
 
+            continue;
+
+        }
+
+        if(
+            line.startsWith("#EXTINF:")
+        ){
+
+            const parsed =
+                parseExtInf(line);
 
             current = {
 
-                name:
-                    attrs["tvg-name"] ||
-                    title ||
-                    "Sem título",
+                title:
+                    parsed.title ||
+                    parsed.attrs["tvg-name"] ||
+                    "Sem nome",
 
                 logo:
-                    attrs["tvg-logo"] ||
-                    attrs["logo"] ||
+                    parsed.attrs["tvg-logo"] ||
                     "",
 
                 group:
-                    attrs["group-title"] ||
-                    extGroup ||
-                    "Geral",
+                    parsed.attrs["group-title"] ||
+                    currentGroup ||
+                    "",
 
-                referrer:"",
+                tvgId:
+                    parsed.attrs["tvg-id"] ||
+                    "",
 
-                userAgent:"",
+                tvgName:
+                    parsed.attrs["tvg-name"] ||
+                    "",
+
+                type:
+                    parsed.attrs["type"] ||
+                    "",
+
+                referrer:
+                    currentReferrer,
+
+                userAgent:
+                    currentUserAgent,
 
                 url:""
 
             };
 
-
-            extGroup = "";
-
             continue;
 
         }
 
-
         if(
-            /^#EXTVLCOPT:/i.test(line)
+            !line.startsWith("#")
         ){
 
-            if(!current){
+            if(current){
 
-                continue;
+                let url = line;
 
-            }
+                try{
 
+                    if(baseUrl){
 
-            var option =
-                line.substring(12);
+                        url =
+                            new URL(
+                                line,
+                                baseUrl
+                            ).href;
 
+                    }
 
-            var pos =
-                option.indexOf("=");
+                }catch{
 
-
-            if(pos >= 0){
-
-                var key =
-                    option.substring(
-                        0,
-                        pos
-                    )
-                    .trim()
-                    .toLowerCase();
-
-
-                var value =
-                    option.substring(pos+1)
-                    .trim();
-
-
-                if(
-                    key === "http-referrer"
-                ){
-
-                    current.referrer = value;
+                    /* mantém URL original */
 
                 }
 
+                current.url = url;
 
-                if(
-                    key === "http-user-agent"
-                ){
+                current.category =
+                    normalizeCategory(
+                        current
+                    );
 
-                    current.userAgent = value;
+                items.push(current);
 
-                }
+                current = null;
 
-            }
+                currentGroup = "";
 
+                currentReferrer = "";
 
-            continue;
-
-        }
-
-
-        if(line.charAt(0)==="#"){
-
-            continue;
-
-        }
-
-
-        if(!current){
-
-            continue;
-
-        }
-
-
-        var url = line;
-
-
-        try{
-
-            if(
-                base &&
-                !/^https?:\/\//i.test(url) &&
-                !/^rtmp:\/\//i.test(url) &&
-                !/^rtsp:\/\//i.test(url)
-            ){
-
-                url =
-                    new URL(
-                        url,
-                        base
-                    ).href;
+                currentUserAgent = "";
 
             }
 
-        }catch(e){}
+        }
 
+    }
 
-        if(!url){
+    /*
+     * Remove duplicados.
+     */
 
-            current = null;
+    const seen =
+        new Set();
+
+    const unique = [];
+
+    for(const item of items){
+
+        if(!item.url){
 
             continue;
 
         }
 
+        const key =
+            normalizeText(
+                item.title
+            ) +
+            "|" +
+            item.url;
 
-        current.url = url;
+        if(seen.has(key)){
 
+            continue;
 
-        current.category =
-            classify(
-                current.group,
-                current.name,
-                current.url
-            );
+        }
 
+        seen.add(key);
 
-        out.push(current);
-
-
-        current = null;
+        unique.push(item);
 
     }
 
-
-    return out;
+    return unique;
 
 }
 
-
 /* =========================================================
-   FETCH JSON DA EDGE FUNCTION
+   BUSCAR PLAYLIST
 ========================================================= */
 
-async function requestPlaylistPage(
-    playlistUrl,
-    offset,
-    limit,
-    withAction
-){
+async function fetchTextDirect(url){
 
-    var body = {
-
-        device_id:
-            state.deviceId,
-
-        activation_code:
-            state.activationCode,
-
-        playlist_url:
-            playlistUrl,
-
-        offset:
-            offset,
-
-        limit:
-            limit
-
-    };
-
-
-    /*
-     * Primeira tentativa:
-     * compatibilidade com versão que exige action.
-     */
-
-    if(withAction){
-
-        body.action = "playlist";
-
-    }
-
-
-    var controller =
-        new AbortController();
-
-
-    var timer =
-        setTimeout(
-            function(){
-
-                controller.abort();
-
-            },
-            90000
-        );
-
-
-    try{
-
-        var response =
-            await fetch(
-                PLAYLIST_FUNCTION,
-                {
-
-                    method:"POST",
-
-                    mode:"cors",
-
-                    cache:"no-store",
-
-                    signal:controller.signal,
-
-                    headers:{
-                        "Content-Type":
-                            "application/json",
-
-                        "Accept":
-                            "application/json,text/plain,*/*"
-                    },
-
-                    body:
-                        JSON.stringify(body)
-
-                }
-            );
-
-
-        var raw =
-            await response.text();
-
-
-        var data = null;
-
-
-        try{
-
-            data =
-                JSON.parse(raw);
-
-        }catch(e){
-
-            data = null;
-
-        }
-
-
-        return {
-
-            response:response,
-
-            data:data,
-
-            raw:raw
-
-        };
-
-    }finally{
-
-        clearTimeout(timer);
-
-    }
-
-}
-
-
-/* =========================================================
-   VERIFICA ERRO "AÇÃO INVÁLIDA"
-========================================================= */
-
-function isInvalidAction(data,raw){
-
-    var text =
-        String(
-            data && data.error
-                ? data.error
-                : raw || ""
-        ).toLowerCase();
-
-
-    return (
-        text.indexOf("ação inválida") >= 0 ||
-        text.indexOf("acao invalida") >= 0 ||
-        text.indexOf("invalid action") >= 0
-    );
-
-}
-
-
-/* =========================================================
-   CARREGAR UMA PÁGINA
-========================================================= */
-
-async function getPageCompatible(
-    playlistUrl,
-    offset,
-    limit
-){
-
-    /*
-     * Tentativa 1:
-     * action=playlist
-     */
-
-    var first =
-        await requestPlaylistPage(
-            playlistUrl,
-            offset,
-            limit,
-            true
-        );
-
-
-    if(
-        first.data &&
-        first.data.success
-    ){
-
-        return first.data;
-
-    }
-
-
-    /*
-     * Se a função respondeu "Ação inválida",
-     * tentamos a versão sem action.
-     */
-
-    if(
-        isInvalidAction(
-            first.data,
-            first.raw
-        )
-    ){
-
-        var second =
-            await requestPlaylistPage(
-                playlistUrl,
-                offset,
-                limit,
-                false
-            );
-
-
-        if(
-            second.data &&
-            second.data.success
-        ){
-
-            return second.data;
-
-        }
-
-
-        if(second.data){
-
-            throw new Error(
-                second.data.error ||
-                "Erro ao carregar a playlist."
-            );
-
-        }
-
-
-        throw new Error(
-            "A função de playlist não retornou JSON válido."
-        );
-
-    }
-
-
-    if(first.data){
-
-        throw new Error(
-            first.data.error ||
-            "Não foi possível carregar a playlist."
-        );
-
-    }
-
-
-    throw new Error(
-        first.raw ||
-        "Resposta inválida do servidor."
-    );
-
-}
-
-
-/* =========================================================
-   CARREGAR PLAYLIST PAGINADA
-========================================================= */
-
-async function loadPlaylistFromFunction(
-    playlistUrl
-){
-
-    var all = [];
-
-    var offset = 0;
-
-    var limit = 300;
-
-    var page = 0;
-
-    var hasMore = true;
-
-
-    while(
-        hasMore &&
-        page < MAX_PAGES
-    ){
-
-        page++;
-
-
-        loader(
-            true,
-            "Carregando lista... " +
-            all.length.toLocaleString("pt-BR") +
-            " itens"
-        );
-
-
-        var result =
-            await getPageCompatible(
-                playlistUrl,
-                offset,
-                limit
-            );
-
-
-        if(
-            !result ||
-            !Array.isArray(result.items)
-        ){
-
-            throw new Error(
-                "A função não retornou uma lista de itens."
-            );
-
-        }
-
-
-        var pageItems =
-            result.items
-                .map(normalizeRemoteItem)
-                .filter(Boolean);
-
-
-        all =
-            all.concat(pageItems);
-
-
-        var returnedCount =
-            pageItems.length;
-
-
-        /*
-         * A função já informa has_more.
-         */
-
-        hasMore =
-            result.has_more === true;
-
-
-        /*
-         * Proteção contra loop infinito.
-         */
-
-        if(returnedCount <= 0){
-
-            hasMore = false;
-
-        }
-
-
-        offset =
-            Number(
-                result.next_offset
-            );
-
-
-        if(
-            !Number.isFinite(offset) ||
-            offset <= 0
-        ){
-
-            offset =
-                all.length;
-
-        }
-
-
-        /*
-         * Se recebeu menos que o limite,
-         * normalmente chegou ao fim.
-         */
-
-        if(
-            returnedCount < limit
-        ){
-
-            hasMore = false;
-
-        }
-
-    }
-
-
-    if(!all.length){
-
-        throw new Error(
-            "A playlist não possui conteúdos válidos."
-        );
-
-    }
-
-
-    return all;
-
-}
-
-
-/* =========================================================
-   FALLBACK VIA GCPLAY-PROXY
-========================================================= */
-
-async function loadPlaylistFallbackProxy(
-    playlistUrl
-){
-
-    loader(
-        true,
-        "Tentando carregamento alternativo..."
-    );
-
-
-    var response =
+    const response =
         await fetch(
-            mediaProxy(
-                playlistUrl,
-                "playlist"
-            ),
+            url,
             {
                 method:"GET",
-                cache:"no-store"
+                redirect:"follow",
+                headers:{
+                    "Accept":
+                        "application/x-mpegURL,text/plain,text/*,*/*"
+                }
             }
         );
-
-
-    var text =
-        await response.text();
-
 
     if(!response.ok){
 
         throw new Error(
-            text ||
-            "HTTP " +
+            "HTTP " + response.status
+        );
+
+    }
+
+    return await response.text();
+
+}
+
+async function fetchPlaylistViaFunction(
+    playlistUrl,
+    offset=0,
+    limit=300
+){
+
+    const deviceId =
+        state.device.id;
+
+    const activationCode =
+        state.device.activationCode;
+
+    if(!deviceId){
+
+        throw new Error(
+            "Dispositivo sem ID."
+        );
+
+    }
+
+    if(!activationCode){
+
+        throw new Error(
+            "Informe o código de ativação."
+        );
+
+    }
+
+    const params = new URLSearchParams();
+
+    params.set(
+        "device_id",
+        deviceId
+    );
+
+    params.set(
+        "activation_code",
+        activationCode
+    );
+
+    params.set(
+        "playlist_url",
+        playlistUrl
+    );
+
+    params.set(
+        "offset",
+        String(offset)
+    );
+
+    params.set(
+        "limit",
+        String(limit)
+    );
+
+    /*
+     * A função atual trabalha diretamente
+     * com esses parâmetros.
+     */
+
+    const response =
+        await fetch(
+            PLAYLIST_FUNCTION +
+            "?" +
+            params.toString(),
+            {
+                method:"GET",
+                headers:{
+                    "apikey":
+                        SUPABASE_PUBLISHABLE_KEY,
+
+                    "Authorization":
+                        "Bearer " +
+                        SUPABASE_PUBLISHABLE_KEY,
+
+                    "Accept":
+                        "application/json"
+                }
+            }
+        );
+
+    const text =
+        await response.text();
+
+    let data;
+
+    try{
+
+        data =
+            JSON.parse(text);
+
+    }catch{
+
+        throw new Error(
+            "Resposta inválida da função."
+        );
+
+    }
+
+    if(!response.ok){
+
+        throw new Error(
+            data?.error ||
+            data?.message ||
+            "Erro HTTP " +
             response.status
         );
 
     }
 
-
-    /*
-     * Caso o proxy tenha devolvido JSON,
-     * tentamos interpretar.
-     */
-
-    try{
-
-        var json =
-            JSON.parse(text);
-
-
-        if(
-            json &&
-            Array.isArray(json.items)
-        ){
-
-            return json.items
-                .map(normalizeRemoteItem)
-                .filter(Boolean);
-
-        }
-
-
-        if(
-            json &&
-            json.error
-        ){
-
-            throw new Error(
-                json.error
-            );
-
-        }
-
-    }catch(e){
-
-        /*
-         * Não é JSON.
-         * Então tratamos como M3U.
-         */
-
-    }
-
-
-    var items =
-        parseM3U(
-            text,
-            playlistUrl
-        );
-
-
-    if(!items.length){
+    if(data?.success === false){
 
         throw new Error(
-            "O servidor não retornou uma M3U válida."
+            data?.error ||
+            data?.message ||
+            "Erro ao carregar playlist."
         );
 
     }
 
-
-    return items;
+    return data;
 
 }
 
-
 /* =========================================================
-   RENDERIZA LISTAS
+   CARREGAR LISTA
 ========================================================= */
 
-function renderPills(){
+async function loadPlaylist(list){
 
-    $("pills").innerHTML =
-        lists.map(
-            function(l){
+    if(!list){
 
-                return (
+        return;
 
-                    '<button ' +
-                    'type="button" ' +
-                    'class="pill ' +
-                    (
-                        state.list &&
-                        state.list.id === l.id
-                            ? "active"
-                            : ""
-                    ) +
-                    '" data-list="' +
-                    esc(l.id) +
-                    '">' +
-                    esc(l.name) +
-                    '</button>'
+    }
 
+    if(state.loadingPlaylist){
+
+        return;
+
+    }
+
+    state.loadingPlaylist = true;
+
+    state.activeListId =
+        list.id;
+
+    setLoading(
+        true,
+        "Conectando à lista..."
+    );
+
+    try{
+
+        /*
+         * Primeiro tentamos a função gcplay-playlist.
+         */
+
+        const data =
+            await fetchPlaylistViaFunction(
+                list.url,
+                0,
+                300
+            );
+
+        let items = [];
+
+        if(
+            Array.isArray(data.items)
+        ){
+
+            items =
+                data.items.map(item => {
+
+                    const normalized = {
+
+                        title:
+                            item.title ||
+                            item.name ||
+                            "Sem nome",
+
+                        logo:
+                            item.logo ||
+                            item.tvg_logo ||
+                            item["tvg-logo"] ||
+                            "",
+
+                        group:
+                            item.group ||
+                            item.group_title ||
+                            item["group-title"] ||
+                            "",
+
+                        tvgId:
+                            item.tvg_id ||
+                            item["tvg-id"] ||
+                            "",
+
+                        tvgName:
+                            item.tvg_name ||
+                            item["tvg-name"] ||
+                            "",
+
+                        url:
+                            item.url ||
+                            item.stream_url ||
+                            item.streamUrl ||
+                            "",
+
+                        referrer:
+                            item.referrer ||
+                            item.http_referrer ||
+                            "",
+
+                        userAgent:
+                            item.userAgent ||
+                            item.user_agent ||
+                            ""
+
+                    };
+
+                    normalized.category =
+                        normalizeCategory(
+                            normalized
+                        );
+
+                    return normalized;
+
+                }).filter(
+                    item => item.url
+                );
+
+        }
+
+        /*
+         * Se a função devolver zero itens,
+         * tentamos obter o M3U diretamente.
+         */
+
+        if(!items.length){
+
+            setLoading(
+                true,
+                "Processando M3U..."
+            );
+
+            try{
+
+                const text =
+                    await fetchTextDirect(
+                        list.url
+                    );
+
+                items =
+                    parseM3U(
+                        text,
+                        list.url
+                    );
+
+            }catch(directError){
+
+                throw new Error(
+                    data?.error ||
+                    directError.message ||
+                    "Nenhum item encontrado."
                 );
 
             }
-        ).join("");
 
+        }
 
-    Array.prototype.forEach.call(
-        document.querySelectorAll(
-            ".pill"
-        ),
-        function(button){
+        state.allItems =
+            items;
 
-            button.onclick =
-                function(){
+        searchInput.value = "";
 
-                    var id =
-                        button.getAttribute(
-                            "data-list"
-                        );
+        state.currentPage = 1;
 
+        state.currentCategory = "TV";
 
-                    var list =
-                        lists.filter(
-                            function(x){
+        updateCategoryButtons();
 
-                                return x.id === id;
+        updateCounts();
 
-                            }
-                        )[0];
+        render();
 
+        showToast(
+            items.length.toLocaleString("pt-BR") +
+            " itens carregados."
+        );
 
-                    if(list){
+        closeModal("listsModal");
 
-                        loadList(list);
+    }catch(error){
 
-                    }
+        console.error(
+            "Erro ao carregar playlist:",
+            error
+        );
 
-                };
+        showToast(
+            "Erro ao carregar: " +
+            (
+                error?.message ||
+                "erro desconhecido"
+            ),
+            true
+        );
+
+        state.allItems = [];
+
+        updateCounts();
+
+        render();
+
+    }finally{
+
+        state.loadingPlaylist = false;
+
+        setLoading(false);
+
+    }
+
+}
+
+/* =========================================================
+   CONTAGENS
+========================================================= */
+
+function getCategoryItems(category){
+
+    return state.allItems.filter(
+        item =>
+            item.category === category
+    );
+
+}
+
+function updateCounts(){
+
+    $("countTV").textContent =
+        getCategoryItems("TV").length
+            .toLocaleString("pt-BR");
+
+    $("countFilms").textContent =
+        getCategoryItems("Films").length
+            .toLocaleString("pt-BR");
+
+    $("countSeries").textContent =
+        getCategoryItems("Series").length
+            .toLocaleString("pt-BR");
+
+    $("countMusic").textContent =
+        getCategoryItems("Music").length
+            .toLocaleString("pt-BR");
+
+    $("countAdult").textContent =
+        getCategoryItems("Adult").length
+            .toLocaleString("pt-BR");
+
+}
+
+/* =========================================================
+   CATEGORIA
+========================================================= */
+
+function updateCategoryButtons(){
+
+    document
+        .querySelectorAll(".category")
+        .forEach(button => {
+
+            button.classList.toggle(
+                "active",
+                button.dataset.category ===
+                state.currentCategory
+            );
+
+        });
+
+}
+
+function setCategory(category){
+
+    if(
+        ![
+            "TV",
+            "Films",
+            "Series",
+            "Music",
+            "Adult"
+        ].includes(category)
+    ){
+
+        category = "TV";
+
+    }
+
+    state.currentCategory =
+        category;
+
+    state.currentPage = 1;
+
+    state.tvFocusIndex = 0;
+
+    updateCategoryButtons();
+
+    render();
+
+    catalog.scrollTop = 0;
+
+}
+
+/* =========================================================
+   FILTRO / PAGINAÇÃO
+========================================================= */
+
+function getFilteredItems(){
+
+    const categoryItems =
+        getCategoryItems(
+            state.currentCategory
+        );
+
+    const query =
+        normalizeText(
+            searchInput.value
+        );
+
+    if(!query){
+
+        return categoryItems;
+
+    }
+
+    return categoryItems.filter(
+        item => {
+
+            const haystack =
+                normalizeText(
+                    [
+                        item.title,
+                        item.group,
+                        item.tvgName,
+                        item.tvgId
+                    ].join(" ")
+                );
+
+            return haystack.includes(
+                query
+            );
 
         }
     );
 
 }
 
+function getPageItems(){
 
-/* =========================================================
-   GRUPOS
-========================================================= */
+    const filtered =
+        getFilteredItems();
 
-function buildGroups(){
-
-    var map = {};
-
-
-    state.items
-        .filter(
-            function(item){
-
-                return item.category === state.cat;
-
-            }
-        )
-        .forEach(
-            function(item){
-
-                var group =
-                    item.group ||
-                    "Geral";
-
-
-                map[
-                    norm(group)
-                ] = group;
-
-            }
-        );
-
-
-    var groups =
-        Object.keys(map)
-            .map(
-                function(key){
-
-                    return map[key];
-
-                }
+    const totalPages =
+        Math.max(
+            1,
+            Math.ceil(
+                filtered.length /
+                state.pageSize
             )
-            .sort(
-                function(a,b){
-
-                    return a.localeCompare(
-                        b,
-                        "pt-BR"
-                    );
-
-                }
-            );
-
-
-    $("group").innerHTML =
-        '<option value="ALL">' +
-        'Todas as categorias' +
-        '</option>' +
-
-        groups.map(
-            function(group){
-
-                return (
-                    '<option value="' +
-                    esc(group) +
-                    '">' +
-                    esc(group) +
-                    '</option>'
-                );
-
-            }
-        ).join("");
-
-
-    state.group = "ALL";
-
-}
-
-
-/* =========================================================
-   FILTRO
-========================================================= */
-
-function filtered(){
-
-    var query =
-        norm(
-            $("search").value
         );
-
-
-    var result =
-        state.items.filter(
-            function(item){
-
-                return item.category === state.cat;
-
-            }
-        );
-
 
     if(
-        state.group !== "ALL"
+        state.currentPage >
+        totalPages
     ){
 
-        result =
-            result.filter(
-                function(item){
-
-                    return (
-                        norm(item.group) ===
-                        norm(state.group)
-                    );
-
-                }
-            );
+        state.currentPage =
+            totalPages;
 
     }
 
+    const start =
+        (
+            state.currentPage - 1
+        ) *
+        state.pageSize;
 
-    if(query){
+    return {
 
-        result =
-            result.filter(
-                function(item){
+        filtered,
 
-                    return (
-                        norm(
-                            item.name +
-                            " " +
-                            item.group
-                        )
-                        .indexOf(query) >= 0
-                    );
+        pageItems:
+            filtered.slice(
+                start,
+                start + state.pageSize
+            ),
 
-                }
-            );
+        start,
 
-    }
+        totalPages
 
-
-    return result;
+    };
 
 }
-
 
 /* =========================================================
    RENDER
@@ -2678,2094 +3334,941 @@ function filtered(){
 
 function render(){
 
-    var array =
-        filtered();
+    const result =
+        getPageItems();
 
+    state.filteredItems =
+        result.filtered;
 
-    var pages =
-        Math.max(
-            1,
-            Math.ceil(
-                array.length /
-                PAGE_SIZE
-            )
-        );
+    resultsInfo.textContent =
+        result.filtered.length.toLocaleString(
+            "pt-BR"
+        ) +
+        " itens";
 
+    renderCards(
+        result.pageItems
+    );
 
-    if(
-        state.page > pages
-    ){
+    updatePagination(
+        result
+    );
 
-        state.page = pages;
+}
 
-    }
+function renderCards(items){
 
+    if(!items.length){
 
-    var start =
-        (state.page - 1) *
-        PAGE_SIZE;
-
-
-    var end =
-        Math.min(
-            start + PAGE_SIZE,
-            array.length
-        );
-
-
-    var page =
-        array.slice(
-            start,
-            end
-        );
-
-
-    var grid =
-        $("grid");
-
-
-    if(!page.length){
-
-        grid.innerHTML =
-            '<div class="empty">' +
-            (
-                state.items.length
-                    ? "Nenhum conteúdo encontrado nesta categoria."
-                    : "Adicione uma lista M3U para começar."
-            ) +
-            '</div>';
-
-    }else{
-
-        grid.innerHTML =
-            page.map(
-                function(item,index){
-
-                    var realIndex =
-                        start + index;
-
-
-                    var logoHtml;
-
-
-                    if(item.logo){
-
-                        logoHtml =
-                            '<img src="' +
-                            esc(
-                                mediaProxy(
-                                    item.logo,
-                                    "image"
-                                )
-                            ) +
-                            '" ' +
-                            'loading="lazy" ' +
-                            'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'">' +
-
-                            '<span class="fallback" style="display:none">▶</span>';
-
-                    }else{
-
-                        logoHtml =
-                            '<span class="fallback">▶</span>';
-
+        grid.innerHTML = `
+            <div class="empty">
+                <strong>Nenhum conteúdo encontrado</strong>
+                <small>
+                    ${state.allItems.length
+                        ? "Tente outra pesquisa ou categoria."
+                        : "Adicione uma lista M3U para começar."
                     }
-
-
-                    return (
-
-                        '<div class="card">' +
-
-                            '<button ' +
-                            'type="button" ' +
-                            'data-index="' +
-                            realIndex +
-                            '">' +
-
-                                '<div class="thumb">' +
-                                    logoHtml +
-                                '</div>' +
-
-                                '<div class="ct">' +
-
-                                    '<b>' +
-                                        esc(item.name) +
-                                    '</b>' +
-
-                                    '<small>' +
-                                        esc(item.group) +
-                                        ' • ' +
-                                        esc(item.category) +
-                                    '</small>' +
-
-                                '</div>' +
-
-                            '</button>' +
-
-                        '</div>'
-
-                    );
-
-                }
-            ).join("");
-
-
-        Array.prototype.forEach.call(
-            grid.querySelectorAll(
-                "[data-index]"
-            ),
-            function(button){
-
-                button.onclick =
-                    function(){
-
-                        var index =
-                            Number(
-                                button.getAttribute(
-                                    "data-index"
-                                )
-                            );
-
-
-                        var item =
-                            array[index];
-
-
-                        play(item);
-
-                    };
-
-            }
-        );
-
-    }
-
-
-    $("pageInfo").textContent =
-        array.length
-            ? (
-                (start + 1) +
-                "–" +
-                end +
-                " de " +
-                array.length.toLocaleString("pt-BR")
-            )
-            : "0–0 de 0";
-
-
-    $("prev").disabled =
-        state.page <= 1;
-
-
-    $("next").disabled =
-        state.page >= pages;
-
-}
-
-
-/* =========================================================
-   TROCAR CATEGORIA
-========================================================= */
-
-function switchCat(cat){
-
-    state.cat =
-        cat;
-
-    state.page =
-        1;
-
-
-    Array.prototype.forEach.call(
-        document.querySelectorAll(".tab"),
-        function(button){
-
-            button.classList.toggle(
-                "active",
-                button.getAttribute(
-                    "data-cat"
-                ) === cat
-            );
-
-        }
-    );
-
-
-    buildGroups();
-
-    render();
-
-
-    /*
-     * Não recarrega a página.
-     */
-
-    try{
-
-        window.scrollTo({
-            top:0,
-            behavior:"smooth"
-        });
-
-    }catch(e){}
-
-}
-
-
-/* =========================================================
-   CARREGAR LISTA
-========================================================= */
-
-async function loadList(list){
-
-    if(
-        !list ||
-        !list.url
-    ){
+                </small>
+            </div>
+        `;
 
         return;
 
     }
 
-
-    if(state.loading){
-
-        return;
-
-    }
-
-
-    state.loading = true;
-
-    state.list = list;
-
-    state.items = [];
-
-    state.cat = "live";
-
-    state.group = "ALL";
-
-    state.page = 1;
-
-
-    renderPills();
-
-    switchCat("live");
-
-
-    setStatus(
-        "Conectando ao servidor da lista..."
-    );
-
-
-    setAddStatus(
-        "Carregando...",
-        "pending"
-    );
-
-
-    loader(
-        true,
-        "Verificando dispositivo..."
-    );
-
-
-    try{
-
-        /*
-         * Primeiro usamos a função segura
-         * vinculada ao dispositivo.
-         */
-
-        var items;
-
-
-        try{
-
-            items =
-                await loadPlaylistFromFunction(
-                    list.url
-                );
-
-        }catch(functionError){
-
-            var message =
-                String(
-                    functionError &&
-                    functionError.message
-                        ? functionError.message
-                        : functionError
-                );
-
-
-            /*
-             * IMPORTANTE:
-             *
-             * Só usamos o proxy alternativo
-             * quando a resposta indica problema
-             * de compatibilidade da função.
-             *
-             * Erros de ativação NÃO são ignorados.
-             */
-
-            if(
-                /ação inválida|acao invalida|invalid action|função não encontrada|function not found/i
-                    .test(message)
-            ){
-
-                items =
-                    await loadPlaylistFallbackProxy(
-                        list.url
-                    );
-
-            }else{
-
-                throw functionError;
-
-            }
-
-        }
-
-
-        if(
-            !items ||
-            !items.length
-        ){
-
-            throw new Error(
-                "Nenhum conteúdo encontrado."
-            );
-
-        }
-
-
-        state.items =
-            items;
-
-
-        /*
-         * Guarda data de atualização.
-         */
-
-        list.updatedAt =
-            new Date().toISOString();
-
-
-        saveLists();
-
-
-        buildGroups();
-
-        render();
-
-
-        setStatus(
-            state.items.length.toLocaleString("pt-BR") +
-            " itens carregados • " +
-            list.name,
-            "ok"
-        );
-
-
-        setAddStatus(
-            "Lista carregada com sucesso.",
-            "active"
-        );
-
-
-    }catch(error){
-
-        console.error(
-            "GC PLAY PRO - ERRO M3U:",
-            error
-        );
-
-
-        var errorText =
-            error &&
-            error.message
-                ? error.message
-                : String(error);
-
-
-        setStatus(
-            "Erro ao carregar: " +
-            errorText,
-            "err"
-        );
-
-
-        setAddStatus(
-            errorText,
-            "blocked"
-        );
-
-
-        /*
-         * Se não estiver ativo,
-         * deixa uma mensagem clara.
-         */
-
-        if(
-            /não está ativo|nao esta ativo|ativação|ativacao|expirada|dispositivo não encontrado/i
-                .test(errorText)
-        ){
-
-            setStatus(
-                "Dispositivo não ativado. Abra DISPOSITIVO e faça a ativação.",
-                "err"
-            );
-
-        }
-
-
-    }finally{
-
-        loader(false);
-
-        state.loading = false;
-
-    }
-
-}
-
-
-/* =========================================================
-   MODAL ADICIONAR
-========================================================= */
-
-function openAdd(){
-
-    $("listName").value = "";
-
-    $("listUrl").value = "";
-
-    setAddStatus(
-        "Aguardando URL.",
-        "pending"
-    );
-
-
-    $("addModal").className =
-        "modal";
-
-
-    setTimeout(
-        function(){
-
-            $("listName").focus();
-
-        },
-        80
-    );
-
-}
-
-
-function addList(){
-
-    var name =
-        $("listName")
-            .value
-            .trim();
-
-
-    var url =
-        $("listUrl")
-            .value
-            .trim();
-
-
-    if(!name){
-
-        name =
-            "Minha TV";
-
-    }
-
-
-    if(
-        !/^https?:\/\//i.test(url)
-    ){
-
-        setAddStatus(
-            "A URL precisa começar com http:// ou https://",
-            "blocked"
-        );
-
-        return;
-
-    }
-
-
-    var list = {
-
-        id:makeId(),
-
-        name:name,
-
-        url:url,
-
-        createdAt:
-            new Date().toISOString(),
-
-        updatedAt:
-            null
-
-    };
-
-
-    /*
-     * Se já existe exatamente a mesma URL,
-     * não cria duplicata.
-     */
-
-    var duplicate =
-        lists.filter(
-            function(item){
-
-                return (
-                    item.url === url
-                );
-
-            }
-        )[0];
-
-
-    if(duplicate){
-
-        $("addModal").className =
-            "modal hidden";
-
-        loadList(duplicate);
-
-        return;
-
-    }
-
-
-    lists.push(list);
-
-    saveLists();
-
-
-    $("addModal").className =
-        "modal hidden";
-
-
-    renderPills();
-
-
-    loadList(list);
-
-}
-
-
-/* =========================================================
-   LISTAS SALVAS
-========================================================= */
-
-function renderRows(){
-
-    if(!lists.length){
-
-        $("rows").innerHTML =
-            '<div class="empty">' +
-            'Nenhuma lista salva.' +
-            '</div>';
-
-        return;
-
-    }
-
-
-    $("rows").innerHTML =
-        lists.map(
-            function(list){
-
-                return (
-
-                    '<div class="row">' +
-
-                        '<div class="info">' +
-
-                            '<b>' +
-                                esc(list.name) +
-                            '</b>' +
-
-                            '<small>' +
-                                esc(list.url) +
-                            '</small>' +
-
-                        '</div>' +
-
-                        '<button ' +
-                        'type="button" ' +
-                        'class="btn" ' +
-                        'data-load="' +
-                        esc(list.id) +
-                        '">' +
-                            'Abrir' +
-                        '</button>' +
-
-                        '<button ' +
-                        'type="button" ' +
-                        'class="btn" ' +
-                        'data-del="' +
-                        esc(list.id) +
-                        '">' +
-                            'Excluir' +
-                        '</button>' +
-
-                    '</div>'
-
-                );
+    grid.innerHTML =
+        items.map(
+            (item,index) => {
+
+                const globalIndex =
+                    (
+                        state.currentPage - 1
+                    ) *
+                    state.pageSize +
+                    index;
+
+                const image =
+                    item.logo
+                        ? `
+                            <img
+                                src="${escapeHtml(item.logo)}"
+                                loading="lazy"
+                                referrerpolicy="no-referrer"
+                                onerror="this.style.display='none';this.parentElement.querySelector('.no-image').style.display='block';"
+                            >
+                        `
+                        : "";
+
+                return `
+
+                    <article
+                        class="card"
+                        tabindex="${state.device.type === "tv" ? "0" : "-1"}"
+                        data-index="${globalIndex}"
+                    >
+
+                        <div class="card-image">
+
+                            ${image}
+
+                            <div
+                                class="no-image"
+                                style="${item.logo ? "display:none;" : ""}"
+                            >
+                                GC
+                            </div>
+
+                            <div class="badge">
+                                ${escapeHtml(
+                                    item.category
+                                )}
+                            </div>
+
+                        </div>
+
+                        <div class="card-info">
+
+                            <div class="card-title">
+                                ${escapeHtml(
+                                    item.title
+                                )}
+                            </div>
+
+                            <div class="card-group">
+                                ${escapeHtml(
+                                    item.group ||
+                                    "Sem categoria"
+                                )}
+                            </div>
+
+                        </div>
+
+                    </article>
+
+                `;
 
             }
         ).join("");
 
+    /*
+     * Eventos.
+     */
 
-    Array.prototype.forEach.call(
-        document.querySelectorAll(
-            "[data-load]"
-        ),
-        function(button){
+    grid
+        .querySelectorAll(".card")
+        .forEach(card => {
 
-            button.onclick =
-                function(){
+            card.addEventListener(
+                "click",
+                () => {
 
-                    var id =
-                        button.getAttribute(
-                            "data-load"
+                    const index =
+                        Number(
+                            card.dataset.index
                         );
 
+                    const item =
+                        state.filteredItems[
+                            index
+                        ];
 
-                    var list =
-                        lists.filter(
-                            function(item){
+                    if(item){
 
-                                return item.id === id;
-
-                            }
-                        )[0];
-
-
-                    $("listsModal").className =
-                        "modal hidden";
-
-
-                    if(list){
-
-                        loadList(list);
+                        playItem(item);
 
                     }
 
-                };
+                }
+            );
 
-        }
-    );
+            card.addEventListener(
+                "focus",
+                () => {
 
-
-    Array.prototype.forEach.call(
-        document.querySelectorAll(
-            "[data-del]"
-        ),
-        function(button){
-
-            button.onclick =
-                function(){
-
-                    var id =
-                        button.getAttribute(
-                            "data-del"
+                    const index =
+                        Number(
+                            card.dataset.index
                         );
 
+                    state.tvFocusIndex =
+                        index;
 
-                    if(
-                        !confirm(
-                            "Excluir esta lista?"
-                        )
-                    ){
+                }
+            );
 
-                        return;
+        });
 
-                    }
+    /*
+     * Se estiver em TV,
+     * posiciona o foco.
+     */
 
+    if(state.device.type === "tv"){
 
-                    lists =
-                        lists.filter(
-                            function(item){
+        setTimeout(
+            focusTVElement,
+            20
+        );
 
-                                return item.id !== id;
-
-                            }
-                        );
-
-
-                    saveLists();
-
-
-                    if(
-                        state.list &&
-                        state.list.id === id
-                    ){
-
-                        state.list = null;
-
-                        state.items = [];
-
-                        destroyPlayer();
-
-                        render();
-
-                        setStatus(
-                            "Lista excluída."
-                        );
-
-                    }
-
-
-                    renderPills();
-
-                    renderRows();
-
-                };
-
-        }
-    );
+    }
 
 }
 
+function updatePagination(result){
+
+    const total =
+        result.filtered.length;
+
+    const start =
+        total
+            ? result.start + 1
+            : 0;
+
+    const end =
+        Math.min(
+            result.start +
+            state.pageSize,
+            total
+        );
+
+    pageLabel.textContent =
+        start +
+        "–" +
+        end +
+        " de " +
+        total.toLocaleString(
+            "pt-BR"
+        );
+
+    prevPage.disabled =
+        state.currentPage <= 1;
+
+    nextPage.disabled =
+        state.currentPage >=
+        result.totalPages;
+
+}
+
+/* =========================================================
+   PAGINAÇÃO
+========================================================= */
+
+function goPage(page){
+
+    const result =
+        getPageItems();
+
+    const totalPages =
+        result.totalPages;
+
+    state.currentPage =
+        Math.max(
+            1,
+            Math.min(
+                page,
+                totalPages
+            )
+        );
+
+    state.tvFocusIndex = 0;
+
+    render();
+
+    catalog.scrollTop = 0;
+
+}
 
 /* =========================================================
    PLAYER
 ========================================================= */
 
-function destroyPlayer(){
+function destroyPlayers(){
 
-    if(state.hls){
+    try{
 
-        try{
+        if(state.mpegPlayer){
 
-            state.hls.destroy();
+            state.mpegPlayer.pause();
 
-        }catch(e){}
+            state.mpegPlayer.unload();
 
-        state.hls = null;
+            state.mpegPlayer.detachMediaElement();
 
-    }
+            state.mpegPlayer.destroy();
 
+        }
 
-    if(state.ts){
+    }catch(error){
 
-        try{
-
-            state.ts.destroy();
-
-        }catch(e){}
-
-        state.ts = null;
+        console.warn(
+            "Erro MPEG:",
+            error
+        );
 
     }
 
+    state.mpegPlayer = null;
 
-    var video =
-        $("video");
+    try{
 
+        if(state.hlsPlayer){
+
+            state.hlsPlayer.destroy();
+
+        }
+
+    }catch(error){
+
+        console.warn(
+            "Erro HLS:",
+            error
+        );
+
+    }
+
+    state.hlsPlayer = null;
 
     try{
 
         video.pause();
 
-    }catch(e){}
+    }catch{}
 
+    video.removeAttribute("src");
 
-    try{
-
-        video.removeAttribute(
-            "src"
-        );
-
-        video.load();
-
-    }catch(e){}
+    video.load();
 
 }
 
+function stopPlayer(){
+
+    destroyPlayers();
+
+    state.selectedItem = null;
+
+    playerTitle.textContent =
+        "Nenhum conteúdo selecionado";
+
+    nowTitle.textContent =
+        "Nenhum conteúdo";
+
+    nowGroup.textContent =
+        "—";
+
+    playerStatus.textContent =
+        "Aguardando";
+
+    playerStatus.classList.remove(
+        "ok"
+    );
+
+    playerEmpty.style.display =
+        "flex";
+
+}
+
+function isHlsUrl(url){
+
+    const lower =
+        String(url)
+            .toLowerCase();
+
+    return (
+        /\.m3u8(\?|#|$)/.test(lower) ||
+        lower.includes("format=m3u8") ||
+        lower.includes("output=hls")
+    );
+
+}
+
+function isMpegTsUrl(url){
+
+    const lower =
+        String(url)
+            .toLowerCase();
+
+    return (
+        /\.ts(\?|#|$)/.test(lower) ||
+        lower.includes("mpegts") ||
+        lower.includes("output=mpegts") ||
+        lower.includes("/live/")
+    );
+
+}
+
+function isVideoFile(url){
+
+    const lower =
+        String(url)
+            .toLowerCase();
+
+    return (
+        /\.(mp4|m4v|webm|ogg|ogv)(\?|#|$)/.test(
+            lower
+        )
+    );
+
+}
+
+/* =========================================================
+   PROXY DE MÍDIA
+========================================================= */
+
+function proxiedMediaUrl(url){
+
+    return (
+        PLAYLIST_PROXY +
+        "?mode=media&url=" +
+        encodeURIComponent(url)
+    );
+
+}
 
 /* =========================================================
    REPRODUÇÃO
 ========================================================= */
 
-function play(item){
+async function playItem(item){
 
-    if(
-        !item ||
-        !item.url
-    ){
+    if(!item || !item.url){
 
         return;
 
     }
 
+    state.selectedItem =
+        item;
 
-    destroyPlayer();
+    destroyPlayers();
 
+    playerEmpty.style.display =
+        "none";
 
-    $("nowTitle").textContent =
-        item.name;
+    playerTitle.textContent =
+        item.title ||
+        "Reproduzindo";
 
+    nowTitle.textContent =
+        item.title ||
+        "Sem nome";
 
-    $("nowStatus").textContent =
+    nowGroup.textContent =
+        item.group ||
+        "Sem categoria";
+
+    playerStatus.textContent =
         "Conectando...";
 
-
-    var video =
-        $("video");
-
-
-    var raw =
-        String(
-            item.url
-        )
-        .toLowerCase();
-
-
-    /*
-     * HLS
-     */
-
-    if(
-        /\.m3u8(\?|$)/i.test(raw)
-    ){
-
-        var hlsUrl =
-            mediaProxy(
-                item.url,
-                "media"
-            );
-
-
-        if(
-            window.Hls &&
-            Hls.isSupported()
-        ){
-
-            state.hls =
-                new Hls({
-
-                    enableWorker:true,
-
-                    lowLatencyMode:false,
-
-                    backBufferLength:30,
-
-                    maxBufferLength:30,
-
-                    maxMaxBufferLength:60
-
-                });
-
-
-            state.hls.loadSource(
-                hlsUrl
-            );
-
-
-            state.hls.attachMedia(
-                video
-            );
-
-
-            state.hls.on(
-                Hls.Events.MANIFEST_PARSED,
-                function(){
-
-                    video
-                        .play()
-                        .catch(
-                            function(){}
-                        );
-
-
-                    $("nowStatus").textContent =
-                        "HLS conectado.";
-
-                }
-            );
-
-
-            state.hls.on(
-                Hls.Events.ERROR,
-                function(event,data){
-
-                    if(
-                        data &&
-                        data.fatal
-                    ){
-
-                        $("nowStatus").textContent =
-                            "Falha HLS: " +
-                            (
-                                data.type ||
-                                "erro"
-                            );
-
-                    }
-
-                }
-            );
-
-        }else if(
-            video.canPlayType(
-                "application/vnd.apple.mpegurl"
-            )
-        ){
-
-            video.src =
-                hlsUrl;
-
-
-            video
-                .play()
-                .catch(
-                    function(){}
-                );
-
-
-            $("nowStatus").textContent =
-                "HLS nativo conectado.";
-
-        }else{
-
-            $("nowStatus").textContent =
-                "HLS não suportado neste aparelho.";
-
-        }
-
-
-        return;
-
-    }
-
-
-    /*
-     * MP4 / WEBM / OGG
-     */
-
-    if(
-        /\.mp4(\?|$)/i.test(raw) ||
-        /\.webm(\?|$)/i.test(raw) ||
-        /\.ogg(\?|$)/i.test(raw)
-    ){
-
-        video.src =
-            mediaProxy(
-                item.url,
-                "media"
-            );
-
-
-        video
-            .play()
-            .catch(
-                function(){}
-            );
-
-
-        $("nowStatus").textContent =
-            "Vídeo conectado.";
-
-
-        return;
-
-    }
-
-
-    /*
-     * MPEG-TS
-     *
-     * IMPORTANTE:
-     * esta é a reprodução usada pelas
-     * URLs /live/.../*.ts
-     */
-
-    if(
-        window.mpegts &&
-        mpegts.isSupported()
-    ){
-
-        var tsUrl =
-            mediaProxy(
-                item.url,
-                "media"
-            );
-
-
-        try{
-
-            state.ts =
-                mpegts.createPlayer(
-
-                    {
-
-                        type:"mpegts",
-
-                        isLive:
-                            item.category === "live" ||
-                            /\.ts(\?|$)/i.test(raw),
-
-                        url:tsUrl
-
-                    },
-
-                    {
-
-                        enableWorker:true,
-
-                        enableStashBuffer:true,
-
-                        stashInitialSize:128
-
-                    }
-
-                );
-
-
-            state.ts.attachMediaElement(
-                video
-            );
-
-
-            state.ts.on(
-                mpegts.Events.ERROR,
-                function(){
-
-                    $("nowStatus").textContent =
-                        "Erro na transmissão MPEG-TS.";
-
-                }
-            );
-
-
-            state.ts.load();
-
-
-            state.ts
-                .play()
-                .catch(
-                    function(){}
-                );
-
-
-            $("nowStatus").textContent =
-                "MPEG-TS conectado.";
-
-
-        }catch(error){
-
-            console.error(
-                "MPEG-TS:",
-                error
-            );
-
-
-            $("nowStatus").textContent =
-                "Falha ao iniciar MPEG-TS.";
-
-        }
-
-
-        return;
-
-    }
-
-
-    /*
-     * Última tentativa:
-     * reprodução direta.
-     */
-
-    video.src =
-        mediaProxy(
-            item.url,
-            "media"
-        );
-
-
-    video
-        .play()
-        .catch(
-            function(){}
-        );
-
-
-    $("nowStatus").textContent =
-        "Tentando reprodução direta.";
-
-}
-
-
-/* =========================================================
-   DISPOSITIVO
-========================================================= */
-
-function isValidUUID(value){
-
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-        .test(
-            String(value || "")
-        );
-
-}
-
-
-function generateUUID(){
-
-    if(
-        window.crypto &&
-        typeof window.crypto.randomUUID ===
-            "function"
-    ){
-
-        return window.crypto.randomUUID();
-
-    }
-
-
-    return (
-        makeId() +
-        "-" +
-        makeId() +
-        "-" +
-        makeId()
-    )
-    .substring(
-        0,
-        36
+    playerStatus.classList.remove(
+        "ok"
     );
 
-}
+    const originalUrl =
+        item.url;
 
-
-function generateActivationCode(){
-
-    var chars =
-        "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
-
-    var result = "";
-
-
-    for(
-        var i=0;
-        i<6;
-        i++
-    ){
-
-        result +=
-            chars[
-                Math.floor(
-                    Math.random() *
-                    chars.length
-                )
-            ];
-
-    }
-
-
-    return result;
-
-}
-
-
-/* =========================================================
-   INIT DEVICE
-========================================================= */
-
-function initDevice(){
-
-    var deviceId =
-        localStorage.getItem(
-            "gcplay_device_id"
-        );
-
-
-    if(
-        !deviceId ||
-        !isValidUUID(deviceId)
-    ){
-
-        deviceId =
-            generateUUID();
-
-
-        localStorage.setItem(
-            "gcplay_device_id",
-            deviceId
-        );
-
-    }
-
-
-    var code =
-        localStorage.getItem(
-            "gcplay_activation_code"
-        );
-
-
-    if(
-        !code ||
-        !/^[A-Z0-9]{6}$/i.test(code)
-    ){
-
-        code =
-            generateActivationCode();
-
-
-        localStorage.setItem(
-            "gcplay_activation_code",
-            code
-        );
-
-    }
-
-
-    state.deviceId =
-        deviceId;
-
-
-    state.activationCode =
-        String(code)
-            .toUpperCase();
-
-
-    $("deviceCode").textContent =
-        "GC-" +
-        deviceId
-            .replace(/-/g,"")
-            .substring(0,8)
-            .toUpperCase();
-
-
-    $("activationCode").textContent =
-        state.activationCode;
-
-
-    /*
-     * QR CODE
-     */
+    const lower =
+        originalUrl.toLowerCase();
 
     try{
-
-        $("qr").innerHTML = "";
-
-
-        new QRCode(
-            $("qr"),
-            {
-
-                text:
-                    ACTIVATION_PAGE +
-                    "?device=" +
-                    encodeURIComponent(
-                        deviceId
-                    ) +
-                    "&code=" +
-                    encodeURIComponent(
-                        state.activationCode
-                    ),
-
-                width:150,
-
-                height:150
-
-            }
-        );
-
-    }catch(error){
-
-        $("qr").textContent =
-            state.activationCode;
-
-    }
-
-}
-
-
-/* =========================================================
-   REGISTRAR DISPOSITIVO
-========================================================= */
-
-async function registerDevice(){
-
-    if(
-        !state.deviceId ||
-        !state.activationCode
-    ){
-
-        return;
-
-    }
-
-
-    try{
-
-        var response =
-            await fetch(
-                ACTIVATE,
-                {
-
-                    method:"POST",
-
-                    headers:{
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            action:"register",
-
-                            device_id:
-                                state.deviceId,
-
-                            activation_code:
-                                state.activationCode
-
-                        })
-
-                }
-            );
-
-
-        var result =
-            await response.json()
-                .catch(
-                    function(){
-
-                        return {};
-
-                    }
-                );
-
-
-        if(
-            result &&
-            result.success
-        ){
-
-            if(
-                result.device &&
-                result.device.activation_code
-            ){
-
-                state.activationCode =
-                    String(
-                        result.device.activation_code
-                    )
-                    .toUpperCase();
-
-
-                localStorage.setItem(
-                    "gcplay_activation_code",
-                    state.activationCode
-                );
-
-
-                $("activationCode").textContent =
-                    state.activationCode;
-
-            }
-
-        }
-
-
-    }catch(error){
-
-        console.warn(
-            "Registro dispositivo:",
-            error
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   STATUS DISPOSITIVO
-========================================================= */
-
-async function checkDeviceStatus(){
-
-    if(
-        !state.deviceId
-    ){
-
-        return null;
-
-    }
-
-
-    try{
-
-        var response =
-            await fetch(
-                ACTIVATE,
-                {
-
-                    method:"POST",
-
-                    headers:{
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            action:"status",
-
-                            device_id:
-                                state.deviceId
-
-                        })
-
-                }
-            );
-
-
-        var result =
-            await response.json()
-                .catch(
-                    function(){
-
-                        return {};
-
-                    }
-                );
-
-
-        if(
-            !response.ok ||
-            !result.success
-        ){
-
-            return null;
-
-        }
-
-
-        if(result.device){
-
-            var device =
-                result.device;
-
-
-            if(
-                device.activation_code &&
-                /^[A-Z0-9]{6}$/.test(
-                    String(
-                        device.activation_code
-                    )
-                )
-            ){
-
-                state.activationCode =
-                    String(
-                        device.activation_code
-                    )
-                    .toUpperCase();
-
-
-                localStorage.setItem(
-                    "gcplay_activation_code",
-                    state.activationCode
-                );
-
-
-                $("activationCode").textContent =
-                    state.activationCode;
-
-            }
-
-
-            state.activationStatus =
-                String(
-                    device.status ||
-                    "pending"
-                )
-                .toLowerCase();
-
-
-            if(
-                state.activationStatus ===
-                "active"
-            ){
-
-                setDeviceStatus(
-                    "✓ DISPOSITIVO ATIVO",
-                    "active"
-                );
-
-            }else if(
-                state.activationStatus ===
-                "blocked"
-            ){
-
-                setDeviceStatus(
-                    "✕ DISPOSITIVO BLOQUEADO",
-                    "blocked"
-                );
-
-            }else{
-
-                setDeviceStatus(
-                    "Aguardando ativação pelo site...",
-                    "pending"
-                );
-
-            }
-
-
-            return device;
-
-        }
-
-
-    }catch(error){
-
-        console.warn(
-            "Status dispositivo:",
-            error
-        );
-
-    }
-
-
-    return null;
-
-}
-
-
-/* =========================================================
-   POLLING DE ATIVAÇÃO
-========================================================= */
-
-function startActivationPolling(){
-
-    checkDeviceStatus();
-
-
-    setInterval(
-        function(){
-
-            checkDeviceStatus();
-
-        },
-        15000
-    );
-
-}
-
-
-/* =========================================================
-   HISTORY / VOLTAR
-========================================================= */
-
-function initHistory(){
-
-    try{
-
-        if(
-            "scrollRestoration" in
-            history
-        ){
-
-            history.scrollRestoration =
-                "manual";
-
-        }
-
-
-        if(
-            !history.state ||
-            !history.state.gcplay
-        ){
-
-            history.replaceState(
-                {
-                    gcplay:true,
-
-                    cat:"live"
-
-                },
-                "",
-                location.href
-            );
-
-        }
-
-
-        state.historyReady =
-            true;
-
-    }catch(e){}
-
-}
-
-
-function pushCategoryHistory(cat){
-
-    if(!state.historyReady){
-
-        return;
-
-    }
-
-
-    try{
-
-        history.pushState(
-            {
-
-                gcplay:true,
-
-                cat:cat
-
-            },
-            "",
-            location.href
-        );
-
-    }catch(e){}
-
-}
-
-
-window.addEventListener(
-    "popstate",
-    function(event){
 
         /*
-         * Se for um estado interno do GC PLAY,
-         * apenas muda a categoria.
-         *
-         * Não faz pushState novamente.
+         * HLS
          */
 
-        if(
-            event.state &&
-            event.state.gcplay
-        ){
+        if(isHlsUrl(originalUrl)){
 
-            var cat =
-                event.state.cat ||
-                "live";
-
-
-            state.cat =
-                cat;
-
-
-            state.page =
-                1;
-
-
-            Array.prototype.forEach.call(
-                document.querySelectorAll(".tab"),
-                function(button){
-
-                    button.classList.toggle(
-                        "active",
-                        button.getAttribute(
-                            "data-cat"
-                        ) === cat
-                    );
-
-                }
+            await playHLS(
+                originalUrl,
+                item
             );
-
-
-            buildGroups();
-
-            render();
-
 
             return;
 
         }
 
         /*
-         * Estado externo:
-         * não cria outro history.
+         * MPEG-TS
+         *
+         * É o caminho principal para os
+         * links /live/... .ts da sua M3U.
          */
 
-    }
-);
+        if(
+            isMpegTsUrl(originalUrl) ||
+            !isVideoFile(originalUrl)
+        ){
 
+            await playMPEGTS(
+                originalUrl,
+                item
+            );
 
-/* =========================================================
-   BIND
-========================================================= */
-
-function bind(){
-
-    /*
-     * + M3U
-     */
-
-    $("addBtn").onclick =
-        function(){
-
-            openAdd();
-
-        };
-
-
-    /*
-     * LISTAS
-     */
-
-    $("listsBtn").onclick =
-        function(){
-
-            renderRows();
-
-            $("listsModal").className =
-                "modal";
-
-        };
-
-
-    /*
-     * DISPOSITIVO
-     */
-
-    $("deviceBtn").onclick =
-        function(){
-
-            $("deviceModal").className =
-                "modal";
-
-            checkDeviceStatus();
-
-        };
-
-
-    /*
-     * NOVA LISTA DENTRO DE LISTAS
-     */
-
-    $("newFromLists").onclick =
-        function(){
-
-            $("listsModal").className =
-                "modal hidden";
-
-            openAdd();
-
-        };
-
-
-    /*
-     * FECHAR MODAIS
-     */
-
-    Array.prototype.forEach.call(
-        document.querySelectorAll(
-            "[data-close]"
-        ),
-        function(button){
-
-            button.onclick =
-                function(){
-
-                    var target =
-                        button.getAttribute(
-                            "data-close"
-                        );
-
-
-                    if($(target)){
-
-                        $(target).className =
-                            "modal hidden";
-
-                    }
-
-                };
+            return;
 
         }
-    );
 
+        /*
+         * MP4 / WebM / OGG.
+         */
 
-    /*
-     * CATEGORIAS
-     */
+        await playNativeVideo(
+            originalUrl,
+            item
+        );
 
-    Array.prototype.forEach.call(
-        document.querySelectorAll(
-            ".tab"
-        ),
-        function(button){
+    }catch(error){
 
-            button.onclick =
-                function(){
+        console.error(
+            "Falha ao reproduzir:",
+            error
+        );
 
-                    var cat =
-                        button.getAttribute(
-                            "data-cat"
-                        );
+        /*
+         * Se o direto falhou,
+         * tentamos o proxy.
+         */
 
+        try{
 
-                    if(cat === "adult"){
+            playerStatus.textContent =
+                "Tentando proxy...";
 
-                        $("pinModal").className =
-                            "modal";
-
-                        setTimeout(
-                            function(){
-
-                                $("pin").focus();
-
-                            },
-                            50
-                        );
-
-                        return;
-
-                    }
-
-
-                    pushCategoryHistory(
-                        cat
-                    );
-
-
-                    switchCat(
-                        cat
-                    );
-
-                };
-
-        }
-    );
-
-
-    /*
-     * PIN
-     */
-
-    $("pinOk").onclick =
-        function(){
-
-            var pin =
-                $("pin").value;
-
-
-            if(pin === "0000"){
-
-                $("pinModal").className =
-                    "modal hidden";
-
-                $("pin").value = "";
-
-
-                pushCategoryHistory(
-                    "adult"
+            const proxyUrl =
+                proxiedMediaUrl(
+                    originalUrl
                 );
 
+            if(isHlsUrl(originalUrl)){
 
-                switchCat(
-                    "adult"
+                await playHLS(
+                    proxyUrl,
+                    item
+                );
+
+            }else if(
+                isMpegTsUrl(originalUrl) ||
+                !isVideoFile(originalUrl)
+            ){
+
+                await playMPEGTS(
+                    proxyUrl,
+                    item,
+                    true
                 );
 
             }else{
 
-                alert(
-                    "Senha incorreta."
+                await playNativeVideo(
+                    proxyUrl,
+                    item,
+                    true
                 );
 
             }
 
-        };
+        }catch(proxyError){
 
+            console.error(
+                "Falha no proxy:",
+                proxyError
+            );
 
-    $("pin").addEventListener(
-        "keydown",
-        function(event){
+            playerStatus.textContent =
+                "Erro";
 
-            if(
-                event.key ===
-                "Enter"
-            ){
+            playerStatus.classList.remove(
+                "ok"
+            );
 
-                $("pinOk").click();
-
-            }
+            showToast(
+                "Não foi possível reproduzir este conteúdo.",
+                true
+            );
 
         }
-    );
 
+    }
 
-    /*
-     * PESQUISA
-     */
+}
 
-    $("search").oninput =
-        function(){
+/* =========================================================
+   MPEGTS
+========================================================= */
 
-            state.page = 1;
+function playMPEGTS(
+    url,
+    item,
+    fromProxy=false
+){
 
-            render();
-
-        };
-
-
-    /*
-     * GRUPO
-     */
-
-    $("group").onchange =
-        function(){
-
-            state.group =
-                this.value;
-
-            state.page =
-                1;
-
-            render();
-
-        };
-
-
-    /*
-     * PAGINA ANTERIOR
-     */
-
-    $("prev").onclick =
-        function(){
+    return new Promise(
+        (resolve,reject) => {
 
             if(
-                state.page > 1
+                typeof mpegts ===
+                "undefined"
             ){
 
-                state.page--;
-
-                render();
-
-            }
-
-        };
-
-
-    /*
-     * PRÓXIMA PÁGINA
-     */
-
-    $("next").onclick =
-        function(){
-
-            var pages =
-                Math.max(
-                    1,
-                    Math.ceil(
-                        filtered().length /
-                        PAGE_SIZE
+                reject(
+                    new Error(
+                        "mpegts.js não carregado."
                     )
                 );
 
-
-            if(
-                state.page < pages
-            ){
-
-                state.page++;
-
-                render();
+                return;
 
             }
 
-        };
-
-
-    /*
-     * PARAR
-     */
-
-    $("stop").onclick =
-        function(){
-
-            destroyPlayer();
-
-
-            $("nowTitle").textContent =
-                "Nenhuma mídia selecionada";
-
-
-            $("nowStatus").textContent =
-                "Escolha um conteúdo para reproduzir.";
-
-        };
-
-
-    /*
-     * SALVAR M3U
-     */
-
-    $("saveList").onclick =
-        function(){
-
-            addList();
-
-        };
-
-
-    /*
-     * ENTER NA URL
-     */
-
-    $("listUrl").addEventListener(
-        "keydown",
-        function(event){
-
             if(
-                event.key ===
-                "Enter"
+                !mpegts.isSupported()
             ){
 
-                addList();
+                reject(
+                    new Error(
+                        "MPEG-TS não suportado neste navegador."
+                    )
+                );
+
+                return;
 
             }
+
+            const player =
+                mpegts.createPlayer(
+                    {
+                        type:"mpegts",
+                        isLive:true,
+                        url:url
+                    },
+                    {
+                        enableWorker:true,
+                        lazyLoad:false,
+                        autoCleanupSourceBuffer:true,
+                        liveBufferLatencyChasing:true,
+                        liveSync:false,
+                        stashInitialSize:128,
+                        seekType:"range"
+                    }
+                );
+
+            state.mpegPlayer =
+                player;
+
+            player.attachMediaElement(
+                video
+            );
+
+            player.load();
+
+            let resolved = false;
+
+            const finish = () => {
+
+                if(resolved){
+
+                    return;
+
+                }
+
+                resolved = true;
+
+                playerStatus.textContent =
+                    "MPEG-TS conectado";
+
+                playerStatus.classList.add(
+                    "ok"
+                );
+
+                video.play()
+                    .catch(() => {});
+
+                resolve();
+
+            };
+
+            const fail = error => {
+
+                if(resolved){
+
+                    return;
+
+                }
+
+                resolved = true;
+
+                try{
+
+                    player.destroy();
+
+                }catch{}
+
+                state.mpegPlayer = null;
+
+                reject(
+                    error instanceof Error
+                        ? error
+                        : new Error(
+                            "Erro no MPEG-TS."
+                        )
+                );
+
+            };
+
+            player.on(
+                mpegts.Events.ERROR,
+                (
+                    type,
+                    detail,
+                    info
+                ) => {
+
+                    console.error(
+                        "MPEG-TS ERROR",
+                        type,
+                        detail,
+                        info
+                    );
+
+                    if(!fromProxy){
+
+                        fail(
+                            new Error(
+                                "Falha ao conectar ao MPEG-TS."
+                            )
+                        );
+
+                    }
+
+                }
+            );
+
+            player.on(
+                mpegts.Events.MEDIA_INFO,
+                () => {
+
+                    finish();
+
+                }
+            );
+
+            video.addEventListener(
+                "loadedmetadata",
+                finish,
+                {
+                    once:true
+                }
+            );
+
+            video.addEventListener(
+                "playing",
+                finish,
+                {
+                    once:true
+                }
+            );
+
+            setTimeout(
+                () => {
+
+                    if(
+                        !resolved &&
+                        video.readyState >= 2
+                    ){
+
+                        finish();
+
+                    }
+
+                },
+                3500
+            );
+
+            setTimeout(
+                () => {
+
+                    if(
+                        !resolved &&
+                        video.readyState < 2
+                    ){
+
+                        fail(
+                            new Error(
+                                "Tempo esgotado ao conectar MPEG-TS."
+                            )
+                        );
+
+                    }
+
+                },
+                12000
+            );
 
         }
     );
 
+}
 
-    /*
-     * FECHAR MODAL CLICANDO FORA
-     */
+/* =========================================================
+   HLS
+========================================================= */
 
-    Array.prototype.forEach.call(
-        document.querySelectorAll(
-            ".modal"
-        ),
-        function(modal){
+function playHLS(
+    url,
+    item
+){
 
-            modal.addEventListener(
-                "click",
-                function(event){
+    return new Promise(
+        (resolve,reject) => {
+
+            if(
+                typeof Hls ===
+                "undefined"
+            ){
+
+                reject(
+                    new Error(
+                        "hls.js não carregado."
+                    )
+                );
+
+                return;
+
+            }
+
+            /*
+             * Safari / navegadores com HLS nativo.
+             */
+
+            if(
+                video.canPlayType(
+                    "application/vnd.apple.mpegurl"
+                )
+            ){
+
+                video.src = url;
+
+                video.addEventListener(
+                    "loadedmetadata",
+                    () => {
+
+                        playerStatus.textContent =
+                            "HLS conectado";
+
+                        playerStatus.classList.add(
+                            "ok"
+                        );
+
+                        video.play()
+                            .catch(() => {});
+
+                        resolve();
+
+                    },
+                    {
+                        once:true
+                    }
+                );
+
+                video.addEventListener(
+                    "error",
+                    () => {
+
+                        reject(
+                            new Error(
+                                "Erro no HLS nativo."
+                            )
+                        );
+
+                    },
+                    {
+                        once:true
+                    }
+                );
+
+                return;
+
+            }
+
+            if(
+                !Hls.isSupported()
+            ){
+
+                reject(
+                    new Error(
+                        "HLS não suportado."
+                    )
+                );
+
+                return;
+
+            }
+
+            const hls =
+                new Hls(
+                    {
+                        enableWorker:true,
+                        lowLatencyMode:true,
+                        backBufferLength:30,
+                        maxBufferLength:30
+                    }
+                );
+
+            state.hlsPlayer =
+                hls;
+
+            hls.loadSource(url);
+
+            hls.attachMedia(video);
+
+            hls.on(
+                Hls.Events.MANIFEST_PARSED,
+                () => {
+
+                    playerStatus.textContent =
+                        "HLS conectado";
+
+                    playerStatus.classList.add(
+                        "ok"
+                    );
+
+                    video.play()
+                        .catch(() => {});
+
+                    resolve();
+
+                }
+            );
+
+            hls.on(
+                Hls.Events.ERROR,
+                (
+                    event,
+                    data
+                ) => {
+
+                    console.error(
+                        "HLS:",
+                        data
+                    );
 
                     if(
-                        event.target === modal
+                        data.fatal
                     ){
 
-                        modal.className =
-                            "modal hidden";
+                        try{
+
+                            hls.destroy();
+
+                        }catch{}
+
+                        state.hlsPlayer =
+                            null;
+
+                        reject(
+                            new Error(
+                                "Erro fatal no HLS."
+                            )
+                        );
 
                     }
 
@@ -4777,35 +4280,1602 @@ function bind(){
 
 }
 
-
 /* =========================================================
-   INICIALIZAÇÃO
+   VÍDEO NATIVO
 ========================================================= */
 
-initHistory();
+function playNativeVideo(
+    url,
+    item
+){
 
-initDevice();
+    return new Promise(
+        (resolve,reject) => {
 
-bind();
+            video.src = url;
 
-renderPills();
+            const success = () => {
 
-render();
+                playerStatus.textContent =
+                    "Conectado";
 
-registerDevice();
+                playerStatus.classList.add(
+                    "ok"
+                );
 
-startActivationPolling();
+                video.play()
+                    .catch(() => {});
 
+                resolve();
 
-/*
- * Não carrega automaticamente uma lista salva.
- *
- * O usuário escolhe a lista.
- */
+            };
 
+            const failure = () => {
 
-})();
+                reject(
+                    new Error(
+                        "Erro ao abrir vídeo."
+                    )
+                );
 
+            };
+
+            video.addEventListener(
+                "loadedmetadata",
+                success,
+                {
+                    once:true
+                }
+            );
+
+            video.addEventListener(
+                "error",
+                failure,
+                {
+                    once:true
+                }
+            );
+
+            video.load();
+
+        }
+    );
+
+}
+
+/* =========================================================
+   FULLSCREEN
+========================================================= */
+
+async function fullscreen(){
+
+    const element =
+        document.querySelector(
+            ".video-wrap"
+        );
+
+    try{
+
+        if(
+            document.fullscreenElement
+        ){
+
+            await document.exitFullscreen();
+
+            return;
+
+        }
+
+        if(
+            element.requestFullscreen
+        ){
+
+            await element.requestFullscreen();
+
+        }else if(
+            video.webkitEnterFullscreen
+        ){
+
+            video.webkitEnterFullscreen();
+
+        }
+
+    }catch(error){
+
+        console.warn(
+            "Fullscreen:",
+            error
+        );
+
+    }
+
+}
+
+/* =========================================================
+   ATIVAÇÃO
+========================================================= */
+
+async function registerDevice(){
+
+    const deviceId =
+        state.device.id;
+
+    if(!deviceId){
+
+        return;
+
+    }
+
+    try{
+
+        const response =
+            await fetch(
+                ACTIVATE_FUNCTION,
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json",
+
+                        "apikey":
+                            SUPABASE_PUBLISHABLE_KEY,
+
+                        "Authorization":
+                            "Bearer " +
+                            SUPABASE_PUBLISHABLE_KEY
+                    },
+
+                    body:
+                        JSON.stringify({
+                            action:"register",
+                            device_id:deviceId
+                        })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(
+            data?.success &&
+            data.device
+        ){
+
+            state.device.status =
+                data.device.status ||
+                "pending";
+
+            if(
+                data.device.activation_code
+            ){
+
+                state.device.activationCode =
+                    data.device.activation_code;
+
+                localStorage.setItem(
+                    STORAGE_ACTIVATION_CODE,
+                    state.device.activationCode
+                );
+
+            }
+
+        }
+
+    }catch(error){
+
+        console.warn(
+            "Register:",
+            error
+        );
+
+    }
+
+}
+
+async function getDeviceStatus(){
+
+    const deviceId =
+        state.device.id;
+
+    const activationCode =
+        state.device.activationCode;
+
+    if(!deviceId){
+
+        return null;
+
+    }
+
+    const bodyData = {
+
+        action:"status",
+
+        device_id:deviceId
+
+    };
+
+    if(activationCode){
+
+        bodyData.activation_code =
+            activationCode;
+
+    }
+
+    try{
+
+        const response =
+            await fetch(
+                ACTIVATE_FUNCTION,
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json",
+
+                        "apikey":
+                            SUPABASE_PUBLISHABLE_KEY,
+
+                        "Authorization":
+                            "Bearer " +
+                            SUPABASE_PUBLISHABLE_KEY
+                    },
+
+                    body:
+                        JSON.stringify(
+                            bodyData
+                        )
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if(
+            data?.success &&
+            data.device
+        ){
+
+            const device =
+                data.device;
+
+            state.device.status =
+                String(
+                    device.status ||
+                    "pending"
+                ).toLowerCase();
+
+            if(
+                device.activation_code
+            ){
+
+                state.device.activationCode =
+                    device.activation_code;
+
+                localStorage.setItem(
+                    STORAGE_ACTIVATION_CODE,
+                    state.device.activationCode
+                );
+
+            }
+
+            updateDeviceStatusUI(
+                device
+            );
+
+            return device;
+
+        }
+
+        throw new Error(
+            data?.error ||
+            data?.message ||
+            "Não foi possível consultar."
+        );
+
+    }catch(error){
+
+        console.warn(
+            "Status:",
+            error
+        );
+
+        updateDeviceStatusUI(
+            null,
+            error.message
+        );
+
+        return null;
+
+    }
+
+}
+
+function updateDeviceStatusUI(
+    device,
+    errorMessage=""
+){
+
+    const box =
+        $("deviceStatusBox");
+
+    if(errorMessage){
+
+        box.className =
+            "status-box error";
+
+        box.textContent =
+            errorMessage;
+
+        return;
+
+    }
+
+    if(!device){
+
+        box.className =
+            "status-box";
+
+        box.textContent =
+            "Sem informações.";
+
+        return;
+
+    }
+
+    const status =
+        String(
+            device.status ||
+            "pending"
+        ).toLowerCase();
+
+    if(status === "active"){
+
+        box.className =
+            "status-box active";
+
+        let text =
+            "✓ DISPOSITIVO ATIVO";
+
+        if(device.expires_at){
+
+            const date =
+                new Date(
+                    device.expires_at
+                );
+
+            if(
+                !Number.isNaN(
+                    date.getTime()
+                )
+            ){
+
+                text +=
+                    " • Expira em " +
+                    date.toLocaleDateString(
+                        "pt-BR"
+                    );
+
+            }
+
+        }
+
+        box.textContent =
+            text;
+
+    }else if(status === "blocked"){
+
+        box.className =
+            "status-box error";
+
+        box.textContent =
+            "✕ DISPOSITIVO BLOQUEADO";
+
+    }else{
+
+        box.className =
+            "status-box";
+
+        box.textContent =
+            "⏳ DISPOSITIVO PENDENTE DE ATIVAÇÃO";
+
+    }
+
+}
+
+function openActivationPage(){
+
+    window.open(
+        ACTIVATION_PAGE,
+        "_blank"
+    );
+
+}
+
+/* =========================================================
+   INICIALIZAÇÃO DO DEVICE
+========================================================= */
+
+async function initDevice(){
+
+    state.device.id =
+        getDeviceId();
+
+    state.device.activationCode =
+        localStorage.getItem(
+            STORAGE_ACTIVATION_CODE
+        ) || "";
+
+    $("deviceIdInput").value =
+        state.device.id;
+
+    $("activationCodeInput").value =
+        state.device.activationCode;
+
+    applyDeviceMode();
+
+    await registerDevice();
+
+    await getDeviceStatus();
+
+}
+
+/* =========================================================
+   SALVAR CÓDIGO
+========================================================= */
+
+$("activationCodeInput")
+    .addEventListener(
+        "input",
+        event => {
+
+            const value =
+                event.target.value
+                    .toUpperCase()
+                    .replace(
+                        /[^A-Z0-9]/g,
+                        ""
+                    )
+                    .slice(0,6);
+
+            event.target.value =
+                value;
+
+            state.device.activationCode =
+                value;
+
+            localStorage.setItem(
+                STORAGE_ACTIVATION_CODE,
+                value
+            );
+
+        }
+    );
+
+/* =========================================================
+   NAVEGAÇÃO INTELIGENTE PARA TV
+========================================================= */
+
+function getFocusableCards(){
+
+    return Array.from(
+        grid.querySelectorAll(
+            ".card"
+        )
+    );
+
+}
+
+function getGridColumns(){
+
+    const cards =
+        getFocusableCards();
+
+    if(!cards.length){
+
+        return 1;
+
+    }
+
+    const style =
+        getComputedStyle(grid);
+
+    const columns =
+        style
+            .gridTemplateColumns
+            .split(" ")
+            .filter(Boolean)
+            .length;
+
+    return Math.max(
+        1,
+        columns
+    );
+
+}
+
+function focusTVElement(){
+
+    if(
+        state.device.type !== "tv"
+    ){
+
+        return;
+
+    }
+
+    const cards =
+        getFocusableCards();
+
+    if(!cards.length){
+
+        const category =
+            document.querySelector(
+                ".category.active"
+            );
+
+        if(category){
+
+            category.focus();
+
+        }
+
+        return;
+
+    }
+
+    let index =
+        state.tvFocusIndex;
+
+    if(
+        index < 0 ||
+        index >= cards.length
+    ){
+
+        index = 0;
+
+    }
+
+    cards.forEach(
+        card =>
+            card.classList.remove(
+                "tv-focus"
+            )
+    );
+
+    const card =
+        cards[index];
+
+    if(!card){
+
+        return;
+
+    }
+
+    card.classList.add(
+        "tv-focus"
+    );
+
+    try{
+
+        card.focus({
+            preventScroll:true
+        });
+
+        card.scrollIntoView({
+            block:"nearest",
+            inline:"nearest"
+        });
+
+    }catch{
+
+        card.focus();
+
+    }
+
+}
+
+function moveTVFocus(direction){
+
+    const cards =
+        getFocusableCards();
+
+    if(!cards.length){
+
+        return;
+
+    }
+
+    const current =
+        Math.max(
+            0,
+            Math.min(
+                state.tvFocusIndex,
+                cards.length - 1
+            )
+        );
+
+    const columns =
+        getGridColumns();
+
+    let next =
+        current;
+
+    if(direction === "right"){
+
+        next =
+            current + 1;
+
+    }else if(direction === "left"){
+
+        next =
+            current - 1;
+
+    }else if(direction === "down"){
+
+        next =
+            current + columns;
+
+    }else if(direction === "up"){
+
+        next =
+            current - columns;
+
+    }
+
+    if(next < 0){
+
+        /*
+         * Se subir do primeiro card,
+         * volta para categoria.
+         */
+
+        if(direction === "up"){
+
+            const active =
+                document.querySelector(
+                    ".category.active"
+                );
+
+            if(active){
+
+                active.focus();
+
+            }
+
+        }
+
+        return;
+
+    }
+
+    if(next >= cards.length){
+
+        return;
+
+    }
+
+    state.tvFocusIndex =
+        next;
+
+    focusTVElement();
+
+}
+
+/* =========================================================
+   TECLADO / CONTROLE REMOTO
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        const isTV =
+            state.device.type === "tv";
+
+        /*
+         * TV: navegação por controle.
+         */
+
+        if(isTV){
+
+            const key =
+                event.key;
+
+            if(
+                key === "ArrowRight"
+            ){
+
+                event.preventDefault();
+
+                moveTVFocus(
+                    "right"
+                );
+
+                return;
+
+            }
+
+            if(
+                key === "ArrowLeft"
+            ){
+
+                event.preventDefault();
+
+                moveTVFocus(
+                    "left"
+                );
+
+                return;
+
+            }
+
+            if(
+                key === "ArrowDown"
+            ){
+
+                event.preventDefault();
+
+                moveTVFocus(
+                    "down"
+                );
+
+                return;
+
+            }
+
+            if(
+                key === "ArrowUp"
+            ){
+
+                event.preventDefault();
+
+                moveTVFocus(
+                    "up"
+                );
+
+                return;
+
+            }
+
+            if(
+                key === "Enter"
+            ){
+
+                const active =
+                    document.activeElement;
+
+                if(
+                    active &&
+                    active.classList.contains(
+                        "card"
+                    )
+                ){
+
+                    event.preventDefault();
+
+                    active.click();
+
+                    return;
+
+                }
+
+                if(
+                    active &&
+                    (
+                        active.classList.contains(
+                            "category"
+                        ) ||
+                        active.classList.contains(
+                            "btn"
+                        ) ||
+                        active.classList.contains(
+                            "page-btn"
+                        )
+                    )
+                ){
+
+                    return;
+
+                }
+
+            }
+
+            /*
+             * Escape / Back.
+             */
+
+            if(
+                key === "Escape" ||
+                key === "BrowserBack" ||
+                key === "GoBack"
+            ){
+
+                event.preventDefault();
+
+                handleBack();
+
+                return;
+
+            }
+
+        }
+
+        /*
+         * Escape também fecha modal no PC/celular.
+         */
+
+        if(
+            event.key === "Escape" &&
+            isModalOpen()
+        ){
+
+            const modal =
+                document.querySelector(
+                    ".modal.open"
+                );
+
+            if(modal){
+
+                closeModal(
+                    modal.id
+                );
+
+            }
+
+        }
+
+    }
+);
+
+/* =========================================================
+   BOTÃO BACK
+========================================================= */
+
+function handleBack(){
+
+    /*
+     * Primeiro fecha modal.
+     */
+
+    const modal =
+        document.querySelector(
+            ".modal.open"
+        );
+
+    if(modal){
+
+        closeModal(
+            modal.id
+        );
+
+        return;
+
+    }
+
+    /*
+     * Se estiver reproduzindo,
+     * primeiro para.
+     */
+
+    if(state.selectedItem){
+
+        stopPlayer();
+
+        return;
+
+    }
+
+    /*
+     * TV: volta para TV.
+     */
+
+    if(
+        state.device.type === "tv" &&
+        state.currentCategory !== "TV"
+    ){
+
+        setCategory("TV");
+
+        return;
+
+    }
+
+    /*
+     * Não forçamos reload.
+     */
+
+    try{
+
+        if(
+            history.length > 1
+        ){
+
+            history.back();
+
+        }
+
+    }catch{}
+
+}
+
+/* =========================================================
+   HISTÓRICO SEM RELOAD
+========================================================= */
+
+function pushSafeHistory(){
+
+    try{
+
+        history.pushState(
+            {
+                gcplay:true
+            },
+            "",
+            window.location.href
+        );
+
+    }catch{}
+
+}
+
+window.addEventListener(
+    "popstate",
+    () => {
+
+        if(state.historyChanging){
+
+            state.historyChanging =
+                false;
+
+            return;
+
+        }
+
+        /*
+         * Nunca recarrega o index.
+         */
+
+        if(isModalOpen()){
+
+            const modal =
+                document.querySelector(
+                    ".modal.open"
+                );
+
+            if(modal){
+
+                closeModal(
+                    modal.id
+                );
+
+            }
+
+            return;
+
+        }
+
+        if(state.selectedItem){
+
+            stopPlayer();
+
+            return;
+
+        }
+
+    }
+);
+
+/* =========================================================
+   EVENTOS DOS BOTÕES
+========================================================= */
+
+$("btnAddM3U")
+    .addEventListener(
+        "click",
+        () => {
+
+            $("m3uName").value = "";
+
+            $("m3uUrl").value = "";
+
+            $("m3uStatus").className =
+                "status-box";
+
+            $("m3uStatus").textContent =
+                "A lista será salva neste dispositivo.";
+
+            openModal(
+                "m3uModal"
+            );
+
+            setTimeout(
+                () => {
+
+                    $("m3uName").focus();
+
+                },
+                50
+            );
+
+        }
+    );
+
+$("btnLists")
+    .addEventListener(
+        "click",
+        () => {
+
+            renderLists();
+
+            openModal(
+                "listsModal"
+            );
+
+        }
+    );
+
+$("btnDevice")
+    .addEventListener(
+        "click",
+        async () => {
+
+            applyDeviceMode();
+
+            openModal(
+                "deviceModal"
+            );
+
+            await getDeviceStatus();
+
+        }
+    );
+
+$("btnActivationPage")
+    .addEventListener(
+        "click",
+        openActivationPage
+    );
+
+$("btnRefreshDevice")
+    .addEventListener(
+        "click",
+        async () => {
+
+            await getDeviceStatus();
+
+        }
+    );
+
+$("btnStop")
+    .addEventListener(
+        "click",
+        stopPlayer
+    );
+
+$("btnFullscreen")
+    .addEventListener(
+        "click",
+        fullscreen
+    );
+
+$("prevPage")
+    .addEventListener(
+        "click",
+        () => {
+
+            goPage(
+                state.currentPage - 1
+            );
+
+        }
+    );
+
+$("nextPage")
+    .addEventListener(
+        "click",
+        () => {
+
+            goPage(
+                state.currentPage + 1
+            );
+
+        }
+    );
+
+/* =========================================================
+   CATEGORIAS
+========================================================= */
+
+document
+    .querySelectorAll(".category")
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    setCategory(
+                        button.dataset.category
+                    );
+
+                }
+            );
+
+        }
+    );
+
+/* =========================================================
+   PESQUISA
+========================================================= */
+
+let searchTimer = null;
+
+searchInput.addEventListener(
+    "input",
+    () => {
+
+        clearTimeout(
+            searchTimer
+        );
+
+        searchTimer =
+            setTimeout(
+                () => {
+
+                    state.currentPage =
+                        1;
+
+                    state.tvFocusIndex =
+                        0;
+
+                    render();
+
+                },
+                100
+            );
+
+    }
+);
+
+/* =========================================================
+   SALVAR M3U
+========================================================= */
+
+$("btnSaveM3U")
+    .addEventListener(
+        "click",
+        async () => {
+
+            const name =
+                $("m3uName")
+                    .value
+                    .trim();
+
+            const url =
+                $("m3uUrl")
+                    .value
+                    .trim();
+
+            if(!name){
+
+                showToast(
+                    "Digite um nome para a lista.",
+                    true
+                );
+
+                return;
+
+            }
+
+            if(!validHttpUrl(url)){
+
+                showToast(
+                    "Informe uma URL HTTP ou HTTPS válida.",
+                    true
+                );
+
+                return;
+
+            }
+
+            const list =
+                addList(
+                    name,
+                    url
+                );
+
+            await loadPlaylist(
+                list
+            );
+
+        }
+    );
+
+/* =========================================================
+   LISTA: ABRIR / EXCLUIR
+========================================================= */
+
+$("listsContainer")
+    .addEventListener(
+        "click",
+        async event => {
+
+            const loadButton =
+                event.target.closest(
+                    "[data-load-list]"
+                );
+
+            if(loadButton){
+
+                const id =
+                    loadButton.dataset.loadList;
+
+                const list =
+                    state.lists.find(
+                        item =>
+                            item.id === id
+                    );
+
+                if(list){
+
+                    await loadPlaylist(
+                        list
+                    );
+
+                }
+
+                return;
+
+            }
+
+            const deleteButton =
+                event.target.closest(
+                    "[data-delete-list]"
+                );
+
+            if(deleteButton){
+
+                const id =
+                    deleteButton.dataset.deleteList;
+
+                const list =
+                    state.lists.find(
+                        item =>
+                            item.id === id
+                    );
+
+                if(!list){
+
+                    return;
+
+                }
+
+                const ok =
+                    confirm(
+                        "Excluir a lista \"" +
+                        list.name +
+                        "\"?"
+                    );
+
+                if(ok){
+
+                    removeList(id);
+
+                    renderLists();
+
+                    showToast(
+                        "Lista excluída."
+                    );
+
+                }
+
+            }
+
+        }
+    );
+
+/* =========================================================
+   NOVA LISTA
+========================================================= */
+
+$("btnNewList")
+    .addEventListener(
+        "click",
+        () => {
+
+            closeModal(
+                "listsModal"
+            );
+
+            $("m3uName").value = "";
+
+            $("m3uUrl").value = "";
+
+            openModal(
+                "m3uModal"
+            );
+
+            setTimeout(
+                () => {
+
+                    $("m3uName").focus();
+
+                },
+                50
+            );
+
+        }
+    );
+
+/* =========================================================
+   FECHAR MODAIS
+========================================================= */
+
+document.addEventListener(
+    "click",
+    event => {
+
+        const closeButton =
+            event.target.closest(
+                "[data-close]"
+            );
+
+        if(closeButton){
+
+            closeModal(
+                closeButton.dataset.close
+            );
+
+            return;
+
+        }
+
+        /*
+         * Clique no fundo.
+         */
+
+        if(
+            event.target.classList.contains(
+                "modal"
+            )
+        ){
+
+            closeModal(
+                event.target.id
+            );
+
+        }
+
+    }
+);
+
+/* =========================================================
+   VIDEO EVENTS
+========================================================= */
+
+video.addEventListener(
+    "playing",
+    () => {
+
+        playerStatus.textContent =
+            isMpegTsUrl(
+                state.selectedItem?.url ||
+                ""
+            )
+                ? "MPEG-TS conectado"
+                : "Reproduzindo";
+
+        playerStatus.classList.add(
+            "ok"
+        );
+
+        playerEmpty.style.display =
+            "none";
+
+    }
+);
+
+video.addEventListener(
+    "waiting",
+    () => {
+
+        if(state.selectedItem){
+
+            playerStatus.textContent =
+                "Bufferizando...";
+
+        }
+
+    }
+);
+
+video.addEventListener(
+    "stalled",
+    () => {
+
+        if(state.selectedItem){
+
+            playerStatus.textContent =
+                "Reconectando...";
+
+        }
+
+    }
+);
+
+video.addEventListener(
+    "ended",
+    () => {
+
+        playerStatus.textContent =
+            "Finalizado";
+
+        playerStatus.classList.remove(
+            "ok"
+        );
+
+    }
+);
+
+video.addEventListener(
+    "error",
+    () => {
+
+        if(state.selectedItem){
+
+            console.warn(
+                "Erro HTML5:",
+                video.error
+            );
+
+        }
+
+    }
+);
+
+/* =========================================================
+   PRIMEIRO CARREGAMENTO
+========================================================= */
+
+async function init(){
+
+    /*
+     * Detecta imediatamente.
+     */
+
+    applyDeviceMode();
+
+    /*
+     * Carrega listas salvas.
+     */
+
+    loadListsFromStorage();
+
+    /*
+     * Inicializa dispositivo.
+     */
+
+    await initDevice();
+
+    /*
+     * Começa sem carregar automaticamente
+     * nenhuma lista.
+     *
+     * O usuário escolhe a lista em LISTAS.
+     */
+
+    updateCounts();
+
+    render();
+
+    /*
+     * Histórico interno.
+     */
+
+    try{
+
+        history.replaceState(
+            {
+                gcplay:true
+            },
+            "",
+            window.location.href
+        );
+
+    }catch{}
+
+    /*
+     * Se TV, foco inicial.
+     */
+
+    if(
+        state.device.type === "tv"
+    ){
+
+        setTimeout(
+            focusTVElement,
+            300
+        );
+
+    }
+
+}
+
+init();
+
+/* =========================================================
+   VERIFICAÇÃO PERIÓDICA DO DISPOSITIVO
+========================================================= */
+
+setInterval(
+    async () => {
+
+        /*
+         * Não precisa abrir modal.
+         * Apenas mantém o status atualizado.
+         */
+
+        if(
+            state.device.id
+        ){
+
+            await getDeviceStatus();
+
+        }
+
+    },
+    5 * 60 * 1000
+);
+
+/* =========================================================
+   REDE / VISIBILIDADE
+========================================================= */
+
+document.addEventListener(
+    "visibilitychange",
+    () => {
+
+        if(
+            !document.hidden
+        ){
+
+            applyDeviceMode();
+
+        }
+
+    }
+);
+
+/* =========================================================
+   RESIZE OBSERVER
+========================================================= */
+
+if(
+    typeof ResizeObserver !==
+    "undefined"
+){
+
+    const observer =
+        new ResizeObserver(
+            () => {
+
+                applyDeviceMode();
+
+            }
+        );
+
+    observer.observe(
+        document.documentElement
+    );
+
+}
+
+/* =========================================================
+   FIM
+========================================================= */
 </script>
 
 </body>
