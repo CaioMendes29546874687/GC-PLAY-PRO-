@@ -29,7 +29,7 @@ public class GCPlayCastPlugin extends Plugin {
 
 
     // ============================================================
-    // ABRIR SELETOR DE TV / CHROMECAST
+    // ABRIR SELEÇÃO DE TV / CHROMECAST
     // ============================================================
 
     @PluginMethod
@@ -38,103 +38,148 @@ public class GCPlayCastPlugin extends Plugin {
         Activity activity = getActivity();
 
         if (activity == null) {
-            call.reject(
-                "Atividade Android indisponível."
-            );
+            call.reject("Atividade Android indisponível.");
             return;
         }
-
 
         activity.runOnUiThread(() -> {
 
             try {
 
-                // Inicializa o Cast Framework
-                CastContext.getSharedInstance(activity);
+                CastContext castContext =
+                    CastContext.getSharedInstance(activity);
 
-
-                // Root da Activity
                 FrameLayout root =
-                    activity.findViewById(
-                        android.R.id.content
-                    );
+                    activity.findViewById(android.R.id.content);
 
+                if (root == null) {
+                    call.reject("Tela principal do aplicativo não encontrada.");
+                    return;
+                }
 
-                // Cria botão Cast invisível
-                // que será usado para abrir o diálogo
+                /*
+                 * Criamos um MediaRouteButton REAL.
+                 *
+                 * Ele fica invisível para o usuário,
+                 * mas é registrado pelo Google Cast.
+                 */
+
                 final MediaRouteButton button =
                     new MediaRouteButton(activity);
 
+                button.setBackgroundColor(Color.TRANSPARENT);
+                button.setVisibility(View.VISIBLE);
 
-                button.setBackgroundColor(
-                    Color.TRANSPARENT
-                );
-
-
-                button.setVisibility(
-                    View.VISIBLE
-                );
-
-
-                // Botão praticamente invisível.
-                // Ele existe apenas para disparar
-                // o diálogo oficial do Google Cast.
                 FrameLayout.LayoutParams params =
                     new FrameLayout.LayoutParams(
-                        1,
-                        1
+                        80,
+                        80
                     );
 
+                params.leftMargin = 5;
+                params.topMargin = 5;
 
-                params.leftMargin = 1;
-                params.topMargin = 1;
+                root.addView(button, params);
 
+                /*
+                 * Liga o botão ao Google Cast.
+                 */
 
-                root.addView(
-                    button,
-                    params
-                );
-
-
-                // Conecta o botão ao Google Cast
                 CastButtonFactory
                     .setUpMediaRouteButton(
                         activity.getApplicationContext(),
                         button
                     );
 
+                /*
+                 * Dá tempo para o MediaRouter
+                 * terminar a inicialização.
+                 */
 
-                // Abre o diálogo
-                button.post(() -> {
+                button.postDelayed(() -> {
 
-                    button.performClick();
+                    try {
+
+                        boolean clicou =
+                            button.performClick();
+
+                        if (!clicou) {
+
+                            /*
+                             * Segunda tentativa.
+                             */
+
+                            button.postDelayed(
+                                () -> {
+                                    try {
+                                        button.performClick();
+                                    } catch (Exception ignored) {
+                                    }
+                                },
+                                300
+                            );
+                        }
+
+                    } catch (Exception e) {
+
+                        call.reject(
+                            "Erro ao abrir seleção de TV: "
+                            + e.getMessage()
+                        );
+
+                    }
+
+                }, 500);
 
 
-                    // Remove o botão depois
-                    // que o diálogo foi aberto.
-                    root.postDelayed(
-                        () -> {
+                /*
+                 * Mantém o botão durante alguns segundos
+                 * para o diálogo do Google Cast abrir.
+                 */
 
-                            try {
-                                root.removeView(button);
-                            } catch (Exception ignored) {
-                            }
+                root.postDelayed(
+                    () -> {
 
-                        },
-                        1500
-                    );
+                        try {
+                            root.removeView(button);
+                        } catch (Exception ignored) {
+                        }
 
-                });
+                    },
+                    5000
+                );
 
 
-                call.resolve();
+                /*
+                 * Verifica se já existe sessão.
+                 */
+
+                CastSession session =
+                    castContext
+                        .getSessionManager()
+                        .getCurrentCastSession();
+
+                JSObject result =
+                    new JSObject();
+
+                result.put(
+                    "connected",
+                    session != null &&
+                    session.isConnected()
+                );
+
+                result.put(
+                    "status",
+                    "CAST_DIALOG_REQUESTED"
+                );
+
+                call.resolve(result);
 
 
             } catch (Exception e) {
 
                 call.reject(
-                    "Não foi possível abrir "
-                    + "a seleção de TV: "
+                    "Não foi possível abrir a seleção de TV: "
                     + e.getMessage()
                 );
 
@@ -146,7 +191,7 @@ public class GCPlayCastPlugin extends Plugin {
 
 
     // ============================================================
-    // TRANSMITIR MÍDIA PARA A TV
+    // TRANSMITIR MÍDIA
     // ============================================================
 
     @PluginMethod
@@ -174,10 +219,6 @@ public class GCPlayCastPlugin extends Plugin {
             );
 
 
-        // --------------------------------------------------------
-        // VALIDAR URL
-        // --------------------------------------------------------
-
         if (
             url == null ||
             url.trim().isEmpty()
@@ -191,12 +232,9 @@ public class GCPlayCastPlugin extends Plugin {
         }
 
 
-        // --------------------------------------------------------
-        // ACTIVITY
-        // --------------------------------------------------------
-
         Activity activity =
             getActivity();
+
 
         if (activity == null) {
 
@@ -208,27 +246,15 @@ public class GCPlayCastPlugin extends Plugin {
         }
 
 
-        // --------------------------------------------------------
-        // EXECUTAR NA THREAD PRINCIPAL
-        // --------------------------------------------------------
-
         activity.runOnUiThread(() -> {
 
             try {
-
-                // ------------------------------------------------
-                // CAST CONTEXT
-                // ------------------------------------------------
 
                 CastContext castContext =
                     CastContext.getSharedInstance(
                         activity
                     );
 
-
-                // ------------------------------------------------
-                // SESSÃO ATUAL
-                // ------------------------------------------------
 
                 CastSession session =
                     castContext
@@ -243,17 +269,13 @@ public class GCPlayCastPlugin extends Plugin {
 
                     call.reject(
                         "Nenhuma TV/Chromecast conectado. "
-                        + "Toque em Transmitir e escolha sua TV.",
+                        + "Abra Transmitir e escolha sua TV.",
                         "NO_CAST_SESSION"
                     );
 
                     return;
                 }
 
-
-                // ------------------------------------------------
-                // REMOTE MEDIA CLIENT
-                // ------------------------------------------------
 
                 RemoteMediaClient client =
                     session.getRemoteMediaClient();
@@ -262,16 +284,16 @@ public class GCPlayCastPlugin extends Plugin {
                 if (client == null) {
 
                     call.reject(
-                        "Controle de mídia do Cast indisponível."
+                        "Controle de mídia do Google Cast indisponível."
                     );
 
                     return;
                 }
 
 
-                // ------------------------------------------------
-                // METADATA
-                // ------------------------------------------------
+                // =================================================
+                // METADADOS
+                // =================================================
 
                 MediaMetadata metadata =
                     new MediaMetadata(
@@ -298,9 +320,9 @@ public class GCPlayCastPlugin extends Plugin {
                 }
 
 
-                // ------------------------------------------------
+                // =================================================
                 // MEDIA INFO
-                // ------------------------------------------------
+                // =================================================
 
                 MediaInfo mediaInfo =
                     new MediaInfo.Builder(url)
@@ -324,9 +346,9 @@ public class GCPlayCastPlugin extends Plugin {
                         .build();
 
 
-                // ------------------------------------------------
-                // ENVIAR PARA O CHROMECAST
-                // ------------------------------------------------
+                // =================================================
+                // ENVIAR PARA TV
+                // =================================================
 
                 client
                     .load(
@@ -335,7 +357,6 @@ public class GCPlayCastPlugin extends Plugin {
                             .setAutoplay(true)
                             .build()
                     )
-
                     .setResultCallback(
                         result -> {
 
@@ -363,6 +384,11 @@ public class GCPlayCastPlugin extends Plugin {
                                     url
                                 );
 
+                                ret.put(
+                                    "status",
+                                    "PLAYING"
+                                );
+
                                 call.resolve(ret);
 
                             } else {
@@ -371,6 +397,7 @@ public class GCPlayCastPlugin extends Plugin {
                                     result
                                         .getStatus()
                                         .getStatusMessage();
+
 
                                 if (
                                     message == null ||
@@ -382,9 +409,8 @@ public class GCPlayCastPlugin extends Plugin {
 
                                 }
 
-                                call.reject(
-                                    message
-                                );
+
+                                call.reject(message);
 
                             }
 
@@ -407,7 +433,7 @@ public class GCPlayCastPlugin extends Plugin {
 
 
     // ============================================================
-    // IDENTIFICAR LIVE / HLS
+    // DETECTAR LIVE
     // ============================================================
 
     private boolean isLive(
@@ -420,6 +446,7 @@ public class GCPlayCastPlugin extends Plugin {
 
         String t =
             type.toLowerCase();
+
 
         return
             t.contains("mpegurl") ||
