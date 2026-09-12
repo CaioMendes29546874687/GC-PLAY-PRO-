@@ -310,4 +310,152 @@ jobs:
 
 
           # --------------------------------------------------------
-          #
+          # Android TV
+          # --------------------------------------------------------
+
+          if "android.software.leanback" not in text:
+
+              marker = "<application"
+
+              tv_features = """
+              <uses-feature
+                  android:name="android.software.leanback"
+                  android:required="false" />
+
+              <uses-feature
+                  android:name="android.hardware.touchscreen"
+                  android:required="false" />
+
+              """
+
+              text = text.replace(
+                  marker,
+                  tv_features + marker,
+                  1
+              )
+
+
+          # --------------------------------------------------------
+          # LEANBACK LAUNCHER
+          # --------------------------------------------------------
+
+          launcher = '<category android:name="android.intent.category.LAUNCHER" />'
+
+          if (
+              "android.intent.category.LEANBACK_LAUNCHER"
+              not in text
+          ):
+
+              replacement = launcher + """
+                          <category android:name="android.intent.category.LEANBACK_LAUNCHER" />"""
+
+              if launcher in text:
+                  text = text.replace(
+                      launcher,
+                      replacement,
+                      1
+                  )
+
+
+          manifest.write_text(text)
+
+          print("AndroidManifest configurado.")
+          PY
+
+
+      # ============================================================
+      # 12. VALIDAR ANDROIDMANIFEST
+      # ============================================================
+
+      - name: Validar AndroidManifest
+        run: |
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET
+
+          path = "android/app/src/main/AndroidManifest.xml"
+
+          ET.parse(path)
+
+          print("AndroidManifest XML válido.")
+          PY
+
+
+      # ============================================================
+      # 13. VERIFICAR COMPATIBILIDADE ANDROID TV
+      # ============================================================
+
+      - name: Verificar compatibilidade Android TV
+        run: |
+          MANIFEST="android/app/src/main/AndroidManifest.xml"
+
+          echo "Verificando Android TV..."
+
+          grep -q "android.software.leanback" "$MANIFEST"
+
+          grep -q "android.hardware.touchscreen" "$MANIFEST"
+
+          grep -q "android.intent.category.LEANBACK_LAUNCHER" "$MANIFEST"
+
+          echo "Compatibilidade Android TV OK."
+
+
+      # ============================================================
+      # 14. SINCRONIZAR CAPACITOR
+      # ============================================================
+
+      - name: Sincronizar Capacitor
+        run: npx cap sync android
+
+
+      # ============================================================
+      # 15. VERIFICAR CONFIGURAÇÃO CAST
+      # ============================================================
+
+      - name: Verificar configuração CAST
+        run: |
+          echo "Verificando arquivos CAST..."
+
+          test -f \
+            android/app/src/main/java/com/gcplaypro/app/GCPlayCastPlugin.java
+
+          test -f \
+            android/app/src/main/java/com/gcplaypro/app/CastOptionsProvider.java
+
+          test -f \
+            www/index.html
+
+          test -f \
+            www/capacitor.js
+
+          grep -q "GCPlayCastPlugin" \
+            android/app/src/main/java/com/gcplaypro/app/MainActivity.java
+
+          grep -q "OPTIONS_PROVIDER_CLASS_NAME" \
+            android/app/src/main/AndroidManifest.xml
+
+          grep -q "play-services-cast-framework" \
+            android/app/build.gradle
+
+          echo "Configuração CAST OK."
+
+
+      # ============================================================
+      # 16. GERAR APK CAST
+      # ============================================================
+
+      - name: Gerar APK CAST
+        working-directory: android
+        run: |
+          ./gradlew assembleDebug --stacktrace
+
+
+      # ============================================================
+      # 17. DISPONIBILIZAR APK
+      # ============================================================
+
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: GC-PLAY-PRO-Android-CAST-Teste
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
