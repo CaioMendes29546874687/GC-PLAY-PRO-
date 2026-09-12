@@ -1,0 +1,8418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+
+<meta name="theme-color" content="#28D905">
+<meta name="mobile-web-app-capable" content="yes">
+
+<title>GC PLAY PRO</title>
+
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+
+<style>
+
+:root{
+
+    --green:#28D905;
+    --green2:#1ba903;
+
+    --bg:#030503;
+
+    --card:#0a110a;
+    --card2:#0d160d;
+    --hover:#142614;
+
+    --border:#173817;
+
+    --text:#efffef;
+    --muted:#789078;
+
+    --danger:#ff5555;
+    --yellow:#ffd000;
+
+    /* DETECÇÃO AUTOMÁTICA */
+    --app-gap:10px;
+    --app-padding:12px;
+
+    --header-padding:12px 15px;
+
+    --card-min:145px;
+    --poster-height:165px;
+
+    --player-width:400px;
+    --video-height:250px;
+
+    --ui-scale:1;
+
+}
+
+
+*{
+
+    box-sizing:border-box;
+
+    margin:0;
+    padding:0;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    -webkit-tap-highlight-color:transparent;
+
+}
+
+
+html,
+body{
+
+    width:100%;
+    height:100%;
+
+    background:var(--bg);
+
+    color:var(--text);
+
+}
+
+
+body{
+
+    overflow:hidden;
+
+}
+
+
+/* =========================================================
+   DETECÇÃO VISUAL
+========================================================= */
+
+body.device-mobile{
+
+    --app-gap:8px;
+    --app-padding:8px;
+
+    --card-min:145px;
+    --poster-height:135px;
+
+    --video-height:190px;
+
+}
+
+
+body.device-tablet{
+
+    --app-gap:10px;
+    --app-padding:10px;
+
+    --card-min:165px;
+    --poster-height:180px;
+
+    --video-height:230px;
+
+}
+
+
+body.device-pc{
+
+    --app-gap:10px;
+    --app-padding:12px;
+
+    --card-min:145px;
+    --poster-height:165px;
+
+    --video-height:250px;
+
+}
+
+
+body.device-tv{
+
+    --app-gap:16px;
+    --app-padding:20px;
+
+    --card-min:210px;
+    --poster-height:230px;
+
+    --player-width:520px;
+    --video-height:360px;
+
+    --ui-scale:1.15;
+
+}
+
+
+body.device-tv .logo{
+
+    font-size:27px;
+
+}
+
+
+body.device-tv .header{
+
+    padding:15px 20px;
+
+}
+
+
+body.device-tv .btn{
+
+    font-size:16px;
+
+    padding:12px 17px;
+
+    min-height:48px;
+
+}
+
+
+body.device-tv .tab{
+
+    font-size:16px;
+
+    padding:13px 19px;
+
+    min-height:50px;
+
+}
+
+
+body.device-tv .status{
+
+    font-size:15px;
+
+    padding:12px 15px;
+
+}
+
+
+body.device-tv .search,
+body.device-tv .group-select{
+
+    font-size:16px;
+
+    padding:13px 15px;
+
+    min-height:50px;
+
+}
+
+
+body.device-tv .media-title{
+
+    font-size:15px;
+
+}
+
+
+body.device-tv .media-group{
+
+    font-size:12px;
+
+}
+
+
+body.device-tv .media-info{
+
+    padding:12px;
+
+}
+
+
+body.device-tv .poster-icon{
+
+    font-size:50px;
+
+}
+
+
+body.device-tv .page-info{
+
+    font-size:15px;
+
+}
+
+
+body.device-tv .player{
+
+    padding:15px;
+
+}
+
+
+body.device-tv .now-title{
+
+    font-size:18px;
+
+}
+
+
+body.device-tv .now-status{
+
+    font-size:14px;
+
+}
+
+
+/* =========================================================
+   FOCO DA TV
+========================================================= */
+
+body.device-tv .media-card.tv-focus{
+
+    border-color:var(--green);
+
+    background:var(--hover);
+
+    transform:scale(1.025);
+
+    box-shadow:
+        0 0 0 2px rgba(40,217,5,.45),
+        0 0 28px rgba(40,217,5,.35);
+
+    z-index:5;
+
+}
+
+
+body.device-tv .media-card.tv-focus .media-title{
+
+    color:var(--green);
+
+}
+
+
+body.device-tv .btn.tv-focus,
+body.device-tv .tab.tv-focus,
+body.device-tv .list-pill.tv-focus,
+body.device-tv .season.tv-focus,
+body.device-tv .episode.tv-focus{
+
+    border-color:var(--green);
+
+    color:var(--green);
+
+    box-shadow:
+        0 0 0 2px rgba(40,217,5,.25),
+        0 0 18px rgba(40,217,5,.25);
+
+}
+
+
+body.device-tv input:focus,
+body.device-tv select:focus{
+
+    border-color:var(--green);
+
+    box-shadow:
+        0 0 0 2px rgba(40,217,5,.20);
+
+}
+
+
+/* =========================================================
+   INDICADOR DO DISPOSITIVO
+========================================================= */
+
+.device-detected{
+
+    display:none;
+
+    align-items:center;
+
+    gap:7px;
+
+    color:var(--muted);
+
+    border:1px solid var(--border);
+
+    background:#050905;
+
+    border-radius:20px;
+
+    padding:7px 11px;
+
+    font-size:11px;
+
+    font-weight:800;
+
+    white-space:nowrap;
+
+}
+
+
+.device-detected i{
+
+    color:var(--green);
+
+}
+
+
+body.device-mobile .device-detected,
+body.device-tablet .device-detected,
+body.device-pc .device-detected,
+body.device-tv .device-detected{
+
+    display:flex;
+
+}
+
+
+body.device-tv .device-detected{
+
+    font-size:13px;
+
+    padding:9px 13px;
+
+}
+
+
+/* =========================================================
+   ELEMENTOS BÁSICOS
+========================================================= */
+
+button,
+input,
+select{
+
+    font:inherit;
+
+}
+
+
+button{
+
+    cursor:pointer;
+
+}
+
+
+button:focus,
+input:focus,
+select:focus{
+
+    outline:none;
+
+}
+
+
+.hidden{
+
+    display:none!important;
+
+}
+
+
+/* =========================================================
+   APLICATIVO
+========================================================= */
+
+#app{
+
+    width:100%;
+
+    height:100vh;
+    height:100dvh;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:var(--app-gap);
+
+    padding:var(--app-padding);
+
+    overflow:hidden;
+
+}
+
+
+/* =========================================================
+   CABEÇALHO
+========================================================= */
+
+.header{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    padding:var(--header-padding);
+
+    background:var(--card);
+
+    border:1px solid var(--border);
+
+    border-radius:12px;
+
+    flex-shrink:0;
+
+}
+
+
+.logo{
+
+    font-size:21px;
+
+    font-weight:900;
+
+    letter-spacing:2px;
+
+    white-space:nowrap;
+
+}
+
+
+.logo span{
+
+    color:var(--green);
+
+    text-shadow:
+        0 0 15px rgba(40,217,5,.5);
+
+}
+
+
+.header-space{
+
+    flex:1;
+
+}
+
+
+.btn{
+
+    border:1px solid var(--border);
+
+    background:#071007;
+
+    color:#fff;
+
+    border-radius:8px;
+
+    padding:9px 13px;
+
+    font-weight:700;
+
+    transition:.2s;
+
+}
+
+
+.btn:hover,
+.btn:focus{
+
+    border-color:var(--green);
+
+    color:var(--green);
+
+}
+
+
+.btn-green{
+
+    border-color:var(--green);
+
+    color:var(--green);
+
+    background:rgba(40,217,5,.08);
+
+}
+
+
+.btn-red{
+
+    border-color:#663333;
+
+    color:#ff7777;
+
+}
+
+
+.btn:disabled{
+
+    opacity:.35;
+
+    cursor:not-allowed;
+
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.status{
+
+    width:100%;
+
+    padding:9px 12px;
+
+    background:#071007;
+
+    border:1px solid var(--border);
+
+    border-radius:8px;
+
+    color:var(--muted);
+
+    font-size:13px;
+
+    flex-shrink:0;
+
+}
+
+
+.status.ok{
+
+    color:var(--green);
+
+    border-color:#225922;
+
+}
+
+
+.status.error{
+
+    color:#ff7777;
+
+    border-color:#673333;
+
+}
+
+
+/* =========================================================
+   LISTAS
+========================================================= */
+
+.lists-bar{
+
+    display:flex;
+
+    gap:7px;
+
+    overflow-x:auto;
+
+    flex-shrink:0;
+
+    padding-bottom:2px;
+
+}
+
+
+.list-pill{
+
+    white-space:nowrap;
+
+    border:1px solid var(--border);
+
+    background:#071007;
+
+    color:var(--muted);
+
+    border-radius:20px;
+
+    padding:7px 13px;
+
+    font-weight:700;
+
+}
+
+
+.list-pill.active{
+
+    color:var(--green);
+
+    border-color:var(--green);
+
+    background:rgba(40,217,5,.1);
+
+}
+
+
+/* =========================================================
+   ABAS
+========================================================= */
+
+.tabs{
+
+    display:flex;
+
+    gap:8px;
+
+    overflow-x:auto;
+
+    flex-shrink:0;
+
+    padding-bottom:2px;
+
+}
+
+
+.tab{
+
+    white-space:nowrap;
+
+    border:1px solid var(--border);
+
+    background:var(--card);
+
+    color:#fff;
+
+    border-radius:9px;
+
+    padding:10px 15px;
+
+    font-weight:800;
+
+    transition:.2s;
+
+}
+
+
+.tab:hover{
+
+    border-color:var(--green);
+
+}
+
+
+.tab.active{
+
+    color:var(--green);
+
+    border-color:var(--green);
+
+    background:rgba(40,217,5,.09);
+
+    box-shadow:
+        0 0 16px rgba(40,217,5,.15);
+
+}
+
+
+/* =========================================================
+   ISOLAMENTO VISUAL DAS CATEGORIAS
+========================================================= */
+body.gc-category-series .media-group::before{content:"SÉRIE • ";color:var(--green);}
+body.gc-category-vod .media-group::before{content:"FILME • ";color:var(--green);}
+body.gc-category-live .media-group::before{content:"CANAL • ";color:var(--green);}
+body.gc-category-music .media-group::before{content:"MÚSICA • ";color:var(--green);}
+
+/* =========================================================
+   ÁREA PRINCIPAL
+========================================================= */
+
+.workspace{
+
+    display:grid;
+
+    grid-template-columns:
+        minmax(0,1fr)
+        var(--player-width);
+
+    gap:var(--app-gap);
+
+    min-height:0;
+
+    flex:1;
+
+}
+
+
+.catalog{
+
+    background:var(--card);
+
+    border:1px solid var(--border);
+
+    border-radius:12px;
+
+    padding:12px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    min-height:0;
+
+    overflow:hidden;
+
+}
+
+
+.catalog-tools{
+
+    display:flex;
+
+    gap:8px;
+
+    margin-bottom:10px;
+
+    flex-shrink:0;
+
+}
+
+
+.search{
+
+    flex:1;
+
+    min-width:0;
+
+    background:#040804;
+
+    border:1px solid var(--border);
+
+    color:#fff;
+
+    border-radius:8px;
+
+    padding:10px 12px;
+
+}
+
+
+.search:focus{
+
+    border-color:var(--green);
+
+}
+
+
+.group-select{
+
+    width:220px;
+
+    background:#040804;
+
+    border:1px solid var(--border);
+
+    color:#fff;
+
+    border-radius:8px;
+
+    padding:10px 12px;
+
+}
+
+
+.group-select:focus{
+
+    border-color:var(--green);
+
+}
+
+
+/* =========================================================
+   GRID
+========================================================= */
+
+.grid{
+
+    flex:1;
+
+    min-height:0;
+
+    overflow-y:auto;
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(var(--card-min),1fr)
+        );
+
+    gap:10px;
+
+    align-content:start;
+
+    padding-right:3px;
+
+    padding-bottom:15px;
+
+}
+
+
+.media-card{
+
+    background:#050905;
+
+    border:1px solid var(--border);
+
+    border-radius:9px;
+
+    overflow:hidden;
+
+    transition:.2s;
+
+}
+
+
+.media-card:hover,
+.media-card:focus-within{
+
+    border-color:var(--green);
+
+    background:var(--hover);
+
+    transform:translateY(-2px);
+
+    box-shadow:
+        0 0 18px rgba(40,217,5,.13);
+
+}
+
+
+.media-card button{
+
+    width:100%;
+
+    background:none;
+
+    border:0;
+
+    color:#fff;
+
+    text-align:left;
+
+    padding:0;
+
+}
+
+
+.poster{
+
+    width:100%;
+
+    height:var(--poster-height);
+
+    background:#000;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    overflow:hidden;
+
+}
+
+
+.poster img{
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:cover;
+
+}
+
+
+.poster-icon{
+
+    font-size:35px;
+
+    color:var(--green);
+
+}
+
+
+.media-info{
+
+    padding:9px;
+
+}
+
+
+.media-title{
+
+    display:block;
+
+    color:#fff;
+
+    font-size:12px;
+
+    font-weight:700;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+}
+
+
+.media-group{
+
+    display:block;
+
+    color:var(--muted);
+
+    font-size:10px;
+
+    margin-top:5px;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+}
+
+
+/* =========================================================
+   PAGINAÇÃO
+========================================================= */
+
+.pagination{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:10px;
+
+    padding-top:9px;
+
+    flex-shrink:0;
+
+}
+
+
+.page-info{
+
+    min-width:120px;
+
+    text-align:center;
+
+    color:var(--muted);
+
+    font-size:12px;
+
+}
+
+
+/* =========================================================
+   PLAYER
+========================================================= */
+
+.player{
+
+    background:var(--card);
+
+    border:1px solid var(--border);
+
+    border-radius:12px;
+
+    padding:12px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:10px;
+
+    min-height:0;
+
+}
+
+
+.video-box{
+
+    width:100%;
+
+    height:var(--video-height);
+
+    background:#000;
+
+    border:1px solid var(--border);
+
+    border-radius:9px;
+
+    overflow:hidden;
+
+    flex-shrink:0;
+
+}
+
+
+.video-box video{
+
+    width:100%;
+
+    height:100%;
+
+    background:#000;
+
+    display:block;
+
+}
+
+
+.now-playing{
+
+    background:#050905;
+
+    border:1px solid var(--border);
+
+    border-radius:9px;
+
+    padding:12px;
+
+    flex:1;
+
+    min-height:0;
+
+}
+
+
+.now-title{
+
+    color:var(--green);
+
+    font-weight:800;
+
+    font-size:14px;
+
+    margin-bottom:6px;
+
+    word-break:break-word;
+
+}
+
+
+.now-status{
+
+    color:var(--muted);
+
+    font-size:12px;
+
+}
+
+
+.player #stop{
+
+    flex-shrink:0;
+
+}
+
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.empty{
+
+    grid-column:1/-1;
+
+    text-align:center;
+
+    padding:60px 20px;
+
+    color:var(--muted);
+
+}
+
+
+.empty i{
+
+    font-size:40px;
+
+    color:var(--green);
+
+    margin-bottom:12px;
+
+}
+
+
+/* =========================================================
+   MODAIS
+========================================================= */
+
+.modal{
+
+    position:fixed;
+
+    inset:0;
+
+    z-index:1000;
+
+    background:rgba(0,0,0,.9);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:16px;
+
+}
+
+
+.modal-box{
+
+    width:100%;
+
+    max-width:650px;
+
+    max-height:90vh;
+
+    overflow:auto;
+
+    background:#091009;
+
+    border:1px solid var(--green);
+
+    border-radius:14px;
+
+    padding:20px;
+
+    box-shadow:
+        0 0 40px rgba(40,217,5,.25);
+
+}
+
+
+body.device-tv .modal-box{
+
+    max-width:760px;
+
+    max-height:88vh;
+
+    padding:25px;
+
+}
+
+
+.modal-title{
+
+    color:var(--green);
+
+    font-size:17px;
+
+    font-weight:900;
+
+    margin-bottom:16px;
+
+}
+
+
+body.device-tv .modal-title{
+
+    font-size:22px;
+
+}
+
+
+.field{
+
+    margin-bottom:13px;
+
+}
+
+
+.field label{
+
+    display:block;
+
+    color:var(--muted);
+
+    font-size:12px;
+
+    margin-bottom:6px;
+
+}
+
+
+.field input{
+
+    width:100%;
+
+    background:#030503;
+
+    border:1px solid var(--border);
+
+    color:#fff;
+
+    border-radius:8px;
+
+    padding:12px;
+
+}
+
+
+.field input:focus{
+
+    border-color:var(--green);
+
+}
+
+
+.modal-actions{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    gap:8px;
+
+    margin-top:16px;
+
+}
+
+
+/* =========================================================
+   LISTAS SALVAS
+========================================================= */
+
+.saved-list{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    padding:10px;
+
+    margin-bottom:8px;
+
+    background:#050905;
+
+    border:1px solid var(--border);
+
+    border-radius:9px;
+
+}
+
+
+.saved-info{
+
+    flex:1;
+
+    min-width:0;
+
+}
+
+
+.saved-name{
+
+    display:block;
+
+    color:#fff;
+
+    font-weight:800;
+
+    font-size:13px;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+}
+
+
+.saved-url{
+
+    display:block;
+
+    color:var(--muted);
+
+    font-size:10px;
+
+    margin-top:4px;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+}
+
+
+/* =========================================================
+   SÉRIES
+========================================================= */
+
+.series-seasons{
+
+    display:flex;
+
+    gap:7px;
+
+    overflow-x:auto;
+
+    padding-bottom:10px;
+
+    margin-bottom:10px;
+
+}
+
+
+.season{
+
+    white-space:nowrap;
+
+    background:#050905;
+
+    color:var(--muted);
+
+    border:1px solid var(--border);
+
+    border-radius:8px;
+
+    padding:8px 12px;
+
+}
+
+
+.season.active{
+
+    color:var(--green);
+
+    border-color:var(--green);
+
+}
+
+
+.episodes{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:7px;
+
+}
+
+
+.episode{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    padding:11px;
+
+    background:#050905;
+
+    border:1px solid var(--border);
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+}
+
+
+.episode:hover{
+
+    border-color:var(--green);
+
+    background:var(--hover);
+
+}
+
+
+.episode-number{
+
+    width:35px;
+
+    height:35px;
+
+    border-radius:50%;
+
+    background:rgba(40,217,5,.1);
+
+    border:1px solid var(--green);
+
+    color:var(--green);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    flex-shrink:0;
+
+}
+
+
+.episode-name{
+
+    flex:1;
+
+    min-width:0;
+
+    color:#fff;
+
+    font-size:12px;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+}
+
+
+/* =========================================================
+   PIN
+========================================================= */
+
+.pin-input{
+
+    text-align:center;
+
+    font-size:24px!important;
+
+    letter-spacing:8px;
+
+}
+
+
+/* =========================================================
+   LOADER
+========================================================= */
+
+#loader{
+
+    position:fixed;
+
+    inset:0;
+
+    z-index:5000;
+
+    background:rgba(0,0,0,.94);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+}
+
+
+.loader-box{
+
+    width:min(420px,90%);
+
+    background:#091009;
+
+    border:1px solid var(--green);
+
+    border-radius:14px;
+
+    padding:28px;
+
+    text-align:center;
+
+    box-shadow:
+        0 0 35px rgba(40,217,5,.25);
+
+}
+
+
+.spinner{
+
+    width:55px;
+
+    height:55px;
+
+    border:3px solid #173617;
+
+    border-top-color:var(--green);
+
+    border-radius:50%;
+
+    margin:0 auto 18px;
+
+    animation:spin .8s linear infinite;
+
+}
+
+
+@keyframes spin{
+
+    to{
+        transform:rotate(360deg)
+    }
+
+}
+
+
+.loader-text{
+
+    color:var(--green);
+
+    font-weight:800;
+
+    font-size:13px;
+
+}
+
+
+/* =========================================================
+   DISPOSITIVO
+========================================================= */
+
+.device-box{
+
+    text-align:center;
+
+}
+
+
+.device-code{
+
+    color:var(--green);
+
+    font-weight:900;
+
+    font-size:18px;
+
+    letter-spacing:2px;
+
+    margin:8px 0;
+
+}
+
+
+.qr-box{
+
+    background:#fff;
+
+    padding:10px;
+
+    border-radius:8px;
+
+    width:max-content;
+
+    margin:15px auto;
+
+}
+
+
+/* =========================================================
+   RESPONSIVO BASE
+========================================================= */
+
+@media(max-width:900px){
+
+    body{
+
+        overflow:auto;
+
+    }
+
+
+    #app{
+
+        height:auto;
+
+        min-height:100vh;
+
+        min-height:100dvh;
+
+        overflow:visible;
+
+    }
+
+
+    .workspace{
+
+        display:flex;
+        flex-direction:column;
+        gap:8px;
+
+        min-height:0;
+
+    }
+
+
+    /*
+     * MOBILE/TABLET: o player vem antes do catálogo e permanece
+     * acessível durante a navegação. Assim o usuário não precisa
+     * descer até o final da lista para descobrir o que está tocando.
+     */
+    .player{
+
+        order:1;
+
+        position:sticky;
+        top:8px;
+        z-index:50;
+
+        min-height:0;
+        flex-shrink:0;
+
+        box-shadow:0 10px 28px rgba(0,0,0,.45);
+
+    }
+
+
+    .catalog{
+
+        order:2;
+        min-height:420px;
+        overflow:hidden;
+
+    }
+
+}
+
+
+@media(max-width:600px){
+
+    #app{
+
+        padding:8px;
+
+    }
+
+
+    .header{
+
+        flex-wrap:wrap;
+
+    }
+
+
+    .logo{
+
+        font-size:18px;
+
+    }
+
+
+    .device-detected{
+
+        order:5;
+
+        width:100%;
+
+        justify-content:center;
+
+    }
+
+
+    .grid{
+
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0,1fr)
+            );
+
+        gap:7px;
+
+    }
+
+
+    .catalog-tools{
+
+        flex-wrap:wrap;
+
+    }
+
+
+    .group-select{
+
+        width:100%;
+
+    }
+
+
+    .saved-list{
+
+        flex-wrap:wrap;
+
+    }
+
+
+    /* Player compacto e sempre acessível no celular. */
+    .player{
+
+        top:6px;
+        padding:8px;
+        gap:7px;
+        border-radius:10px;
+
+    }
+
+
+    .video-box{
+
+        height:190px;
+        border-radius:8px;
+
+    }
+
+
+    .now-playing{
+
+        padding:8px 10px;
+        min-height:58px;
+        max-height:76px;
+        overflow:auto;
+
+    }
+
+
+    .now-title{
+
+        font-size:13px;
+        margin-bottom:3px;
+
+    }
+
+
+    .now-status{
+
+        font-size:11px;
+
+    }
+
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media(min-width:601px) and (max-width:900px){
+
+    .grid{
+
+        grid-template-columns:
+            repeat(
+                3,
+                minmax(0,1fr)
+            );
+
+    }
+
+}
+
+
+/* =========================================================
+   TV
+========================================================= */
+
+@media(min-width:901px){
+
+    body.device-tv{
+
+        overflow:hidden;
+
+    }
+
+
+    body.device-tv #app{
+
+        padding:20px;
+
+    }
+
+
+    body.device-tv .workspace{
+
+        grid-template-columns:
+            minmax(0,1fr)
+            520px;
+
+    }
+
+
+    body.device-tv .grid{
+
+        grid-template-columns:
+            repeat(
+                auto-fill,
+                minmax(210px,1fr)
+            );
+
+        gap:14px;
+
+    }
+
+}
+
+
+/* =========================================================
+   TV MUITO GRANDE
+========================================================= */
+
+@media(min-width:1600px){
+
+    body.device-tv{
+
+        --player-width:600px;
+
+        --card-min:230px;
+
+        --poster-height:260px;
+
+    }
+
+}
+
+
+/* =========================================================
+   REDUÇÃO DE MOVIMENTO
+========================================================= */
+
+@media(prefers-reduced-motion:reduce){
+
+    *{
+
+        animation-duration:.01ms!important;
+
+        animation-iteration-count:1!important;
+
+        transition-duration:.01ms!important;
+
+        scroll-behavior:auto!important;
+
+    }
+
+}
+
+
+/* =========================================================
+   GC PLAY PRO — INTERFACE PREMIUM FUTURISTA
+========================================================= */
+.premium-hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:18px 20px;flex-shrink:0;overflow:hidden;border:1px solid #214b21;border-radius:14px;background:radial-gradient(circle at 85% 20%,rgba(40,217,5,.18),transparent 35%),linear-gradient(135deg,#081008,#030603 60%,#0a170a);box-shadow:0 0 30px rgba(40,217,5,.08),inset 0 0 40px rgba(40,217,5,.025)}
+.premium-hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(40,217,5,.04) 50%,transparent 100%);pointer-events:none}
+.hero-copy{position:relative;min-width:0}.hero-kicker{display:flex;align-items:center;gap:7px;color:var(--green);font-size:10px;font-weight:900;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}.hero-kicker i{filter:drop-shadow(0 0 6px rgba(40,217,5,.7))}.hero-title{font-size:clamp(20px,2.5vw,34px);font-weight:950;letter-spacing:.5px;line-height:1.05}.hero-title span{color:var(--green);text-shadow:0 0 18px rgba(40,217,5,.45)}.hero-subtitle{margin-top:7px;color:var(--muted);font-size:12px;line-height:1.45}.hero-stats{position:relative;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.hero-stat{min-width:78px;padding:10px 11px;border:1px solid var(--border);border-radius:10px;background:rgba(2,6,2,.68);text-align:center}.hero-stat strong{display:block;color:var(--green);font-size:17px;line-height:1.1}.hero-stat small{display:block;color:var(--muted);font-size:9px;font-weight:800;margin-top:4px;text-transform:uppercase}.premium-shortcuts{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;flex-shrink:0}.premium-shortcut{display:flex;align-items:center;gap:7px;white-space:nowrap;border:1px solid var(--border);background:linear-gradient(180deg,#0a130a,#050a05);color:#dfffdc;border-radius:9px;padding:8px 11px;font-size:11px;font-weight:800}.premium-shortcut:hover,.premium-shortcut:focus{border-color:var(--green);color:var(--green);box-shadow:0 0 14px rgba(40,217,5,.12)}.premium-shortcut i{color:var(--green)}
+.device-activation-note{margin-top:14px;padding:10px;border:1px dashed #245424;border-radius:9px;background:rgba(40,217,5,.035);color:var(--muted);font-size:11px;line-height:1.45}.device-activation-note strong{color:var(--green)}
+@media(max-width:700px){.premium-hero{grid-template-columns:1fr;padding:15px}.hero-stats{justify-content:flex-start}.hero-stat{flex:1;min-width:70px}.hero-subtitle{font-size:11px}.premium-shortcut{font-size:10px}}
+@media(min-width:901px){body.device-tv .premium-hero{padding:22px 25px}.body.device-tv .hero-title{font-size:34px}body.device-tv .hero-stat{min-width:95px;padding:12px}.body.device-tv .hero-stat strong{font-size:21px}}
+
+
+/* =========================================================
+   MÚSICA — CENTRAL DE ÁUDIO
+========================================================= */
+.music-filters{display:none;gap:7px;flex-wrap:wrap;padding:2px 0 4px;flex-shrink:0}
+body.gc-category-music .music-filters{display:flex}
+.music-filter-btn{border:1px solid var(--border);background:linear-gradient(180deg,#0a130a,#050a05);color:#dfffdc;border-radius:9px;padding:8px 11px;font-size:11px;font-weight:900;cursor:pointer}
+.music-filter-btn.active,.music-filter-btn:hover,.music-filter-btn:focus{border-color:var(--green);color:var(--green);box-shadow:0 0 14px rgba(40,217,5,.15)}
+.music-filter-btn .music-count{opacity:.72;margin-left:4px}
+@media(max-width:700px){.music-filters{overflow-x:auto;flex-wrap:nowrap;padding-bottom:5px}.music-filter-btn{white-space:nowrap}}
+
+/* =========================================================
+   GC PLAY PRO V10 — EXPERIÊNCIA PROFISSIONAL
+========================================================= */
+.gc-v10-tools{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}
+.gc-v10-tool{border:1px solid rgba(40,217,5,.28);background:rgba(10,22,10,.82);color:#fff;border-radius:10px;padding:9px 13px;cursor:pointer;font-weight:700}
+.gc-v10-tool.active,.gc-v10-tool:hover{border-color:var(--green,#28d905);box-shadow:0 0 14px rgba(40,217,5,.16)}
+.media-card{position:relative}
+.gc-v10-fav{position:absolute;right:7px;top:7px;z-index:20;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.72);color:#fff;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center}
+.gc-v10-fav.active{color:#ffd54a;border-color:#ffd54a;box-shadow:0 0 12px rgba(255,213,74,.28)}
+.gc-v10-resume{position:absolute;left:7px;right:7px;bottom:7px;height:4px;border-radius:5px;background:rgba(255,255,255,.18);overflow:hidden;z-index:8}
+.gc-v10-resume span{display:block;height:100%;width:0;background:var(--green,#28d905)}
+.gc-v10-musicbar{display:none;align-items:center;gap:12px;padding:10px 12px;border:1px solid rgba(40,217,5,.25);border-radius:12px;background:rgba(5,15,5,.95);margin:8px 0;color:#fff}
+.gc-v10-musicbar.show{display:flex}
+.gc-v10-musicbar .gc-v10-music-info{min-width:0;flex:1}
+.gc-v10-music-info strong,.gc-v10-music-info small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gc-v10-musicbar button{border:0;background:transparent;color:#fff;font-size:20px;cursor:pointer}
+.gc-v10-home{display:none;padding:14px;border:1px solid rgba(40,217,5,.22);border-radius:14px;background:linear-gradient(135deg,rgba(8,16,8,.98),rgba(3,8,3,.98));margin-bottom:12px}
+.gc-v10-home.show{display:block}
+.gc-v10-home h2{margin:0 0 8px;font-size:20px}
+.gc-v10-home-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.gc-v10-home-card{border:1px solid rgba(40,217,5,.22);border-radius:10px;padding:12px;background:rgba(15,30,15,.75);color:#fff;cursor:pointer;text-align:left}
+.gc-v10-home-card b{display:block;font-size:16px;margin-bottom:4px}.gc-v10-home-card span{font-size:11px;opacity:.72}
+@media(max-width:700px){.gc-v10-home-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+</style>
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     LOADER
+===================================================== -->
+
+<div id="loader" class="hidden">
+
+    <div class="loader-box">
+
+        <div class="spinner"></div>
+
+        <div id="loaderText"
+             class="loader-text">
+
+            Carregando...
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     APLICATIVO
+===================================================== -->
+
+<div id="app">
+
+
+    <header class="header">
+
+
+        <div class="logo">
+
+            GC PLAY <span>PRO</span>
+
+        </div>
+
+
+        <!-- DETECÇÃO AUTOMÁTICA -->
+
+        <div id="deviceDetected"
+             class="device-detected">
+
+            <i id="deviceDetectedIcon"
+               class="fa-solid fa-mobile-screen">
+            </i>
+
+            <span id="deviceDetectedText">
+                Detectando...
+            </span>
+
+        </div>
+
+
+        <div class="header-space"></div>
+
+
+        <button type="button"
+                class="btn"
+                id="deviceBtn">
+
+            <i class="fa-solid fa-mobile-screen"></i>
+
+            DISPOSITIVO
+
+        </button>
+
+
+        <button type="button"
+                class="btn"
+                id="listsBtn">
+
+            <i class="fa-solid fa-list"></i>
+
+            LISTAS
+
+        </button>
+
+
+        <button type="button"
+                class="btn btn-green"
+                id="addBtn">
+
+            <i class="fa-solid fa-plus"></i>
+
+            M3U
+
+        </button>
+
+
+    </header>
+
+
+    <div id="status"
+         class="status">
+
+        Nenhuma lista carregada.
+        Adicione uma M3U para começar.
+
+    </div>
+
+    <section class="premium-hero" id="premiumHero">
+
+        <div class="hero-copy">
+            <div class="hero-kicker"><i class="fa-solid fa-bolt"></i> EXPERIÊNCIA PREMIUM</div>
+            <div class="hero-title">Bem-vindo ao <span>GC PLAY PRO</span></div>
+            <div class="hero-subtitle" id="heroSubtitle">Sua central de entretenimento. TV ao vivo, filmes, séries e música em uma única experiência.</div>
+        </div>
+
+        <div class="hero-stats">
+            <div class="hero-stat"><strong id="heroLive">0</strong><small>TV</small></div>
+            <div class="hero-stat"><strong id="heroMovies">0</strong><small>Filmes</small></div>
+            <div class="hero-stat"><strong id="heroSeries">0</strong><small>Séries</small></div>
+            <div class="hero-stat"><strong id="heroMusic">0</strong><small>Música</small></div>
+        </div>
+
+    </section>
+
+    <nav class="premium-shortcuts" aria-label="Acesso rápido">
+        <button type="button" class="premium-shortcut" data-quick-category="live"><i class="fa-solid fa-tower-broadcast"></i> Ao vivo</button>
+        <button type="button" class="premium-shortcut" data-quick-category="vod"><i class="fa-solid fa-film"></i> Filmes</button>
+        <button type="button" class="premium-shortcut" data-quick-category="series"><i class="fa-solid fa-layer-group"></i> Séries</button>
+        <button type="button" class="premium-shortcut" data-quick-search=""><i class="fa-solid fa-magnifying-glass"></i> Buscar conteúdo</button>
+        <button type="button" class="premium-shortcut" data-quick-device="1"><i class="fa-solid fa-qrcode"></i> Ativar aparelho</button>
+    </nav>
+
+
+    <div id="listsBar"
+         class="lists-bar">
+    </div>
+
+
+    <div id="tabs"
+         class="tabs">
+
+
+        <button type="button"
+                class="tab active"
+                data-category="live">
+
+            📺 TV
+
+        </button>
+
+
+        <button type="button"
+                class="tab"
+                data-category="vod">
+
+            🎬 FILMES
+
+        </button>
+
+
+        <button type="button"
+                class="tab"
+                data-category="series">
+
+            📚 SÉRIES
+
+        </button>
+
+
+        <button type="button"
+                class="tab"
+                data-category="music">
+
+            🎵 MÚSICA
+
+        </button>
+
+
+        <button type="button"
+                class="tab"
+                data-category="adult">
+
+            🔞 ADULTO
+
+        </button>
+
+
+    </div>
+
+    <div id="musicFilters" class="music-filters" aria-label="Categorias de música"></div>
+
+
+    <div class="workspace">
+
+
+        <!-- =================================================
+             CATÁLOGO
+        ================================================== -->
+
+        <section class="catalog">
+
+
+            <div class="catalog-tools">
+
+
+                <input
+                    id="search"
+                    class="search"
+                    type="search"
+                    placeholder="Pesquisar..."
+                    autocomplete="off">
+
+
+                <select id="group"
+                        class="group-select">
+
+                    <option value="ALL">
+
+                        Todas as categorias
+
+                    </option>
+
+                </select>
+
+
+            </div>
+
+
+            <div id="grid"
+                 class="grid">
+
+
+                <div class="empty">
+
+                    <i class="fa-solid fa-tv"></i>
+
+                    <br>
+
+                    Adicione uma lista M3U
+                    para começar.
+
+                </div>
+
+
+            </div>
+
+
+            <div class="pagination">
+
+
+                <button type="button"
+                        class="btn"
+                        id="prev">
+
+                    ‹
+
+                </button>
+
+
+                <span id="pageInfo"
+                      class="page-info">
+
+                    0–0 de 0
+
+                </span>
+
+
+                <button type="button"
+                        class="btn"
+                        id="next">
+
+                    ›
+
+                </button>
+
+
+            </div>
+
+
+        </section>
+
+
+        <!-- =================================================
+             PLAYER
+        ================================================== -->
+
+        <aside class="player">
+
+
+            <div class="video-box">
+
+
+                <video
+                    id="video"
+                    controls
+                    playsinline
+                    preload="metadata">
+                </video>
+
+
+            </div>
+
+
+            <div class="now-playing">
+
+
+                <div id="nowTitle"
+                     class="now-title">
+
+                    Nenhuma mídia selecionada
+
+                </div>
+
+
+                <div id="nowStatus"
+                     class="now-status">
+
+                    Escolha um conteúdo
+                    para reproduzir.
+
+                </div>
+
+
+            </div>
+
+
+
+
+            <button type="button" class="btn gc-cast-btn" id="gcCastBtn" style="display:block;">
+                <i class="fa-solid fa-tv"></i>
+                Transmitir para TV
+            </button>
+
+            <button type="button"
+                    class="btn"
+                    id="stop">
+
+
+                <i class="fa-solid fa-stop"></i>
+
+                Parar reprodução
+
+
+            </button>
+
+
+        </aside>
+
+
+    </div>
+
+
+</div>
+
+
+<!-- =====================================================
+     MODAL ADICIONAR M3U
+===================================================== -->
+
+<div id="addModal"
+     class="modal hidden">
+
+
+    <div class="modal-box">
+
+
+        <div class="modal-title">
+
+            <i class="fa-solid fa-link"></i>
+
+            ADICIONAR LISTA M3U
+
+        </div>
+
+
+        <div class="field">
+
+
+            <label>
+
+                Nome da lista
+
+            </label>
+
+
+            <input
+                id="listName"
+                type="text"
+                placeholder="Minha TV">
+
+
+        </div>
+
+
+        <div class="field">
+
+
+            <label>
+
+                URL completa da M3U
+
+            </label>
+
+
+            <input
+                id="listUrl"
+                type="url"
+                placeholder="http://servidor/..."
+                autocomplete="off">
+
+
+        </div>
+
+
+        <div style="
+            color:var(--muted);
+            font-size:12px;
+            line-height:1.5;
+        ">
+
+            Cada lista pode utilizar
+            um servidor diferente.
+            O aplicativo não fica preso
+            a um servidor IPTV específico.
+
+        </div>
+
+
+        <div class="modal-actions">
+
+
+            <button type="button"
+                    class="btn"
+                    data-close="addModal">
+
+                Cancelar
+
+            </button>
+
+
+            <button type="button"
+                    class="btn btn-green"
+                    id="saveList">
+
+                Salvar e carregar
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     MODAL LISTAS
+===================================================== -->
+
+<div id="listsModal"
+     class="modal hidden">
+
+
+    <div class="modal-box">
+
+
+        <div class="modal-title">
+
+            <i class="fa-solid fa-list"></i>
+
+            MINHAS LISTAS M3U
+
+        </div>
+
+
+        <div id="savedLists"></div>
+
+
+        <div class="modal-actions">
+
+
+            <button type="button"
+                    class="btn"
+                    data-close="listsModal">
+
+                Fechar
+
+            </button>
+
+
+            <button type="button"
+                    class="btn btn-green"
+                    id="newListFromModal">
+
+                + Adicionar M3U
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     MODAL PIN ADULTO
+===================================================== -->
+
+<div id="pinModal"
+     class="modal hidden">
+
+
+    <div class="modal-box"
+         style="max-width:360px">
+
+
+        <div class="modal-title"
+             style="text-align:center">
+
+
+            <i class="fa-solid fa-lock"></i>
+
+            CONTROLE PARENTAL
+
+
+        </div>
+
+
+        <div style="
+            color:var(--muted);
+            font-size:12px;
+            text-align:center;
+            margin-bottom:12px;
+        ">
+
+            Digite a senha de 4 números.
+
+        </div>
+
+
+        <div class="field">
+
+
+            <input
+                id="pin"
+                class="pin-input"
+                type="password"
+                maxlength="4"
+                inputmode="numeric"
+                placeholder="••••">
+
+
+        </div>
+
+
+        <div class="modal-actions">
+
+
+            <button type="button"
+                    class="btn"
+                    data-close="pinModal">
+
+                Cancelar
+
+            </button>
+
+
+            <button type="button"
+                    class="btn btn-green"
+                    id="pinOk">
+
+                Confirmar
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     MODAL SÉRIES
+===================================================== -->
+
+<div id="seriesModal"
+     class="modal hidden">
+
+
+    <div class="modal-box">
+
+
+        <div style="
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+        ">
+
+
+            <div id="seriesTitle"
+                 class="modal-title"
+                 style="margin-bottom:0">
+
+                Série
+
+            </div>
+
+
+            <button type="button"
+                    class="btn"
+                    data-close="seriesModal">
+
+                ✕
+
+            </button>
+
+
+        </div>
+
+
+        <div id="seasonTabs"
+             class="series-seasons"
+             style="margin-top:15px">
+
+        </div>
+
+
+        <div id="episodes"
+             class="episodes">
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     MODAL DISPOSITIVO
+===================================================== -->
+
+<div id="deviceModal"
+     class="modal hidden">
+
+
+    <div class="modal-box"
+         style="max-width:400px">
+
+
+        <div class="modal-title"
+             style="text-align:center">
+
+
+            <i id="deviceModalIcon"
+               class="fa-solid fa-mobile-screen">
+            </i>
+
+            ATIVAÇÃO DO DISPOSITIVO
+
+
+        </div>
+
+
+        <div class="device-box">
+
+
+            <div style="
+                color:var(--muted);
+                font-size:12px;
+            ">
+
+                Tipo de aparelho detectado
+
+            </div>
+
+
+            <div id="deviceTypeModal"
+                 style="
+                    color:var(--green);
+                    font-weight:900;
+                    font-size:16px;
+                    margin-top:6px;
+                 ">
+
+                Detectando...
+
+            </div>
+
+
+            <div style="
+                color:var(--muted);
+                font-size:12px;
+                margin-top:14px;
+            ">
+
+                Código deste aparelho
+
+            </div>
+
+
+            <div id="deviceCode"
+                 class="device-code">
+
+                GERANDO...
+
+            </div>
+
+
+            <div id="qr"
+                 class="qr-box">
+
+            </div>
+
+            <div class="device-activation-note">
+                <strong>ATIVAÇÃO REMOTA:</strong> escaneie este QR Code em outro celular para abrir a página oficial de ativação deste aparelho. Após a ativação, o GC PLAY PRO consulta o servidor automaticamente.
+            </div>
+
+
+            <div style="
+                color:var(--muted);
+                font-size:11px;
+                line-height:1.5;
+            ">
+
+                Escaneie o QR Code pelo celular
+                para acessar a página de ativação.
+
+            </div>
+
+
+            <div id="activationStatus"
+                 style="
+                    margin-top:12px;
+                    color:var(--green);
+                    font-size:12px;
+                    font-weight:800;
+                 ">
+
+                AGUARDANDO
+
+            </div>
+
+
+        </div>
+
+
+        <div class="modal-actions">
+
+
+            <button type="button"
+                    class="btn"
+                    data-close="deviceModal">
+
+                Fechar
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<script>
+
+
+/* =========================================================
+   GC PLAY PRO
+   SISTEMA ORIGINAL + DETECÇÃO INTELIGENTE
+========================================================= */
+
+(function(){
+
+"use strict";
+
+
+/* =========================================================
+   CONFIGURAÇÃO
+========================================================= */
+
+var SUPABASE =
+    "https://kuzgdvpdqmocklsgyzvt.supabase.co";
+
+
+var PLAYLIST_PROXY =
+    SUPABASE +
+    "/functions/v1/gcplay-proxy";
+
+
+var ACTIVATE =
+    SUPABASE +
+    "/functions/v1/activate-device";
+
+
+var ACTIVATION_PAGE =
+    "https://caiomendes29546874687.github.io/GC-PLAY-PRO-/connect.html";
+
+
+var PAGE_SIZE = 100;
+
+
+var FALLBACK =
+    "data:image/svg+xml;charset=UTF-8," +
+    encodeURIComponent(
+
+        "<svg xmlns='http://www.w3.org/2000/svg' " +
+        "width='400' height='500'>" +
+
+        "<rect width='100%' height='100%' fill='#030503'/>" +
+
+        "<text x='50%' y='45%' " +
+        "dominant-baseline='middle' " +
+        "text-anchor='middle' " +
+        "fill='#28D905' font-size='50'>▶</text>" +
+
+        "<text x='50%' y='58%' " +
+        "dominant-baseline='middle' " +
+        "text-anchor='middle' " +
+        "fill='#789078' font-size='22'>" +
+
+        "GC PLAY PRO" +
+
+        "</text>" +
+
+        "</svg>"
+
+    );
+
+
+/* =========================================================
+   ESTADO
+========================================================= */
+
+var state = {
+
+    list:null,
+
+    items:[],
+
+    category:"live",
+
+    group:"ALL",
+
+    musicFilter:"all",
+
+    page:1,
+
+    hls:null,
+
+    ts:null,
+
+    deviceId:null,
+
+    activationCode:null,
+
+    adultPin:
+        localStorage.getItem(
+            "gcplay_adult_pin"
+        ) ||
+        "0000",
+
+    /* DETECÇÃO */
+
+    deviceType:"unknown",
+
+    deviceLabel:"Detectando...",
+
+    inputType:"unknown",
+
+    isTV:false,
+
+    isTouch:false,
+
+    isMouse:false,
+
+    isKeyboard:false,
+
+    tvFocusIndex:-1,
+
+    tvFocusArea:"grid"
+
+};
+
+
+var lists=[];
+
+
+try{
+
+    lists =
+        JSON.parse(
+            localStorage.getItem(
+                "gcplay_lists"
+            ) ||
+            "[]"
+        );
+
+
+    if(!Array.isArray(lists)){
+
+        lists=[];
+
+    }
+
+}catch(e){
+
+    lists=[];
+
+}
+
+
+/* =========================================================
+   ATALHO DOM
+========================================================= */
+
+function $(id){
+
+    return document.getElementById(id);
+
+}
+
+
+/* =========================================================
+   NORMALIZAÇÃO
+========================================================= */
+
+function norm(value){
+
+    return String(value || "")
+
+        .normalize("NFD")
+
+        .replace(
+            /[\u0300-\u036f]/g,
+            ""
+        )
+
+        .toLowerCase()
+
+        .replace(
+            /\s+/g,
+            " "
+        )
+
+        .trim();
+
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function esc(value){
+
+    return String(value || "")
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =========================================================
+   ID
+========================================================= */
+
+function makeId(){
+
+    if(
+        window.crypto &&
+        typeof window.crypto.randomUUID ===
+            "function"
+    ){
+
+        return window.crypto.randomUUID();
+
+    }
+
+
+    return Date.now().toString(36) +
+
+        Math.random()
+            .toString(36)
+            .substring(2);
+
+}
+
+
+/* =========================================================
+   SISTEMA INTELIGENTE
+   DETECÇÃO DO DISPOSITIVO
+========================================================= */
+
+function detectDevice(){
+
+    var ua =
+        String(
+            navigator.userAgent ||
+            ""
+        ).toLowerCase();
+
+
+    var platform =
+        String(
+            navigator.platform ||
+            ""
+        ).toLowerCase();
+
+
+    var width =
+        Math.max(
+            window.innerWidth || 0,
+            document.documentElement.clientWidth || 0
+        );
+
+
+    var height =
+        Math.max(
+            window.innerHeight || 0,
+            document.documentElement.clientHeight || 0
+        );
+
+
+    var touch =
+        Number(
+            navigator.maxTouchPoints || 0
+        ) > 0;
+
+
+    var coarse =
+        window.matchMedia &&
+        window.matchMedia(
+            "(pointer:coarse)"
+        ).matches;
+
+
+    var fine =
+        window.matchMedia &&
+        window.matchMedia(
+            "(pointer:fine)"
+        ).matches;
+
+
+    var hover =
+        window.matchMedia &&
+        window.matchMedia(
+            "(hover:hover)"
+        ).matches;
+
+
+    /*
+     * TVs conhecidas
+     */
+
+    var tvUA =
+        /smart-tv|smarttv|hbbtv|webos|tizen|netcast|viera|nettv|googletv|android tv|aftb|aftm|bravia|hisense|roku|philips|opera tv|inettv|tv safari|ce-html|maple|dtv|dvb/.test(
+            ua
+        );
+
+
+    /*
+     * Android TV / Google TV
+     */
+
+    var androidTV =
+        /android/.test(ua) &&
+        (
+            /android tv|googletv|aftb|aftm|bravia|smart-tv|smarttv|tv/.test(ua) ||
+            (
+                !touch &&
+                width >= 1100 &&
+                /wv|version\/\d/.test(ua) === false &&
+                !/mobile/.test(ua)
+            )
+        );
+
+
+    /*
+     * WebOS
+     */
+
+    var webOS =
+        /web0s|webos/.test(ua);
+
+
+    /*
+     * Tizen
+     */
+
+    var tizen =
+        /tizen/.test(ua);
+
+
+    /*
+     * TV final
+     */
+
+    var isTV =
+        tvUA ||
+        androidTV ||
+        webOS ||
+        tizen;
+
+
+    /*
+     * Celular
+     */
+
+    var mobile =
+        /android.*mobile|iphone|ipod|windows phone|blackberry|opera mini|mobile/.test(
+            ua
+        );
+
+
+    /*
+     * Tablet
+     */
+
+    var tablet =
+        /ipad|tablet|android(?!.*mobile)/.test(
+            ua
+        );
+
+
+    /*
+     * Se for TV, TV vence qualquer
+     * outra classificação.
+     */
+
+    if(isTV){
+
+        state.deviceType="tv";
+
+        state.deviceLabel =
+            "TV / Smart TV";
+
+        state.isTV=true;
+
+    }
+
+    else if(mobile){
+
+        state.deviceType="mobile";
+
+        state.deviceLabel =
+            "Celular";
+
+        state.isTV=false;
+
+    }
+
+    else if(tablet){
+
+        state.deviceType="tablet";
+
+        state.deviceLabel =
+            "Tablet";
+
+        state.isTV=false;
+
+    }
+
+    else{
+
+        state.deviceType="pc";
+
+        state.deviceLabel =
+            "PC / Notebook";
+
+        state.isTV=false;
+
+    }
+
+
+    /*
+     * Tipo de entrada
+     */
+
+    state.isTouch =
+        touch ||
+        coarse;
+
+
+    state.isMouse =
+        fine ||
+        hover;
+
+
+    state.isKeyboard =
+        fine ||
+        !!navigator.keyboard;
+
+
+    if(isTV){
+
+        state.inputType =
+            "Controle remoto";
+
+    }
+
+    else if(
+        state.isTouch &&
+        state.isMouse
+    ){
+
+        state.inputType =
+            "Toque + mouse";
+
+    }
+
+    else if(state.isTouch){
+
+        state.inputType =
+            "Tela sensível ao toque";
+
+    }
+
+    else{
+
+        state.inputType =
+            "Mouse / teclado";
+
+    }
+
+
+    /*
+     * Classes no BODY
+     */
+
+    document.body.classList.remove(
+        "device-mobile",
+        "device-tablet",
+        "device-pc",
+        "device-tv",
+        "input-touch",
+        "input-mouse",
+        "input-remote",
+        "input-keyboard"
+    );
+
+
+    document.body.classList.add(
+        "device-" +
+        state.deviceType
+    );
+
+
+    if(state.isTouch){
+
+        document.body.classList.add(
+            "input-touch"
+        );
+
+    }
+
+
+    if(state.isMouse){
+
+        document.body.classList.add(
+            "input-mouse"
+        );
+
+    }
+
+
+    if(state.isKeyboard){
+
+        document.body.classList.add(
+            "input-keyboard"
+        );
+
+    }
+
+
+    if(isTV){
+
+        document.body.classList.add(
+            "input-remote"
+        );
+
+    }
+
+
+    /*
+     * Ícone
+     */
+
+    var icon =
+        $("deviceDetectedIcon");
+
+
+    if(icon){
+
+        icon.className =
+            "fa-solid " +
+            getDeviceIcon();
+
+    }
+
+
+    /*
+     * Texto
+     */
+
+    var text =
+        $("deviceDetectedText");
+
+
+    if(text){
+
+        text.textContent =
+            state.deviceLabel +
+            " • " +
+            state.inputType;
+
+    }
+
+
+    /*
+     * Modal
+     */
+
+    var modalType =
+        $("deviceTypeModal");
+
+
+    if(modalType){
+
+        modalType.textContent =
+            state.deviceLabel +
+            " • " +
+            state.inputType;
+
+    }
+
+
+    var modalIcon =
+        $("deviceModalIcon");
+
+
+    if(modalIcon){
+
+        modalIcon.className =
+            "fa-solid " +
+            getDeviceIcon();
+
+    }
+
+
+    /*
+     * Retorna informações
+     */
+
+    return {
+
+        type:
+            state.deviceType,
+
+        label:
+            state.deviceLabel,
+
+        input:
+            state.inputType,
+
+        width:
+            width,
+
+        height:
+            height,
+
+        touch:
+            state.isTouch,
+
+        mouse:
+            state.isMouse,
+
+        keyboard:
+            state.isKeyboard,
+
+        tv:
+            state.isTV,
+
+        platform:
+            platform,
+
+        userAgent:
+            ua
+
+    };
+
+}
+
+
+/* =========================================================
+   ÍCONE DO DISPOSITIVO
+========================================================= */
+
+function getDeviceIcon(){
+
+    if(state.deviceType==="tv"){
+
+        return "fa-tv";
+
+    }
+
+
+    if(state.deviceType==="tablet"){
+
+        return "fa-tablet-screen-button";
+
+    }
+
+
+    if(state.deviceType==="mobile"){
+
+        return "fa-mobile-screen";
+
+    }
+
+
+    return "fa-desktop";
+
+}
+
+
+/* =========================================================
+   REAPLICAR DETECÇÃO
+========================================================= */
+
+var lastDeviceType =
+    "";
+
+
+function applyDeviceMode(){
+
+    var oldType =
+        state.deviceType;
+
+
+    detectDevice();
+
+
+    /*
+     * Se o tipo mudou,
+     * atualiza a interface.
+     */
+
+    if(
+        oldType !==
+        state.deviceType
+    ){
+
+        render();
+
+    }
+
+
+    lastDeviceType =
+        state.deviceType;
+
+}
+
+
+/* =========================================================
+   PROXY
+========================================================= */
+
+function proxy(url,mode){
+
+    return PLAYLIST_PROXY +
+
+        "?mode=" +
+
+        encodeURIComponent(
+            mode
+        ) +
+
+        "&url=" +
+
+        encodeURIComponent(
+            url
+        );
+
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+function setStatus(
+    text,
+    type
+){
+
+    $("status")
+        .textContent=text;
+
+
+    $("status")
+        .className =
+            "status" +
+            (
+                type
+                    ? " "+type
+                    : ""
+            );
+
+}
+
+
+/* =========================================================
+   LOADER
+========================================================= */
+
+function loader(
+    show,
+    text
+){
+
+    if(text){
+
+        $("loaderText")
+            .textContent=text;
+
+    }
+
+
+    $("loader")
+        .classList.toggle(
+            "hidden",
+            !show
+        );
+
+}
+
+
+/* =========================================================
+   SALVAR LISTAS
+========================================================= */
+
+function saveLists(){
+
+    localStorage.setItem(
+
+        "gcplay_lists",
+
+        JSON.stringify(
+            lists
+        )
+
+    );
+
+}
+
+
+/* =========================================================
+   LISTAS NO TOPO
+========================================================= */
+
+function renderListPills(){
+
+    var html="";
+
+
+    lists.forEach(
+        function(list){
+
+            html +=
+
+                '<button type="button" ' +
+
+                'class="list-pill ' +
+
+                (
+                    state.list &&
+                    state.list.id===
+                        list.id
+                        ? "active"
+                        : ""
+                ) +
+
+                '" data-list-id="' +
+
+                esc(list.id) +
+
+                '">' +
+
+                esc(list.name) +
+
+                '</button>';
+
+        }
+    );
+
+
+    $("listsBar")
+        .innerHTML=html;
+
+
+    Array.prototype.forEach.call(
+
+        document.querySelectorAll(
+            "[data-list-id]"
+        ),
+
+        function(button){
+
+            button.onclick=function(){
+
+                var id =
+                    button.getAttribute(
+                        "data-list-id"
+                    );
+
+
+                var list =
+                    lists.find(
+                        function(item){
+
+                            return item.id===id;
+
+                        }
+                    );
+
+
+                if(list){
+
+                    loadList(list);
+
+                }
+
+            };
+
+        }
+
+    );
+
+}
+
+
+/* =========================================================
+   MODAL LISTAS
+========================================================= */
+
+function renderSavedLists(){
+
+    if(!lists.length){
+
+        $("savedLists")
+            .innerHTML =
+
+                '<div class="empty" ' +
+                'style="padding:30px">' +
+
+                '<i class="fa-solid fa-list"></i>' +
+
+                '<br>' +
+
+                'Nenhuma lista salva.' +
+
+                '</div>';
+
+        return;
+
+    }
+
+
+    var html="";
+
+
+    lists.forEach(
+        function(list){
+
+            html +=
+
+                '<div class="saved-list">' +
+
+                    '<div class="saved-info">' +
+
+                        '<span class="saved-name">' +
+
+                            esc(list.name) +
+
+                        '</span>' +
+
+                        '<span class="saved-url">' +
+
+                            esc(list.url) +
+
+                        '</span>' +
+
+                    '</div>' +
+
+                    '<button type="button" ' +
+
+                        'class="btn" ' +
+
+                        'data-open-list="' +
+
+                        esc(list.id) +
+
+                        '">' +
+
+                        'Abrir' +
+
+                    '</button>' +
+
+                    '<button type="button" ' +
+
+                        'class="btn btn-red" ' +
+
+                        'data-delete-list="' +
+
+                        esc(list.id) +
+
+                        '">' +
+
+                        'Excluir' +
+
+                    '</button>' +
+
+                '</div>';
+
+        }
+    );
+
+
+    $("savedLists")
+        .innerHTML=html;
+
+
+    Array.prototype.forEach.call(
+
+        document.querySelectorAll(
+            "[data-open-list]"
+        ),
+
+        function(button){
+
+            button.onclick=function(){
+
+                var id =
+                    button.getAttribute(
+                        "data-open-list"
+                    );
+
+
+                var list =
+                    lists.find(
+                        function(item){
+
+                            return item.id===id;
+
+                        }
+                    );
+
+
+                if(!list){
+
+                    return;
+
+                }
+
+
+                $("listsModal")
+                    .classList.add(
+                        "hidden"
+                    );
+
+
+                loadList(list);
+
+            };
+
+        }
+
+    );
+
+
+    Array.prototype.forEach.call(
+
+        document.querySelectorAll(
+            "[data-delete-list]"
+        ),
+
+        function(button){
+
+            button.onclick=function(){
+
+                var id =
+                    button.getAttribute(
+                        "data-delete-list"
+                    );
+
+
+                if(
+                    !confirm(
+                        "Deseja realmente excluir esta lista?"
+                    )
+                ){
+
+                    return;
+
+                }
+
+
+                lists =
+                    lists.filter(
+                        function(item){
+
+                            return item.id!==id;
+
+                        }
+                    );
+
+
+                saveLists();
+
+                renderSavedLists();
+
+                renderListPills();
+
+
+                if(
+                    state.list &&
+                    state.list.id===id
+                ){
+
+                    state.list=null;
+
+                    state.items=[];
+
+                    state.page=1;
+
+                    render();
+
+
+                    setStatus(
+                        "Lista excluída."
+                    );
+
+                }
+
+            };
+
+        }
+
+    );
+
+}
+
+
+/* =========================================================
+   PARSER EXTINF
+========================================================= */
+
+function findComma(line){
+
+    var quote=null;
+
+
+    for(
+        var i=0;
+        i<line.length;
+        i++
+    ){
+
+        var c=line[i];
+
+
+        if(
+            c==='"' ||
+            c==="'"
+        ){
+
+            if(quote===null){
+
+                quote=c;
+
+            }else if(
+                quote===c
+            ){
+
+                quote=null;
+
+            }
+
+        }else if(
+            c==="," &&
+            quote===null
+        ){
+
+            return i;
+
+        }
+
+    }
+
+
+    return -1;
+
+}
+
+
+/* =========================================================
+   ATRIBUTOS
+========================================================= */
+
+function extAttrs(line){
+
+    var attrs={};
+
+
+    var regex =
+        /([a-zA-Z0-9_-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s]+))/g;
+
+
+    var match;
+
+
+    while(
+        (match=regex.exec(line))
+    ){
+
+        attrs[
+            match[1].toLowerCase()
+        ] =
+
+            (
+                match[2] !== undefined
+
+                    ? match[2]
+
+                    :
+
+                    (
+                        match[3] !== undefined
+
+                            ? match[3]
+
+                            :
+
+                            (
+                                match[4] !== undefined
+                                    ? match[4]
+                                    : ""
+                            )
+
+                    )
+
+            ).trim();
+
+    }
+
+
+    return attrs;
+
+}
+
+
+/* =========================================================
+   EPISÓDIO
+========================================================= */
+
+function episodeInfo(name){
+
+    var m;
+
+
+    m =
+        String(name || "")
+        .match(
+            /\bS(\d{1,3})\s*[-._ ]?\s*E(\d{1,4})\b/i
+        );
+
+
+    if(m){
+
+        return {
+
+            season:
+                parseInt(
+                    m[1],
+                    10
+                ),
+
+            episode:
+                parseInt(
+                    m[2],
+                    10
+                )
+
+        };
+
+    }
+
+
+    m =
+        String(name || "")
+        .match(
+            /\bT(\d{1,3})\s*[-._ ]?\s*E(\d{1,4})\b/i
+        );
+
+
+    if(m){
+
+        return {
+
+            season:
+                parseInt(
+                    m[1],
+                    10
+                ),
+
+            episode:
+                parseInt(
+                    m[2],
+                    10
+                )
+
+        };
+
+    }
+
+
+    m =
+        String(name || "")
+        .match(
+            /\b(\d{1,3})x(\d{1,4})\b/i
+        );
+
+
+    if(m){
+
+        return {
+
+            season:
+                parseInt(
+                    m[1],
+                    10
+                ),
+
+            episode:
+                parseInt(
+                    m[2],
+                    10
+                )
+
+        };
+
+    }
+
+
+    return null;
+
+}
+
+
+/* =========================================================
+   CLASSIFICAÇÃO
+========================================================= */
+
+function classify(
+    group,
+    name,
+    url
+){
+    var rawUrl=String(url||"").toLowerCase();
+    var cleanUrl=rawUrl.split("?")[0].split("#")[0];
+    var text=norm((group||"")+" "+(name||""));
+
+    if(/\/(?:series|serie)\//i.test(cleanUrl)) return "series";
+
+    /* Música tem prioridade sobre /live/ e /movie/. */
+    if(
+        /\/(?:music|musica|musicas|audio|audios|radio|radios|karaoke)\//i.test(cleanUrl) ||
+        /\.(?:mp3|aac|m4a|flac|ogg|oga|wav|opus|wma)(?:$|[?#])/i.test(rawUrl) ||
+        /\b(music|musica|musicas|musical|music video|musicvideo|musicvideos|radio|radios|rádio|clip|clipe|clipes|videoclip|videoclipe|concert|concerto|mtv|vh1|audio|áudio|karaoke|karaokê|dance music|dj|hits|sertanejo|pagode|rock|pop|jazz|classica|clássica|show musical|filme musical|filmes musicais|music movie|music film|documentario musical|documentário musical|biografia musical)\b/.test(text)
+    ) return "music";
+
+    if(/\/(?:movie|movies|filme|filmes)\//i.test(cleanUrl)) return "vod";
+    if(/adult|adulto|xxx|porn|porno|18\+|private|privado|erotic|erotico|sex/.test(text)) return "adult";
+    if(/\/(?:live|lives|tv|channels?)\//i.test(cleanUrl)) return "live";
+    if(episodeInfo(name) || /\bseries?\b|\bserie\b|\btemporada\b|\bseason\b|\bepisode\b|\bepisodio\b/.test(text)) return "series";
+    if(/\bmovies?\b|\bfilmes?\b|\bcinema\b|\bvod\b|\bfilm\b|\bnetflix\b|\bprime video\b|\bdisney\b|\bhbo\b|\bmax\b/.test(text)) return "vod";
+    return "live";
+}
+
+
+/* =========================================================
+   MÚSICA — SUBCATEGORIAS
+========================================================= */
+function getMusicType(group,name,url){
+    var g=norm(group||"");
+    var n=norm(name||"");
+    var u=String(url||"").toLowerCase();
+    var text=g+" "+n;
+
+    if(/\.(?:mp3|aac|m4a|flac|ogg|oga|wav|opus|wma)(?:$|[?#])/i.test(u) ||
+       /\b(musicas?|music|songs?|audio|audio tracks?|karaoke|podcast)\b/i.test(text)){
+        return "songs";
+    }
+
+    if(/\/(?:live|lives|radio|radios|tv|channels?)\//i.test(u) ||
+       /\b(radio|rádio|radios|fm|mtv|vh1|music tv|musica ao vivo|música ao vivo|music channel|canal de musica|canal de música|dj)\b/i.test(text)){
+        return "channels";
+    }
+
+    if(/\b(music movie|music film|filme musical|filmes musicais|musical film|documentario musical|documentário musical|biografia musical|show musical|concerto|concert film|concert movie|musical special)\b/i.test(text)){
+        return "movies";
+    }
+
+    if(/\b(clip|clipe|clipes|videoclip|video clip|videoclipe|concert|concerto|show|performance|live session|unplugged|festival)\b/i.test(text)){
+        return "videos";
+    }
+
+    return "songs";
+}
+
+
+
+/* =========================================================
+   PARSER M3U
+========================================================= */
+
+function parseM3U(
+    text,
+    baseUrl
+){
+
+    var lines =
+        String(text || "")
+
+        .replace(
+            /^\uFEFF/,
+            ""
+        )
+
+        .replace(
+            /\r\n/g,
+            "\n"
+        )
+
+        .replace(
+            /\r/g,
+            "\n"
+        )
+
+        .split("\n");
+
+
+    var result=[];
+
+    var current=null;
+
+    var extGroup="";
+
+
+    for(
+        var i=0;
+        i<lines.length;
+        i++
+    ){
+
+        var line =
+            lines[i].trim();
+
+
+        if(!line){
+
+            continue;
+
+        }
+
+
+        if(
+            /^#EXTGRP:/i.test(line)
+        ){
+
+            extGroup =
+                line
+                .substring(8)
+                .trim();
+
+            continue;
+
+        }
+
+
+        if(
+            /^#EXTINF:/i.test(line)
+        ){
+
+            var comma =
+                findComma(line);
+
+
+            var title =
+                comma>=0
+
+                    ? line
+                        .substring(
+                            comma+1
+                        )
+                        .trim()
+
+                    : "Sem título";
+
+
+            var attrs =
+                extAttrs(line);
+
+
+            current={
+
+                name:
+                    attrs["tvg-name"] ||
+                    title ||
+                    "Sem título",
+
+                logo:
+                    attrs["tvg-logo"] ||
+                    attrs["logo"] ||
+                    "",
+
+                group:
+                    attrs["group-title"] ||
+                    extGroup ||
+                    "Geral",
+
+                tvgId:
+                    attrs["tvg-id"] ||
+                    "",
+
+                url:"",
+
+                referrer:"",
+
+                userAgent:""
+
+            };
+
+
+            extGroup="";
+
+            continue;
+
+        }
+
+
+        if(
+            /^#EXTVLCOPT:/i.test(line)
+        ){
+
+            if(!current){
+
+                continue;
+
+            }
+
+
+            var option =
+                line.substring(11);
+
+
+            var equal =
+                option.indexOf("=");
+
+
+            if(equal>=0){
+
+                var key =
+                    option
+                    .substring(
+                        0,
+                        equal
+                    )
+                    .trim()
+                    .toLowerCase();
+
+
+                var value =
+                    option
+                    .substring(
+                        equal+1
+                    )
+                    .trim();
+
+
+                if(
+                    key==="http-referrer"
+                ){
+
+                    current.referrer=value;
+
+                }
+
+
+                if(
+                    key==="http-user-agent"
+                ){
+
+                    current.userAgent=value;
+
+                }
+
+            }
+
+
+            continue;
+
+        }
+
+
+        if(
+            line.charAt(0)==="#"
+        ){
+
+            continue;
+
+        }
+
+
+        if(current){
+
+            var url=line;
+
+
+            try{
+
+                if(
+                    baseUrl &&
+                    !/^https?:\/\//i.test(url) &&
+                    !/^rtmp:\/\//i.test(url) &&
+                    !/^rtsp:\/\//i.test(url)
+                ){
+
+                    url =
+                        new URL(
+                            url,
+                            baseUrl
+                        ).href;
+
+                }
+
+            }catch(e){}
+
+
+            current.url=url;
+
+
+            if(url){
+
+                current.category =
+                    classify(
+                        current.group,
+                        current.name,
+                        url
+                    );
+
+                current.musicType =
+                    current.category === "music"
+                        ? getMusicType(current.group,current.name,url)
+                        : "";
+
+
+                result.push(
+                    current
+                );
+
+            }
+
+
+            current=null;
+
+        }
+
+    }
+
+
+    return result;
+
+}
+
+
+/* =========================================================
+   ABRIR ADICIONAR
+========================================================= */
+
+function openAdd(){
+
+    $("listName").value="";
+
+    $("listUrl").value="";
+
+
+    $("addModal")
+        .classList.remove(
+            "hidden"
+        );
+
+
+    setTimeout(
+        function(){
+
+            $("listName")
+                .focus();
+
+        },
+        100
+    );
+
+}
+
+
+/* =========================================================
+   ADICIONAR LISTA
+========================================================= */
+
+function addList(){
+
+    var name =
+        $("listName")
+        .value
+        .trim() ||
+        "Minha TV";
+
+
+    var url =
+        $("listUrl")
+        .value
+        .trim();
+
+
+    if(
+        !/^https?:\/\//i.test(url)
+    ){
+
+        alert(
+            "A URL da M3U precisa começar com http:// ou https://"
+        );
+
+        return;
+
+    }
+
+
+    var list={
+
+        id:
+            makeId(),
+
+        name:
+            name,
+
+        url:
+            url,
+
+        createdAt:
+            new Date()
+                .toISOString()
+
+    };
+
+
+    lists.push(list);
+
+    saveLists();
+
+
+    $("addModal")
+        .classList.add(
+            "hidden"
+        );
+
+
+    renderListPills();
+
+    loadList(list);
+
+}
+
+
+/* =========================================================
+   CARREGAR LISTA
+========================================================= */
+
+async function loadList(list){
+
+    if(
+        !list ||
+        !list.url
+    ){
+
+        return;
+
+    }
+
+
+    state.list=list;
+
+    state.items=[];
+
+    state.page=1;
+
+    state.category="live";
+
+    state.group="ALL";
+
+
+    state.tvFocusIndex=-1;
+
+
+    renderListPills();
+
+    setTabs();
+
+    render();
+
+
+    loader(
+        true,
+        "Conectando ao servidor..."
+    );
+
+
+    setStatus(
+        "Carregando "+
+        list.name+
+        "..."
+    );
+
+
+    try{
+
+        var response =
+            await fetch(
+
+                proxy(
+                    list.url,
+                    "playlist"
+                ),
+
+                {
+
+                    method:"GET",
+
+                    cache:"no-store"
+
+                }
+
+            );
+
+
+        var text =
+            await response.text();
+
+
+        if(!response.ok){
+
+            throw new Error(
+
+                text ||
+                "HTTP "+
+                response.status
+
+            );
+
+        }
+
+
+        loader(
+            true,
+            "Processando lista M3U..."
+        );
+
+
+        if(
+            !text ||
+
+            (
+                text.indexOf(
+                    "#EXTM3U"
+                )<0 &&
+
+                text.indexOf(
+                    "#EXTINF"
+                )<0
+            )
+        ){
+
+            throw new Error(
+                "A resposta não parece ser uma lista M3U válida."
+            );
+
+        }
+
+
+        await new Promise(
+            function(resolve){
+
+                setTimeout(
+                    function(){
+
+                        state.items =
+                            parseM3U(
+                                text,
+                                list.url
+                            );
+
+
+                        resolve();
+
+                    },
+                    20
+                );
+
+            }
+        );
+
+
+        if(
+            !state.items.length
+        ){
+
+            throw new Error(
+                "Nenhum item foi encontrado na M3U."
+            );
+
+        }
+
+
+        list.updatedAt =
+            new Date()
+            .toISOString();
+
+
+        saveLists();
+
+
+        state.page=1;
+
+
+        buildGroups();
+
+        render();
+
+
+        var count =
+            state.items.length
+            .toLocaleString(
+                "pt-BR"
+            );
+
+
+        var stats =
+            count+
+            " itens carregados • "+
+            list.name;
+
+
+        setStatus(
+            stats,
+            "ok"
+        );
+
+
+    }catch(error){
+
+        console.error(
+            "GC PLAY PRO:",
+            error
+        );
+
+
+        state.items=[];
+
+
+        render();
+
+
+        setStatus(
+
+            "Erro ao carregar: " +
+
+            (
+                error &&
+                error.message
+
+                    ? error.message
+
+                    : "Erro desconhecido"
+            ),
+
+            "error"
+
+        );
+
+
+    }finally{
+
+        loader(false);
+
+    }
+
+}
+
+
+/* =========================================================
+   TABS
+========================================================= */
+
+function setTabs(){
+
+    Array.prototype.forEach.call(
+
+        document.querySelectorAll(
+            ".tab"
+        ),
+
+        function(button){
+
+            button.classList.toggle(
+
+                "active",
+
+                button.getAttribute(
+                    "data-category"
+                ) ===
+                state.category
+
+            );
+
+        }
+
+    );
+
+}
+
+
+/* =========================================================
+   TROCAR CATEGORIA
+========================================================= */
+
+function switchCategory(
+    category
+){
+
+    state.category=category;
+
+    document.body.classList.remove("gc-category-live","gc-category-vod","gc-category-series","gc-category-music","gc-category-adult");
+    document.body.classList.add("gc-category-"+category);
+
+    state.group="ALL";
+    state.musicFilter="all";
+
+    state.page=1;
+
+    state.tvFocusIndex=-1;
+
+    setTabs();
+
+    buildGroups();
+
+    render();
+
+}
+
+
+/* =========================================================
+   ADULTO
+========================================================= */
+
+function requestAdult(){
+
+    $("pin").value="";
+
+
+    $("pinModal")
+        .classList.remove(
+            "hidden"
+        );
+
+
+    setTimeout(
+        function(){
+
+            $("pin")
+                .focus();
+
+        },
+        100
+    );
+
+}
+
+
+/* =========================================================
+   VALIDAR PIN
+========================================================= */
+
+function validatePin(){
+
+    var pin =
+        $("pin")
+        .value
+        .trim();
+
+
+    if(
+        pin===
+        state.adultPin
+    ){
+
+        $("pinModal")
+            .classList.add(
+                "hidden"
+            );
+
+
+        switchCategory(
+            "adult"
+        );
+
+
+    }else{
+
+        alert(
+            "Senha incorreta."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   GRUPOS
+========================================================= */
+
+function buildGroups(){
+
+    var map={};
+
+
+    state.items
+
+        .filter(
+            function(item){
+
+                return (
+                    item.category===
+                    state.category
+                );
+
+            }
+        )
+
+        .forEach(
+            function(item){
+
+                var group =
+                    item.group ||
+                    "Geral";
+
+
+                map[
+                    norm(group)
+                ] =
+                    group;
+
+            }
+        );
+
+
+    var groups =
+        Object.keys(map)
+
+        .map(
+            function(key){
+
+                return map[key];
+
+            }
+        )
+
+        .sort(
+            function(a,b){
+
+                return a.localeCompare(
+                    b,
+                    "pt-BR",
+                    {
+                        sensitivity:"base"
+                    }
+                );
+
+            }
+        );
+
+
+    var html =
+
+        '<option value="ALL">' +
+
+        'Todas as categorias' +
+
+        '</option>';
+
+
+    groups.forEach(
+        function(group){
+
+            html +=
+
+                '<option value="' +
+
+                esc(group) +
+
+                '">' +
+
+                esc(group) +
+
+                '</option>';
+
+        }
+    );
+
+
+    $("group")
+        .innerHTML=html;
+
+
+    $("group")
+        .value="ALL";
+
+}
+
+
+/* =========================================================
+   FILTRO
+========================================================= */
+
+function getFiltered(){
+
+    var items =
+        state.items.filter(
+
+            function(item){
+
+                return (
+                    item.category===
+                    state.category
+                );
+
+            }
+
+        );
+
+
+    if(
+        state.group!=="ALL"
+    ){
+
+        var group =
+            norm(
+                state.group
+            );
+
+
+        items =
+            items.filter(
+                function(item){
+
+                    return (
+                        norm(item.group)===
+                        group
+                    );
+
+                }
+            );
+
+    }
+
+
+    if(state.category==="music" && state.musicFilter!=="all"){
+        items=items.filter(function(item){
+            return item.musicType===state.musicFilter;
+        });
+    }
+
+
+    var search =
+        norm(
+            $("search").value
+        );
+
+
+    if(search){
+
+        items =
+            items.filter(
+                function(item){
+
+                    return norm(
+
+                        item.name+
+                        " "+
+                        item.group
+
+                    ).indexOf(
+                        search
+                    )>=0;
+
+                }
+            );
+
+    }
+
+
+    return items;
+
+}
+
+
+/* =========================================================
+   FOCO TV
+========================================================= */
+
+function clearTVFocus(){
+
+    document
+        .querySelectorAll(
+            ".tv-focus"
+        )
+        .forEach(
+            function(el){
+
+                el.classList.remove(
+                    "tv-focus"
+                );
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   PEGAR CARDS VISÍVEIS
+========================================================= */
+
+function getGridButtons(){
+
+    return Array.prototype.slice.call(
+
+        $("grid")
+            .querySelectorAll(
+                "[data-play-index]"
+            )
+
+    );
+
+}
+
+
+/* =========================================================
+   FOCAR CARD
+========================================================= */
+
+function focusGridCard(
+    index,
+    scroll
+){
+
+    if(!state.isTV){
+
+        return;
+
+    }
+
+
+    var buttons =
+        getGridButtons();
+
+
+    if(!buttons.length){
+
+        return;
+
+    }
+
+
+    if(index<0){
+
+        index=0;
+
+    }
+
+
+    if(index>=buttons.length){
+
+        index=
+            buttons.length-1;
+
+    }
+
+
+    clearTVFocus();
+
+
+    var button =
+        buttons[index];
+
+
+    if(!button){
+
+        return;
+
+    }
+
+
+    var card =
+        button.closest(
+            ".media-card"
+        );
+
+
+    if(card){
+
+        card.classList.add(
+            "tv-focus"
+        );
+
+    }
+
+
+    state.tvFocusIndex=index;
+
+
+    if(scroll!==false){
+
+        try{
+
+            button.scrollIntoView({
+
+                behavior:
+                    "smooth",
+
+                block:
+                    "nearest",
+
+                inline:
+                    "nearest"
+
+            });
+
+        }catch(e){
+
+            try{
+
+                button.scrollIntoView();
+
+            }catch(x){}
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   COLUNAS DO GRID
+========================================================= */
+
+function getGridColumns(){
+
+    var grid =
+        $("grid");
+
+
+    if(!grid){
+
+        return 1;
+
+    }
+
+
+    var style =
+        window.getComputedStyle(
+            grid
+        );
+
+
+    var template =
+        style.gridTemplateColumns;
+
+
+    if(!template){
+
+        return 1;
+
+    }
+
+
+    var columns =
+        template
+        .split(" ")
+        .filter(
+            function(value){
+
+                return value.trim();
+
+            }
+        );
+
+
+    return Math.max(
+        1,
+        columns.length
+    );
+
+}
+
+
+/* =========================================================
+   NAVEGAÇÃO TV
+========================================================= */
+
+function navigateTV(
+    direction
+){
+
+    if(!state.isTV){
+
+        return;
+
+    }
+
+
+    var buttons =
+        getGridButtons();
+
+
+    if(!buttons.length){
+
+        return;
+
+    }
+
+
+    var current =
+        state.tvFocusIndex;
+
+
+    if(
+        current<0 ||
+        current>=buttons.length
+    ){
+
+        current=0;
+
+    }
+
+
+    var columns =
+        getGridColumns();
+
+
+    var target=current;
+
+
+    if(direction==="left"){
+
+        target=current-1;
+
+    }
+
+
+    if(direction==="right"){
+
+        target=current+1;
+
+    }
+
+
+    if(direction==="up"){
+
+        target=current-columns;
+
+    }
+
+
+    if(direction==="down"){
+
+        target=current+columns;
+
+    }
+
+
+    /*
+     * Se chegou no começo/fim,
+     * tenta mudar página.
+     */
+
+    if(
+        target<0 &&
+        direction==="up"
+    ){
+
+        if(state.page>1){
+
+            state.page--;
+
+            render();
+
+            setTimeout(
+                function(){
+
+                    var newButtons =
+                        getGridButtons();
+
+                    focusGridCard(
+                        Math.min(
+                            newButtons.length-1,
+                            current
+                        )
+                    );
+
+                },
+                50
+            );
+
+            return;
+
+        }
+
+
+        focusGridCard(
+            0
+        );
+
+        return;
+
+    }
+
+
+    if(
+        target>=buttons.length &&
+        direction==="down"
+    ){
+
+        var total =
+            getFiltered().length;
+
+
+        var pages =
+            Math.max(
+                1,
+                Math.ceil(
+                    total/PAGE_SIZE
+                )
+            );
+
+
+        if(
+            state.page<pages
+        ){
+
+            state.page++;
+
+            render();
+
+            setTimeout(
+                function(){
+
+                    focusGridCard(
+                        0
+                    );
+
+                },
+                50
+            );
+
+            return;
+
+        }
+
+
+        focusGridCard(
+            buttons.length-1
+        );
+
+        return;
+
+    }
+
+
+    if(
+        target<0 &&
+        direction==="left"
+    ){
+
+        target=0;
+
+    }
+
+
+    if(
+        target>=buttons.length &&
+        direction==="right"
+    ){
+
+        target=
+            buttons.length-1;
+
+    }
+
+
+    focusGridCard(
+        target
+    );
+
+}
+
+
+/* =========================================================
+   ENTER TV
+========================================================= */
+
+function activateTVFocus(){
+
+    if(!state.isTV){
+
+        return;
+
+    }
+
+
+    var buttons =
+        getGridButtons();
+
+
+    if(!buttons.length){
+
+        return;
+
+    }
+
+
+    var index =
+        state.tvFocusIndex;
+
+
+    if(
+        index<0 ||
+        index>=buttons.length
+    ){
+
+        index=0;
+
+    }
+
+
+    buttons[index].click();
+
+}
+
+
+/* =========================================================
+   MODAL ABERTO
+========================================================= */
+
+function getOpenModal(){
+
+    var modals =
+        Array.prototype.slice.call(
+
+            document.querySelectorAll(
+                ".modal"
+            )
+
+        );
+
+
+    for(
+        var i=modals.length-1;
+        i>=0;
+        i--
+    ){
+
+        if(
+            !modals[i]
+                .classList
+                .contains(
+                    "hidden"
+                )
+        ){
+
+            return modals[i];
+
+        }
+
+    }
+
+
+    return null;
+
+}
+
+
+/* =========================================================
+   FECHAR MODAL TV
+========================================================= */
+
+function closeTVModal(){
+
+    var modal =
+        getOpenModal();
+
+
+    if(!modal){
+
+        return false;
+
+    }
+
+
+    modal.classList.add(
+        "hidden"
+    );
+
+
+    return true;
+
+}
+
+
+/* =========================================================
+   DASHBOARD PREMIUM
+========================================================= */
+function updatePremiumDashboard(){
+    var counts={live:0,vod:0,series:0,music:0,adult:0};
+    state.items.forEach(function(item){ if(counts[item.category]!==undefined) counts[item.category]++; });
+    [
+        ["heroLive",counts.live],
+        ["heroMovies",counts.vod],
+        ["heroSeries",counts.series],
+        ["heroMusic",counts.music]
+    ].forEach(function(pair){
+        var el=$(pair[0]);
+        if(el) el.textContent=Number(pair[1]||0).toLocaleString("pt-BR");
+    });
+    var subtitle=$("heroSubtitle");
+    if(subtitle){
+        if(!state.items.length){
+            subtitle.textContent="Sua central de entretenimento. Adicione uma M3U e descubra todo o conteúdo disponível.";
+        }else{
+            subtitle.textContent=Number(state.items.length).toLocaleString("pt-BR")+" conteúdos disponíveis nesta lista. Encontre, pesquise e reproduza em qualquer dispositivo compatível.";
+        }
+    }
+}
+
+function updateMusicFilters(){
+    var box=$("musicFilters");
+    if(!box) return;
+    var counts={all:0,songs:0,channels:0,movies:0,videos:0};
+    state.items.forEach(function(item){
+        if(item.category!=="music") return;
+        counts.all++;
+        if(counts[item.musicType]!==undefined) counts[item.musicType]++;
+    });
+    var defs=[
+        ["all","🎵 Tudo"],
+        ["songs","🎧 Músicas"],
+        ["channels","📻 Canais / Rádios"],
+        ["movies","🎬 Filmes Musicais"],
+        ["videos","🎤 Clipes / Shows"]
+    ];
+    box.innerHTML=defs.map(function(d){
+        var active=state.musicFilter===d[0]?" active":"";
+        return '<button type="button" class="music-filter-btn'+active+'" data-music-filter="'+d[0]+'">'+d[1]+' <span class="music-count">('+Number(counts[d[0]]||0).toLocaleString("pt-BR")+')</span></button>';
+    }).join("");
+    Array.prototype.forEach.call(box.querySelectorAll("[data-music-filter]"),function(btn){
+        btn.onclick=function(){
+            state.musicFilter=btn.getAttribute("data-music-filter")||"all";
+            state.page=1;
+            render();
+        };
+    });
+}
+
+function bindPremiumShortcuts(){
+    Array.prototype.forEach.call(document.querySelectorAll("[data-quick-category]"),function(btn){
+        btn.onclick=function(){
+            var category=btn.getAttribute("data-quick-category");
+            if(category) switchCategory(category);
+        };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-quick-search]"),function(btn){
+        btn.onclick=function(){
+            var search=$("search");
+            if(!search) return;
+            search.focus();
+            try{ search.scrollIntoView({behavior:"smooth",block:"nearest"}); }catch(e){}
+        };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-quick-device]"),function(btn){
+        btn.onclick=function(){
+            detectDevice();
+            $("deviceModal").classList.remove("hidden");
+            checkDeviceStatus();
+        };
+    });
+}
+
+/* =========================================================
+   RENDER
+========================================================= */
+
+function render(){
+
+    updatePremiumDashboard();
+    updateMusicFilters();
+
+    var items =
+        getFiltered();
+
+    /* Séries são exibidas como UMA capa por série.
+       Temporadas e episódios ficam dentro do modal da série. */
+    if(state.category==="series"){
+        items=buildSeriesGroups(items);
+    }
+
+    var total =
+        items.length;
+
+
+    var pages =
+        Math.max(
+
+            1,
+
+            Math.ceil(
+                total/PAGE_SIZE
+            )
+
+        );
+
+
+    if(
+        state.page>pages
+    ){
+
+        state.page=pages;
+
+    }
+
+
+    var start =
+        (
+            state.page-1
+        ) *
+        PAGE_SIZE;
+
+
+    var end =
+        Math.min(
+
+            start+
+            PAGE_SIZE,
+
+            total
+
+        );
+
+
+    var visible =
+        items.slice(
+            start,
+            end
+        );
+
+
+    if(
+        !visible.length
+    ){
+
+        $("grid")
+            .innerHTML =
+
+                '<div class="empty">' +
+
+                '<i class="fa-solid fa-folder-open"></i>' +
+
+                '<br>' +
+
+                'Nenhum conteúdo encontrado.' +
+
+                '</div>';
+
+
+    }else{
+
+        var html="";
+
+
+        visible.forEach(
+            function(item,index){
+
+                var realIndex =
+                    start+
+                    index;
+
+
+                var poster;
+
+
+                if(item.logo){
+
+                    poster =
+
+                        '<img loading="lazy" ' +
+
+                        'src="' +
+
+                        esc(
+
+                            proxy(
+                                item.logo,
+                                "image"
+                            )
+
+                        ) +
+
+                        '" ' +
+
+                        'data-fallback="1" ' +
+
+                        'alt="">';
+
+                }else{
+
+                    poster =
+
+                        '<div class="poster-icon">' +
+
+                        '▶' +
+
+                        '</div>';
+
+                }
+
+
+                html +=
+
+                    '<div class="media-card">' +
+
+                        '<button type="button" ' +
+
+                        'tabindex="0" ' +
+
+                        'data-play-index="' +
+
+                        realIndex +
+
+                        '">' +
+
+                            '<div class="poster">' +
+
+                                poster +
+
+                            '</div>' +
+
+                            '<div class="media-info">' +
+
+                                '<span class="media-title">' +
+
+                                    esc(
+                                        item.name
+                                    ) +
+
+                                '</span>' +
+
+                                '<span class="media-group">' +
+
+                                    (state.category==="series"
+                                        ? esc(Number(item.seasonCount||0)+" temporada(s) • "+Number(item.episodeCount||0)+" episódio(s)")
+                                        : esc(item.group)
+                                    ) +
+
+                                '</span>' +
+
+                            '</div>' +
+
+                        '</button>' +
+
+                    '</div>';
+
+            }
+        );
+
+
+        $("grid")
+            .innerHTML=html;
+
+
+        Array.prototype.forEach.call(
+
+            $("grid")
+                .querySelectorAll(
+                    "[data-play-index]"
+                ),
+
+            function(button){
+
+                button.onclick=function(){
+
+                    var index =
+                        Number(
+
+                            button.getAttribute(
+                                "data-play-index"
+                            )
+
+                        );
+
+
+                    var item =
+                        items[index];
+
+
+                    if(
+                        state.category===
+                        "series"
+                    ){
+
+                        openSeries(item);
+
+                    }else{
+
+                        play(item);
+
+                    }
+
+                };
+
+
+                /*
+                 * Em TV,
+                 * o foco real fica no card.
+                 */
+
+                button.onfocus=function(){
+
+                    if(state.isTV){
+
+                        var all =
+                            getGridButtons();
+
+
+                        var idx =
+                            all.indexOf(
+                                button
+                            );
+
+
+                        if(idx>=0){
+
+                            focusGridCard(
+                                idx,
+                                false
+                            );
+
+                        }
+
+                    }
+
+                };
+
+            }
+
+        );
+
+
+        Array.prototype.forEach.call(
+
+            $("grid")
+                .querySelectorAll(
+                    "img[data-fallback]"
+                ),
+
+            function(img){
+
+                img.onerror=function(){
+
+                    img.onerror=null;
+
+                    img.src=FALLBACK;
+
+                };
+
+            }
+
+        );
+
+
+    }
+
+
+    $("pageInfo")
+        .textContent =
+
+            total
+
+                ? (
+
+                    (start+1)+
+                    "–"+
+                    end+
+                    " de "+
+                    total.toLocaleString(
+                        "pt-BR"
+                    )
+
+                )
+
+                : "0–0 de 0";
+
+
+    $("prev").disabled =
+        state.page<=1;
+
+
+    $("next").disabled =
+        state.page>=pages;
+
+
+    /*
+     * TV:
+     * mantém o foco depois do render.
+     */
+
+    if(
+        state.isTV &&
+        visible.length
+    ){
+
+        var wanted =
+            state.tvFocusIndex;
+
+
+        if(
+            wanted<0 ||
+            wanted>=visible.length
+        ){
+
+            wanted=0;
+
+        }
+
+
+        setTimeout(
+            function(){
+
+                focusGridCard(
+                    wanted,
+                    false
+                );
+
+            },
+            0
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   PLAYER - DESTRUIR
+========================================================= */
+
+function destroyPlayer(){
+
+    if(state.hls){
+
+        try{
+
+            state.hls.destroy();
+
+        }catch(e){}
+
+
+        state.hls=null;
+
+    }
+
+
+    if(state.ts){
+
+        try{
+
+            state.ts.destroy();
+
+        }catch(e){}
+
+
+        state.ts=null;
+
+    }
+
+
+    var video =
+        $("video");
+
+    /* Salva o conteúdo anterior antes de desmontar o player. */
+    if(video && gcV11CurrentItem && isFinite(video.duration) && video.duration > 0 && isFinite(video.currentTime)){
+        gcV11SaveResume(gcV11CurrentItem, video);
+    }
+
+    try{
+
+        video.pause();
+
+    }catch(e){}
+
+
+    video.removeAttribute(
+        "src"
+    );
+
+
+    try{
+
+        video.load();
+
+    }catch(e){}
+
+}
+
+
+/* =========================================================
+   GC PLAY PRO — GOOGLE CAST / TRANSMITIR PARA TV (TESTE)
+   O Android nativo expõe window.Capacitor.Plugins.GCPlayCast.
+   No navegador, o botão fica oculto.
+========================================================= */
+(function(){
+    "use strict";
+
+    var castBtn = document.getElementById("gcCastBtn");
+
+    function nativeCastPlugin(){
+        try{
+            if(!window.Capacitor) return null;
+
+            if(window.Capacitor.Plugins &&
+               window.Capacitor.Plugins.GCPlayCast){
+                return window.Capacitor.Plugins.GCPlayCast;
+            }
+
+            /* Fallback para WebView/Capacitor onde o plugin ainda
+               não apareceu no objeto Plugins no momento do carregamento. */
+            if(typeof window.Capacitor.registerPlugin === "function"){
+                if(!window.__gcPlayCastProxy){
+                    window.__gcPlayCastProxy =
+                        window.Capacitor.registerPlugin("GCPlayCast");
+                }
+                return window.__gcPlayCastProxy;
+            }
+
+            return null;
+        }catch(e){
+            console.error("GC PLAY PRO Cast plugin:",e);
+            return null;
+        }
+    }
+
+    function castSupported(){
+        return !!nativeCastPlugin();
+    }
+
+    function guessContentType(item){
+        var u=String(item && item.url || "").toLowerCase();
+        if(/\.m3u8(?:\?|$)/i.test(u)) return "application/x-mpegURL";
+        if(/\.mp4(?:\?|$)/i.test(u)) return "video/mp4";
+        if(/\.webm(?:\?|$)/i.test(u)) return "video/webm";
+        if(/\.ogg(?:\?|$)/i.test(u)) return "video/ogg";
+        if(/\.mp3(?:\?|$)/i.test(u)) return "audio/mpeg";
+        if(/\.aac(?:\?|$)/i.test(u)) return "audio/aac";
+        if(/\.ts(?:\?|$)/i.test(u)) return "video/mp2t";
+        return "video/mp4";
+    }
+
+    window.gcPlayCastCurrent=function(){
+        var item = (typeof gcV11CurrentItem!=="undefined" && gcV11CurrentItem)
+            ? gcV11CurrentItem
+            : null;
+        if(!item || !item.url){
+            alert("Escolha um filme, canal ou episódio primeiro.");
+            return;
+        }
+
+        var plugin=nativeCastPlugin();
+        if(!plugin){
+            alert("A transmissão para TV está disponível no aplicativo Android do GC PLAY PRO.");
+            return;
+        }
+
+        /* Primeiro clique: abre a lista de TVs/Chromecast.
+           Depois de escolher a TV, toque novamente para enviar a mídia. */
+        if(typeof plugin.openCastDialog === "function" && !window.gcPlayCastConnected){
+            plugin.openCastDialog()
+                .then(function(){
+                    window.gcPlayCastConnected=true;
+                    if(typeof setStatus==="function") setStatus("Escolha sua TV. Depois toque novamente em Transmitir.","ok");
+                })
+                .catch(function(error){
+                    console.error("GC PLAY PRO Cast dialog:",error);
+                    alert((error && error.message) || "Não foi possível abrir a lista de TVs.");
+                });
+            return;
+        }
+
+        var originalUrl=String(item.url).trim();
+        var castUrl=originalUrl;
+        try{
+            if(typeof proxy==="function") castUrl=proxy(originalUrl,"media") || originalUrl;
+        }catch(e){ castUrl=originalUrl; }
+
+        var payload={
+            url:castUrl,
+            title:String(item.name||"GC PLAY PRO"),
+            subtitle:String(item.group||""),
+            contentType:guessContentType(item),
+            category:String(item.category||""),
+            image:String(item.logo||item.tvgLogo||"")
+        };
+
+        if(typeof plugin.cast !== "function"){
+            alert("Módulo de transmissão não encontrado nesta versão do aplicativo.");
+            return;
+        }
+
+        plugin.cast(payload)
+            .then(function(){
+                if(typeof setStatus==="function") setStatus("Transmitindo para a TV...","ok");
+            })
+            .catch(function(error){
+                console.error("GC PLAY PRO Cast:",error);
+                var msg=(error && (error.message||error.error)) || "Não foi possível iniciar a transmissão.";
+                if(String(error && (error.code||error.message||"")).indexOf("NO_CAST_SESSION") >= 0){
+                    window.gcPlayCastConnected=false;
+                }
+                alert(String(msg));
+            });
+    };
+
+    if(castBtn){
+        castBtn.addEventListener("click",window.gcPlayCastCurrent);
+
+        /* O botão permanece visível no APK. O clique verifica
+           naquele instante se o módulo nativo está disponível. */
+        castBtn.style.display="block";
+
+        /* Tenta descobrir o plugin novamente após a inicialização
+           do Capacitor, sem esconder o botão. */
+        var tries=0;
+        var timer=setInterval(function(){
+            tries++;
+            if(castSupported() || tries>=30){
+                clearInterval(timer);
+            }
+        },500);
+    }
+
+    window.addEventListener("gcplay-native-ready",function(){
+        if(castBtn) castBtn.style.display="block";
+    });
+})();
+
+/* =========================================================
+   GC PLAY PRO V11 — RESUME ENGINE
+========================================================= */
+var GC_V11_RESUME_KEY = "gcplay_v11_resume";
+var gcV11CurrentItem = null;
+function gcV11ReadJSON(key,fallback){try{var r=localStorage.getItem(key);return r?JSON.parse(r):fallback}catch(e){return fallback}}
+function gcV11WriteJSON(key,v){try{localStorage.setItem(key,JSON.stringify(v))}catch(e){}}
+function gcV11ItemKey(item){if(!item)return "";return String(item.url||"").trim().toLowerCase()||String(item.category||"")+"|"+String(item.name||"").trim().toLowerCase()}
+function gcV11ResumeMap(){var m=gcV11ReadJSON(GC_V11_RESUME_KEY,{});return m&&typeof m==="object"&&!Array.isArray(m)?m:{}}
+function gcV11GetResume(item){var x=gcV11ResumeMap()[gcV11ItemKey(item)];return x&&Number(x.time)>5?x:null}
+function gcV11SaveResume(item,v){if(!item||!v||!isFinite(v.duration)||v.duration<=0||!isFinite(v.currentTime))return;var k=gcV11ItemKey(item),m=gcV11ResumeMap(),pct=v.currentTime/v.duration;if(v.currentTime<8||pct>=.95)delete m[k];else m[k]={name:item.name||"",url:item.url||"",logo:item.logo||"",group:item.group||"",category:item.category||"",time:Math.floor(v.currentTime),duration:Math.floor(v.duration),updated:Date.now()};gcV11WriteJSON(GC_V11_RESUME_KEY,m);if(typeof window.gcV11RefreshUI==="function")window.gcV11RefreshUI()}
+
+/* =========================================================
+   PLAYER
+========================================================= */
+
+function play(item){
+
+    if(
+        !item ||
+        !item.url
+    ){
+
+        return;
+
+    }
+
+
+    destroyPlayer();
+
+
+    /*
+     * Em celular/tablet, leva o player imediatamente para a área
+     * visível quando o usuário escolhe um item no catálogo. O player
+     * continua sticky enquanto a lista é percorrida.
+     */
+    if(
+        window.matchMedia &&
+        window.matchMedia("(max-width:900px)").matches
+    ){
+
+        var playerBox = document.querySelector(".player");
+
+        if(playerBox){
+
+            setTimeout(function(){
+
+                try{
+
+                    playerBox.scrollIntoView({
+                        behavior:"smooth",
+                        block:"start"
+                    });
+
+                }catch(e){
+
+                    playerBox.scrollIntoView();
+
+                }
+
+            },40);
+
+        }
+
+    }
+
+
+    $("nowTitle")
+        .textContent =
+
+            item.name ||
+            "Reproduzindo";
+
+
+    $("nowStatus")
+        .textContent =
+            "Conectando...";
+
+
+    var video =
+        $("video");
+
+    /* V11: salva a sessão atual e restaura o ponto deste conteúdo. */
+    gcV11CurrentItem = item;
+    if(video && !video.__gcV11Bound){
+        video.__gcV11Bound = true;
+        video.addEventListener("timeupdate", function(){
+            if(gcV11CurrentItem && isFinite(video.duration) && video.duration > 0 && isFinite(video.currentTime)){
+                var sec = Math.floor(video.currentTime);
+                if(sec > 0 && sec % 5 === 0) gcV11SaveResume(gcV11CurrentItem, video);
+            }
+        });
+        video.addEventListener("pause", function(){
+            if(gcV11CurrentItem) gcV11SaveResume(gcV11CurrentItem, video);
+        });
+        video.addEventListener("ended", function(){
+            if(gcV11CurrentItem) gcV11SaveResume(gcV11CurrentItem, video);
+        });
+    }
+    var gcResume = gcV11GetResume(item);
+    if(video && gcResume){
+        var restored = false;
+        var restore = function(){
+            if(restored) return;
+            if(isFinite(video.duration) && video.duration > 0){
+                try{
+                    var target = Math.min(Number(gcResume.time), Math.max(0, video.duration - 2));
+                    if(target > 5){ video.currentTime = target; restored = true; }
+                }catch(e){}
+            }
+        };
+        video.addEventListener("loadedmetadata", restore);
+        video.addEventListener("durationchange", restore);
+        setTimeout(restore, 800);
+        setTimeout(restore, 1800);
+    }
+
+
+    var originalUrl =
+        item.url.trim();
+
+
+    var mediaUrl =
+        proxy(
+            originalUrl,
+            "media"
+        );
+
+
+    var lower =
+        originalUrl.toLowerCase();
+
+
+    /*
+     * HLS
+     */
+
+    if(
+        /\.m3u8(\?|$)/i.test(
+            lower
+        )
+    ){
+
+        if(
+            window.Hls &&
+            Hls.isSupported()
+        ){
+
+            state.hls =
+                new Hls({
+
+                    enableWorker:true,
+
+                    lowLatencyMode:false,
+
+                    backBufferLength:30,
+
+                    maxBufferLength:30,
+
+                    maxMaxBufferLength:60,
+
+                    manifestLoadingMaxRetry:3,
+
+                    levelLoadingMaxRetry:3,
+
+                    fragLoadingMaxRetry:3
+
+                });
+
+
+            state.hls.loadSource(
+                mediaUrl
+            );
+
+
+            state.hls.attachMedia(
+                video
+            );
+
+
+            state.hls.on(
+
+                Hls.Events.MANIFEST_PARSED,
+
+                function(){
+
+                    $("nowStatus")
+                        .textContent =
+                        "HLS conectado.";
+
+
+                    video
+                        .play()
+                        .catch(
+                            function(){}
+                        );
+
+                }
+
+            );
+
+
+            state.hls.on(
+
+                Hls.Events.ERROR,
+
+                function(
+                    event,
+                    data
+                ){
+
+                    console.warn(
+                        "HLS ERROR:",
+                        data
+                    );
+
+
+                    if(
+                        data &&
+                        data.fatal
+                    ){
+
+                        $("nowStatus")
+                            .textContent =
+
+                            "Falha HLS: " +
+
+                            (
+                                data.type ||
+                                "erro"
+                            );
+
+                    }
+
+                }
+
+            );
+
+
+        }else if(
+
+            video.canPlayType(
+                "application/vnd.apple.mpegurl"
+            )
+
+        ){
+
+            video.src=mediaUrl;
+
+
+            video.play()
+                .catch(
+                    function(){}
+                );
+
+
+            $("nowStatus")
+                .textContent =
+                "HLS nativo conectado.";
+
+        }else{
+
+            $("nowStatus")
+                .textContent =
+                "HLS não suportado neste aparelho.";
+
+        }
+
+
+        return;
+
+    }
+
+
+    /*
+     * MP4 / WEBM / OGG
+     */
+
+    if(
+
+        /\.mp4(\?|$)/i.test(lower) ||
+
+        /\.webm(\?|$)/i.test(lower) ||
+
+        /\.ogg(\?|$)/i.test(lower)
+
+    ){
+
+        video.src=mediaUrl;
+
+
+        video.play()
+            .catch(
+                function(){}
+            );
+
+
+        $("nowStatus")
+            .textContent =
+            "Vídeo conectado.";
+
+
+        return;
+
+    }
+
+
+    /*
+     * MPEG-TS
+     *
+     * PRINCIPAL PARA CANAIS .TS
+     */
+
+    if(
+
+        window.mpegts &&
+
+        typeof mpegts.isSupported===
+            "function" &&
+
+        mpegts.isSupported()
+
+    ){
+
+        try{
+
+            state.ts =
+                mpegts.createPlayer(
+
+                    {
+
+                        type:"mpegts",
+
+                        isLive:
+
+                            item.category===
+                                "live" ||
+
+                            /\.ts(\?|$)/i.test(
+                                lower
+                            ),
+
+                        url:
+                            mediaUrl
+
+                    },
+
+                    {
+
+                        enableWorker:true,
+
+                        enableStashBuffer:true,
+
+                        stashInitialSize:128,
+
+                        lazyLoad:false,
+
+                        autoCleanupSourceBuffer:true
+
+                    }
+
+                );
+
+
+            state.ts.attachMediaElement(
+                video
+            );
+
+
+            state.ts.load();
+
+
+            state.ts.play()
+                .catch(
+                    function(){}
+                );
+
+
+            $("nowStatus")
+                .textContent =
+                "MPEG-TS conectado.";
+
+
+            return;
+
+        }catch(error){
+
+            console.error(
+                "MPEG-TS:",
+                error
+            );
+
+        }
+
+    }
+
+
+    /*
+     * ÚLTIMA TENTATIVA
+     */
+
+    video.src=mediaUrl;
+
+
+    video.play()
+        .catch(
+            function(){}
+        );
+
+
+    $("nowStatus")
+        .textContent =
+        "Tentando reprodução direta.";
+
+}
+
+
+/* =========================================================
+   PARAR
+========================================================= */
+
+function stop(){
+
+    destroyPlayer();
+
+
+    $("nowTitle")
+        .textContent =
+        "Nenhuma mídia selecionada";
+
+
+    $("nowStatus")
+        .textContent =
+        "Escolha um conteúdo para reproduzir.";
+
+}
+
+
+/* =========================================================
+   AGRUPAMENTO DE SÉRIES
+========================================================= */
+
+function cleanSeriesTitle(name){
+    var title=String(name||"").trim();
+    if(!title) return "Série sem nome";
+
+    /* Remove informações que pertencem ao episódio/qualidade. */
+    title=title
+        .replace(/\[[^\]]*(?:S\s*\d+\s*[-._ ]?\s*E\s*\d+|T\s*\d+\s*[-._ ]?\s*E\s*\d+|\d+\s*x\s*\d+|season|temporada|episode|episodio|ep\.?|1080p|720p|2160p|4k|fhd|hd)[^\]]*\]/ig," ")
+        .replace(/\([^)]*(?:S\s*\d+\s*[-._ ]?\s*E\s*\d+|T\s*\d+\s*[-._ ]?\s*E\s*\d+|\d+\s*x\s*\d+|season|temporada|episode|episodio|ep\.?)[^)]*\)/ig," ")
+        .replace(/\bS\s*\d{1,3}\s*[-._ ]?\s*E\s*\d{1,4}\b/ig," ")
+        .replace(/\bT\s*\d{1,3}\s*[-._ ]?\s*E\s*\d{1,4}\b/ig," ")
+        .replace(/\b\d{1,3}\s*x\s*\d{1,4}\b/ig," ")
+        .replace(/\b(?:season|temporada|temp\.?|serie|series)\s*\d{1,3}\b/ig,function(m){
+            return /^(?:serie|series)$/i.test(m.trim()) ? m : " ";
+        })
+        .replace(/\b(?:episode|episodio|ep\.?|capitulo|capítulo)\s*\d{1,4}\b/ig," ")
+        .replace(/\b(?:part|parte)\s*\d{1,4}\b/ig," ")
+        .replace(/\b(?:1080p|720p|2160p|4k|fhd|uhd|hd|sd)\b/ig," ")
+        .replace(/\s*[-|:_]+\s*$/g,"")
+        .replace(/\s{2,}/g," ")
+        .trim();
+
+    return title || String(name||"").trim() || "Série sem nome";
+}
+
+function buildSeriesGroups(sourceItems){
+    var map={};
+    var items=Array.isArray(sourceItems) ? sourceItems : state.items;
+
+    items.filter(function(item){
+        return item && item.category==="series";
+    }).forEach(function(item){
+        var info=episodeInfo(item.name);
+        var base=cleanSeriesTitle(item.name);
+        var key=norm(base);
+        if(!key) return;
+
+        if(!map[key]){
+            map[key]={
+                name:base,
+                logo:item.logo||"",
+                group:item.group||"Séries",
+                seasons:{},
+                __episodeKeys:{}
+            };
+        }else if(!map[key].logo && item.logo){
+            map[key].logo=item.logo;
+        }
+
+        /* Se a lista não trouxe SxxExx no nome, tenta extrair do grupo. */
+        if(!info){
+            info=episodeInfo(item.group||"");
+        }
+
+        /* Sem identificação de temporada/episódio, mantém o conteúdo
+           na temporada 1 sem criar outra série. */
+        var season=info ? Math.max(1,Number(info.season)||1) : 1;
+        var episode=info ? Math.max(1,Number(info.episode)||1) : null;
+
+        if(!map[key].seasons[season]){
+            map[key].seasons[season]=[];
+        }
+        if(!map[key].__episodeKeys[season]){
+            map[key].__episodeKeys[season]={};
+        }
+
+        /* Evita a mesma temporada/episódio repetidos. */
+        var episodeKey;
+        if(episode!==null){
+            episodeKey="ep:"+episode;
+        }else{
+            episodeKey="url:"+String(item.url||"").toLowerCase()+"|name:"+norm(item.name||"");
+        }
+
+        if(map[key].__episodeKeys[season][episodeKey]) return;
+        map[key].__episodeKeys[season][episodeKey]=true;
+
+        map[key].seasons[season].push({
+            name:item.name,
+            url:item.url,
+            logo:item.logo,
+            group:item.group,
+            episode:episode || (map[key].seasons[season].length+1),
+            referrer:item.referrer,
+            userAgent:item.userAgent
+        });
+    });
+
+    return Object.keys(map).map(function(key){
+        var serie=map[key];
+        delete serie.__episodeKeys;
+        Object.keys(serie.seasons).forEach(function(season){
+            serie.seasons[season].sort(function(a,b){
+                return Number(a.episode||0)-Number(b.episode||0) ||
+                    String(a.name||"").localeCompare(String(b.name||""),"pt-BR",{sensitivity:"base"});
+            });
+        });
+        serie.seasonCount=Object.keys(serie.seasons).length;
+        serie.episodeCount=Object.keys(serie.seasons).reduce(function(total,season){
+            return total+serie.seasons[season].length;
+        },0);
+        return serie;
+    }).sort(function(a,b){
+        return a.name.localeCompare(b.name,"pt-BR",{sensitivity:"base"});
+    });
+}
+
+/* =========================================================
+   ABRIR SÉRIE
+========================================================= */
+
+function openSeries(item){
+
+    var series =
+        buildSeriesGroups();
+
+
+    var selected=null;
+
+    /* O render já entrega o agrupamento completo quando clicamos
+       em uma capa de série. Isso evita procurar por substring e
+       selecionar outra série com nome parecido. */
+    if(item && item.seasons && item.name){
+        selected=item;
+    }
+
+
+    var itemNorm =
+        norm(item.name);
+
+
+    if(!selected) series.forEach(
+        function(serie){
+
+            var titleNorm =
+                norm(serie.name);
+
+
+            if(
+
+                itemNorm.indexOf(
+                    titleNorm
+                )>=0 ||
+
+                titleNorm.indexOf(
+                    itemNorm
+                )>=0
+
+            ){
+
+                selected=serie;
+
+            }
+
+        }
+    );
+
+
+    if(!selected){
+
+        selected={
+
+            name:item.name,
+
+            logo:item.logo,
+
+            group:item.group,
+
+            seasons:{
+
+                1:[{
+
+                    name:item.name,
+
+                    url:item.url,
+
+                    logo:item.logo,
+
+                    group:item.group,
+
+                    episode:1
+
+                }]
+
+            }
+
+        };
+
+    }
+
+
+    $("seriesTitle")
+        .textContent =
+        selected.name;
+
+
+    $("seriesModal")
+        .classList.remove(
+            "hidden"
+        );
+
+
+    var seasons =
+        Object.keys(
+            selected.seasons
+        )
+
+        .sort(
+            function(a,b){
+
+                return Number(a)-
+                    Number(b);
+
+            }
+        );
+
+
+    var tabs="";
+
+
+    seasons.forEach(
+        function(
+            season,
+            index
+        ){
+
+            tabs +=
+
+                '<button type="button" ' +
+
+                'class="season ' +
+
+                (
+                    index===0
+                        ? "active"
+                        : ""
+                ) +
+
+                '" data-season="' +
+
+                esc(season) +
+
+                '">' +
+
+                "Temporada " +
+
+                esc(season) +
+
+                '</button>';
+
+        }
+    );
+
+
+    $("seasonTabs")
+        .innerHTML=tabs;
+
+
+    function renderSeason(
+        season
+    ){
+
+        Array.prototype.forEach.call(
+
+            $("seasonTabs")
+                .querySelectorAll(
+                    ".season"
+                ),
+
+            function(button){
+
+                button.classList.toggle(
+
+                    "active",
+
+                    button.getAttribute(
+                        "data-season"
+                    )===
+                    String(season)
+
+                );
+
+            }
+
+        );
+
+
+        var episodes =
+            selected.seasons[
+                season
+            ] || [];
+
+
+        episodes =
+            episodes
+            .slice()
+            .sort(
+                function(a,b){
+
+                    return (
+
+                        Number(
+                            a.episode
+                        ) -
+
+                        Number(
+                            b.episode
+                        )
+
+                    );
+
+                }
+            );
+
+
+        var html="";
+
+
+        episodes.forEach(
+            function(ep){
+
+                html +=
+
+                    '<div class="episode" ' +
+
+                    'tabindex="0" ' +
+
+                    'data-episode="' +
+
+                    esc(ep.url) +
+
+                    '">' +
+
+                        '<div class="episode-number">' +
+
+                            esc(
+                                ep.episode
+                            ) +
+
+                        '</div>' +
+
+                        '<div class="episode-name">' +
+
+                            esc(
+                                ep.name
+                            ) +
+
+                        '</div>' +
+
+                        '<i class="fa-solid fa-play" ' +
+
+                        'style="color:var(--green)">' +
+
+                        '</i>' +
+
+                    '</div>';
+
+            }
+        );
+
+
+        $("episodes")
+            .innerHTML =
+
+                html ||
+
+                '<div class="empty" ' +
+                'style="padding:30px">' +
+
+                'Nenhum episódio encontrado.' +
+
+                '</div>';
+
+
+        Array.prototype.forEach.call(
+
+            $("episodes")
+                .querySelectorAll(
+                    "[data-episode]"
+                ),
+
+            function(button){
+
+                button.onclick=function(){
+
+                    var url =
+                        button.getAttribute(
+                            "data-episode"
+                        );
+
+
+                    var ep =
+                        episodes.find(
+                            function(x){
+
+                                return x.url===
+                                    url;
+
+                            }
+                        );
+
+
+                    $("seriesModal")
+                        .classList.add(
+                            "hidden"
+                        );
+
+
+                    if(ep){
+
+                        play({
+
+                            name:
+
+                                selected.name+
+                                " - T"+
+                                season+
+                                "E"+
+                                ep.episode,
+
+                            url:
+                                ep.url,
+
+                            logo:
+                                ep.logo,
+
+                            group:
+                                "Séries",
+
+                            category:
+                                "series"
+
+                        });
+
+                    }
+
+                };
+
+            }
+
+        );
+
+    }
+
+
+    Array.prototype.forEach.call(
+
+        $("seasonTabs")
+            .querySelectorAll(
+                ".season"
+            ),
+
+        function(button){
+
+            button.onclick=function(){
+
+                renderSeason(
+
+                    button.getAttribute(
+                        "data-season"
+                    )
+
+                );
+
+            };
+
+        }
+
+    );
+
+
+    if(seasons.length){
+
+        renderSeason(
+            seasons[0]
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   DISPOSITIVO / ID
+========================================================= */
+
+function initDevice(){
+
+    var deviceId =
+        localStorage.getItem(
+            "gcplay_device_id"
+        );
+
+
+    if(!deviceId){
+
+        if(
+
+            window.crypto &&
+
+            typeof window.crypto.randomUUID===
+                "function"
+
+        ){
+
+            deviceId =
+                window.crypto.randomUUID();
+
+        }else{
+
+            deviceId =
+                makeId();
+
+        }
+
+
+        localStorage.setItem(
+
+            "gcplay_device_id",
+
+            deviceId
+
+        );
+
+    }
+
+
+    var code =
+        localStorage.getItem(
+            "gcplay_activation_code"
+        );
+
+
+    if(
+
+        !/^[A-Z0-9]{6}$/i.test(
+            String(code || "")
+        )
+
+    ){
+
+        var chars =
+            "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+
+        code="";
+
+
+        for(
+            var i=0;
+            i<6;
+            i++
+        ){
+
+            code +=
+
+                chars[
+                    Math.floor(
+                        Math.random()*
+                        chars.length
+                    )
+                ];
+
+        }
+
+
+        localStorage.setItem(
+
+            "gcplay_activation_code",
+
+            code
+
+        );
+
+    }
+
+
+    state.deviceId =
+        deviceId;
+
+
+    state.activationCode =
+        String(code)
+        .toUpperCase();
+
+
+    $("deviceCode")
+        .textContent =
+
+        "GC-" +
+
+        deviceId
+            .replace(
+                /-/g,
+                ""
+            )
+            .substring(
+                0,
+                8
+            )
+            .toUpperCase();
+
+
+    $("qr")
+        .innerHTML="";
+
+
+    try{
+
+        new QRCode(
+
+            $("qr"),
+
+            {
+
+                text:
+
+                    ACTIVATION_PAGE+
+
+                    "?device="+
+
+                    encodeURIComponent(
+                        deviceId
+                    )+
+
+                    "&code="+
+
+                    encodeURIComponent(
+                        state.activationCode
+                    ),
+
+                width:150,
+
+                height:150
+
+            }
+
+        );
+
+    }catch(e){
+
+        $("qr")
+            .textContent =
+            state.activationCode;
+
+    }
+
+}
+
+
+/* =========================================================
+   REGISTRAR DISPOSITIVO
+========================================================= */
+
+async function registerDevice(){
+
+    try{
+
+        var response =
+            await fetch(
+
+                ACTIVATE,
+
+                {
+
+                    method:"POST",
+
+                    headers:{
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body:JSON.stringify({
+
+                        action:"register",
+
+                        device_id:
+                            state.deviceId,
+
+                        activation_code:
+                            state.activationCode
+
+                    })
+
+                }
+
+            );
+
+
+        if(response.ok){
+
+            $("activationStatus")
+                .textContent =
+                "DISPOSITIVO REGISTRADO";
+
+        }
+
+    }catch(error){
+
+        console.warn(
+            "Ativação:",
+            error
+        );
+
+
+        $("activationStatus")
+            .textContent =
+            "AGUARDANDO CONEXÃO";
+
+    }
+
+}
+
+
+/* =========================================================
+   STATUS DO DISPOSITIVO
+========================================================= */
+
+async function checkDeviceStatus(){
+
+    if(!state.deviceId){
+
+        return;
+
+    }
+
+
+    try{
+
+        var response =
+            await fetch(
+
+                ACTIVATE,
+
+                {
+
+                    method:"POST",
+
+                    headers:{
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body:JSON.stringify({
+
+                        action:"status",
+
+                        device_id:
+                            state.deviceId
+
+                    })
+
+                }
+
+            );
+
+
+        if(!response.ok){
+
+            return;
+
+        }
+
+
+        var data =
+            await response.json();
+
+
+        if(
+
+            data &&
+            data.success &&
+            data.device
+
+        ){
+
+            if(
+
+                data.device.status===
+                "active"
+
+            ){
+
+                $("activationStatus")
+                    .textContent =
+                    "APARELHO ATIVADO";
+
+            }else if(
+
+                data.device.status===
+                "blocked"
+
+            ){
+
+                $("activationStatus")
+                    .textContent =
+                    "APARELHO BLOQUEADO";
+
+            }else{
+
+                $("activationStatus")
+                    .textContent =
+                    "AGUARDANDO ATIVAÇÃO";
+
+            }
+
+        }
+
+    }catch(e){
+
+        console.warn(
+            "Status:",
+            e
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   EVENTOS
+========================================================= */
+
+function bind(){
+
+    bindPremiumShortcuts();
+
+    /* =====================================================
+       + M3U
+    ===================================================== */
+
+    $("addBtn").onclick =
+        openAdd;
+
+
+    /* =====================================================
+       LISTAS
+    ===================================================== */
+
+    $("listsBtn").onclick=function(){
+
+        renderSavedLists();
+
+
+        $("listsModal")
+            .classList.remove(
+                "hidden"
+            );
+
+    };
+
+
+    /* =====================================================
+       DISPOSITIVO
+    ===================================================== */
+
+    $("deviceBtn").onclick=function(){
+
+        detectDevice();
+
+
+        $("deviceModal")
+            .classList.remove(
+                "hidden"
+            );
+
+
+        checkDeviceStatus();
+
+    };
+
+
+    /* =====================================================
+       NOVA LISTA
+    ===================================================== */
+
+    $("newListFromModal")
+        .onclick=function(){
+
+            $("listsModal")
+                .classList.add(
+                    "hidden"
+                );
+
+
+            openAdd();
+
+        };
+
+
+    /* =====================================================
+       SALVAR
+    ===================================================== */
+
+    $("saveList").onclick =
+        addList;
+
+
+    /* =====================================================
+       FECHAR MODAIS
+    ===================================================== */
+
+    Array.prototype.forEach.call(
+
+        document.querySelectorAll(
+            "[data-close]"
+        ),
+
+        function(button){
+
+            button.onclick=function(){
+
+                var id =
+                    button.getAttribute(
+                        "data-close"
+                    );
+
+
+                $(id)
+                    .classList.add(
+                        "hidden"
+                    );
+
+            };
+
+        }
+
+    );
+
+
+    /* =====================================================
+       TABS
+    ===================================================== */
+
+    Array.prototype.forEach.call(
+
+        document.querySelectorAll(
+            ".tab"
+        ),
+
+        function(button){
+
+            button.onclick=function(){
+
+                var category =
+                    button.getAttribute(
+                        "data-category"
+                    );
+
+
+                if(
+                    category==="adult"
+                ){
+
+                    requestAdult();
+
+                    return;
+
+                }
+
+
+                switchCategory(
+                    category
+                );
+
+            };
+
+        }
+
+    );
+
+
+    /* =====================================================
+       PIN
+    ===================================================== */
+
+    $("pinOk")
+        .onclick =
+        validatePin;
+
+
+    $("pin")
+        .addEventListener(
+
+            "keydown",
+
+            function(event){
+
+                if(
+                    event.key==="Enter"
+                ){
+
+                    event.preventDefault();
+
+                    validatePin();
+
+                }
+
+            }
+
+        );
+
+
+    /* =====================================================
+       PESQUISA
+    ===================================================== */
+
+    $("search")
+        .oninput=function(){
+
+            state.page=1;
+
+            state.tvFocusIndex=-1;
+
+            render();
+
+        };
+
+
+    /* =====================================================
+       GRUPO
+    ===================================================== */
+
+    $("group")
+        .onchange=function(){
+
+            state.group =
+                this.value;
+
+
+            state.page=1;
+
+            state.tvFocusIndex=-1;
+
+            render();
+
+        };
+
+
+    /* =====================================================
+       PAGINAÇÃO
+    ===================================================== */
+
+    $("prev")
+        .onclick=function(){
+
+            if(
+                state.page>1
+            ){
+
+                state.page--;
+
+                state.tvFocusIndex=-1;
+
+                render();
+
+            }
+
+        };
+
+
+    $("next")
+        .onclick=function(){
+
+            var total =
+                getFiltered()
+                    .length;
+
+
+            var pages =
+                Math.max(
+
+                    1,
+
+                    Math.ceil(
+                        total/PAGE_SIZE
+                    )
+
+                );
+
+
+            if(
+                state.page<pages
+            ){
+
+                state.page++;
+
+                state.tvFocusIndex=-1;
+
+                render();
+
+            }
+
+        };
+
+
+    /* =====================================================
+       STOP
+    ===================================================== */
+
+    $("stop")
+        .onclick =
+        stop;
+
+
+    /* =====================================================
+       TECLADO / CONTROLE TV
+    ===================================================== */
+
+    document.addEventListener(
+
+        "keydown",
+
+        function(event){
+
+            /*
+             * ESC normal
+             */
+
+            if(
+                event.key==="Escape"
+            ){
+
+                document
+                    .querySelectorAll(
+                        ".modal"
+                    )
+                    .forEach(
+                        function(modal){
+
+                            modal.classList.add(
+                                "hidden"
+                            );
+
+                        }
+                    );
+
+
+                if(state.isTV){
+
+                    clearTVFocus();
+
+                }
+
+
+                return;
+
+            }
+
+
+            /*
+             * A partir daqui,
+             * navegação especial somente TV.
+             */
+
+            if(!state.isTV){
+
+                return;
+
+            }
+
+
+            /*
+             * Não interferir
+             * em campos de texto.
+             */
+
+            var target =
+                event.target;
+
+
+            var tag =
+                target &&
+                target.tagName
+                    ? target.tagName
+                    : "";
+
+
+            if(
+
+                tag==="INPUT" ||
+                tag==="TEXTAREA" ||
+                tag==="SELECT"
+
+            ){
+
+                /*
+                 * Enter continua funcionando
+                 * nos campos.
+                 */
+
+                return;
+
+            }
+
+
+            /*
+             * BOTÃO VOLTAR DA TV
+             */
+
+            if(
+
+                event.key==="BrowserBack" ||
+
+                event.key==="GoBack" ||
+
+                event.key==="Back" ||
+
+                event.key==="Backspace"
+
+            ){
+
+                event.preventDefault();
+
+
+                if(
+                    closeTVModal()
+                ){
+
+                    return;
+
+                }
+
+
+                /*
+                 * Se estiver reproduzindo,
+                 * primeiro para.
+                 */
+
+                var video =
+                    $("video");
+
+
+                if(
+                    video &&
+                    !video.paused
+                ){
+
+                    stop();
+
+                    return;
+
+                }
+
+
+                /*
+                 * Se estiver em outra página
+                 * da lista, volta uma página.
+                 */
+
+                if(
+                    state.page>1
+                ){
+
+                    state.page--;
+
+                    state.tvFocusIndex=-1;
+
+                    render();
+
+                    return;
+
+                }
+
+
+                return;
+
+            }
+
+
+            /*
+             * SETAS
+             */
+
+            if(
+                event.key==="ArrowLeft"
+            ){
+
+                event.preventDefault();
+
+                navigateTV(
+                    "left"
+                );
+
+                return;
+
+            }
+
+
+            if(
+                event.key==="ArrowRight"
+            ){
+
+                event.preventDefault();
+
+                navigateTV(
+                    "right"
+                );
+
+                return;
+
+            }
+
+
+            if(
+                event.key==="ArrowUp"
+            ){
+
+                event.preventDefault();
+
+                navigateTV(
+                    "up"
+                );
+
+                return;
+
+            }
+
+
+            if(
+                event.key==="ArrowDown"
+            ){
+
+                event.preventDefault();
+
+                navigateTV(
+                    "down"
+                );
+
+                return;
+
+            }
+
+
+            /*
+             * OK / ENTER
+             */
+
+            if(
+                event.key==="Enter" ||
+                event.key==="NumpadEnter"
+            ){
+
+                event.preventDefault();
+
+                activateTVFocus();
+
+                return;
+
+            }
+
+        }
+
+    );
+
+
+    /* =====================================================
+       ESC / FECHAMENTO
+    ===================================================== */
+
+    document.addEventListener(
+
+        "keydown",
+
+        function(event){
+
+            if(
+                event.key==="Escape"
+            ){
+
+                document
+                    .querySelectorAll(
+                        ".modal"
+                    )
+                    .forEach(
+                        function(modal){
+
+                            modal.classList.add(
+                                "hidden"
+                            );
+
+                        }
+                    );
+
+            }
+
+        }
+
+    );
+
+
+    /* =====================================================
+       EVITAR SUBMIT
+    ===================================================== */
+
+    document.addEventListener(
+
+        "submit",
+
+        function(event){
+
+            event.preventDefault();
+
+        }
+
+    );
+
+
+    /* =====================================================
+       DETECÇÃO AO REDIMENSIONAR
+    ===================================================== */
+
+    var resizeTimer=null;
+
+
+    window.addEventListener(
+
+        "resize",
+
+        function(){
+
+            clearTimeout(
+                resizeTimer
+            );
+
+
+            resizeTimer =
+                setTimeout(
+
+                    function(){
+
+                        applyDeviceMode();
+
+                    },
+
+                    150
+
+                );
+
+        }
+
+    );
+
+
+    /* =====================================================
+       ORIENTAÇÃO
+    ===================================================== */
+
+    window.addEventListener(
+
+        "orientationchange",
+
+        function(){
+
+            setTimeout(
+
+                function(){
+
+                    applyDeviceMode();
+
+                },
+
+                250
+
+            );
+
+        }
+
+    );
+
+
+    /*
+     * Alguns navegadores de Smart TV
+     * não disparam resize imediatamente.
+     */
+
+    setTimeout(
+        applyDeviceMode,
+        500
+    );
+
+}
+
+
+/* =========================================================
+   INICIALIZAÇÃO
+========================================================= */
+
+function init(){
+
+    try{
+
+        /*
+         * PRIMEIRO:
+         * detecta o dispositivo.
+         */
+
+        detectDevice();
+
+
+        /*
+         * ID do aparelho.
+         */
+
+        initDevice();
+
+
+        /*
+         * Eventos.
+         */
+
+        bind();
+
+
+        /*
+         * Interface.
+         */
+
+        renderListPills();
+
+        render();
+
+
+        /*
+         * Registro.
+         */
+
+        registerDevice();
+
+
+        /*
+         * Verifica ativação
+         * sem recarregar a página.
+         */
+
+        setInterval(
+
+            checkDeviceStatus,
+
+            15000
+
+        );
+
+
+        /*
+         * Não baixa M3U automaticamente.
+         */
+
+        if(lists.length){
+
+            setStatus(
+
+                lists.length+
+                " lista(s) salva(s). "+
+                "Escolha uma lista para carregar."
+
+            );
+
+        }
+
+
+    }catch(error){
+
+        console.error(
+            "Erro inicial:",
+            error
+        );
+
+
+        setStatus(
+            "GC PLAY PRO iniciado."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+if(
+    document.readyState===
+    "loading"
+){
+
+    document.addEventListener(
+
+        "DOMContentLoaded",
+
+        init
+
+    );
+
+}else{
+
+    init();
+
+}
+
+
+
+/* =========================================================
+   GC PLAY PRO - AUTO M3U APÓS ATIVAÇÃO
+   A ativação remota dispara automaticamente o carregamento
+   da M3U vinculada ao dispositivo.
+========================================================= */
+
+(function(){
+
+    var gcAutoLoading = false;
+    var gcLastAutoUrl = "";
+
+    function gcGetPlaylistUrl(data){
+        if(!data) return "";
+
+        var candidates = [
+            data.playlist_url,
+            data.playlistUrl,
+            data.m3u_url,
+            data.m3uUrl,
+            data.url,
+            data.playlist,
+            data.device && data.device.playlist_url,
+            data.device && data.device.playlistUrl,
+            data.device && data.device.m3u_url,
+            data.device && data.device.m3uUrl,
+            data.device && data.device.url,
+            data.device && data.device.playlist
+        ];
+
+        for(var i=0;i<candidates.length;i++){
+            if(typeof candidates[i]==="string" && /^https?:\/\//i.test(candidates[i].trim())){
+                return candidates[i].trim();
+            }
+        }
+
+        return "";
+    }
+
+    function gcSaveActivatedList(url){
+        if(!url) return null;
+
+        try{
+            localStorage.setItem("gcplay_last_remote_playlist",url);
+            localStorage.setItem("gcplay_last_m3u",url);
+        }catch(e){}
+
+        var item = {
+            id:"remote-activated",
+            name:"Lista M3U ativada",
+            url:url
+        };
+
+        try{
+            if(Array.isArray(lists)){
+                var found=null;
+                for(var i=0;i<lists.length;i++){
+                    if(lists[i] && String(lists[i].url||"")===url){
+                        found=lists[i];
+                        break;
+                    }
+                }
+
+                if(found){
+                    item=found;
+                }else{
+                    lists.unshift(item);
+                    localStorage.setItem("gcplay_lists",JSON.stringify(lists));
+                }
+            }
+        }catch(e){
+            console.warn("GC PLAY PRO: falha ao salvar lista remota",e);
+        }
+
+        return item;
+    }
+
+    async function gcCarregarAutomaticamente(url){
+        if(!url || gcAutoLoading) return;
+        if(gcLastAutoUrl===url && state && state.items && state.items.length) return;
+
+        gcAutoLoading=true;
+        gcLastAutoUrl=url;
+
+        try{
+            loader(true,"Carregando lista M3U...");
+            setStatus("Carregando lista M3U...");
+
+            var item=gcSaveActivatedList(url);
+
+            if(!item){
+                item={
+                    id:"remote-activated",
+                    name:"Lista M3U ativada",
+                    url:url
+                };
+            }
+
+            console.log("GC PLAY PRO: aparelho ativado. Carregando M3U automaticamente...");
+
+            await loadList(item);
+
+            console.log("GC PLAY PRO: M3U carregada automaticamente.");
+
+        }catch(error){
+            console.error("GC PLAY PRO: erro no carregamento automático da M3U",error);
+            setStatus("Erro ao carregar lista M3U. Tentando novamente...");
+        }finally{
+            gcAutoLoading=false;
+        }
+    }
+
+    async function gcVerificarAtivacaoECarregar(){
+        if(!state || !state.deviceId) return;
+
+        try{
+            var response=await fetch(ACTIVATE,{
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                cache:"no-store",
+                body:JSON.stringify({
+                    action:"status",
+                    device_id:state.deviceId
+                })
+            });
+
+            if(!response.ok) return;
+
+            var data=await response.json();
+            var device=data && data.device ? data.device : data;
+            var status=String(device && device.status || "").toLowerCase();
+
+            if(status==="active"){
+                if($("activationStatus")){
+                    $("activationStatus").textContent="APARELHO ATIVADO";
+                }
+
+                var url=gcGetPlaylistUrl(data);
+
+                if(url){
+                    await gcCarregarAutomaticamente(url);
+                }else{
+                    console.warn("GC PLAY PRO: aparelho ativo, mas a resposta não trouxe playlist_url.");
+                }
+            }
+        }catch(error){
+            console.warn("GC PLAY PRO: falha na verificação automática",error);
+        }
+    }
+
+    /*
+     * Dá tempo para o init original criar o dispositivo e registrar
+     * o aparelho. Depois consulta imediatamente e continua verificando.
+     */
+    setTimeout(function(){
+        gcVerificarAtivacaoECarregar();
+
+        setInterval(function(){
+            gcVerificarAtivacaoECarregar();
+        },5000);
+    },1500);
+
+})();
+
+/* Pontes públicas do V11 para a camada visual. Elas ficam dentro da IIFE principal,
+   portanto têm acesso real a state, play, switchCategory e getFiltered. */
+window.gcV11Play=function(item){return play(item)};
+window.gcV11GetItems=function(){return state.items||[]};
+window.gcV11SwitchCategory=function(c){return switchCategory(c)};
+window.gcV11GetFiltered=function(){return getFiltered()};
+
+})();
+</script>
+
+
+<script>
+(function(){
+"use strict";
+var R="gcplay_v11_resume",F="gcplay_v11_favorites",special=false,home;
+function J(k,d){try{var x=JSON.parse(localStorage.getItem(k)||"");return x==null?d:x}catch(e){return d}}function W(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}function K(x){return String(x&&x.url||"").trim().toLowerCase()||String(x&&x.category||"")+"|"+String(x&&x.name||"").trim().toLowerCase()}function esc(x){var d=document.createElement("div");d.textContent=String(x||"");return d.innerHTML}
+function rm(){var x=J(R,{});return x&&typeof x==="object"?x:{}}function fm(){var x=J(F,[]);return Array.isArray(x)?x:[]}
+function styles(){if(document.getElementById("gcV11css"))return;var s=document.createElement("style");s.id="gcV11css";s.textContent=`#gcV11Home{margin:14px 0 18px;padding:22px;border-radius:22px;background:linear-gradient(135deg,rgba(25,25,35,.98),rgba(8,8,13,.96));border:1px solid rgba(255,255,255,.08);box-shadow:0 18px 60px rgba(0,0,0,.28)}.g11h{display:flex;justify-content:space-between;align-items:center;gap:12px}.g11brand{font-size:25px;font-weight:900}.g11sub{opacity:.6;font-size:12px;margin-top:4px}.g11acts{display:flex;gap:8px}.g11btn,.g11back{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:inherit;border-radius:12px;padding:9px 12px;font-weight:800;cursor:pointer}.g11hero{margin:18px 0 14px;padding:20px;border-radius:18px;background:rgba(255,255,255,.045)}.g11hero b{font-size:18px}.g11hero p{margin:6px 0 0;opacity:.6;font-size:13px}.g11tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}.g11tile{min-height:82px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(255,255,255,.045);color:inherit;padding:14px;text-align:left;cursor:pointer}.g11tile strong{display:block}.g11tile span{display:block;font-size:11px;opacity:.55;margin-top:5px}.g11specialhead{display:flex;justify-content:space-between;align-items:center;margin:12px 0}.g11grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}.g11card{position:relative}.g11card .poster{position:relative}.g11bar{position:absolute;left:8px;right:8px;bottom:7px;height:4px;border-radius:8px;background:rgba(255,255,255,.2);overflow:hidden;z-index:3}.g11bar i{display:block;height:100%;background:currentColor}.g11pct{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.72);padding:5px 7px;border-radius:8px;font-size:10px;font-weight:800;z-index:3}.g11fav{position:absolute;right:8px;top:8px;width:34px;height:34px;border:0;border-radius:50%;background:rgba(0,0,0,.72);color:#fff;font-size:18px;z-index:6;cursor:pointer}.g11fav.on{color:#ffd54a}@media(max-width:1000px){.g11tiles{grid-template-columns:repeat(3,1fr)}}@media(max-width:600px){.g11h{display:block}.g11acts{margin-top:10px}.g11tiles{grid-template-columns:repeat(2,1fr)}#gcV11Home{padding:15px}}`;document.head.appendChild(s)}
+function refreshHome(){var tabs=document.getElementById("tabs");if(!tabs)return;if(home)home.remove();home=document.createElement("section");home.id="gcV11Home";var r=Object.keys(rm()).length,f=fm().length;home.innerHTML='<div class="g11h"><div><div class="g11brand">GC PLAY PRO</div><div class="g11sub">Sua central de entretenimento</div></div><div class="g11acts"><button class="g11btn" data-s="resume">▶ Continuar '+(r?'('+r+')':'')+'</button><button class="g11btn" data-s="fav">★ Favoritos '+(f?'('+f+')':'')+'</button></div></div><div class="g11hero"><b>O que você quer assistir agora?</b><p>Retome exatamente de onde parou, acesse seus favoritos ou escolha uma categoria.</p></div><div class="g11tiles"><button class="g11tile" data-c="live"><strong>📺 TV AO VIVO</strong><span>Canais e categorias</span></button><button class="g11tile" data-c="vod"><strong>🎬 FILMES</strong><span>Catálogo de filmes</span></button><button class="g11tile" data-c="series"><strong>📚 SÉRIES</strong><span>Temporadas e episódios</span></button><button class="g11tile" data-c="music"><strong>🎵 MÚSICA</strong><span>Músicas, rádios e shows</span></button><button class="g11tile" data-s="fav"><strong>★ FAVORITOS</strong><span>'+f+' salvos</span></button><button class="g11tile" data-s="resume"><strong>▶ CONTINUAR</strong><span>'+r+' em andamento</span></button></div>';tabs.parentNode.insertBefore(home,tabs);home.querySelectorAll('[data-c]').forEach(function(b){b.onclick=function(){special=false;if(window.gcV11SwitchCategory)window.gcV11SwitchCategory(b.dataset.c);refreshHome()}});home.querySelectorAll('[data-s]').forEach(function(b){b.onclick=function(){showSpecial(b.dataset.s)}})}
+function favToggle(x){var a=fm(),k=K(x),i=a.findIndex(function(z){return K(z)===k});if(i>=0)a.splice(i,1);else a.push({name:x.name,url:x.url,logo:x.logo,group:x.group,category:x.category});W(F,a);showSpecial("fav")}
+function showSpecial(type){var data;if(type==="resume")data=Object.keys(rm()).map(function(k){var x=rm()[k];return {name:x.name,url:x.url,logo:x.logo,group:x.group,category:x.category,time:x.time,duration:x.duration,updated:x.updated}}).sort(function(a,b){return (b.updated||0)-(a.updated||0)});else data=fm();var grid=document.getElementById("grid");if(!grid)return;special=true;var h=document.createElement("section");h.innerHTML='<div class="g11specialhead"><h3>'+(type==="resume"?'▶ Continuar assistindo':'★ Meus favoritos')+'</h3><button class="g11back">Voltar</button></div><div class="g11grid">'+(data.length?data.map(function(x,i){var pct=x.duration?Math.min(100,x.time/x.duration*100):0;return '<div class="media-card g11card"><button type="button" data-i="'+i+'"><div class="poster">'+(x.logo?'<img src="'+esc(x.logo)+'" loading="lazy">':'<div class="poster-icon">▶</div>')+(pct>0?'<div class="g11bar"><i style="width:'+pct+'%"></i></div><span class="g11pct">▶ '+Math.round(pct)+'%</span>':'')+'</div><div class="media-info"><span class="media-title">'+esc(x.name)+'</span><span class="media-group">'+esc(x.group||x.category||"")+'</span></div></button><button class="g11fav '+(fm().some(function(z){return K(z)===K(x)})?'on':'')+'" data-f="'+esc(K(x))+'">★</button></div>'}).join(""):'<div style="opacity:.6;padding:25px">Nenhum conteúdo encontrado.</div>')+'</div>';grid.replaceChildren(h);h.querySelector('.g11back').onclick=function(){special=false;window.gcV11RefreshUI()};h.querySelectorAll('[data-i]').forEach(function(b){b.onclick=function(){var x=data[Number(b.dataset.i)];if(x&&window.gcV11Play)window.gcV11Play(x)}});h.querySelectorAll('[data-f]').forEach(function(b){b.onclick=function(e){e.preventDefault();e.stopPropagation();var k=b.dataset.f,a=fm(),i=a.findIndex(function(z){return K(z)===k});if(i>=0)a.splice(i,1);W(F,a);showSpecial(type)}})}
+function decorate(){styles();refreshHome();if(special)return;var grid=document.getElementById("grid");if(!grid)return;var arr=window.gcV11GetFiltered?window.gcV11GetFiltered():[];grid.querySelectorAll('[data-play-index]').forEach(function(b){var x=arr[Number(b.dataset.playIndex)];if(!x)return;var c=b.closest('.media-card');if(!c)return;if(!c.querySelector('.g11fav')){var f=document.createElement('button');f.className='g11fav '+(fm().some(function(z){return K(z)===K(x)})?'on':'');f.textContent='★';f.onclick=function(e){e.preventDefault();e.stopPropagation();favToggle(x)};c.appendChild(f)}var r=rm()[K(x)];if(r&&r.duration){var p=c.querySelector('.poster');if(p&&!p.querySelector('.g11bar')){var q=document.createElement('div');q.className='g11bar';q.innerHTML='<i style="width:'+Math.min(100,r.time/r.duration*100)+'%"></i>';p.appendChild(q)}}})}
+window.gcV11RefreshUI=function(){special=false;decorate()};window.addEventListener('load',function(){setTimeout(decorate,1300)});var mo=new MutationObserver(function(){clearTimeout(window.__g11t);window.__g11t=setTimeout(function(){if(!special)decorate()},150)});try{mo.observe(document.body,{childList:true,subtree:true})}catch(e){}})();
+</script>
+</body>
+</html>
