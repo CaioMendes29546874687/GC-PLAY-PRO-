@@ -10,72 +10,36 @@ jobs:
 
     steps:
 
-      # ============================================================
-      # 1 - BAIXAR CÓDIGO
-      # ============================================================
       - name: Baixar código
         uses: actions/checkout@v4
 
-
-      # ============================================================
-      # 2 - JAVA
-      # ============================================================
       - name: Configurar Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
 
-
-      # ============================================================
-      # 3 - NODE
-      # ============================================================
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-
-      # ============================================================
-      # 4 - INSTALAR DEPENDÊNCIAS
-      # ============================================================
       - name: Instalar dependências
         run: npm install
 
-
-      # ============================================================
-      # 5 - PREPARAR WWW
-      # ============================================================
-      - name: Preparar aplicação GC PLAY PRO CAST
+      - name: Preparar HTML CAST
         shell: bash
         run: |
           set -e
-
-          echo "Verificando arquivos..."
-
           test -f GC_PLAY_PRO_V11_CAST_TESTE.html
-          test -f GCPlayCastPlugin.java
-          test -f CastOptionsProvider.java
-
           mkdir -p www
-
           cp GC_PLAY_PRO_V11_CAST_TESTE.html www/index.html
+          echo "HTML CAST preparado."
 
-          echo "Aplicação CAST preparada."
-          ls -lh www/index.html
-
-
-      # ============================================================
-      # 6 - CRIAR PROJETO ANDROID
-      # ============================================================
       - name: Criar projeto Android
         run: npx cap add android
 
-
-      # ============================================================
-      # 7 - GERAR ÍCONE E SPLASH
-      # ============================================================
-      - name: Gerar ícone e Splash do GC PLAY PRO
+      - name: Gerar ícone e Splash
         run: |
           npx @capacitor/assets generate \
             --android \
@@ -86,10 +50,6 @@ jobs:
             --splashBackgroundColorDark "#000000" \
             --logoSplashScale 0.30
 
-
-      # ============================================================
-      # 8 - ADICIONAR GOOGLE CAST SDK
-      # ============================================================
       - name: Adicionar Google Cast SDK
         shell: bash
         run: |
@@ -97,45 +57,33 @@ jobs:
 
           GRADLE="android/app/build.gradle"
 
-          echo "Adicionando Google Cast SDK..."
+          python3 - "$GRADLE" <<'PY'
+          from pathlib import Path
+          import sys
 
-          if ! grep -q "play-services-cast-framework" "$GRADLE"; then
+          gradle = Path(sys.argv[1])
+          text = gradle.read_text()
 
-            python3 - <<'PY'
-from pathlib import Path
-import re
+          dependency = '    implementation "com.google.android.gms:play-services-cast-framework:22.3.1"\n'
 
-gradle = Path("android/app/build.gradle")
-text = gradle.read_text()
+          if "play-services-cast-framework" not in text:
+              marker = "dependencies {"
 
-dependency = '    implementation "com.google.android.gms:play-services-cast-framework:22.3.1"\n'
+              if marker not in text:
+                  raise SystemExit("Bloco dependencies não encontrado.")
 
-# Caso exista bloco dependencies
-match = re.search(r'dependencies\s*\{', text)
+              text = text.replace(
+                  marker,
+                  marker + "\n" + dependency,
+                  1
+              )
 
-if not match:
-    raise SystemExit("Bloco dependencies não encontrado.")
+              gradle.write_text(text)
 
-pos = match.end()
+          print("Google Cast SDK configurado.")
+          PY
 
-text = text[:pos] + "\n" + dependency + text[pos:]
-
-gradle.write_text(text)
-
-print("Google Cast SDK adicionado.")
-PY
-
-          else
-            echo "Google Cast SDK já estava presente."
-          fi
-
-          grep -n "play-services-cast-framework" "$GRADLE"
-
-
-      # ============================================================
-      # 9 - INSTALAR PLUGIN CAST
-      # ============================================================
-      - name: Instalar plugin GCPlayCast
+      - name: Copiar plugins CAST
         shell: bash
         run: |
           set -e
@@ -150,33 +98,22 @@ PY
           PACKAGE=$(grep '^package ' "$MAIN" | head -1 | sed 's/^package //; s/;//')
 
           if [ -z "$PACKAGE" ]; then
-            echo "Não foi possível identificar o package."
+            echo "Package não encontrado."
             exit 1
           fi
 
-          echo "Package encontrado:"
-          echo "$PACKAGE"
-
-          mkdir -p "$(dirname "$MAIN")"
+          DIR=$(dirname "$MAIN")
 
           sed "s/^package .*/package $PACKAGE;/" \
-            GCPlayCastPlugin.java > \
-            "$(dirname "$MAIN")/GCPlayCastPlugin.java"
+            GCPlayCastPlugin.java > "$DIR/GCPlayCastPlugin.java"
 
           sed "s/^package .*/package $PACKAGE;/" \
-            CastOptionsProvider.java > \
-            "$(dirname "$MAIN")/CastOptionsProvider.java"
+            CastOptionsProvider.java > "$DIR/CastOptionsProvider.java"
 
-          echo "Plugins copiados."
+          echo "Plugins CAST instalados."
+          echo "Package: $PACKAGE"
 
-          ls -lh "$(dirname "$MAIN")/GCPlayCastPlugin.java"
-          ls -lh "$(dirname "$MAIN")/CastOptionsProvider.java"
-
-
-      # ============================================================
-      # 10 - REGISTRAR PLUGIN NO MAINACTIVITY
-      # ============================================================
-      - name: Registrar plugin GCPlayCast
+      - name: Registrar plugin CAST
         shell: bash
         run: |
           set -e
@@ -184,370 +121,222 @@ PY
           MAIN=$(find android/app/src/main/java -name "MainActivity.java" | head -1)
 
           python3 - "$MAIN" <<'PY'
-from pathlib import Path
-import sys
+          from pathlib import Path
+          import sys
 
-main = Path(sys.argv[1])
-text = main.read_text()
+          main = Path(sys.argv[1])
+          text = main.read_text()
 
-import_line = "import com.gcplaypro.app.GCPlayCastPlugin;"
+          package = ""
 
-# Descobrir package
-package = ""
-for line in text.splitlines():
-    if line.startswith("package "):
-        package = line.replace("package ", "").replace(";", "").strip()
-        break
+          for line in text.splitlines():
+              line = line.strip()
 
-if not package:
-    raise SystemExit("Package não encontrado.")
+              if line.startswith("package "):
+                  package = line[8:].replace(";", "").strip()
+                  break
 
-import_line = f"import {package}.GCPlayCastPlugin;"
+          if not package:
+              raise SystemExit("Package não encontrado.")
 
-if import_line not in text:
-    lines = text.splitlines()
+          import_line = f"import {package}.GCPlayCastPlugin;"
 
-    insert = 0
+          if import_line not in text:
+              lines = text.splitlines()
 
-    for i, line in enumerate(lines):
-        if line.startswith("package "):
-            insert = i + 1
-            break
+              for i, line in enumerate(lines):
+                  if line.startswith("package "):
+                      lines.insert(i + 1, "")
+                      lines.insert(i + 2, import_line)
+                      break
 
-    lines.insert(insert, "")
-    lines.insert(insert + 1, import_line)
+              text = "\n".join(lines) + "\n"
 
-    text = "\n".join(lines) + "\n"
+          if "registerPlugin(GCPlayCastPlugin.class)" not in text:
 
+              marker = "super.onCreate(savedInstanceState);"
 
-# Procurar classe MainActivity
-if "registerPlugin(GCPlayCastPlugin.class)" not in text:
+              if marker in text:
+                  text = text.replace(
+                      marker,
+                      marker + "\n        registerPlugin(GCPlayCastPlugin.class);",
+                      1
+                  )
+              else:
+                  raise SystemExit(
+                      "onCreate não encontrado na MainActivity."
+                  )
 
-    marker = "super.onCreate(savedInstanceState);"
+          main.write_text(text)
 
-    if marker in text:
-        replacement = (
-            marker
-            + "\n"
-            + "        registerPlugin(GCPlayCastPlugin.class);"
-        )
+          print("GCPlayCastPlugin registrado.")
+          PY
 
-        text = text.replace(
-            marker,
-            replacement,
-            1
-        )
-
-    else:
-        # Caso MainActivity não tenha onCreate
-        marker_class = "{"
-
-        pos = text.find(marker_class)
-
-        if pos == -1:
-            raise SystemExit("Não foi possível localizar MainActivity.")
-
-        text = (
-            text[:pos + 1]
-            + "\n\n"
-            + "    {\n"
-            + "        registerPlugin(GCPlayCastPlugin.class);\n"
-            + "    }\n"
-            + text[pos + 1:]
-        )
-
-
-main.write_text(text)
-
-print("MainActivity configurada.")
-print(main.read_text())
-PY
-
-
-      # ============================================================
-      # 11 - CONFIGURAR ANDROIDMANIFEST
-      # ============================================================
-      - name: Configurar Google Cast no AndroidManifest
+      - name: Configurar AndroidManifest
         shell: bash
         run: |
           set -e
 
           python3 <<'PY'
-from pathlib import Path
-import re
+          from pathlib import Path
+          import re
 
-manifest = Path("android/app/src/main/AndroidManifest.xml")
+          manifest = Path(
+              "android/app/src/main/AndroidManifest.xml"
+          )
 
-if not manifest.exists():
-    raise SystemExit("AndroidManifest.xml não encontrado.")
+          text = manifest.read_text()
 
-text = manifest.read_text()
+          main = next(
+              Path("android/app/src/main/java").rglob(
+                  "MainActivity.java"
+              )
+          )
 
-# ------------------------------------------------------------
-# Descobrir package da MainActivity
-# ------------------------------------------------------------
+          main_text = main.read_text()
 
-main = next(
-    Path("android/app/src/main/java").rglob("MainActivity.java")
-)
+          package = ""
 
-main_text = main.read_text()
+          for line in main_text.splitlines():
+              line = line.strip()
 
-package = ""
+              if line.startswith("package "):
+                  package = line[8:].replace(";", "").strip()
+                  break
 
-for line in main_text.splitlines():
-    line = line.strip()
+          if not package:
+              raise SystemExit("Package não encontrado.")
 
-    if line.startswith("package "):
-        package = line.replace("package ", "").replace(";", "").strip()
-        break
+          meta_name = (
+              "com.google.android.gms.cast.framework."
+              "OPTIONS_PROVIDER_CLASS_NAME"
+          )
 
-if not package:
-    raise SystemExit("Package da aplicação não encontrado.")
+          if meta_name not in text:
 
-print("Package:")
-print(package)
+              match = re.search(
+                  r"<application\b[^>]*>",
+                  text,
+                  re.DOTALL
+              )
 
+              if not match:
+                  raise SystemExit(
+                      "Tag application não encontrada."
+                  )
 
-# ------------------------------------------------------------
-# 1. GOOGLE CAST OPTIONS PROVIDER
-# ------------------------------------------------------------
+              meta = (
+                  "\n        <meta-data\n"
+                  f'            android:name="{meta_name}"\n'
+                  f'            android:value="{package}.CastOptionsProvider" />\n'
+              )
 
-meta_name = (
-    "com.google.android.gms.cast.framework."
-    "OPTIONS_PROVIDER_CLASS_NAME"
-)
+              text = (
+                  text[:match.end()]
+                  + meta
+                  + text[match.end():]
+              )
 
-meta_block = f'''        <meta-data
-            android:name="{meta_name}"
-            android:value="{package}.CastOptionsProvider" />'''
+          if "android.software.leanback" not in text:
 
-if meta_name not in text:
+              features = (
+                  '    <uses-feature\n'
+                  '        android:name="android.software.leanback"\n'
+                  '        android:required="false" />\n'
+                  '\n'
+                  '    <uses-feature\n'
+                  '        android:name="android.hardware.touchscreen"\n'
+                  '        android:required="false" />\n\n'
+              )
 
-    # Localiza a tag <application ...> COMPLETA.
-    # Isso evita inserir o meta-data dentro da abertura
-    # da tag application.
-    application_match = re.search(
-        r'<application\b[^>]*>',
-        text,
-        flags=re.DOTALL
-    )
+              match = re.search(
+                  r"<application\b",
+                  text
+              )
 
-    if not application_match:
-        raise SystemExit(
-            "Tag <application> não encontrada no AndroidManifest."
-        )
+              if not match:
+                  raise SystemExit(
+                      "Application não encontrada."
+                  )
 
-    insert_pos = application_match.end()
+              text = (
+                  text[:match.start()]
+                  + features
+                  + text[match.start():]
+              )
 
-    text = (
-        text[:insert_pos]
-        + "\n"
-        + meta_block
-        + "\n"
-        + text[insert_pos:]
-    )
+          if "android.intent.category.LEANBACK_LAUNCHER" not in text:
 
-    print("Meta-data do Google Cast adicionado.")
+              pattern = (
+                  r'(<category\s+'
+                  r'android:name="android\.intent\.category\.LAUNCHER"\s*/>)'
+              )
 
-else:
-    print("Meta-data do Google Cast já existe.")
+              replacement = (
+                  r'\1\n'
+                  '                          <category '
+                  'android:name="android.intent.category.LEANBACK_LAUNCHER" />'
+              )
 
+              text, count = re.subn(
+                  pattern,
+                  replacement,
+                  text,
+                  count=1
+              )
 
-# ------------------------------------------------------------
-# 2. ANDROID TV
-# ------------------------------------------------------------
+              if count == 0:
+                  print(
+                      "Aviso: LAUNCHER não encontrado."
+                  )
 
-if "android.software.leanback" not in text:
+          manifest.write_text(text)
 
-    tv_features = '''    <uses-feature
-        android:name="android.software.leanback"
-        android:required="false" />
+          print("AndroidManifest configurado.")
+          PY
 
-    <uses-feature
-        android:name="android.hardware.touchscreen"
-        android:required="false" />
-
-'''
-
-    application_match = re.search(
-        r'<application\b',
-        text
-    )
-
-    if not application_match:
-        raise SystemExit(
-            "Não foi possível localizar <application>."
-        )
-
-    text = (
-        text[:application_match.start()]
-        + tv_features
-        + text[application_match.start():]
-    )
-
-    print("Compatibilidade Android TV adicionada.")
-
-else:
-    print("Compatibilidade Android TV já existe.")
-
-
-# ------------------------------------------------------------
-# 3. LEANBACK LAUNCHER
-# ------------------------------------------------------------
-
-if "android.intent.category.LEANBACK_LAUNCHER" not in text:
-
-    launcher_pattern = (
-        r'(<category\s+'
-        r'android:name="android\.intent\.category\.LAUNCHER"\s*/>)'
-    )
-
-    replacement = (
-        r'\1'
-        "\n"
-        '                          <category '
-        'android:name="android.intent.category.LEANBACK_LAUNCHER" />'
-    )
-
-    text, count = re.subn(
-        launcher_pattern,
-        replacement,
-        text,
-        count=1
-    )
-
-    if count == 0:
-        print(
-            "Aviso: categoria LAUNCHER não encontrada. "
-            "LEANBACK_LAUNCHER não foi adicionada."
-        )
-    else:
-        print("LEANBACK_LAUNCHER adicionada.")
-
-else:
-    print("LEANBACK_LAUNCHER já existe.")
-
-
-# ------------------------------------------------------------
-# GRAVAR
-# ------------------------------------------------------------
-
-manifest.write_text(text)
-
-print("")
-print("========================================")
-print("ANDROIDMANIFEST FINAL")
-print("========================================")
-print(text)
-print("========================================")
-PY
-
-
-      # ============================================================
-      # 12 - VERIFICAR XML DO MANIFEST
-      # ============================================================
-      - name: Verificar AndroidManifest
+      - name: Validar AndroidManifest
         shell: bash
         run: |
-          set -e
-
           python3 <<'PY'
-from pathlib import Path
-import xml.etree.ElementTree as ET
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
 
-manifest = Path("android/app/src/main/AndroidManifest.xml")
+          file = Path(
+              "android/app/src/main/AndroidManifest.xml"
+          )
 
-text = manifest.read_text()
+          ET.fromstring(file.read_text())
 
-try:
-    ET.fromstring(text)
-    print("XML do AndroidManifest está válido.")
-except Exception as e:
-    print("")
-    print("ERRO NO ANDROIDMANIFEST:")
-    print(e)
-    print("")
-    print(text)
-    raise
-PY
+          print("AndroidManifest XML válido.")
+          PY
 
-
-      # ============================================================
-      # 13 - CONFIGURAR ANDROID TV
-      # ============================================================
-      - name: Verificar compatibilidade Android TV
-        shell: bash
-        run: |
-          set -e
-
-          MANIFEST="android/app/src/main/AndroidManifest.xml"
-
-          echo "Verificando Android TV..."
-
-          grep -q "android.software.leanback" "$MANIFEST"
-          grep -q "android.hardware.touchscreen" "$MANIFEST"
-
-          echo "Android TV OK."
-
-
-      # ============================================================
-      # 14 - SINCRONIZAR CAPACITOR
-      # ============================================================
-      - name: Sincronizar aplicativo
+      - name: Sincronizar Capacitor
         run: npx cap sync android
 
-
-      # ============================================================
-      # 15 - VERIFICAÇÃO FINAL
-      # ============================================================
-      - name: Verificação final do projeto Android
+      - name: Verificar CAST
         shell: bash
         run: |
           set -e
 
-          echo "======================================"
-          echo "VERIFICAÇÃO FINAL"
-          echo "======================================"
+          echo "Verificando Google Cast..."
+          grep -R "play-services-cast-framework" android/app/build.gradle
 
-          echo ""
-          echo "Manifest:"
-          grep -n "OPTIONS_PROVIDER_CLASS_NAME" \
-            android/app/src/main/AndroidManifest.xml || true
-
-          echo ""
-          echo "Leanback:"
-          grep -n "LEANBACK_LAUNCHER" \
-            android/app/src/main/AndroidManifest.xml || true
-
-          echo ""
-          echo "Cast SDK:"
-          grep -R "play-services-cast-framework" \
-            android/app/build.gradle || true
-
-          echo ""
-          echo "Plugin:"
+          echo "Verificando plugin..."
           find android/app/src/main/java \
             -name "GCPlayCastPlugin.java" \
             -o -name "CastOptionsProvider.java"
 
-          echo ""
-          echo "======================================"
-          echo "VERIFICAÇÃO CONCLUÍDA"
-          echo "======================================"
+          echo "Verificando Manifest..."
+          grep -R "OPTIONS_PROVIDER_CLASS_NAME" \
+            android/app/src/main/AndroidManifest.xml
 
+          echo "CAST OK."
 
-      # ============================================================
-      # 16 - GERAR APK
-      # ============================================================
       - name: Gerar APK CAST
         working-directory: android
         run: ./gradlew assembleDebug --stacktrace
 
-
-      # ============================================================
-      # 17 - DISPONIBILIZAR APK
-      # ============================================================
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
