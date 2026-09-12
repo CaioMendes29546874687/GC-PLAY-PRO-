@@ -1,0 +1,188 @@
+name: Build GC PLAY PRO - CENTRAL TRANSMISSAO
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Gerar APK CAST
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Preparar aplicativo Web
+        run: |
+          set -e
+          mkdir -p www
+          cp GC_PLAY_PRO_V11_CAST_TESTE.html www/index.html
+          cp node_modules/@capacitor/core/dist/capacitor.js www/capacitor.js
+          test -s www/index.html
+          test -s www/capacitor.js
+          grep -q 'name:"GCPlayCast"' www/index.html
+          grep -q 'cap.PluginHeaders' www/index.html
+          echo "Web preparado com PluginHeaders GCPlayCast."
+
+      - name: Criar projeto Android
+        run: npx cap add android
+
+      - name: Gerar ícone e Splash
+        run: |
+          npx @capacitor/assets generate \
+            --android \
+            --assetPath assets \
+            --iconBackgroundColor "#000000" \
+            --iconBackgroundColorDark "#000000" \
+            --splashBackgroundColor "#000000" \
+            --splashBackgroundColorDark "#000000" \
+            --logoSplashScale 0.30
+
+      - name: Adicionar Google Cast SDK
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('android/app/build.gradle')
+          s=p.read_text()
+          dep="implementation 'com.google.android.gms:play-services-cast-framework:22.3.1'"
+          if dep not in s:
+              s=s.replace('dependencies {', 'dependencies {\n    '+dep, 1)
+          p.write_text(s)
+          print('Google Cast SDK adicionado.')
+          PY
+
+      - name: Registrar plugin nativo GCPlayCast de forma explícita
+        run: |
+          set -e
+          PACKAGE="com.gcplaypro.app"
+          PACKAGE_PATH="${PACKAGE//./\/}"
+          DIR="android/app/src/main/java/$PACKAGE_PATH"
+          mkdir -p "$DIR"
+
+          cp GCPlayCastPlugin.java "$DIR/GCPlayCastPlugin.java"
+          sed -i "s/package __PACKAGE__;/package $PACKAGE;/" "$DIR/GCPlayCastPlugin.java"
+
+          cat > "$DIR/MainActivity.java" <<JAVA
+          package $PACKAGE;
+
+          import android.os.Bundle;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  // IMPORTANTE: registrar antes do super.onCreate().
+                  // O Bridge do Capacitor 7 é criado dentro do super.onCreate().
+                  registerPlugin(GCPlayCastPlugin.class);
+                  super.onCreate(savedInstanceState);
+              }
+          }
+          JAVA
+
+          echo "MainActivity e GCPlayCast preparados em $DIR (registro ANTES do super.onCreate)"
+          sed -n '1,80p' "$DIR/MainActivity.java"
+
+      - name: Instalar CastOptionsProvider
+        run: |
+          set -e
+          PACKAGE="com.gcplaypro.app"
+          PACKAGE_PATH="${PACKAGE//./\/}"
+          DIR="android/app/src/main/java/$PACKAGE_PATH"
+          mkdir -p "$DIR"
+
+          if [ -f CastOptionsProvider.java ]; then
+            cp CastOptionsProvider.java "$DIR/CastOptionsProvider.java"
+            sed -i "s/package __PACKAGE__;/package $PACKAGE;/" "$DIR/CastOptionsProvider.java"
+          else
+            cat > "$DIR/CastOptionsProvider.java" <<JAVA
+          package $PACKAGE;
+
+          import android.content.Context;
+          import com.google.android.gms.cast.CastMediaControlIntent;
+          import com.google.android.gms.cast.framework.CastOptions;
+          import com.google.android.gms.cast.framework.OptionsProvider;
+          import java.util.List;
+
+          public class CastOptionsProvider implements OptionsProvider {
+              @Override
+              public CastOptions getCastOptions(Context context) {
+                  return new CastOptions.Builder()
+                      .setReceiverApplicationId(CastMediaControlIntent.DEFAULT_MEDIA_RECEIVER_APPLICATION_ID)
+                      .build();
+              }
+
+              @Override
+              public List<com.google.android.gms.cast.framework.SessionProvider> getAdditionalSessionProviders(Context context) {
+                  return null;
+              }
+          }
+          JAVA
+          fi
+
+      - name: Configurar Google Cast no Manifest
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('android/app/src/main/AndroidManifest.xml')
+          s=p.read_text()
+          provider='com.gcplaypro.app.CastOptionsProvider'
+          meta='android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME" android:value="'+provider+'"'
+          if 'OPTIONS_PROVIDER_CLASS_NAME' not in s:
+              marker='    <application'
+              pos=s.find(marker)
+              end=s.find('>',pos)
+              s=s[:end+1]+'\n        <meta-data '+meta+' />'+s[end+1:]
+          if 'android.permission.INTERNET' not in s:
+              s=s.replace('<manifest', '<manifest', 1)
+              m_end=s.find('>')
+              s=s[:m_end+1]+'\n    <uses-permission android:name="android.permission.INTERNET" />'+s[m_end+1:]
+          if 'android.software.leanback' not in s:
+              marker='    <application'
+              tv='    <uses-feature android:name="android.software.leanback" android:required="false" />\n    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />\n\n'
+              s=s.replace(marker,tv+marker,1)
+          if 'android.intent.category.LEANBACK_LAUNCHER' not in s:
+              launcher='<category android:name="android.intent.category.LAUNCHER" />'
+              s=s.replace(launcher, launcher+'\n            <category android:name="android.intent.category.LEANBACK_LAUNCHER" />',1)
+          p.write_text(s)
+          print('Manifest configurado.')
+          PY
+
+      - name: Sincronizar Capacitor
+        run: npx cap sync android
+
+      - name: Verificar registro do plugin
+        run: |
+          set -e
+          test -f android/app/src/main/java/com/gcplaypro/app/GCPlayCastPlugin.java
+          test -f android/app/src/main/java/com/gcplaypro/app/MainActivity.java
+          grep -q 'registerPlugin(GCPlayCastPlugin.class)' android/app/src/main/java/com/gcplaypro/app/MainActivity.java
+          grep -n -B2 -A2 'registerPlugin(GCPlayCastPlugin.class)' android/app/src/main/java/com/gcplaypro/app/MainActivity.java
+          grep -q '@CapacitorPlugin(name = "GCPlayCast")' android/app/src/main/java/com/gcplaypro/app/GCPlayCastPlugin.java
+          grep -q 'OPTIONS_PROVIDER_CLASS_NAME' android/app/src/main/AndroidManifest.xml
+          grep -n -B2 -A2 'registerPlugin(GCPlayCastPlugin.class)' android/app/src/main/java/com/gcplaypro/app/MainActivity.java
+          echo 'REGISTRO CAST OK'
+
+      - name: Gerar APK
+        working-directory: android
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: GC-PLAY-PRO-CENTRAL-TRANSMISSAO-FIX
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
