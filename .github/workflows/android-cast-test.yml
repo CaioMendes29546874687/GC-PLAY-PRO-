@@ -1,0 +1,233 @@
+name: Build GC PLAY PRO Android - CAST TESTE
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: APK GC PLAY PRO + Google Cast
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Preparar HTML V11 com CAST
+        shell: bash
+        run: |
+          set -e
+          cp GC_PLAY_PRO_V11_CAST_TESTE.html www/index.html
+          echo "HTML CAST copiado para www/index.html"
+
+      - name: Criar projeto Android
+        run: npx cap add android
+
+      - name: Gerar ícone e Splash do GC PLAY PRO
+        run: |
+          npx @capacitor/assets generate \
+            --android \
+            --assetPath assets \
+            --iconBackgroundColor "#000000" \
+            --iconBackgroundColorDark "#000000" \
+            --splashBackgroundColor "#000000" \
+            --splashBackgroundColorDark "#000000" \
+            --logoSplashScale 0.30
+
+      - name: Adicionar Google Cast SDK e plugin
+        shell: bash
+        run: |
+          set -e
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path("android/app/build.gradle")
+          s = p.read_text()
+
+          dep = "implementation 'com.google.android.gms:play-services-cast-framework:22.3.1'"
+
+          if dep not in s:
+              marker = "dependencies {"
+
+              if marker not in s:
+                  raise SystemExit(
+                      "Bloco dependencies não encontrado."
+                  )
+
+              s = s.replace(
+                  marker,
+                  marker + "\n    " + dep,
+                  1
+              )
+
+          p.write_text(s)
+          print("Google Cast SDK adicionado.")
+          PY
+
+          MAIN=$(find android/app/src/main/java -name MainActivity.java | head -1)
+
+          if [ -z "$MAIN" ]; then
+            echo "MainActivity.java não encontrada."
+            exit 1
+          fi
+
+          PACKAGE=$(sed -n 's/^package .*;/\1/p' "$MAIN" | head -1)
+
+          if [ -z "$PACKAGE" ]; then
+            echo "Pacote Java não encontrado."
+            exit 1
+          fi
+
+          PKG_PATH=$(echo "$PACKAGE" | tr '.' '/')
+          DEST="android/app/src/main/java/$PKG_PATH"
+
+          mkdir -p "$DEST"
+
+          sed "s/__PACKAGE__/$PACKAGE/g" \
+            CastOptionsProvider.java \
+            > "$DEST/CastOptionsProvider.java"
+
+          sed "s/__PACKAGE__/$PACKAGE/g" \
+            GCPlayCastPlugin.java \
+            > "$DEST/GCPlayCastPlugin.java"
+
+          python3 - "$MAIN" "$PACKAGE" <<'PY'
+          import sys
+          from pathlib import Path
+
+          main = Path(sys.argv[1])
+          package = sys.argv[2]
+
+          s = main.read_text()
+
+          imp = f"import {package}.GCPlayCastPlugin;"
+
+          if imp not in s:
+              marker = f"package {package};"
+
+              s = s.replace(
+                  marker,
+                  marker + "\n\n" + imp,
+                  1
+              )
+
+          if "registerPlugin(GCPlayCastPlugin.class);" not in s:
+
+              old = "public class MainActivity extends BridgeActivity {"
+
+              new = """public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(android.os.Bundle savedInstanceState) {
+                  registerPlugin(GCPlayCastPlugin.class);
+                  super.onCreate(savedInstanceState);
+              }"""
+
+              if old not in s:
+                  raise SystemExit(
+                      "Estrutura esperada de MainActivity não encontrada."
+                  )
+
+              s = s.replace(old, new, 1)
+
+          main.write_text(s)
+
+          print("Plugin GCPlayCast registrado.")
+          PY
+
+      - name: Configurar Google Cast no AndroidManifest
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          manifest = Path(
+              "android/app/src/main/AndroidManifest.xml"
+          )
+
+          s = manifest.read_text()
+
+          main = next(
+              Path("android/app/src/main/java").rglob(
+                  "MainActivity.java"
+              )
+          )
+
+          package = None
+
+          for line in main.read_text().splitlines():
+              if line.startswith("package "):
+                  package = line.split()[1][:-1]
+                  break
+
+          if not package:
+              raise SystemExit(
+                  "Pacote não encontrado."
+              )
+
+          meta = f"""        <meta-data
+              android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+              android:value="{package}.CastOptionsProvider" />
+          """
+
+          if (
+              "com.google.android.gms.cast.framework."
+              "OPTIONS_PROVIDER_CLASS_NAME"
+              not in s
+          ):
+              marker = "    <application"
+
+              if marker not in s:
+                  raise SystemExit(
+                      "Tag application não encontrada."
+                  )
+
+              pos = s.index(
+                  "\n",
+                  s.index(marker)
+              ) + 1
+
+              s = s[:pos] + meta + s[pos:]
+
+          manifest.write_text(s)
+
+          print("Google Cast configurado.")
+          PY
+
+      - name: Configurar compatibilidade Android TV
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          manifest = Path(
+              "android/app/src/main/AndroidManifest.xml"
+          )
+
+          text = manifest.read_text()
+
+          if "android.hardware.touchscreen" not in text:
+
+              marker = "    <application"
+
+              tv_features = """    <uses-feature
+                  android:name="android.software.leanback"
+                  android:required="false" />
+
+              <uses-feature
+                  android:name="android.hardware.touchscreen"
+                  android:required="false"
