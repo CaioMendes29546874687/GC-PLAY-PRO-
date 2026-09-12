@@ -33,6 +33,17 @@ jobs:
       - name: Criar projeto Android
         run: npx cap add android
 
+      - name: Gerar ícone e Splash do GC PLAY PRO
+        run: |
+          npx @capacitor/assets generate \
+            --android \
+            --assetPath assets \
+            --iconBackgroundColor "#000000" \
+            --iconBackgroundColorDark "#000000" \
+            --splashBackgroundColor "#000000" \
+            --splashBackgroundColorDark "#000000" \
+            --logoSplashScale 0.30
+
       - name: Configurar compatibilidade Android TV
         shell: bash
         run: |
@@ -41,11 +52,6 @@ jobs:
 
           manifest = Path("android/app/src/main/AndroidManifest.xml")
           text = manifest.read_text()
-
-          # -------------------------------------------------
-          # Android TV: permitir instalação em dispositivos
-          # que não possuem tela touchscreen.
-          # -------------------------------------------------
 
           touchscreen = 'android.hardware.touchscreen'
 
@@ -69,15 +75,9 @@ jobs:
                       1
                   )
 
-          # -------------------------------------------------
-          # Android TV Launcher
-          # -------------------------------------------------
+          launcher = '<category android:name="android.intent.category.LAUNCHER" />'
 
-          leanback_launcher = 'android.intent.category.LEANBACK_LAUNCHER'
-
-          if leanback_launcher not in text:
-              launcher = '<category android:name="android.intent.category.LAUNCHER" />'
-
+          if 'android.intent.category.LEANBACK_LAUNCHER' not in text:
               replacement = launcher + '''
                           <category android:name="android.intent.category.LEANBACK_LAUNCHER" />'''
 
@@ -90,13 +90,8 @@ jobs:
 
           manifest.write_text(text)
 
-          print("AndroidManifest.xml configurado para Android TV.")
+          print("Android TV configurado.")
           PY
-
-      - name: Verificar AndroidManifest
-        run: |
-          echo "===== ANDROID MANIFEST ====="
-          cat android/app/src/main/AndroidManifest.xml
 
       - name: Sincronizar aplicativo
         run: npx cap sync android
@@ -108,6 +103,6 @@ jobs:
       - name: Disponibilizar APK
         uses: actions/upload-artifact@v4
         with:
-          name: GC-PLAY-PRO-Android-TV-debug
+          name: GC-PLAY-PRO-Android-TV-Logo-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
