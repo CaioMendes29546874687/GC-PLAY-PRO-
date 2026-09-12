@@ -11,7 +11,7 @@ jobs:
     steps:
 
       # ============================================================
-      # 1. BAIXAR CÓDIGO
+      # 1 - BAIXAR CÓDIGO
       # ============================================================
 
       - name: Baixar código
@@ -19,7 +19,7 @@ jobs:
 
 
       # ============================================================
-      # 2. CONFIGURAR JAVA
+      # 2 - JAVA
       # ============================================================
 
       - name: Configurar Java
@@ -30,7 +30,7 @@ jobs:
 
 
       # ============================================================
-      # 3. CONFIGURAR NODE
+      # 3 - NODE
       # ============================================================
 
       - name: Configurar Node.js
@@ -40,7 +40,7 @@ jobs:
 
 
       # ============================================================
-      # 4. INSTALAR DEPENDÊNCIAS
+      # 4 - DEPENDÊNCIAS
       # ============================================================
 
       - name: Instalar dependências
@@ -48,7 +48,7 @@ jobs:
 
 
       # ============================================================
-      # 5. PREPARAR HTML CAST
+      # 5 - PREPARAR HTML CAST
       # ============================================================
 
       - name: Preparar HTML CAST
@@ -60,12 +60,12 @@ jobs:
           cp node_modules/@capacitor/core/dist/capacitor.js www/capacitor.js
 
           echo "HTML CAST preparado."
-          echo "Capacitor runtime copiado:"
+          echo "Capacitor runtime:"
           ls -lh www/capacitor.js
 
 
       # ============================================================
-      # 6. CRIAR PROJETO ANDROID
+      # 6 - CRIAR ANDROID
       # ============================================================
 
       - name: Criar projeto Android
@@ -73,7 +73,7 @@ jobs:
 
 
       # ============================================================
-      # 7. GERAR LOGO E SPLASH
+      # 7 - LOGO E SPLASH
       # ============================================================
 
       - name: Gerar ícone e Splash do GC PLAY PRO
@@ -89,7 +89,7 @@ jobs:
 
 
       # ============================================================
-      # 8. ADICIONAR GOOGLE CAST SDK
+      # 8 - GOOGLE CAST
       # ============================================================
 
       - name: Adicionar Google Cast SDK
@@ -124,42 +124,10 @@ jobs:
 
 
       # ============================================================
-      # 9. COPIAR PLUGINS CAST
+      # 9 - DESCOBRIR PACKAGE REAL E COPIAR PLUGINS
       # ============================================================
 
       - name: Copiar plugins CAST
-        run: |
-          mkdir -p android/app/src/main/java/com/gcplaypro/app
-
-          cp GCPlayCastPlugin.java \
-            android/app/src/main/java/com/gcplaypro/app/GCPlayCastPlugin.java
-
-          cp CastOptionsProvider.java \
-            android/app/src/main/java/com/gcplaypro/app/CastOptionsProvider.java
-
-          MAIN="android/app/src/main/java/com/gcplaypro/app/GCPlayCastPlugin.java"
-          OPTIONS="android/app/src/main/java/com/gcplaypro/app/CastOptionsProvider.java"
-
-          PACKAGE=$(grep '^package ' "$MAIN" | head -1 | sed 's/^package //; s/;//')
-
-          if [ -z "$PACKAGE" ]; then
-            echo "Não foi possível descobrir o package."
-            exit 1
-          fi
-
-          echo "Package encontrado: $PACKAGE"
-
-          sed -i "s/__PACKAGE__/$PACKAGE/g" "$MAIN"
-          sed -i "s/__PACKAGE__/$PACKAGE/g" "$OPTIONS"
-
-          echo "Plugins CAST preparados."
-
-
-      # ============================================================
-      # 10. REGISTRAR PLUGIN CAST NA MAINACTIVITY
-      # ============================================================
-
-      - name: Registrar plugin CAST
         run: |
           MAIN=$(find android/app/src/main/java -name MainActivity.java | head -1)
 
@@ -168,25 +136,62 @@ jobs:
             exit 1
           fi
 
-          echo "MainActivity encontrada:"
-          echo "$MAIN"
-
           PACKAGE=$(grep '^package ' "$MAIN" | head -1 | sed 's/^package //; s/;//')
 
           if [ -z "$PACKAGE" ]; then
-            echo "Package da MainActivity não encontrado."
+            echo "Não foi possível descobrir o package."
             exit 1
           fi
+
+          echo "Package REAL:"
+          echo "$PACKAGE"
+
+          PACKAGE_PATH=$(echo "$PACKAGE" | tr '.' '/')
+
+          echo "Pasta Java:"
+          echo "$PACKAGE_PATH"
+
+          mkdir -p "android/app/src/main/java/$PACKAGE_PATH"
+
+          cp GCPlayCastPlugin.java \
+            "android/app/src/main/java/$PACKAGE_PATH/GCPlayCastPlugin.java"
+
+          cp CastOptionsProvider.java \
+            "android/app/src/main/java/$PACKAGE_PATH/CastOptionsProvider.java"
+
+          PLUGIN="android/app/src/main/java/$PACKAGE_PATH/GCPlayCastPlugin.java"
+          OPTIONS="android/app/src/main/java/$PACKAGE_PATH/CastOptionsProvider.java"
+
+          sed -i "s/__PACKAGE__/$PACKAGE/g" "$PLUGIN"
+          sed -i "s/__PACKAGE__/$PACKAGE/g" "$OPTIONS"
+
+          echo "Plugin CAST:"
+          cat "$PLUGIN"
+
+          echo "CastOptionsProvider:"
+          cat "$OPTIONS"
+
+
+      # ============================================================
+      # 10 - REGISTRAR PLUGIN NA MAINACTIVITY
+      # ============================================================
+
+      - name: Registrar plugin CAST
+        run: |
+          MAIN=$(find android/app/src/main/java -name MainActivity.java | head -1)
+
+          PACKAGE=$(grep '^package ' "$MAIN" | head -1 | sed 's/^package //; s/;//')
+
+          echo "MainActivity:"
+          echo "$MAIN"
 
           echo "Package:"
           echo "$PACKAGE"
 
-          PLUGIN_IMPORT="import ${PACKAGE}.GCPlayCastPlugin;"
+          IMPORT="import ${PACKAGE}.GCPlayCastPlugin;"
 
           if ! grep -q "GCPlayCastPlugin" "$MAIN"; then
-
-            sed -i "/^package /a $PLUGIN_IMPORT" "$MAIN"
-
+            sed -i "/^package /a $IMPORT" "$MAIN"
           fi
 
           if ! grep -q "registerPlugin(GCPlayCastPlugin.class)" "$MAIN"; then
@@ -200,20 +205,18 @@ jobs:
           path = Path(sys.argv[1])
           text = path.read_text()
 
-          line = "        registerPlugin(GCPlayCastPlugin.class);"
+          marker = "super.onCreate(savedInstanceState);"
+
+          if marker not in text:
+              raise SystemExit(
+                  "super.onCreate não encontrado."
+              )
 
           if "registerPlugin(GCPlayCastPlugin.class)" not in text:
 
-              marker = "super.onCreate(savedInstanceState);"
-
-              if marker not in text:
-                  raise SystemExit(
-                      "super.onCreate não encontrado."
-                  )
-
               text = text.replace(
                   marker,
-                  marker + "\n" + line,
+                  marker + "\n        registerPlugin(GCPlayCastPlugin.class);",
                   1
               )
 
@@ -222,7 +225,9 @@ jobs:
 
             else
 
-              sed -i "/^package /a import android.os.Bundle;" "$MAIN"
+              if ! grep -q "import android.os.Bundle;" "$MAIN"; then
+                sed -i "/^package /a import android.os.Bundle;" "$MAIN"
+              fi
 
               python3 - "$MAIN" <<'PY'
           import sys
@@ -232,11 +237,11 @@ jobs:
           text = path.read_text()
 
           block = """
-          @Override
-          public void onCreate(Bundle savedInstanceState) {
-              super.onCreate(savedInstanceState);
-              registerPlugin(GCPlayCastPlugin.class);
-          }
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  registerPlugin(GCPlayCastPlugin.class);
+              }
           """
 
           pos = text.rfind("}")
@@ -255,12 +260,12 @@ jobs:
 
           fi
 
-          echo "MainActivity final:"
+          echo "MainActivity FINAL:"
           cat "$MAIN"
 
 
       # ============================================================
-      # 11. CONFIGURAR ANDROIDMANIFEST
+      # 11 - CONFIGURAR MANIFEST
       # ============================================================
 
       - name: Configurar AndroidManifest
@@ -275,14 +280,42 @@ jobs:
           text = manifest.read_text()
 
           # --------------------------------------------------------
-          # Google Cast Options Provider
+          # Descobrir package real
           # --------------------------------------------------------
 
-          provider_line = """
-              <meta-data
-                  android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
-                  android:value="com.gcplaypro.app.CastOptionsProvider" />
-          """
+          main = next(
+              Path("android/app/src/main/java").rglob("MainActivity.java")
+          )
+
+          main_text = main.read_text()
+
+          package = ""
+
+          for line in main_text.splitlines():
+              if line.startswith("package "):
+                  package = (
+                      line
+                      .replace("package ", "")
+                      .replace(";", "")
+                      .strip()
+                  )
+                  break
+
+          if not package:
+              raise SystemExit(
+                  "Package não encontrado."
+              )
+
+          print("Package Manifest:")
+          print(package)
+
+          provider_class = (
+              package + ".CastOptionsProvider"
+          )
+
+          # --------------------------------------------------------
+          # Cast Options Provider
+          # --------------------------------------------------------
 
           if "OPTIONS_PROVIDER_CLASS_NAME" not in text:
 
@@ -302,9 +335,15 @@ jobs:
                       "Tag application inválida."
                   )
 
+              metadata = f"""
+                  <meta-data
+                      android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+                      android:value="{provider_class}" />
+              """
+
               text = (
                   text[:end + 1]
-                  + provider_line
+                  + metadata
                   + text[end + 1:]
               )
 
@@ -315,9 +354,7 @@ jobs:
 
           if "android.software.leanback" not in text:
 
-              marker = "<application"
-
-              tv_features = """
+              features = """
               <uses-feature
                   android:name="android.software.leanback"
                   android:required="false" />
@@ -329,17 +366,19 @@ jobs:
               """
 
               text = text.replace(
-                  marker,
-                  tv_features + marker,
+                  "<application",
+                  features + "<application",
                   1
               )
 
 
           # --------------------------------------------------------
-          # LEANBACK LAUNCHER
+          # Leanback launcher
           # --------------------------------------------------------
 
-          launcher = '<category android:name="android.intent.category.LAUNCHER" />'
+          launcher = (
+              '<category android:name="android.intent.category.LAUNCHER" />'
+          )
 
           if (
               "android.intent.category.LEANBACK_LAUNCHER"
@@ -349,22 +388,22 @@ jobs:
               replacement = launcher + """
                           <category android:name="android.intent.category.LEANBACK_LAUNCHER" />"""
 
-              if launcher in text:
-                  text = text.replace(
-                      launcher,
-                      replacement,
-                      1
-                  )
+              text = text.replace(
+                  launcher,
+                  replacement,
+                  1
+              )
 
 
           manifest.write_text(text)
 
           print("AndroidManifest configurado.")
+          print(manifest.read_text())
           PY
 
 
       # ============================================================
-      # 12. VALIDAR ANDROIDMANIFEST
+      # 12 - VALIDAR MANIFEST
       # ============================================================
 
       - name: Validar AndroidManifest
@@ -381,14 +420,12 @@ jobs:
 
 
       # ============================================================
-      # 13. VERIFICAR COMPATIBILIDADE ANDROID TV
+      # 13 - VERIFICAR ANDROID TV
       # ============================================================
 
       - name: Verificar compatibilidade Android TV
         run: |
           MANIFEST="android/app/src/main/AndroidManifest.xml"
-
-          echo "Verificando Android TV..."
 
           grep -q "android.software.leanback" "$MANIFEST"
 
@@ -396,11 +433,11 @@ jobs:
 
           grep -q "android.intent.category.LEANBACK_LAUNCHER" "$MANIFEST"
 
-          echo "Compatibilidade Android TV OK."
+          echo "Android TV OK."
 
 
       # ============================================================
-      # 14. SINCRONIZAR CAPACITOR
+      # 14 - SINCRONIZAR CAPACITOR
       # ============================================================
 
       - name: Sincronizar Capacitor
@@ -408,27 +445,39 @@ jobs:
 
 
       # ============================================================
-      # 15. VERIFICAR CONFIGURAÇÃO CAST
+      # 15 - VERIFICAÇÃO FINAL CAST
       # ============================================================
 
       - name: Verificar configuração CAST
         run: |
-          echo "Verificando arquivos CAST..."
+          MAIN=$(find android/app/src/main/java -name MainActivity.java | head -1)
 
-          test -f \
-            android/app/src/main/java/com/gcplaypro/app/GCPlayCastPlugin.java
+          PACKAGE=$(grep '^package ' "$MAIN" | head -1 | sed 's/^package //; s/;//')
 
-          test -f \
-            android/app/src/main/java/com/gcplaypro/app/CastOptionsProvider.java
+          PACKAGE_PATH=$(echo "$PACKAGE" | tr '.' '/')
 
-          test -f \
-            www/index.html
+          PLUGIN="android/app/src/main/java/$PACKAGE_PATH/GCPlayCastPlugin.java"
 
-          test -f \
-            www/capacitor.js
+          OPTIONS="android/app/src/main/java/$PACKAGE_PATH/CastOptionsProvider.java"
 
-          grep -q "GCPlayCastPlugin" \
-            android/app/src/main/java/com/gcplaypro/app/MainActivity.java
+          echo "Package:"
+          echo "$PACKAGE"
+
+          echo "Plugin:"
+          echo "$PLUGIN"
+
+          echo "Options:"
+          echo "$OPTIONS"
+
+          test -f "$PLUGIN"
+          test -f "$OPTIONS"
+          test -f "www/index.html"
+          test -f "www/capacitor.js"
+
+          grep -q "package $PACKAGE;" "$PLUGIN"
+          grep -q "package $PACKAGE;" "$OPTIONS"
+
+          grep -q "GCPlayCastPlugin" "$MAIN"
 
           grep -q "OPTIONS_PROVIDER_CLASS_NAME" \
             android/app/src/main/AndroidManifest.xml
@@ -436,11 +485,13 @@ jobs:
           grep -q "play-services-cast-framework" \
             android/app/build.gradle
 
-          echo "Configuração CAST OK."
+          echo "================================"
+          echo "CONFIGURAÇÃO CAST OK"
+          echo "================================"
 
 
       # ============================================================
-      # 16. GERAR APK CAST
+      # 16 - GERAR APK
       # ============================================================
 
       - name: Gerar APK CAST
@@ -450,7 +501,7 @@ jobs:
 
 
       # ============================================================
-      # 17. DISPONIBILIZAR APK
+      # 17 - DISPONIBILIZAR APK
       # ============================================================
 
       - name: Disponibilizar APK
