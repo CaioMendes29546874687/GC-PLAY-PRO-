@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GC PLAY PRO — Painel Administrativo</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+    --bg:#020604;
+    --bg2:#061009;
+    --panel:#07140b;
+    --panel2:#0a1c10;
+    --green:#00ff55;
+    --green2:#39ff78;
+    --darkgreen:#063817;
+    --text:#f4fff7;
+    --muted:#86a993;
+    --line:rgba(0,255,85,.28);
+    --shadow:0 0 25px rgba(0,255,85,.12);
+}
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    background:
+        radial-gradient(circle at 80% 10%,rgba(0,255,85,.08),transparent 30%),
+        radial-gradient(circle at 10% 90%,rgba(0,255,85,.05),transparent 30%),
+        var(--bg);
+    color:var(--text);
+    min-height:100vh;
+}
+
+/* LOGIN */
+
+#loginScreen{
+    position:fixed;
+    inset:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+    background:
+        radial-gradient(circle at center,rgba(0,255,85,.10),transparent 40%),
+        #010301;
+    z-index:9999;
+}
+
+.loginBox{
+    width:100%;
+    max-width:430px;
+    padding:38px 30px;
+    background:rgba(4,15,8,.94);
+    border:1px solid var(--green);
+    border-radius:22px;
+    box-shadow:
+        0 0 25px rgba(0,255,85,.15),
+        inset 0 0 30px rgba(0,255,85,.04);
+    text-align:center;
+}
+
+.logoMark{
+    width:75px;
+    height:75px;
+    margin:0 auto 15px;
+    border:2px solid var(--green);
+    border-radius:22px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:40px;
+    color:var(--green);
+    box-shadow:0 0 25px rgba(0,255,85,.35);
+}
+
+.loginBox h1{
+    font-size:28px;
+    letter-spacing:2px;
+}
+
+.loginBox h1 span{
+    color:var(--green);
+}
+
+.loginSubtitle{
+    color:var(--muted);
+    margin:8px 0 28px;
+    font-size:14px;
+}
+
+.input{
+    width:100%;
+    padding:15px;
+    margin-bottom:13px;
+    background:#020804;
+    border:1px solid rgba(0,255,85,.25);
+    border-radius:12px;
+    color:white;
+    outline:none;
+    font-size:15px;
+}
+
+.input:focus{
+    border-color:var(--green);
+    box-shadow:0 0 12px rgba(0,255,85,.12);
+}
+
+.btnLogin{
+    width:100%;
+    padding:15px;
+    border:0;
+    border-radius:12px;
+    background:linear-gradient(90deg,#00b83d,#00ff55);
+    color:#001d09;
+    font-weight:bold;
+    font-size:16px;
+    cursor:pointer;
+}
+
+.loginError{
+    display:none;
+    color:#ff6666;
+    margin-top:15px;
+    font-size:14px;
+}
+
+/* APP */
+
+#app{
+    display:none;
+    min-height:100vh;
+}
+
+.sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    bottom:0;
+    width:245px;
+    background:
+        linear-gradient(180deg,#020704,#041009);
+    border-right:1px solid var(--line);
+    padding:22px 14px;
+    z-index:100;
+}
+
+.brand{
+    text-align:center;
+    padding:5px 0 25px;
+}
+
+.brandIcon{
+    font-size:46px;
+    color:var(--green);
+    text-shadow:0 0 20px rgba(0,255,85,.5);
+}
+
+.brandName{
+    font-size:25px;
+    font-weight:bold;
+    letter-spacing:1px;
+}
+
+.brandName span{
+    color:var(--green);
+}
+
+.brand small{
+    color:#6f9479;
+    font-size:9px;
+    letter-spacing:2px;
+}
+
+.nav{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+}
+
+.nav button{
+    border:1px solid transparent;
+    background:transparent;
+    color:#dcebe0;
+    padding:13px 14px;
+    border-radius:12px;
+    text-align:left;
+    font-size:14px;
+    cursor:pointer;
+}
+
+.nav button:hover,
+.nav button.active{
+    background:linear-gradient(90deg,rgba(0,255,85,.16),rgba(0,255,85,.03));
+    border-color:rgba(0,255,85,.5);
+    color:var(--green);
+    box-shadow:0 0 15px rgba(0,255,85,.08);
+}
+
+.navIcon{
+    display:inline-block;
+    width:28px;
+    font-size:18px;
+}
+
+.adminCard{
+    position:absolute;
+    left:14px;
+    right:14px;
+    bottom:20px;
+    padding:15px;
+    border:1px solid rgba(0,255,85,.3);
+    border-radius:15px;
+    background:rgba(0,255,85,.04);
+}
+
+.adminDot{
+    display:inline-block;
+    width:9px;
+    height:9px;
+    background:var(--green);
+    border-radius:50%;
+    box-shadow:0 0 10px var(--green);
+    margin-right:6px;
+}
+
+.main{
+    margin-left:245px;
+    min-height:100vh;
+}
+
+.topbar{
+    height:72px;
+    display:flex;
+    align-items:center;
+    gap:15px;
+    padding:0 25px;
+    border-bottom:1px solid rgba(0,255,85,.18);
+    background:rgba(1,7,3,.88);
+    position:sticky;
+    top:0;
+    z-index:50;
+    backdrop-filter:blur(12px);
+}
+
+.menuBtn{
+    display:none;
+    background:none;
+    border:0;
+    color:var(--green);
+    font-size:25px;
+}
+
+.search{
+    flex:1;
+    max-width:600px;
+    padding:12px 18px;
+    border-radius:25px;
+    border:1px solid rgba(0,255,85,.3);
+    background:#020804;
+    color:white;
+    outline:none;
+}
+
+.topRight{
+    margin-left:auto;
+    display:flex;
+    align-items:center;
+    gap:20px;
+    color:#a5baa9;
+    font-size:13px;
+}
+
+.online{
+    color:var(--green);
+}
+
+.content{
+    padding:25px;
+}
+
+/* HERO */
+
+.hero{
+    position:relative;
+    min-height:190px;
+    padding:30px;
+    border:1px solid rgba(0,255,85,.45);
+    border-radius:20px;
+    overflow:hidden;
+    background:
+        radial-gradient(circle at 80% 50%,rgba(0,255,85,.14),transparent 35%),
+        linear-gradient(120deg,#06120a,#020704);
+    box-shadow:var(--shadow);
+}
+
+.hero:after{
+    content:"";
+    position:absolute;
+    right:-100px;
+    top:-100px;
+    width:380px;
+    height:380px;
+    border-radius:50%;
+    border:1px solid rgba(0,255,85,.18);
+    box-shadow:
+        0 0 40px rgba(0,255,85,.08),
+        inset 0 0 50px rgba(0,255,85,.06);
+}
+
+.heroLabel{
+    color:var(--green);
+    letter-spacing:4px;
+    font-size:13px;
+    font-weight:bold;
+}
+
+.hero h1{
+    font-size:38px;
+    margin:10px 0;
+}
+
+.hero h1 span{
+    color:var(--green);
+}
+
+.hero p{
+    color:#91a898;
+    max-width:650px;
+    line-height:1.6;
+}
+
+/* CARDS */
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:14px;
+    margin-top:16px;
+}
+
+.card{
+    padding:19px;
+    min-height:125px;
+    border:1px solid rgba(0,255,85,.3);
+    border-radius:16px;
+    background:
+        linear-gradient(145deg,rgba(0,255,85,.07),rgba(0,0,0,.25));
+    box-shadow:var(--shadow);
+}
+
+.cardIcon{
+    font-size:26px;
+    color:var(--green);
+    margin-bottom:12px;
+}
+
+.cardTitle{
+    color:#94aa9b;
+    font-size:11px;
+    text-transform:uppercase;
+}
+
+.cardValue{
+    font-size:28px;
+    font-weight:bold;
+    margin-top:6px;
+}
+
+.cardTrend{
+    color:var(--green);
+    font-size:11px;
+    margin-top:6px;
+}
+
+/* GRID */
+
+.grid{
+    display:grid;
+    grid-template-columns:1.5fr 1fr;
+    gap:16px;
+    margin-top:16px;
+}
+
+.panel{
+    border:1px solid rgba(0,255,85,.3);
+    border-radius:17px;
+    background:linear-gradient(145deg,rgba(0,255,85,.045),rgba(0,0,0,.3));
+    overflow:hidden;
+    box-shadow:var(--shadow);
+}
+
+.panelHeader{
+    padding:17px 20px;
+    border-bottom:1px solid rgba(0,255,85,.15);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.panelHeader h2{
+    font-size:15px;
+}
+
+.panelHeader span{
+    color:var(--green);
+}
+
+.panelBody{
+    padding:18px;
+}
+
+.table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.table th{
+    color:#63806c;
+    font-size:10px;
+    text-align:left;
+    padding:9px;
+    text-transform:uppercase;
+}
+
+.table td{
+    padding:11px 9px;
+    border-top:1px solid rgba(0,255,85,.08);
+    font-size:12px;
+}
+
+.status{
+    color:var(--green);
+}
+
+.statusDot{
+    display:inline-block;
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 8px var(--green);
+    margin-right:5px;
+}
+
+/* CHART */
+
+.chart{
+    height:230px;
+    display:flex;
+    align-items:flex-end;
+    gap:14px;
+    padding:15px 10px 5px;
+}
+
+.bar{
+    flex:1;
+    background:linear-gradient(180deg,var(--green),#063f18);
+    border-radius:7px 7px 0 0;
+    box-shadow:0 0 15px rgba(0,255,85,.15);
+    min-height:20px;
+}
+
+/* LOWER */
+
+.lower{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:16px;
+    margin-top:16px;
+}
+
+.listItem{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 0;
+    border-bottom:1px solid rgba(0,255,85,.08);
+    font-size:12px;
+}
+
+.badge{
+    padding:5px 9px;
+    border-radius:20px;
+    background:rgba(0,255,85,.1);
+    border:1px solid rgba(0,255,85,.25);
+    color:var(--green);
+    font-size:10px;
+}
+
+.logout{
+    margin-top:10px;
+    width:100%;
+    padding:9px;
+    border-radius:9px;
+    background:transparent;
+    border:1px solid rgba(0,255,85,.2);
+    color:#789481;
+    cursor:pointer;
+}
+
+.footer{
+    text-align:center;
+    color:#4e6857;
+    padding:30px;
+    font-size:11px;
+}
+
+/* MOBILE */
+
+@media(max-width:1100px){
+    .cards{
+        grid-template-columns:repeat(3,1fr);
+    }
+
+    .lower{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:800px){
+    .sidebar{
+        transform:translateX(-100%);
+        transition:.3s;
+    }
+
+    .sidebar.open{
+        transform:translateX(0);
+    }
+
+    .main{
+        margin-left:0;
+    }
+
+    .menuBtn{
+        display:block;
+    }
+
+    .topRight{
+        display:none;
+    }
+
+    .content{
+        padding:14px;
+    }
+
+    .hero{
+        padding:22px;
+    }
+
+    .hero h1{
+        font-size:27px;
+    }
+
+    .cards{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:500px){
+    .cards{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .card{
+        padding:14px;
+        min-height:105px;
+    }
+
+    .cardValue{
+        font-size:23px;
+    }
+
+    .table{
+        min-width:650px;
+    }
+
+    .panelBody{
+        overflow-x:auto;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+
+<section id="loginScreen">
+
+    <div class="loginBox">
+
+        <div class="logoMark">▶</div>
+
+        <h1>GC PLAY <span>PRO</span></h1>
+
+        <div class="loginSubtitle">
+            PAINEL ADMINISTRATIVO
+        </div>
+
+        <input
+            id="email"
+            class="input"
+            type="email"
+            placeholder="E-mail do administrador"
+            autocomplete="username"
+        >
+
+        <input
+            id="password"
+            class="input"
+            type="password"
+            placeholder="Senha"
+            autocomplete="current-password"
+        >
+
+        <button class="btnLogin" onclick="login()">
+            🔐 ENTRAR NO PAINEL
+        </button>
+
+        <div id="loginError" class="loginError"></div>
+
+    </div>
+
+</section>
+
+
+<!-- APP -->
+
+<div id="app">
+
+    <aside class="sidebar" id="sidebar">
+
+        <div class="brand">
+
+            <div class="brandIcon">▶</div>
+
+            <div class="brandName">
+                GC PLAY <span>PRO</span>
+            </div>
+
+            <small>O FUTURO DO ENTRETENIMENTO</small>
+
+        </div>
+
+        <nav class="nav">
+
+            <button class="active">
+                <span class="navIcon">⌂</span>
+                Painel
+            </button>
+
+            <button>
+                <span class="navIcon">♙</span>
+                Clientes
+            </button>
+
+            <button>
+                <span class="navIcon">▣</span>
+                Dispositivos
+            </button>
+
+            <button>
+                <span class="navIcon">♙</span>
+                Revendedores
+            </button>
+
+            <button>
+                <span class="navIcon">☷</span>
+                Listas M3U
+            </button>
+
+            <button>
+                <span class="navIcon">♧</span>
+                Ativações
+            </button>
+
+            <button>
+                <span class="navIcon">◉</span>
+                Online Agora
+            </button>
+
+            <button>
+                <span class="navIcon">⊘</span>
+                Bloqueados
+            </button>
+
+            <button>
+                <span class="navIcon">▣</span>
+                Relatórios
+            </button>
+
+            <button>
+                <span class="navIcon">⚙</span>
+                Configurações
+            </button>
+
+        </nav>
+
+        <div class="adminCard">
+
+            <strong id="adminName">ADMINISTRADOR</strong>
+
+            <div style="margin-top:7px;font-size:11px;color:#789481;">
+                <span class="adminDot"></span>
+                Online
+            </div>
+
+            <button class="logout" onclick="logout()">
+                Sair
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <button class="menuBtn" onclick="toggleMenu()">☰</button>
+
+            <input
+                class="search"
+                placeholder="🔎 Buscar cliente, dispositivo, revendedor..."
+            >
+
+            <div class="topRight">
+
+                <span>🔔</span>
+
+                <span id="dateTime"></span>
+
+                <span class="online">
+                    ● Online
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <section class="content">
+
+            <!-- HERO -->
+
+            <div class="hero">
+
+                <div class="heroLabel">
+                    BEM-VINDO AO
+                </div>
+
+                <h1>
+                    GC PLAY <span>PRO</span>
+                </h1>
+
+                <div style="color:var(--green);letter-spacing:5px;font-size:13px;margin-bottom:10px;">
+                    PAINEL ADMINISTRATIVO
+                </div>
+
+                <p>
+                    Gerencie clientes, dispositivos, ativações,
+                    listas e revendedores em um único painel.
+                </p>
+
+            </div>
+
+
+            <!-- CARDS -->
+
+            <div class="cards">
+
+                <div class="card">
+                    <div class="cardIcon">♙</div>
+                    <div class="cardTitle">Clientes</div>
+                    <div class="cardValue" id="clientesCount">0</div>
+                    <div class="cardTrend">● Sistema conectado</div>
+                </div>
+
+                <div class="card">
+                    <div class="cardIcon">▣</div>
+                    <div class="cardTitle">Dispositivos</div>
+                    <div class="cardValue" id="devicesCount">0</div>
+                    <div class="cardTrend">● Banco conectado</div>
+                </div>
+
+                <div class="card">
+                    <div class="cardIcon">▶</div>
+                    <div class="cardTitle">Ativos</div>
+                    <div class="cardValue" id="activeCount">0</div>
+                    <div class="cardTrend">● Ativos</div>
+                </div>
+
+                <div class="card">
+                    <div class="cardIcon">◉</div>
+                    <div class="cardTitle">Online Agora</div>
+                    <div class="cardValue" id="onlineCount">0</div>
+                    <div class="cardTrend">● Monitoramento</div>
+                </div>
+
+                <div class="card">
+                    <div class="cardIcon">♙</div>
+                    <div class="cardTitle">Revendedores</div>
+                    <div class="cardValue" id="resellerCount">0</div>
+                    <div class="cardTrend">● Cadastrados</div>
+                </div>
+
+                <div class="card">
+                    <div class="cardIcon">▤</div>
+                    <div class="cardTitle">Listas M3U</div>
+                    <div class="cardValue" id="m3uCount">0</div>
+                    <div class="cardTrend">● Protegidas</div>
+                </div>
+
+            </div>
+
+
+            <!-- ONLINE + GRÁFICO -->
+
+            <div class="grid">
+
+                <div class="panel">
+
+                    <div class="panelHeader">
+
+                        <h2>
+                            🟢 DISPOSITIVOS ONLINE
+                            <span id="onlineTitle">(0)</span>
+                        </h2>
+
+                        <span>● AO VIVO</span>
+
+                    </div>
+
+                    <div class="panelBody">
+
+                        <table class="table">
+
+                            <thead>
+                                <tr>
+                                    <th>Dispositivo</th>
+                                    <th>Cliente</th>
+                                    <th>Plataforma</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="onlineTable">
+
+                                <tr>
+                                    <td colspan="4" style="text-align:center;color:#64806d;">
+                                        Nenhum dispositivo online carregado.
+                                    </td>
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div class="panelHeader">
+
+                        <h2>📊 ESTATÍSTICAS</h2>
+
+                        <span>Últimos 7 dias</span>
+
+                    </div>
+
+                    <div class="panelBody">
+
+                        <div class="chart">
+
+                            <div class="bar" style="height:35%"></div>
+                            <div class="bar" style="height:48%"></div>
+                            <div class="bar" style="height:42%"></div>
+                            <div class="bar" style="height:62%"></div>
+                            <div class="bar" style="height:55%"></div>
+                            <div class="bar" style="height:76%"></div>
+                            <div class="bar" style="height:90%"></div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- LOWER -->
+
+            <div class="lower">
+
+                <div class="panel">
+
+                    <div class="panelHeader">
+                        <h2>⚡ ÚLTIMAS ATIVAÇÕES</h2>
+                        <span>Ver todas →</span>
+                    </div>
+
+                    <div class="panelBody">
+
+                        <div class="listItem">
+                            <span>Ativações recentes</span>
+                            <span class="badge">ATIVO</span>
+                        </div>
+
+                        <div class="listItem">
+                            <span>Novos dispositivos</span>
+                            <span class="badge">ATIVO</span>
+                        </div>
+
+                        <div class="listItem">
+                            <span>Sistema de ativação</span>
+                            <span class="badge">ONLINE</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div class="panelHeader">
+                        <h2>👥 CLIENTES</h2>
+                        <span>Gerenciar →</span>
+                    </div>
+
+                    <div class="panelBody">
+
+                        <div class="listItem">
+                            <span>Clientes cadastrados</span>
+                            <strong id="clientesSmall">0</strong>
+                        </div>
+
+                        <div class="listItem">
+                            <span>Clientes ativos</span>
+                            <span class="badge">ATIVOS</span>
+                        </div>
+
+                        <div class="listItem">
+                            <span>Status do cadastro</span>
+                            <span class="badge">OK</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div class="panelHeader">
+                        <h2>📺 LISTAS M3U</h2>
+                        <span>Protegidas</span>
+                    </div>
+
+                    <div class="panelBody">
+
+                        <div class="listItem">
+                            <span>Listas cadastradas</span>
+                            <strong id="m3uSmall">0</strong>
+                        </div>
+
+                        <div class="listItem">
+                            <span>Acesso público</span>
+                            <span class="badge">BLOQUEADO</span>
+                        </div>
+
+                        <div class="listItem">
+                            <span>Segurança</span>
+                            <span class="badge">ATIVA</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="footer">
+                <strong style="color:var(--green);">GC PLAY PRO</strong>
+                &nbsp; • &nbsp;
+                PAINEL ADMINISTRATIVO
+                &nbsp; • &nbsp;
+                SISTEMA SEGURO
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<script>
+
+/* SUPABASE */
+
+const SUPABASE_URL =
+    "https://kuzgdvpdqmocklsgyzvt.supabase.co";
+
+const SUPABASE_KEY =
+    "sb_publishable_2qV7Uw-99dQlVcXluSuikw_YZGClN13";
+
+const supabaseClient =
+    supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+
+
+/* LOGIN */
+
+async function login(){
+
+    const email =
+        document.getElementById("email").value.trim();
+
+    const password =
+        document.getElementById("password").value;
+
+    const error =
+        document.getElementById("loginError");
+
+    error.style.display="none";
+
+    if(!email || !password){
+
+        error.textContent =
+            "Digite seu e-mail e sua senha.";
+
+        error.style.display="block";
+
+        return;
+    }
+
+    const { data, error:loginError } =
+        await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+        });
+
+    if(loginError){
+
+        error.textContent =
+            "E-mail ou senha inválidos.";
+
+        error.style.display="block";
+
+        return;
+    }
+
+    const { data:adminOK, error:rpcError } =
+        await supabaseClient.rpc("gc_is_admin");
+
+    if(rpcError || adminOK !== true){
+
+        await supabaseClient.auth.signOut();
+
+        error.textContent =
+            "Este usuário não possui permissão de administrador.";
+
+        error.style.display="block";
+
+        return;
+    }
+
+    abrirPainel(data.user);
+
+}
+
+
+/* ABRIR PAINEL */
+
+function abrirPainel(user){
+
+    document.getElementById("loginScreen").style.display="none";
+
+    document.getElementById("app").style.display="block";
+
+    const nome =
+        user.email || "ADMINISTRADOR";
+
+    document.getElementById("adminName").textContent =
+        nome.toUpperCase();
+
+    atualizarData();
+
+    carregarDados();
+
+}
+
+
+/* VERIFICAR SESSÃO */
+
+async function verificarSessao(){
+
+    const {data} =
+        await supabaseClient.auth.getSession();
+
+    if(data.session){
+
+        const {data:adminOK} =
+            await supabaseClient.rpc("gc_is_admin");
+
+        if(adminOK === true){
+
+            abrirPainel(data.session.user);
+
+        }
+
+    }
+
+}
+
+
+/* SAIR */
+
+async function logout(){
+
+    await supabaseClient.auth.signOut();
+
+    location.reload();
+
+}
+
+
+/* DATA */
+
+function atualizarData(){
+
+    const agora = new Date();
+
+    document.getElementById("dateTime").textContent =
+        agora.toLocaleString("pt-BR");
+
+}
+
+setInterval(atualizarData,30000);
+
+
+/* MENU MOBILE */
+
+function toggleMenu(){
+
+    document
+        .getElementById("sidebar")
+        .classList.toggle("open");
+
+}
+
+
+/* DADOS DO BANCO */
+
+async function carregarDados(){
+
+    try{
+
+        const clientes =
+            await supabaseClient
+                .from("gc_clients")
+                .select("*",{count:"exact",head:true});
+
+        const dispositivos =
+            await supabaseClient
+                .from("gc_devices")
+                .select("*",{count:"exact",head:true});
+
+        const ativos =
+            await supabaseClient
+                .from("gc_devices")
+                .select("*",{count:"exact",head:true})
+                .eq("active",true);
+
+        const m3u =
+            await supabaseClient
+                .from("gc_m3u_lists")
+                .select("*",{count:"exact",head:true});
+
+        const revendedores =
+            await supabaseClient
+                .from("gc_users")
+                .select("*",{count:"exact",head:true})
+                .eq("role","reseller");
+
+        document.getElementById("clientesCount").textContent =
+            clientes.count || 0;
+
+        document.getElementById("clientesSmall").textContent =
+            clientes.count || 0;
+
+        document.getElementById("devicesCount").textContent =
+            dispositivos.count || 0;
+
+        document.getElementById("activeCount").textContent =
+            ativos.count || 0;
+
+        document.getElementById("m3uCount").textContent =
+            m3u.count || 0;
+
+        document.getElementById("m3uSmall").textContent =
+            m3u.count || 0;
+
+        document.getElementById("resellerCount").textContent =
+            revendedores.count || 0;
+
+    }catch(e){
+
+        console.log("Erro ao carregar dados:",e);
+
+    }
+
+}
+
+
+/* INICIAR */
+
+verificarSessao();
+
+</script>
+
+</body>
+</html>
