@@ -2,592 +2,586 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GC PLAY PRO — Painel Administrativo</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GC PLAY PRO • ADMIN</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 :root{
-    --bg:#020604;
-    --bg2:#061009;
-    --panel:#07140b;
-    --panel2:#0a1c10;
-    --green:#00ff55;
-    --green2:#39ff78;
-    --darkgreen:#063817;
-    --text:#f4fff7;
-    --muted:#86a993;
-    --line:rgba(0,255,85,.28);
-    --shadow:0 0 25px rgba(0,255,85,.12);
+ --bg:#020503;
+ --bg2:#050b07;
+ --panel:#07100a;
+ --panel2:#09150c;
+ --green:#00ff55;
+ --green2:#42ff78;
+ --dark:#063b18;
+ --text:#f2fff5;
+ --muted:#78917f;
+ --line:rgba(0,255,85,.25);
+ --glow:0 0 25px rgba(0,255,85,.13);
 }
 
 *{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
+ box-sizing:border-box;
+ margin:0;
+ padding:0;
 }
 
 body{
-    font-family:Arial,Helvetica,sans-serif;
-    background:
-        radial-gradient(circle at 80% 10%,rgba(0,255,85,.08),transparent 30%),
-        radial-gradient(circle at 10% 90%,rgba(0,255,85,.05),transparent 30%),
-        var(--bg);
-    color:var(--text);
-    min-height:100vh;
+ font-family:Arial,Helvetica,sans-serif;
+ background:
+ radial-gradient(circle at 80% 5%,rgba(0,255,85,.08),transparent 28%),
+ radial-gradient(circle at 10% 90%,rgba(0,255,85,.05),transparent 25%),
+ var(--bg);
+ color:var(--text);
+ min-height:100vh;
 }
 
 /* LOGIN */
 
-#loginScreen{
-    position:fixed;
-    inset:0;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    padding:20px;
-    background:
-        radial-gradient(circle at center,rgba(0,255,85,.10),transparent 40%),
-        #010301;
-    z-index:9999;
+#login{
+ position:fixed;
+ inset:0;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ padding:20px;
+ background:#010301;
+ z-index:9999;
 }
 
-.loginBox{
-    width:100%;
-    max-width:430px;
-    padding:38px 30px;
-    background:rgba(4,15,8,.94);
-    border:1px solid var(--green);
-    border-radius:22px;
-    box-shadow:
-        0 0 25px rgba(0,255,85,.15),
-        inset 0 0 30px rgba(0,255,85,.04);
-    text-align:center;
+.login-box{
+ width:100%;
+ max-width:430px;
+ padding:38px 30px;
+ border:1px solid var(--green);
+ border-radius:22px;
+ background:linear-gradient(145deg,#07140b,#020604);
+ box-shadow:0 0 45px rgba(0,255,85,.18);
+ text-align:center;
 }
 
-.logoMark{
-    width:75px;
-    height:75px;
-    margin:0 auto 15px;
-    border:2px solid var(--green);
-    border-radius:22px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    font-size:40px;
-    color:var(--green);
-    box-shadow:0 0 25px rgba(0,255,85,.35);
+.logo{
+ width:78px;
+ height:78px;
+ margin:auto;
+ border:2px solid var(--green);
+ border-radius:22px;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ color:var(--green);
+ font-size:42px;
+ box-shadow:0 0 30px rgba(0,255,85,.3);
 }
 
-.loginBox h1{
-    font-size:28px;
-    letter-spacing:2px;
+.login-box h1{
+ margin-top:18px;
+ font-size:28px;
 }
 
-.loginBox h1 span{
-    color:var(--green);
+.login-box h1 span{
+ color:var(--green);
 }
 
-.loginSubtitle{
-    color:var(--muted);
-    margin:8px 0 28px;
-    font-size:14px;
+.login-sub{
+ color:var(--muted);
+ font-size:12px;
+ letter-spacing:2px;
+ margin:8px 0 28px;
 }
 
 .input{
-    width:100%;
-    padding:15px;
-    margin-bottom:13px;
-    background:#020804;
-    border:1px solid rgba(0,255,85,.25);
-    border-radius:12px;
-    color:white;
-    outline:none;
-    font-size:15px;
+ width:100%;
+ padding:15px;
+ margin-bottom:13px;
+ border-radius:12px;
+ border:1px solid var(--line);
+ background:#020704;
+ color:white;
+ outline:none;
 }
 
 .input:focus{
-    border-color:var(--green);
-    box-shadow:0 0 12px rgba(0,255,85,.12);
+ border-color:var(--green);
+ box-shadow:0 0 15px rgba(0,255,85,.1);
 }
 
-.btnLogin{
-    width:100%;
-    padding:15px;
-    border:0;
-    border-radius:12px;
-    background:linear-gradient(90deg,#00b83d,#00ff55);
-    color:#001d09;
-    font-weight:bold;
-    font-size:16px;
-    cursor:pointer;
+.login-btn{
+ width:100%;
+ padding:15px;
+ border:0;
+ border-radius:12px;
+ background:linear-gradient(90deg,#00bd43,#00ff55);
+ color:#001d08;
+ font-weight:bold;
+ cursor:pointer;
 }
 
-.loginError{
-    display:none;
-    color:#ff6666;
-    margin-top:15px;
-    font-size:14px;
+#error{
+ display:none;
+ color:#ff6565;
+ margin-top:15px;
+ font-size:13px;
 }
 
 /* APP */
 
 #app{
-    display:none;
-    min-height:100vh;
+ display:none;
 }
 
 .sidebar{
-    position:fixed;
-    left:0;
-    top:0;
-    bottom:0;
-    width:245px;
-    background:
-        linear-gradient(180deg,#020704,#041009);
-    border-right:1px solid var(--line);
-    padding:22px 14px;
-    z-index:100;
+ position:fixed;
+ top:0;
+ bottom:0;
+ left:0;
+ width:245px;
+ padding:20px 14px;
+ background:linear-gradient(180deg,#020704,#041009);
+ border-right:1px solid var(--line);
+ z-index:100;
 }
 
 .brand{
-    text-align:center;
-    padding:5px 0 25px;
+ text-align:center;
+ padding:5px 0 25px;
 }
 
-.brandIcon{
-    font-size:46px;
-    color:var(--green);
-    text-shadow:0 0 20px rgba(0,255,85,.5);
+.brand-icon{
+ font-size:46px;
+ color:var(--green);
+ text-shadow:0 0 25px rgba(0,255,85,.5);
 }
 
-.brandName{
-    font-size:25px;
-    font-weight:bold;
-    letter-spacing:1px;
+.brand-name{
+ font-size:25px;
+ font-weight:bold;
 }
 
-.brandName span{
-    color:var(--green);
+.brand-name span{
+ color:var(--green);
 }
 
 .brand small{
-    color:#6f9479;
-    font-size:9px;
-    letter-spacing:2px;
+ display:block;
+ color:#5e7765;
+ font-size:8px;
+ letter-spacing:2px;
+ margin-top:5px;
 }
 
 .nav{
-    display:flex;
-    flex-direction:column;
-    gap:5px;
+ display:flex;
+ flex-direction:column;
+ gap:4px;
 }
 
 .nav button{
-    border:1px solid transparent;
-    background:transparent;
-    color:#dcebe0;
-    padding:13px 14px;
-    border-radius:12px;
-    text-align:left;
-    font-size:14px;
-    cursor:pointer;
+ width:100%;
+ padding:13px;
+ border:1px solid transparent;
+ border-radius:12px;
+ background:transparent;
+ color:#dce9df;
+ text-align:left;
+ cursor:pointer;
+ font-size:14px;
 }
 
 .nav button:hover,
 .nav button.active{
-    background:linear-gradient(90deg,rgba(0,255,85,.16),rgba(0,255,85,.03));
-    border-color:rgba(0,255,85,.5);
-    color:var(--green);
-    box-shadow:0 0 15px rgba(0,255,85,.08);
+ color:var(--green);
+ border-color:rgba(0,255,85,.45);
+ background:rgba(0,255,85,.08);
+ box-shadow:0 0 18px rgba(0,255,85,.08);
 }
 
-.navIcon{
-    display:inline-block;
-    width:28px;
-    font-size:18px;
+.nav i{
+ display:inline-block;
+ width:30px;
+ font-style:normal;
+ font-size:18px;
 }
 
-.adminCard{
-    position:absolute;
-    left:14px;
-    right:14px;
-    bottom:20px;
-    padding:15px;
-    border:1px solid rgba(0,255,85,.3);
-    border-radius:15px;
-    background:rgba(0,255,85,.04);
+.admin-card{
+ position:absolute;
+ left:14px;
+ right:14px;
+ bottom:18px;
+ padding:15px;
+ border-radius:15px;
+ border:1px solid var(--line);
+ background:rgba(0,255,85,.035);
 }
 
-.adminDot{
-    display:inline-block;
-    width:9px;
-    height:9px;
-    background:var(--green);
-    border-radius:50%;
-    box-shadow:0 0 10px var(--green);
-    margin-right:6px;
+.admin-status{
+ margin-top:7px;
+ color:var(--green);
+ font-size:11px;
+}
+
+.dot{
+ display:inline-block;
+ width:8px;
+ height:8px;
+ border-radius:50%;
+ background:var(--green);
+ box-shadow:0 0 10px var(--green);
+ margin-right:5px;
+}
+
+.logout{
+ width:100%;
+ margin-top:12px;
+ padding:9px;
+ background:transparent;
+ border:1px solid rgba(0,255,85,.2);
+ border-radius:9px;
+ color:#77907f;
+ cursor:pointer;
 }
 
 .main{
-    margin-left:245px;
-    min-height:100vh;
+ margin-left:245px;
+ min-height:100vh;
 }
 
 .topbar{
-    height:72px;
-    display:flex;
-    align-items:center;
-    gap:15px;
-    padding:0 25px;
-    border-bottom:1px solid rgba(0,255,85,.18);
-    background:rgba(1,7,3,.88);
-    position:sticky;
-    top:0;
-    z-index:50;
-    backdrop-filter:blur(12px);
+ height:70px;
+ display:flex;
+ align-items:center;
+ gap:15px;
+ padding:0 24px;
+ position:sticky;
+ top:0;
+ z-index:50;
+ background:rgba(1,6,3,.92);
+ backdrop-filter:blur(12px);
+ border-bottom:1px solid rgba(0,255,85,.18);
 }
 
-.menuBtn{
-    display:none;
-    background:none;
-    border:0;
-    color:var(--green);
-    font-size:25px;
+.menu{
+ display:none;
+ background:none;
+ border:0;
+ color:var(--green);
+ font-size:25px;
 }
 
 .search{
-    flex:1;
-    max-width:600px;
-    padding:12px 18px;
-    border-radius:25px;
-    border:1px solid rgba(0,255,85,.3);
-    background:#020804;
-    color:white;
-    outline:none;
+ flex:1;
+ max-width:620px;
+ padding:12px 18px;
+ border-radius:25px;
+ border:1px solid var(--line);
+ background:#020704;
+ color:white;
+ outline:none;
 }
 
-.topRight{
-    margin-left:auto;
-    display:flex;
-    align-items:center;
-    gap:20px;
-    color:#a5baa9;
-    font-size:13px;
+.top-right{
+ margin-left:auto;
+ display:flex;
+ align-items:center;
+ gap:20px;
+ color:#82988a;
+ font-size:12px;
 }
 
 .online{
-    color:var(--green);
+ color:var(--green);
 }
 
 .content{
-    padding:25px;
+ padding:24px;
 }
 
 /* HERO */
 
 .hero{
-    position:relative;
-    min-height:190px;
-    padding:30px;
-    border:1px solid rgba(0,255,85,.45);
-    border-radius:20px;
-    overflow:hidden;
-    background:
-        radial-gradient(circle at 80% 50%,rgba(0,255,85,.14),transparent 35%),
-        linear-gradient(120deg,#06120a,#020704);
-    box-shadow:var(--shadow);
+ position:relative;
+ min-height:185px;
+ overflow:hidden;
+ padding:30px;
+ border-radius:20px;
+ border:1px solid rgba(0,255,85,.4);
+ background:
+ radial-gradient(circle at 80% 50%,rgba(0,255,85,.15),transparent 30%),
+ linear-gradient(120deg,#07150b,#020604);
+ box-shadow:var(--glow);
 }
 
 .hero:after{
-    content:"";
-    position:absolute;
-    right:-100px;
-    top:-100px;
-    width:380px;
-    height:380px;
-    border-radius:50%;
-    border:1px solid rgba(0,255,85,.18);
-    box-shadow:
-        0 0 40px rgba(0,255,85,.08),
-        inset 0 0 50px rgba(0,255,85,.06);
+ content:"";
+ position:absolute;
+ width:330px;
+ height:330px;
+ right:-80px;
+ top:-75px;
+ border-radius:50%;
+ border:1px solid rgba(0,255,85,.2);
+ box-shadow:inset 0 0 60px rgba(0,255,85,.08);
 }
 
-.heroLabel{
-    color:var(--green);
-    letter-spacing:4px;
-    font-size:13px;
-    font-weight:bold;
+.hero-label{
+ color:var(--green);
+ letter-spacing:4px;
+ font-size:12px;
+ font-weight:bold;
 }
 
 .hero h1{
-    font-size:38px;
-    margin:10px 0;
+ font-size:39px;
+ margin:10px 0;
 }
 
 .hero h1 span{
-    color:var(--green);
+ color:var(--green);
 }
 
 .hero p{
-    color:#91a898;
-    max-width:650px;
-    line-height:1.6;
+ color:#8da395;
+ max-width:680px;
+ line-height:1.6;
 }
 
 /* CARDS */
 
 .cards{
-    display:grid;
-    grid-template-columns:repeat(6,1fr);
-    gap:14px;
-    margin-top:16px;
+ display:grid;
+ grid-template-columns:repeat(6,1fr);
+ gap:13px;
+ margin-top:15px;
 }
 
 .card{
-    padding:19px;
-    min-height:125px;
-    border:1px solid rgba(0,255,85,.3);
-    border-radius:16px;
-    background:
-        linear-gradient(145deg,rgba(0,255,85,.07),rgba(0,0,0,.25));
-    box-shadow:var(--shadow);
+ min-height:120px;
+ padding:17px;
+ border:1px solid var(--line);
+ border-radius:16px;
+ background:linear-gradient(145deg,rgba(0,255,85,.07),rgba(0,0,0,.3));
+ box-shadow:var(--glow);
 }
 
-.cardIcon{
-    font-size:26px;
-    color:var(--green);
-    margin-bottom:12px;
+.icon{
+ color:var(--green);
+ font-size:25px;
+ margin-bottom:10px;
 }
 
-.cardTitle{
-    color:#94aa9b;
-    font-size:11px;
-    text-transform:uppercase;
+.title{
+ color:#81988a;
+ font-size:10px;
+ text-transform:uppercase;
 }
 
-.cardValue{
-    font-size:28px;
-    font-weight:bold;
-    margin-top:6px;
+.value{
+ font-size:28px;
+ font-weight:bold;
+ margin-top:6px;
 }
 
-.cardTrend{
-    color:var(--green);
-    font-size:11px;
-    margin-top:6px;
+.trend{
+ color:var(--green);
+ font-size:10px;
+ margin-top:5px;
 }
 
 /* GRID */
 
 .grid{
-    display:grid;
-    grid-template-columns:1.5fr 1fr;
-    gap:16px;
-    margin-top:16px;
+ display:grid;
+ grid-template-columns:1.45fr 1fr;
+ gap:15px;
+ margin-top:15px;
 }
 
 .panel{
-    border:1px solid rgba(0,255,85,.3);
-    border-radius:17px;
-    background:linear-gradient(145deg,rgba(0,255,85,.045),rgba(0,0,0,.3));
-    overflow:hidden;
-    box-shadow:var(--shadow);
+ border:1px solid var(--line);
+ border-radius:17px;
+ overflow:hidden;
+ background:linear-gradient(145deg,rgba(0,255,85,.045),rgba(0,0,0,.3));
+ box-shadow:var(--glow);
 }
 
-.panelHeader{
-    padding:17px 20px;
-    border-bottom:1px solid rgba(0,255,85,.15);
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+.panel-head{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ padding:16px 18px;
+ border-bottom:1px solid rgba(0,255,85,.14);
 }
 
-.panelHeader h2{
-    font-size:15px;
+.panel-head h2{
+ font-size:14px;
 }
 
-.panelHeader span{
-    color:var(--green);
+.green{
+ color:var(--green);
 }
 
-.panelBody{
-    padding:18px;
+.panel-body{
+ padding:17px;
 }
 
-.table{
-    width:100%;
-    border-collapse:collapse;
+.table-wrap{
+ overflow-x:auto;
 }
 
-.table th{
-    color:#63806c;
-    font-size:10px;
-    text-align:left;
-    padding:9px;
-    text-transform:uppercase;
+table{
+ width:100%;
+ border-collapse:collapse;
+ min-width:600px;
 }
 
-.table td{
-    padding:11px 9px;
-    border-top:1px solid rgba(0,255,85,.08);
-    font-size:12px;
+th{
+ color:#5e7867;
+ font-size:9px;
+ text-align:left;
+ padding:9px;
+ text-transform:uppercase;
 }
 
-.status{
-    color:var(--green);
+td{
+ padding:11px 9px;
+ border-top:1px solid rgba(0,255,85,.07);
+ font-size:11px;
 }
 
-.statusDot{
-    display:inline-block;
-    width:7px;
-    height:7px;
-    border-radius:50%;
-    background:var(--green);
-    box-shadow:0 0 8px var(--green);
-    margin-right:5px;
+.empty{
+ text-align:center;
+ color:#607768;
+ padding:30px!important;
 }
 
-/* CHART */
+/* BARS */
 
 .chart{
-    height:230px;
-    display:flex;
-    align-items:flex-end;
-    gap:14px;
-    padding:15px 10px 5px;
+ height:230px;
+ display:flex;
+ align-items:flex-end;
+ gap:12px;
+ padding:15px 5px 5px;
 }
 
 .bar{
-    flex:1;
-    background:linear-gradient(180deg,var(--green),#063f18);
-    border-radius:7px 7px 0 0;
-    box-shadow:0 0 15px rgba(0,255,85,.15);
-    min-height:20px;
+ flex:1;
+ min-height:15px;
+ border-radius:7px 7px 0 0;
+ background:linear-gradient(180deg,#00ff55,#064317);
+ box-shadow:0 0 14px rgba(0,255,85,.18);
 }
 
 /* LOWER */
 
 .lower{
-    display:grid;
-    grid-template-columns:1fr 1fr 1fr;
-    gap:16px;
-    margin-top:16px;
+ display:grid;
+ grid-template-columns:1fr 1fr 1fr;
+ gap:15px;
+ margin-top:15px;
 }
 
-.listItem{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:12px 0;
-    border-bottom:1px solid rgba(0,255,85,.08);
-    font-size:12px;
+.item{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ padding:12px 0;
+ border-bottom:1px solid rgba(0,255,85,.07);
+ font-size:12px;
 }
 
 .badge{
-    padding:5px 9px;
-    border-radius:20px;
-    background:rgba(0,255,85,.1);
-    border:1px solid rgba(0,255,85,.25);
-    color:var(--green);
-    font-size:10px;
-}
-
-.logout{
-    margin-top:10px;
-    width:100%;
-    padding:9px;
-    border-radius:9px;
-    background:transparent;
-    border:1px solid rgba(0,255,85,.2);
-    color:#789481;
-    cursor:pointer;
+ padding:5px 9px;
+ border-radius:20px;
+ border:1px solid rgba(0,255,85,.3);
+ background:rgba(0,255,85,.08);
+ color:var(--green);
+ font-size:9px;
 }
 
 .footer{
-    text-align:center;
-    color:#4e6857;
-    padding:30px;
-    font-size:11px;
+ text-align:center;
+ padding:30px;
+ color:#50685a;
+ font-size:10px;
 }
 
 /* MOBILE */
 
 @media(max-width:1100px){
-    .cards{
-        grid-template-columns:repeat(3,1fr);
-    }
 
-    .lower{
-        grid-template-columns:1fr;
-    }
+ .cards{
+  grid-template-columns:repeat(3,1fr);
+ }
+
+ .lower{
+  grid-template-columns:1fr;
+ }
+
 }
 
 @media(max-width:800px){
-    .sidebar{
-        transform:translateX(-100%);
-        transition:.3s;
-    }
 
-    .sidebar.open{
-        transform:translateX(0);
-    }
+ .sidebar{
+  transform:translateX(-100%);
+  transition:.25s;
+ }
 
-    .main{
-        margin-left:0;
-    }
+ .sidebar.open{
+  transform:translateX(0);
+ }
 
-    .menuBtn{
-        display:block;
-    }
+ .main{
+  margin-left:0;
+ }
 
-    .topRight{
-        display:none;
-    }
+ .menu{
+  display:block;
+ }
 
-    .content{
-        padding:14px;
-    }
+ .top-right{
+  display:none;
+ }
 
-    .hero{
-        padding:22px;
-    }
+ .content{
+  padding:13px;
+ }
 
-    .hero h1{
-        font-size:27px;
-    }
+ .hero{
+  padding:22px;
+ }
 
-    .cards{
-        grid-template-columns:repeat(2,1fr);
-    }
+ .hero h1{
+  font-size:29px;
+ }
 
-    .grid{
-        grid-template-columns:1fr;
-    }
+ .cards{
+  grid-template-columns:repeat(2,1fr);
+ }
+
+ .grid{
+  grid-template-columns:1fr;
+ }
+
 }
 
-@media(max-width:500px){
-    .cards{
-        grid-template-columns:1fr 1fr;
-    }
+@media(max-width:480px){
 
-    .card{
-        padding:14px;
-        min-height:105px;
-    }
+ .cards{
+  gap:9px;
+ }
 
-    .cardValue{
-        font-size:23px;
-    }
+ .card{
+  min-height:100px;
+  padding:13px;
+ }
 
-    .table{
-        min-width:650px;
-    }
+ .value{
+  font-size:22px;
+ }
 
-    .panelBody{
-        overflow-x:auto;
-    }
 }
 </style>
 </head>
@@ -596,644 +590,882 @@ body{
 
 <!-- LOGIN -->
 
-<section id="loginScreen">
+<div id="login">
 
-    <div class="loginBox">
+ <div class="login-box">
 
-        <div class="logoMark">▶</div>
+  <div class="logo">▶</div>
 
-        <h1>GC PLAY <span>PRO</span></h1>
+  <h1>GC PLAY <span>PRO</span></h1>
 
-        <div class="loginSubtitle">
-            PAINEL ADMINISTRATIVO
-        </div>
+  <div class="login-sub">
+   PAINEL ADMINISTRATIVO
+  </div>
 
-        <input
-            id="email"
-            class="input"
-            type="email"
-            placeholder="E-mail do administrador"
-            autocomplete="username"
-        >
+  <input
+   id="email"
+   class="input"
+   type="email"
+   placeholder="E-mail"
+  >
 
-        <input
-            id="password"
-            class="input"
-            type="password"
-            placeholder="Senha"
-            autocomplete="current-password"
-        >
+  <input
+   id="password"
+   class="input"
+   type="password"
+   placeholder="Senha"
+  >
 
-        <button class="btnLogin" onclick="login()">
-            🔐 ENTRAR NO PAINEL
-        </button>
+  <button class="login-btn" onclick="login()">
+   🔐 ENTRAR
+  </button>
 
-        <div id="loginError" class="loginError"></div>
+  <div id="error"></div>
 
-    </div>
+ </div>
 
-</section>
+</div>
 
 
 <!-- APP -->
 
 <div id="app">
 
-    <aside class="sidebar" id="sidebar">
+<aside class="sidebar" id="sidebar">
 
-        <div class="brand">
+ <div class="brand">
+  <div class="brand-icon">▶</div>
 
-            <div class="brandIcon">▶</div>
+  <div class="brand-name">
+   GC PLAY <span>PRO</span>
+  </div>
 
-            <div class="brandName">
-                GC PLAY <span>PRO</span>
-            </div>
+  <small>O FUTURO DO ENTRETENIMENTO</small>
+ </div>
 
-            <small>O FUTURO DO ENTRETENIMENTO</small>
 
-        </div>
+ <nav class="nav">
 
-        <nav class="nav">
+  <button class="active">
+   <i>⌂</i> Painel
+  </button>
 
-            <button class="active">
-                <span class="navIcon">⌂</span>
-                Painel
-            </button>
+  <button>
+   <i>♙</i> Clientes
+  </button>
 
-            <button>
-                <span class="navIcon">♙</span>
-                Clientes
-            </button>
+  <button>
+   <i>▣</i> Dispositivos
+  </button>
 
-            <button>
-                <span class="navIcon">▣</span>
-                Dispositivos
-            </button>
+  <button>
+   <i>♙</i> Revendedores
+  </button>
 
-            <button>
-                <span class="navIcon">♙</span>
-                Revendedores
-            </button>
+  <button>
+   <i>☷</i> Listas M3U
+  </button>
 
-            <button>
-                <span class="navIcon">☷</span>
-                Listas M3U
-            </button>
+  <button>
+   <i>♧</i> Ativações
+  </button>
 
-            <button>
-                <span class="navIcon">♧</span>
-                Ativações
-            </button>
+  <button>
+   <i>◉</i> Online Agora
+  </button>
 
-            <button>
-                <span class="navIcon">◉</span>
-                Online Agora
-            </button>
+  <button>
+   <i>⊘</i> Bloqueados
+  </button>
 
-            <button>
-                <span class="navIcon">⊘</span>
-                Bloqueados
-            </button>
+  <button>
+   <i>▣</i> Relatórios
+  </button>
 
-            <button>
-                <span class="navIcon">▣</span>
-                Relatórios
-            </button>
+  <button>
+   <i>⚙</i> Configurações
+  </button>
 
-            <button>
-                <span class="navIcon">⚙</span>
-                Configurações
-            </button>
+ </nav>
 
-        </nav>
 
-        <div class="adminCard">
+ <div class="admin-card">
 
-            <strong id="adminName">ADMINISTRADOR</strong>
+  <strong id="adminName">
+   ADMINISTRADOR
+  </strong>
 
-            <div style="margin-top:7px;font-size:11px;color:#789481;">
-                <span class="adminDot"></span>
-                Online
-            </div>
+  <div class="admin-status">
+   <span class="dot"></span>
+   Online
+  </div>
 
-            <button class="logout" onclick="logout()">
-                Sair
-            </button>
+  <button class="logout" onclick="logout()">
+   Sair
+  </button>
 
-        </div>
+ </div>
 
-    </aside>
+</aside>
 
 
-    <main class="main">
+<main class="main">
 
-        <header class="topbar">
+<header class="topbar">
 
-            <button class="menuBtn" onclick="toggleMenu()">☰</button>
+ <button class="menu" onclick="toggleMenu()">☰</button>
 
-            <input
-                class="search"
-                placeholder="🔎 Buscar cliente, dispositivo, revendedor..."
-            >
+ <input
+  class="search"
+  id="search"
+  placeholder="🔎 Buscar cliente, dispositivo, revendedor..."
+ >
 
-            <div class="topRight">
+ <div class="top-right">
 
-                <span>🔔</span>
+  <span>🔔</span>
 
-                <span id="dateTime"></span>
+  <span id="clock"></span>
 
-                <span class="online">
-                    ● Online
-                </span>
+  <span class="online">
+   ● Online
+  </span>
 
-            </div>
+ </div>
 
-        </header>
+</header>
 
 
-        <section class="content">
+<section class="content">
 
-            <!-- HERO -->
+<!-- HERO -->
 
-            <div class="hero">
+<div class="hero">
 
-                <div class="heroLabel">
-                    BEM-VINDO AO
-                </div>
+ <div class="hero-label">
+  BEM-VINDO AO
+ </div>
 
-                <h1>
-                    GC PLAY <span>PRO</span>
-                </h1>
+ <h1>
+  GC PLAY <span>PRO</span>
+ </h1>
 
-                <div style="color:var(--green);letter-spacing:5px;font-size:13px;margin-bottom:10px;">
-                    PAINEL ADMINISTRATIVO
-                </div>
+ <div style="
+ color:var(--green);
+ letter-spacing:5px;
+ font-size:12px;
+ margin-bottom:10px;">
+ PAINEL ADMINISTRATIVO
+ </div>
 
-                <p>
-                    Gerencie clientes, dispositivos, ativações,
-                    listas e revendedores em um único painel.
-                </p>
+ <p>
+ Gerencie clientes, dispositivos, ativações,
+ listas M3U e revendedores em um único sistema.
+ </p>
 
-            </div>
+</div>
 
 
-            <!-- CARDS -->
+<!-- CARDS -->
 
-            <div class="cards">
+<div class="cards">
 
-                <div class="card">
-                    <div class="cardIcon">♙</div>
-                    <div class="cardTitle">Clientes</div>
-                    <div class="cardValue" id="clientesCount">0</div>
-                    <div class="cardTrend">● Sistema conectado</div>
-                </div>
+ <div class="card">
+  <div class="icon">♙</div>
+  <div class="title">Clientes</div>
+  <div class="value" id="clientes">0</div>
+  <div class="trend">● Banco real</div>
+ </div>
 
-                <div class="card">
-                    <div class="cardIcon">▣</div>
-                    <div class="cardTitle">Dispositivos</div>
-                    <div class="cardValue" id="devicesCount">0</div>
-                    <div class="cardTrend">● Banco conectado</div>
-                </div>
+ <div class="card">
+  <div class="icon">▣</div>
+  <div class="title">Dispositivos</div>
+  <div class="value" id="dispositivos">0</div>
+  <div class="trend">● Banco real</div>
+ </div>
 
-                <div class="card">
-                    <div class="cardIcon">▶</div>
-                    <div class="cardTitle">Ativos</div>
-                    <div class="cardValue" id="activeCount">0</div>
-                    <div class="cardTrend">● Ativos</div>
-                </div>
+ <div class="card">
+  <div class="icon">▶</div>
+  <div class="title">Ativos</div>
+  <div class="value" id="ativos">0</div>
+  <div class="trend">● Ativos</div>
+ </div>
 
-                <div class="card">
-                    <div class="cardIcon">◉</div>
-                    <div class="cardTitle">Online Agora</div>
-                    <div class="cardValue" id="onlineCount">0</div>
-                    <div class="cardTrend">● Monitoramento</div>
-                </div>
+ <div class="card">
+  <div class="icon">◉</div>
+  <div class="title">Online Agora</div>
+  <div class="value" id="online">0</div>
+  <div class="trend">● Tempo real</div>
+ </div>
 
-                <div class="card">
-                    <div class="cardIcon">♙</div>
-                    <div class="cardTitle">Revendedores</div>
-                    <div class="cardValue" id="resellerCount">0</div>
-                    <div class="cardTrend">● Cadastrados</div>
-                </div>
+ <div class="card">
+  <div class="icon">♙</div>
+  <div class="title">Revendedores</div>
+  <div class="value" id="revendedores">0</div>
+  <div class="trend">● Cadastrados</div>
+ </div>
 
-                <div class="card">
-                    <div class="cardIcon">▤</div>
-                    <div class="cardTitle">Listas M3U</div>
-                    <div class="cardValue" id="m3uCount">0</div>
-                    <div class="cardTrend">● Protegidas</div>
-                </div>
+ <div class="card">
+  <div class="icon">▤</div>
+  <div class="title">Listas M3U</div>
+  <div class="value" id="m3u">0</div>
+  <div class="trend">● Protegidas</div>
+ </div>
 
-            </div>
+</div>
 
 
-            <!-- ONLINE + GRÁFICO -->
+<!-- ONLINE + ESTATISTICAS -->
 
-            <div class="grid">
+<div class="grid">
 
-                <div class="panel">
+ <div class="panel">
 
-                    <div class="panelHeader">
+  <div class="panel-head">
 
-                        <h2>
-                            🟢 DISPOSITIVOS ONLINE
-                            <span id="onlineTitle">(0)</span>
-                        </h2>
+   <h2>
+    🟢 DISPOSITIVOS ONLINE
+    <span class="green" id="onlineTitle">
+     (0)
+    </span>
+   </h2>
 
-                        <span>● AO VIVO</span>
+   <span class="green">
+    ● AO VIVO
+   </span>
 
-                    </div>
+  </div>
 
-                    <div class="panelBody">
+  <div class="panel-body">
 
-                        <table class="table">
+   <div class="table-wrap">
 
-                            <thead>
-                                <tr>
-                                    <th>Dispositivo</th>
-                                    <th>Cliente</th>
-                                    <th>Plataforma</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
+    <table>
 
-                            <tbody id="onlineTable">
+     <thead>
+      <tr>
+       <th>Dispositivo</th>
+       <th>Cliente</th>
+       <th>Plataforma</th>
+       <th>Última conexão</th>
+       <th>Status</th>
+      </tr>
+     </thead>
 
-                                <tr>
-                                    <td colspan="4" style="text-align:center;color:#64806d;">
-                                        Nenhum dispositivo online carregado.
-                                    </td>
-                                </tr>
+     <tbody id="onlineTable">
 
-                            </tbody>
+      <tr>
+       <td colspan="5" class="empty">
+        Carregando dispositivos...
+       </td>
+      </tr>
 
-                        </table>
+     </tbody>
 
-                    </div>
+    </table>
 
-                </div>
+   </div>
 
+  </div>
 
-                <div class="panel">
+ </div>
 
-                    <div class="panelHeader">
 
-                        <h2>📊 ESTATÍSTICAS</h2>
+ <div class="panel">
 
-                        <span>Últimos 7 dias</span>
+  <div class="panel-head">
 
-                    </div>
+   <h2>📊 ATIVIDADE</h2>
 
-                    <div class="panelBody">
+   <span class="green">
+    7 dias
+   </span>
 
-                        <div class="chart">
+  </div>
 
-                            <div class="bar" style="height:35%"></div>
-                            <div class="bar" style="height:48%"></div>
-                            <div class="bar" style="height:42%"></div>
-                            <div class="bar" style="height:62%"></div>
-                            <div class="bar" style="height:55%"></div>
-                            <div class="bar" style="height:76%"></div>
-                            <div class="bar" style="height:90%"></div>
+  <div class="panel-body">
 
-                        </div>
+   <div class="chart">
 
-                    </div>
+    <div class="bar" style="height:35%"></div>
+    <div class="bar" style="height:48%"></div>
+    <div class="bar" style="height:43%"></div>
+    <div class="bar" style="height:62%"></div>
+    <div class="bar" style="height:57%"></div>
+    <div class="bar" style="height:76%"></div>
+    <div class="bar" style="height:90%"></div>
 
-                </div>
+   </div>
 
-            </div>
+  </div>
 
+ </div>
 
-            <!-- LOWER -->
+</div>
 
-            <div class="lower">
 
-                <div class="panel">
+<!-- LOWER -->
 
-                    <div class="panelHeader">
-                        <h2>⚡ ÚLTIMAS ATIVAÇÕES</h2>
-                        <span>Ver todas →</span>
-                    </div>
+<div class="lower">
 
-                    <div class="panelBody">
+ <div class="panel">
 
-                        <div class="listItem">
-                            <span>Ativações recentes</span>
-                            <span class="badge">ATIVO</span>
-                        </div>
+  <div class="panel-head">
 
-                        <div class="listItem">
-                            <span>Novos dispositivos</span>
-                            <span class="badge">ATIVO</span>
-                        </div>
+   <h2>⚡ SISTEMA</h2>
 
-                        <div class="listItem">
-                            <span>Sistema de ativação</span>
-                            <span class="badge">ONLINE</span>
-                        </div>
+   <span class="green">ONLINE</span>
 
-                    </div>
+  </div>
 
-                </div>
+  <div class="panel-body">
 
+   <div class="item">
+    <span>Banco de dados</span>
+    <span class="badge">CONECTADO</span>
+   </div>
 
-                <div class="panel">
+   <div class="item">
+    <span>Autenticação</span>
+    <span class="badge">ATIVA</span>
+   </div>
 
-                    <div class="panelHeader">
-                        <h2>👥 CLIENTES</h2>
-                        <span>Gerenciar →</span>
-                    </div>
+   <div class="item">
+    <span>Segurança</span>
+    <span class="badge">ATIVA</span>
+   </div>
 
-                    <div class="panelBody">
+  </div>
 
-                        <div class="listItem">
-                            <span>Clientes cadastrados</span>
-                            <strong id="clientesSmall">0</strong>
-                        </div>
+ </div>
 
-                        <div class="listItem">
-                            <span>Clientes ativos</span>
-                            <span class="badge">ATIVOS</span>
-                        </div>
 
-                        <div class="listItem">
-                            <span>Status do cadastro</span>
-                            <span class="badge">OK</span>
-                        </div>
+ <div class="panel">
 
-                    </div>
+  <div class="panel-head">
 
-                </div>
+   <h2>👥 CLIENTES</h2>
 
+   <span class="green">DADOS REAIS</span>
 
-                <div class="panel">
+  </div>
 
-                    <div class="panelHeader">
-                        <h2>📺 LISTAS M3U</h2>
-                        <span>Protegidas</span>
-                    </div>
+  <div class="panel-body">
 
-                    <div class="panelBody">
+   <div class="item">
+    <span>Total de clientes</span>
+    <strong id="clientes2">0</strong>
+   </div>
 
-                        <div class="listItem">
-                            <span>Listas cadastradas</span>
-                            <strong id="m3uSmall">0</strong>
-                        </div>
+   <div class="item">
+    <span>Dispositivos cadastrados</span>
+    <strong id="dispositivos2">0</strong>
+   </div>
 
-                        <div class="listItem">
-                            <span>Acesso público</span>
-                            <span class="badge">BLOQUEADO</span>
-                        </div>
+   <div class="item">
+    <span>Dispositivos ativos</span>
+    <strong id="ativos2">0</strong>
+   </div>
 
-                        <div class="listItem">
-                            <span>Segurança</span>
-                            <span class="badge">ATIVA</span>
-                        </div>
+  </div>
 
-                    </div>
+ </div>
 
-                </div>
 
-            </div>
+ <div class="panel">
 
+  <div class="panel-head">
 
-            <div class="footer">
-                <strong style="color:var(--green);">GC PLAY PRO</strong>
-                &nbsp; • &nbsp;
-                PAINEL ADMINISTRATIVO
-                &nbsp; • &nbsp;
-                SISTEMA SEGURO
-            </div>
+   <h2>📺 LISTAS M3U</h2>
 
-        </section>
+   <span class="green">PRIVADAS</span>
 
-    </main>
+  </div>
+
+  <div class="panel-body">
+
+   <div class="item">
+    <span>Listas cadastradas</span>
+    <strong id="m3u2">0</strong>
+   </div>
+
+   <div class="item">
+    <span>Acesso público</span>
+    <span class="badge">BLOQUEADO</span>
+   </div>
+
+   <div class="item">
+    <span>Proteção</span>
+    <span class="badge">ATIVA</span>
+   </div>
+
+  </div>
+
+ </div>
+
+</div>
+
+
+<div class="footer">
+
+ <strong class="green">
+  GC PLAY PRO
+ </strong>
+
+ • PAINEL ADMINISTRATIVO • SISTEMA SEGURO
+
+</div>
+
+</section>
+
+</main>
 
 </div>
 
 
 <script>
 
-/* SUPABASE */
+/* ==========================================
+   SUPABASE
+========================================== */
 
 const SUPABASE_URL =
-    "https://kuzgdvpdqmocklsgyzvt.supabase.co";
+"https://kuzgdvpdqmocklsgyzvt.supabase.co";
 
 const SUPABASE_KEY =
-    "sb_publishable_2qV7Uw-99dQlVcXluSuikw_YZGClN13";
+"sb_publishable_2qV7Uw-99dQlVcXluSuikw_YZGClN13";
 
-const supabaseClient =
-    supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-    );
+const sb =
+supabase.createClient(
+ SUPABASE_URL,
+ SUPABASE_KEY
+);
 
 
-/* LOGIN */
+/* ==========================================
+   LOGIN
+========================================== */
 
 async function login(){
 
-    const email =
-        document.getElementById("email").value.trim();
+ const email =
+ document.getElementById("email").value.trim();
 
-    const password =
-        document.getElementById("password").value;
+ const password =
+ document.getElementById("password").value;
 
-    const error =
-        document.getElementById("loginError");
+ const error =
+ document.getElementById("error");
 
-    error.style.display="none";
+ error.style.display="none";
 
-    if(!email || !password){
+ if(!email || !password){
 
-        error.textContent =
-            "Digite seu e-mail e sua senha.";
+  error.textContent =
+  "Digite o e-mail e a senha.";
 
-        error.style.display="block";
+  error.style.display="block";
 
-        return;
-    }
+  return;
+ }
 
-    const { data, error:loginError } =
-        await supabaseClient.auth.signInWithPassword({
-            email,
-            password
-        });
+ const {data,error:authError} =
+ await sb.auth.signInWithPassword({
+  email,
+  password
+ });
 
-    if(loginError){
+ if(authError){
 
-        error.textContent =
-            "E-mail ou senha inválidos.";
+  error.textContent =
+  "E-mail ou senha inválidos.";
 
-        error.style.display="block";
+  error.style.display="block";
 
-        return;
-    }
+  return;
+ }
 
-    const { data:adminOK, error:rpcError } =
-        await supabaseClient.rpc("gc_is_admin");
 
-    if(rpcError || adminOK !== true){
+ const {data:isAdmin,error:rpcError} =
+ await sb.rpc("gc_is_admin");
 
-        await supabaseClient.auth.signOut();
+ if(rpcError || isAdmin !== true){
 
-        error.textContent =
-            "Este usuário não possui permissão de administrador.";
+  await sb.auth.signOut();
 
-        error.style.display="block";
+  error.textContent =
+  "Usuário sem permissão de administrador.";
 
-        return;
-    }
+  error.style.display="block";
 
-    abrirPainel(data.user);
+  return;
+ }
 
+ abrirPainel(data.user);
 }
 
 
-/* ABRIR PAINEL */
+/* ==========================================
+   PAINEL
+========================================== */
 
 function abrirPainel(user){
 
-    document.getElementById("loginScreen").style.display="none";
+ document.getElementById("login").style.display="none";
 
-    document.getElementById("app").style.display="block";
+ document.getElementById("app").style.display="block";
 
-    const nome =
-        user.email || "ADMINISTRADOR";
+ document.getElementById("adminName").textContent =
+ (user.email || "ADMINISTRADOR").toUpperCase();
 
-    document.getElementById("adminName").textContent =
-        nome.toUpperCase();
+ atualizarRelogio();
 
-    atualizarData();
-
-    carregarDados();
+ carregarDashboard();
 
 }
 
 
-/* VERIFICAR SESSÃO */
+/* ==========================================
+   SESSÃO
+========================================== */
 
 async function verificarSessao(){
 
-    const {data} =
-        await supabaseClient.auth.getSession();
+ const {data} =
+ await sb.auth.getSession();
 
-    if(data.session){
+ if(!data.session) return;
 
-        const {data:adminOK} =
-            await supabaseClient.rpc("gc_is_admin");
+ const {data:isAdmin} =
+ await sb.rpc("gc_is_admin");
 
-        if(adminOK === true){
+ if(isAdmin === true){
 
-            abrirPainel(data.session.user);
+  abrirPainel(data.session.user);
 
-        }
-
-    }
+ }
 
 }
 
 
-/* SAIR */
+/* ==========================================
+   LOGOUT
+========================================== */
 
 async function logout(){
 
-    await supabaseClient.auth.signOut();
+ await sb.auth.signOut();
 
-    location.reload();
-
-}
-
-
-/* DATA */
-
-function atualizarData(){
-
-    const agora = new Date();
-
-    document.getElementById("dateTime").textContent =
-        agora.toLocaleString("pt-BR");
+ location.reload();
 
 }
 
-setInterval(atualizarData,30000);
+
+/* ==========================================
+   RELÓGIO
+========================================== */
+
+function atualizarRelogio(){
+
+ const agora = new Date();
+
+ document.getElementById("clock").textContent =
+ agora.toLocaleString("pt-BR");
+
+}
+
+setInterval(atualizarRelogio,1000);
 
 
-/* MENU MOBILE */
+/* ==========================================
+   MENU
+========================================== */
 
 function toggleMenu(){
 
-    document
-        .getElementById("sidebar")
-        .classList.toggle("open");
+ document
+ .getElementById("sidebar")
+ .classList.toggle("open");
 
 }
 
 
-/* DADOS DO BANCO */
+/* ==========================================
+   DASHBOARD
+========================================== */
 
-async function carregarDados(){
+async function carregarDashboard(){
 
-    try{
+ try{
 
-        const clientes =
-            await supabaseClient
-                .from("gc_clients")
-                .select("*",{count:"exact",head:true});
+  const clientes =
+  await sb
+  .from("gc_clients")
+  .select("id",{count:"exact",head:true});
 
-        const dispositivos =
-            await supabaseClient
-                .from("gc_devices")
-                .select("*",{count:"exact",head:true});
 
-        const ativos =
-            await supabaseClient
-                .from("gc_devices")
-                .select("*",{count:"exact",head:true})
-                .eq("active",true);
+  const dispositivos =
+  await sb
+  .from("gc_devices")
+  .select("id",{count:"exact",head:true});
 
-        const m3u =
-            await supabaseClient
-                .from("gc_m3u_lists")
-                .select("*",{count:"exact",head:true});
 
-        const revendedores =
-            await supabaseClient
-                .from("gc_users")
-                .select("*",{count:"exact",head:true})
-                .eq("role","reseller");
+  const ativos =
+  await sb
+  .from("gc_devices")
+  .select("id",{count:"exact",head:true})
+  .eq("active",true);
 
-        document.getElementById("clientesCount").textContent =
-            clientes.count || 0;
 
-        document.getElementById("clientesSmall").textContent =
-            clientes.count || 0;
+  const revendedores =
+  await sb
+  .from("gc_users")
+  .select("id",{count:"exact",head:true})
+  .eq("role","reseller")
+  .eq("active",true);
 
-        document.getElementById("devicesCount").textContent =
-            dispositivos.count || 0;
 
-        document.getElementById("activeCount").textContent =
-            ativos.count || 0;
+  const m3u =
+  await sb
+  .from("gc_m3u_lists")
+  .select("id",{count:"exact",head:true})
+  .eq("active",true);
 
-        document.getElementById("m3uCount").textContent =
-            m3u.count || 0;
 
-        document.getElementById("m3uSmall").textContent =
-            m3u.count || 0;
+  const clientesCount =
+  clientes.count || 0;
 
-        document.getElementById("resellerCount").textContent =
-            revendedores.count || 0;
+  const dispositivosCount =
+  dispositivos.count || 0;
 
-    }catch(e){
+  const ativosCount =
+  ativos.count || 0;
 
-        console.log("Erro ao carregar dados:",e);
+  const revendedoresCount =
+  revendedores.count || 0;
 
+  const m3uCount =
+  m3u.count || 0;
+
+
+  document.getElementById("clientes").textContent =
+  clientesCount;
+
+  document.getElementById("clientes2").textContent =
+  clientesCount;
+
+
+  document.getElementById("dispositivos").textContent =
+  dispositivosCount;
+
+  document.getElementById("dispositivos2").textContent =
+  dispositivosCount;
+
+
+  document.getElementById("ativos").textContent =
+  ativosCount;
+
+  document.getElementById("ativos2").textContent =
+  ativosCount;
+
+
+  document.getElementById("revendedores").textContent =
+  revendedoresCount;
+
+
+  document.getElementById("m3u").textContent =
+  m3uCount;
+
+  document.getElementById("m3u2").textContent =
+  m3uCount;
+
+
+  await carregarOnline();
+
+
+ }catch(err){
+
+  console.error(
+   "Erro Dashboard:",
+   err
+  );
+
+ }
+
+}
+
+
+/* ==========================================
+   DISPOSITIVOS ONLINE
+========================================== */
+
+async function carregarOnline(){
+
+ const limite =
+ new Date(Date.now() - 5 * 60 * 1000)
+ .toISOString();
+
+
+ const {data,error} =
+ await sb
+ .from("gc_sessions")
+ .select(`
+   id,
+   last_heartbeat_at,
+   device_id,
+   gc_devices (
+      device_id,
+      device_name,
+      platform,
+      client_id,
+      gc_clients (
+         name
+      )
+   )
+ `)
+ .eq("active",true)
+ .gte("last_heartbeat_at",limite)
+ .order("last_heartbeat_at",{ascending:false})
+ .limit(20);
+
+
+ if(error){
+
+  console.error(
+   "Erro Online:",
+   error
+  );
+
+  document.getElementById("online").textContent="0";
+
+  document.getElementById("onlineTitle").textContent="(0)";
+
+  return;
+
+ }
+
+
+ const total =
+ data ? data.length : 0;
+
+
+ document.getElementById("online").textContent =
+ total;
+
+ document.getElementById("onlineTitle").textContent =
+ "(" + total + ")";
+
+
+ const tabela =
+ document.getElementById("onlineTable");
+
+
+ if(!data || data.length === 0){
+
+  tabela.innerHTML = `
+   <tr>
+    <td colspan="5" class="empty">
+     🟢 Nenhum dispositivo online neste momento.
+    </td>
+   </tr>
+  `;
+
+  return;
+
+ }
+
+
+ tabela.innerHTML =
+ data.map(row => {
+
+  const d =
+   row.gc_devices || {};
+
+  const cliente =
+   d.gc_clients || {};
+
+  const ultima =
+   new Date(row.last_heartbeat_at)
+   .toLocaleTimeString(
+    "pt-BR",
+    {
+     hour:"2-digit",
+     minute:"2-digit"
     }
+   );
+
+  return `
+   <tr>
+
+    <td>
+     ${esc(d.device_name || d.device_id || "Dispositivo")}
+    </td>
+
+    <td>
+     ${esc(cliente.name || "Sem cliente")}
+    </td>
+
+    <td>
+     ${esc(d.platform || "N/D")}
+    </td>
+
+    <td>
+     ${ultima}
+    </td>
+
+    <td class="green">
+     <span class="dot"></span>
+     Online
+    </td>
+
+   </tr>
+  `;
+
+ }).join("");
 
 }
 
 
-/* INICIAR */
+/* ==========================================
+   SEGURANÇA HTML
+========================================== */
+
+function esc(value){
+
+ return String(value)
+ .replace(/&/g,"&amp;")
+ .replace(/</g,"&lt;")
+ .replace(/>/g,"&gt;")
+ .replace(/"/g,"&quot;")
+ .replace(/'/g,"&#039;");
+
+}
+
+
+/* ==========================================
+   ATUALIZAÇÃO AUTOMÁTICA
+========================================== */
+
+setInterval(() => {
+
+ const app =
+ document.getElementById("app");
+
+ if(
+  app &&
+  app.style.display === "block"
+ ){
+
+  carregarDashboard();
+
+ }
+
+},30000);
+
+
+/* ==========================================
+   INICIAR
+========================================== */
 
 verificarSessao();
 
