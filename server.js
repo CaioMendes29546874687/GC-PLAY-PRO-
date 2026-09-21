@@ -2,6 +2,10 @@
 
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
+const fsp = require('fs/promises');
+const path = require('path');
+const os = require('os');
 
 const app = express();
 
@@ -11,79 +15,110 @@ app.use(express.json({ limit: '1mb' }));
 const PORT = process.env.PORT || 10000;
 const M3U_URL = process.env.M3U_URL;
 
+const DATA_DIR = path.join(
+  os.tmpdir(),
+  'gc-play-pro'
+);
+
+const DATA_FILE = path.join(
+  DATA_DIR,
+  'library.ndjson'
+);
+
+const META_FILE = path.join(
+  DATA_DIR,
+  'library.meta.json'
+);
+
 const state = {
-  items: [],
-  groups: new Map(),
-  series: new Map(),
+
   loaded: false,
+
   loading: false,
+
   loadedAt: null,
+
   total: 0,
-  m3uBytes: 0
+
+  m3uBytes: 0,
+
+  offsets: [],
+
+  groups: new Map(),
+
+  series: new Map(),
+
+  searchCache: new Map()
 };
 
-/* =========================================================
+/* =====================================================
    M3U
-========================================================= */
+===================================================== */
 
 function parseAttributes(line) {
-  const result = {};
-  const regex = /([A-Za-z0-9_-]+)="([^"]*)"/g;
 
-  let match;
+  const out = {};
 
-  while ((match = regex.exec(line))) {
-    result[match[1].toLowerCase()] = match[2];
+  const re =
+    /([A-Za-z0-9_-]+)="([^"]*)"/g;
+
+  let m;
+
+  while ((m = re.exec(line))) {
+
+    out[
+      m[1].toLowerCase()
+    ] = m[2];
   }
 
-  return result;
+  return out;
 }
 
-/* =========================================================
-   SERIES
-========================================================= */
+/* =====================================================
+   EPISÓDIOS
+===================================================== */
 
 function detectEpisode(name) {
 
-  const text = String(name || '');
+  const s =
+    String(name || '');
 
-  let m = text.match(/\bS(\d{1,2})E(\d{1,3})\b/i);
+  let m =
+    s.match(
+      /\bS(\d{1,2})E(\d{1,3})\b/i
+    );
 
   if (m) {
+
     return {
-      season: Number(m[1]),
-      episode: Number(m[2])
+      season: +m[1],
+      episode: +m[2]
     };
   }
 
-  m = text.match(/\b(\d{1,2})x(\d{1,3})\b/i);
+  m =
+    s.match(
+      /\b(\d{1,2})x(\d{1,3})\b/i
+    );
 
   if (m) {
+
     return {
-      season: Number(m[1]),
-      episode: Number(m[2])
+      season: +m[1],
+      episode: +m[2]
     };
   }
 
-  m = text.match(
-    /\bT(?:EMPORADA)?\s*(\d{1,2})\s*(?:EP|EPIS[ÓO]DIO)\s*(\d{1,3})\b/i
-  );
+  m =
+    s.match(
+      /\bTEMPORADA\s*(\d{1,2}).*?(?:EP|EPIS[ÓO]DIO)\s*(\d{1,3})\b/i
+    );
 
   if (m) {
-    return {
-      season: Number(m[1]),
-      episode: Number(m[2])
-    };
-  }
 
-  m = text.match(
-    /\bTEMPORADA\s*(\d{1,2}).*?EP(?:IS[ÓO]DIO)?\s*(\d{1,3})\b/i
-  );
-
-  if (m) {
     return {
-      season: Number(m[1]),
-      episode: Number(m[2])
+      season: +m[1],
+      episode: +m[2]
     };
   }
 
@@ -93,173 +128,548 @@ function detectEpisode(name) {
 function cleanSeriesName(name) {
 
   return String(name || '')
-    .replace(/\bS\d{1,2}E\d{1,3}\b/ig, '')
-    .replace(/\b\d{1,2}x\d{1,3}\b/ig, '')
+
     .replace(
-      /\bT(?:EMPORADA)?\s*\d{1,2}\s*(?:EP|EPIS[ÓO]DIO)\s*\d{1,3}\b/ig,
+      /\bS\d{1,2}E\d{1,3}\b/ig,
       ''
     )
-    .replace(/\bTEMPORADA\s*\d{1,2}\b/ig, '')
-    .replace(/[._]+/g, ' ')
-    .replace(/\s{2,}/g, ' ')
+
+    .replace(
+      /\b\d{1,2}x\d{1,3}\b/ig,
+      ''
+    )
+
+    .replace(
+      /\bTEMPORADA\s*\d{1,2}\b/ig,
+      ''
+    )
+
+    .replace(
+      /[._]+/g,
+      ' '
+    )
+
+    .replace(
+      /\s{2,}/g,
+      ' '
+    )
+
     .trim();
 }
 
-function isSeries(item, episode) {
+/* =====================================================
+   CLASSIFICAÇÃO
+===================================================== */
+
+function classify(name, group) {
 
   const text =
-    `${item.name || ''} ${item.group || ''}`.toLowerCase();
+    `${group || ''} ${name || ''}`
+      .toLowerCase();
 
-  return !!episode ||
-    /series|série|temporada|season|epis[oó]dio|novela/.test(text);
-}
+  const ep =
+    detectEpisode(name);
 
-function addSeriesEpisode(item, episode) {
-
-  const name = cleanSeriesName(item.name);
-
-  const key = name.toLowerCase();
-
-  let series = state.series.get(key);
-
-  if (!series) {
-
-    series = {
-      id: 's' + (state.series.size + 1),
-      name,
-      logo: item.logo || '',
-      seasons: new Map(),
-      episodeCount: 0
-    };
-
-    state.series.set(key, series);
-  }
-
-  if (item.logo && !series.logo) {
-    series.logo = item.logo;
-  }
-
-  let season = series.seasons.get(episode.season);
-
-  if (!season) {
-
-    season = {
-      number: episode.season,
-      episodes: []
-    };
-
-    series.seasons.set(
-      episode.season,
-      season
-    );
-  }
-
-  const episodeItem = {
-
-    id: item.id,
-
-    season: episode.season,
-
-    episode: episode.episode,
-
-    title: String(item.name || '')
-      .replace(/\bS\d{1,2}E\d{1,3}\b/ig, '')
-      .trim(),
-
-    name: item.name,
-
-    logo: item.logo,
-
-    group: item.group,
-
-    tvgId: item.tvgId,
-
-    url: item.url
-  };
-
-  const exists =
-    season.episodes.some(
-      x => x.id === episodeItem.id
-    );
-
-  if (!exists) {
-
-    season.episodes.push(
-      episodeItem
-    );
-
-    series.episodeCount++;
-  }
-}
-
-/* =========================================================
-   CLASSIFICAÇÃO
-========================================================= */
-
-function classify(item) {
-
-  const episode = detectEpisode(
-    item.name
-  );
-
-  if (isSeries(item, episode)) {
-
-    if (episode) {
-      addSeriesEpisode(
-        item,
-        episode
-      );
-    }
+  if (
+    ep ||
+    /series|série|temporada|season|epis[oó]dio|novela/.test(text)
+  ) {
 
     return 'series';
   }
 
-  const text =
-    `${item.group || ''} ${item.name || ''}`
-      .toLowerCase();
-
   if (
     /filme|movie|cinema|vod/.test(text)
   ) {
+
     return 'vod';
   }
 
   if (
-    /m[úu]sica|music|radio|r[aá]dio/.test(text)
+    /m[úu]sica|music|radio|rádio/.test(text)
   ) {
+
     return 'music';
   }
 
   return 'live';
 }
 
-function addItem(item) {
+/* =====================================================
+   METADADOS DE SÉRIES
+===================================================== */
 
-  item.id =
-    'i' + state.items.length;
+function addSeriesMeta(item) {
 
-  item.type =
-    classify(item);
+  const ep =
+    detectEpisode(item.name);
 
-  state.items.push(item);
+  if (
+    !ep &&
+    classify(
+      item.name,
+      item.group
+    ) !== 'series'
+  ) {
 
-  if (!state.groups.has(item.group)) {
-    state.groups.set(
-      item.group,
-      []
+    return;
+  }
+
+  const name =
+    cleanSeriesName(
+      item.name
+    ) ||
+    item.name ||
+    'Sem nome';
+
+  const key =
+    name.toLowerCase();
+
+  let s =
+    state.series.get(key);
+
+  if (!s) {
+
+    s = {
+
+      id:
+        `s${state.series.size + 1}`,
+
+      name,
+
+      logo:
+        item.logo || '',
+
+      episodeCount: 0,
+
+      seasons:
+        new Map()
+    };
+
+    state.series.set(
+      key,
+      s
     );
   }
 
-  state.groups
-    .get(item.group)
-    .push(item);
+  if (
+    !s.logo &&
+    item.logo
+  ) {
+
+    s.logo =
+      item.logo;
+  }
+
+  s.episodeCount++;
+
+  const season =
+    ep
+      ? ep.season
+      : 1;
+
+  s.seasons.set(
+    season,
+    (s.seasons.get(season) || 0) + 1
+  );
 }
 
-/* =========================================================
-   CARREGAMENTO DA M3U
-========================================================= */
+/* =====================================================
+   ARMAZENAMENTO
+===================================================== */
 
-async function loadM3U() {
+async function resetStorage() {
+
+  await fsp.mkdir(
+    DATA_DIR,
+    {
+      recursive: true
+    }
+  );
+
+  await fsp.rm(
+    DATA_FILE,
+    {
+      force: true
+    }
+  );
+
+  await fsp.rm(
+    META_FILE,
+    {
+      force: true
+    }
+  );
+}
+
+async function loadMetaIfPresent() {
+
+  try {
+
+    const meta =
+      JSON.parse(
+        await fsp.readFile(
+          META_FILE,
+          'utf8'
+        )
+      );
+
+    if (
+      !meta ||
+      !Array.isArray(
+        meta.offsets
+      )
+    ) {
+
+      return false;
+    }
+
+    state.offsets =
+      meta.offsets;
+
+    state.total =
+      meta.total ||
+      state.offsets.length;
+
+    state.loadedAt =
+      meta.loadedAt ||
+      null;
+
+    state.m3uBytes =
+      meta.m3uBytes ||
+      0;
+
+    state.groups =
+      new Map(
+        meta.groups || []
+      );
+
+    state.series =
+      new Map(
+        (meta.series || [])
+          .map(
+            ([k, v]) => [
+              k,
+              {
+                ...v,
+                seasons:
+                  new Map(
+                    v.seasons || []
+                  )
+              }
+            ]
+          )
+      );
+
+    state.loaded =
+      state.total > 0 &&
+      fs.existsSync(
+        DATA_FILE
+      );
+
+    return state.loaded;
+
+  } catch (_) {
+
+    return false;
+  }
+}
+
+async function saveMeta() {
+
+  const meta = {
+
+    total:
+      state.total,
+
+    loadedAt:
+      state.loadedAt,
+
+    m3uBytes:
+      state.m3uBytes,
+
+    offsets:
+      state.offsets,
+
+    groups:
+      [...state.groups.entries()],
+
+    series:
+      [...state.series.entries()]
+        .map(
+          ([k, v]) => [
+            k,
+            {
+              ...v,
+              seasons:
+                [...v.seasons.entries()]
+            }
+          ]
+        )
+  };
+
+  await fsp.writeFile(
+    META_FILE,
+    JSON.stringify(meta)
+  );
+}
+
+/* =====================================================
+   LEITURA INDIVIDUAL
+===================================================== */
+
+async function readItem(index) {
+
+  const offset =
+    state.offsets[index];
+
+  if (
+    offset == null
+  ) {
+
+    return null;
+  }
+
+  const fd =
+    await fsp.open(
+      DATA_FILE,
+      'r'
+    );
+
+  try {
+
+    const stat =
+      await fd.stat();
+
+    const max =
+      Math.min(
+        8192,
+        Math.max(
+          256,
+          stat.size - offset
+        )
+      );
+
+    const buf =
+      Buffer.allocUnsafe(
+        max
+      );
+
+    const {
+      bytesRead
+    } =
+      await fd.read(
+        buf,
+        0,
+        max,
+        offset
+      );
+
+    const line =
+      buf
+        .subarray(
+          0,
+          bytesRead
+        )
+        .toString('utf8')
+        .split(
+          '\n',
+          1
+        )[0];
+
+    return JSON.parse(
+      line
+    );
+
+  } finally {
+
+    await fd.close();
+  }
+}
+
+/* =====================================================
+   LEITURA DE PÁGINA
+===================================================== */
+
+async function readPage(indices) {
+
+  if (
+    !indices.length
+  ) {
+
+    return [];
+  }
+
+  const fd =
+    await fsp.open(
+      DATA_FILE,
+      'r'
+    );
+
+  try {
+
+    const out = [];
+
+    const stat =
+      await fd.stat();
+
+    for (
+      const index
+      of indices
+    ) {
+
+      const offset =
+        state.offsets[index];
+
+      const max =
+        Math.min(
+          8192,
+          Math.max(
+            256,
+            stat.size - offset
+          )
+        );
+
+      const buf =
+        Buffer.allocUnsafe(
+          max
+        );
+
+      const {
+        bytesRead
+      } =
+        await fd.read(
+          buf,
+          0,
+          max,
+          offset
+        );
+
+      const line =
+        buf
+          .subarray(
+            0,
+            bytesRead
+          )
+          .toString('utf8')
+          .split(
+            '\n',
+            1
+          )[0];
+
+      out.push(
+        JSON.parse(line)
+      );
+    }
+
+    return out;
+
+  } finally {
+
+    await fd.close();
+  }
+}
+
+/* =====================================================
+   SCAN DE ARQUIVO
+===================================================== */
+
+async function scanFile(
+  predicate
+) {
+
+  const result = [];
+
+  const stream =
+    fs.createReadStream(
+      DATA_FILE,
+      {
+        encoding: 'utf8',
+        highWaterMark:
+          1024 * 1024
+      }
+    );
+
+  let carry = '';
+
+  let index = 0;
+
+  for await (
+    const chunk
+    of stream
+  ) {
+
+    carry += chunk;
+
+    const lines =
+      carry.split('\n');
+
+    carry =
+      lines.pop() || '';
+
+    for (
+      const line
+      of lines
+    ) {
+
+      if (!line) {
+
+        index++;
+
+        continue;
+      }
+
+      let item;
+
+      try {
+
+        item =
+          JSON.parse(line);
+
+      } catch (_) {
+
+        index++;
+
+        continue;
+      }
+
+      if (
+        predicate(item)
+      ) {
+
+        result.push(
+          index
+        );
+      }
+
+      index++;
+    }
+  }
+
+  if (carry) {
+
+    try {
+
+      if (
+        predicate(
+          JSON.parse(carry)
+        )
+      ) {
+
+        result.push(index);
+      }
+
+    } catch (_) {}
+  }
+
+  return result;
+}
+
+/* =====================================================
+   CARREGADOR M3U
+===================================================== */
+
+async function parseM3UStreaming() {
 
   if (!M3U_URL) {
 
@@ -268,234 +678,345 @@ async function loadM3U() {
     );
   }
 
-  if (state.loading) {
-    return;
-  }
+  await resetStorage();
 
-  state.loading = true;
+  state.offsets = [];
 
-  state.items = [];
-  state.groups.clear();
-  state.series.clear();
+  state.groups =
+    new Map();
 
-  try {
+  state.series =
+    new Map();
 
-    console.log(
-      'GC PLAY PRO: carregando M3U...'
-    );
+  state.searchCache =
+    new Map();
 
-    const response =
-      await fetch(M3U_URL, {
+  const response =
+    await fetch(
+      M3U_URL,
+      {
         headers: {
           'User-Agent':
-            'GC-PLAY-PRO/1.3.1',
+            'GC-PLAY-PRO/1.4',
 
           'Accept':
             '*/*'
         }
-      });
+      }
+    );
 
-    if (!response.ok) {
+  if (
+    !response.ok ||
+    !response.body
+  ) {
 
-      throw new Error(
-        `M3U HTTP ${response.status}`
-      );
-    }
+    throw new Error(
+      `M3U HTTP ${response.status}`
+    );
+  }
 
-    if (!response.body) {
+  const handle =
+    await fsp.open(
+      DATA_FILE,
+      'w'
+    );
 
-      throw new Error(
-        'Resposta M3U sem body.'
-      );
-    }
+  let filePos = 0;
 
-    const reader =
-      response.body.getReader();
+  let bytes = 0;
 
-    const decoder =
-      new TextDecoder('utf-8');
+  let buffer = '';
 
-    let buffer = '';
-    let pending = null;
-    let bytes = 0;
+  let pending = null;
 
-    function processLine(rawLine) {
+  const writeItem =
+    async url => {
+
+      if (
+        !pending ||
+        !url
+      ) {
+
+        return;
+      }
+
+      const item = {
+
+        id:
+          `i${state.offsets.length}`,
+
+        name:
+          pending.name ||
+          'Sem nome',
+
+        logo:
+          pending.logo ||
+          '',
+
+        group:
+          pending.group ||
+          'Geral',
+
+        tvgId:
+          pending.tvgId ||
+          '',
+
+        type:
+          classify(
+            pending.name,
+            pending.group
+          ),
+
+        url
+      };
 
       const line =
-        rawLine
-          .replace(/^\uFEFF/, '')
-          .trim();
+        JSON.stringify(item) +
+        '\n';
 
-      if (!line) {
-        return;
-      }
+      state.offsets.push(
+        filePos
+      );
 
-      if (
-        line.startsWith('#EXTINF:')
-      ) {
+      await handle.write(
+        line,
+        null,
+        'utf8'
+      );
 
-        const comma =
-          line.indexOf(',');
+      filePos +=
+        Buffer.byteLength(
+          line
+        );
 
-        const title =
-          comma >= 0
-            ? line.slice(comma + 1).trim()
-            : 'Sem título';
+      state.total++;
 
-        const attributes =
-          parseAttributes(line);
+      state.groups.set(
+        item.group,
+        (
+          state.groups.get(
+            item.group
+          ) || 0
+        ) + 1
+      );
 
-        pending = {
-
-          name:
-            attributes['tvg-name'] ||
-            title,
-
-          logo:
-            attributes['tvg-logo'] ||
-            attributes['logo'] ||
-            '',
-
-          group:
-            attributes['group-title'] ||
-            'Geral',
-
-          tvgId:
-            attributes['tvg-id'] ||
-            '',
-
-          url: ''
-        };
-
-        return;
-      }
-
-      if (
-        line.startsWith('#')
-      ) {
-        return;
-      }
-
-      if (!pending) {
-        return;
-      }
-
-      pending.url = line;
-
-      if (pending.url) {
-
-        addItem(pending);
-      }
+      addSeriesMeta(
+        item
+      );
 
       pending = null;
-    }
+    };
+
+  const reader =
+    response.body.getReader();
+
+  const decoder =
+    new TextDecoder(
+      'utf-8'
+    );
+
+  try {
 
     while (true) {
 
       const {
         value,
         done
-      } = await reader.read();
+      } =
+        await reader.read();
 
       if (done) {
         break;
       }
 
-      bytes += value.byteLength;
+      bytes +=
+        value.byteLength;
 
       buffer +=
         decoder.decode(
           value,
-          { stream: true }
+          {
+            stream: true
+          }
         );
 
       const lines =
-        buffer.split(/\r?\n/);
+        buffer.split(
+          /\r?\n/
+        );
 
       buffer =
         lines.pop() || '';
 
-      for (const line of lines) {
-        processLine(line);
-      }
-    }
-
-    buffer += decoder.decode();
-
-    if (buffer) {
-      processLine(buffer);
-    }
-
-    for (
-      const series of state.series.values()
-    ) {
-
       for (
-        const season of series.seasons.values()
+        const raw
+        of lines
       ) {
 
-        season.episodes.sort(
-          (a, b) =>
-            a.episode - b.episode
-        );
+        const line =
+          raw.trim();
+
+        if (!line) {
+          continue;
+        }
+
+        if (
+          line.startsWith(
+            '#EXTINF:'
+          )
+        ) {
+
+          const comma =
+            line.indexOf(',');
+
+          const attrs =
+            parseAttributes(
+              line
+            );
+
+          pending = {
+
+            name:
+              attrs['tvg-name'] ||
+              (
+                comma >= 0
+                  ? line
+                      .slice(
+                        comma + 1
+                      )
+                      .trim()
+                  : 'Sem nome'
+              ),
+
+            logo:
+              attrs['tvg-logo'] ||
+              attrs.logo ||
+              '',
+
+            group:
+              attrs['group-title'] ||
+              'Geral',
+
+            tvgId:
+              attrs['tvg-id'] ||
+              ''
+          };
+
+        } else if (
+          !line.startsWith('#') &&
+          pending
+        ) {
+
+          await writeItem(
+            line
+          );
+        }
       }
     }
 
-    state.loaded = true;
+    buffer +=
+      decoder.decode();
 
-    state.loadedAt =
-      new Date().toISOString();
+    if (
+      buffer.trim() &&
+      !buffer
+        .trim()
+        .startsWith('#') &&
+      pending
+    ) {
 
-    state.total =
-      state.items.length;
-
-    state.m3uBytes =
-      bytes;
-
-    console.log(
-      `GC PLAY PRO: ${state.total} conteúdos`
-    );
-
-    console.log(
-      `GC PLAY PRO: ${state.series.size} séries`
-    );
+      await writeItem(
+        buffer.trim()
+      );
+    }
 
   } finally {
 
-    state.loading = false;
+    await reader
+      .cancel()
+      .catch(() => {});
+
+    await handle.close();
   }
+
+  state.m3uBytes =
+    bytes;
+
+  state.loadedAt =
+    new Date()
+      .toISOString();
+
+  state.loaded =
+    true;
+
+  await saveMeta();
 }
+
+/* =====================================================
+   GARANTIR BIBLIOTECA
+===================================================== */
 
 async function ensureLibrary() {
 
   if (
-    !state.loaded &&
-    !state.loading
+    state.loaded
   ) {
 
-    await loadM3U();
+    return;
   }
 
-  while (state.loading) {
+  if (
+    await loadMetaIfPresent()
+  ) {
 
-    await new Promise(
-      resolve =>
-        setTimeout(resolve, 50)
-    );
+    return;
+  }
+
+  if (
+    state.loading
+  ) {
+
+    while (
+      state.loading
+    ) {
+
+      await new Promise(
+        r =>
+          setTimeout(
+            r,
+            100
+          )
+      );
+    }
+
+    return;
+  }
+
+  state.loading =
+    true;
+
+  try {
+
+    await parseM3UStreaming();
+
+  } finally {
+
+    state.loading =
+      false;
   }
 }
 
-/* =========================================================
+/* =====================================================
    PAGINAÇÃO
-========================================================= */
+===================================================== */
 
-function pageItems(
-  items,
+function pageResult(
+  total,
   page,
   limit
 ) {
 
-  const safeLimit =
+  const l =
     Math.min(
       Math.max(
         Number(limit) || 40,
@@ -504,88 +1025,50 @@ function pageItems(
       200
     );
 
-  const safePage =
+  const p =
     Math.max(
       Number(page) || 1,
       1
     );
 
-  const total =
-    items.length;
-
-  const totalPages =
+  const pages =
     Math.max(
       1,
       Math.ceil(
-        total / safeLimit
+        total / l
       )
     );
 
-  const currentPage =
+  const current =
     Math.min(
-      safePage,
-      totalPages
+      p,
+      pages
     );
-
-  const start =
-    (currentPage - 1) *
-    safeLimit;
 
   return {
 
-    page: currentPage,
+    page:
+      current,
 
-    limit: safeLimit,
+    limit:
+      l,
 
     total,
 
-    totalPages,
+    totalPages:
+      pages,
 
-    items:
-      items.slice(
-        start,
-        start + safeLimit
-      )
+    start:
+      (current - 1) *
+      l
   };
 }
 
-function publicItem(item) {
-
-  return {
-
-    id: item.id,
-
-    name: item.name,
-
-    title: item.name,
-
-    logo: item.logo,
-
-    group: item.group,
-
-    tvgId: item.tvgId,
-
-    type: item.type,
-
-    url: item.url
-  };
-}
-
-function findItem(id) {
-
-  return state.items.find(
-    item => item.id === id
-  );
-}
-
-/* =========================================================
+/* =====================================================
    MPEG-TS / MPTS
-========================================================= */
+===================================================== */
 
 const STREAM_TYPES = {
-
-  0x01:
-    'MPEG-1 video',
 
   0x02:
     'MPEG-2 video',
@@ -615,15 +1098,7 @@ const STREAM_TYPES = {
     'E-AC-3'
 };
 
-function readU16(buffer, offset) {
-
-  return (
-    (buffer[offset] << 8) |
-    buffer[offset + 1]
-  );
-}
-
-function getPID(packet) {
+function pidOf(packet) {
 
   return (
     ((packet[1] & 0x1f) << 8) |
@@ -631,95 +1106,83 @@ function getPID(packet) {
   );
 }
 
-function getPayload(packet) {
+function payload(packet) {
 
-  const adaptation =
+  const af =
     (packet[3] >> 4) & 3;
 
-  if (adaptation === 1) {
+  if (af === 1) {
 
     return packet.subarray(4);
   }
 
-  if (adaptation === 3) {
+  if (af === 3) {
 
-    const length =
+    const n =
       packet[4];
 
-    const start =
-      5 + length;
-
-    if (start <= 188) {
-
-      return packet.subarray(
-        start
-      );
-    }
+    return (
+      n + 5 <= 188
+        ? packet.subarray(
+            n + 5
+          )
+        : Buffer.alloc(0)
+    );
   }
 
   return Buffer.alloc(0);
 }
 
-function getSection(packet) {
+function section(packet) {
 
-  const payload =
-    getPayload(packet);
-
-  if (!payload.length) {
-    return null;
-  }
-
-  const payloadStart =
-    !!(packet[1] & 0x40);
-
-  if (!payloadStart) {
-    return null;
-  }
-
-  const pointer =
-    payload[0];
+  const q =
+    payload(packet);
 
   if (
-    pointer + 1 >=
-    payload.length
+    !q.length ||
+    !(packet[1] & 0x40)
   ) {
+
     return null;
   }
 
-  return payload.subarray(
-    1 + pointer
+  const ptr =
+    q[0];
+
+  return (
+    ptr + 1 < q.length
+      ? q.subarray(
+          ptr + 1
+        )
+      : null
   );
 }
 
-/* =========================================================
-   PAT
-========================================================= */
+function pat(packet) {
 
-function parsePAT(packet) {
-
-  const section =
-    getSection(packet);
+  const s =
+    section(packet);
 
   if (
-    !section ||
-    section[0] !== 0x00 ||
-    section.length < 12
+    !s ||
+    s[0] !== 0 ||
+    s.length < 12
   ) {
 
     return [];
   }
 
-  const sectionLength =
-    ((section[1] & 0x0f) << 8) |
-    section[2];
+  const len =
+    ((s[1] & 15) << 8) |
+    s[2];
 
   const end =
     Math.min(
-      section.length,
-      3 + sectionLength - 4
+      s.length,
+      3 + len - 4
     );
 
-  const programs = [];
+  const result = [];
 
   for (
     let i = 8;
@@ -728,84 +1191,74 @@ function parsePAT(packet) {
   ) {
 
     const program =
-      readU16(
-        section,
-        i
-      );
+      (s[i] << 8) |
+      s[i + 1];
 
-    const pmtPID =
-      ((section[i + 2] & 0x1f) << 8) |
-      section[i + 3];
+    const pmtPid =
+      ((s[i + 2] & 31) << 8) |
+      s[i + 3];
 
-    if (program !== 0) {
+    if (program) {
 
-      programs.push({
-
+      result.push({
         program,
-
-        pmtPid:
-          pmtPID
+        pmtPid
       });
     }
   }
 
-  return programs;
+  return result;
 }
 
-/* =========================================================
-   PMT
-========================================================= */
-
-function parsePMT(
+function pmt(
   packet,
-  expectedPID
+  wantedPid
 ) {
 
   if (
-    getPID(packet) !==
-    expectedPID
+    pidOf(packet) !==
+    wantedPid
   ) {
+
     return null;
   }
 
-  const section =
-    getSection(packet);
+  const s =
+    section(packet);
 
   if (
-    !section ||
-    section[0] !== 0x02 ||
-    section.length < 16
+    !s ||
+    s[0] !== 2 ||
+    s.length < 16
   ) {
 
     return null;
   }
 
-  const sectionLength =
-    ((section[1] & 0x0f) << 8) |
-    section[2];
+  const len =
+    ((s[1] & 15) << 8) |
+    s[2];
 
   const end =
     Math.min(
-      section.length,
-      3 + sectionLength - 4
+      s.length,
+      3 + len - 4
     );
 
   const program =
-    readU16(
-      section,
-      3
-    );
+    (s[3] << 8) |
+    s[4];
 
-  const pcrPID =
-    ((section[8] & 0x1f) << 8) |
-    section[9];
+  const pcrPid =
+    ((s[8] & 31) << 8) |
+    s[9];
 
-  const programInfoLength =
-    ((section[10] & 0x0f) << 8) |
-    section[11];
+  const info =
+    ((s[10] & 15) << 8) |
+    s[11];
 
   let offset =
-    12 + programInfoLength;
+    12 + info;
 
   const streams = [];
 
@@ -814,32 +1267,32 @@ function parsePMT(
   ) {
 
     const streamType =
-      section[offset];
+      s[offset];
 
-    const elementaryPID =
-      ((section[offset + 1] & 0x1f) << 8) |
-      section[offset + 2];
+    const pid =
+      ((s[offset + 1] & 31) << 8) |
+      s[offset + 2];
 
-    const esInfoLength =
-      ((section[offset + 3] & 0x0f) << 8) |
-      section[offset + 4];
+    const infoLength =
+      ((s[offset + 3] & 15) << 8) |
+      s[offset + 4];
 
     streams.push({
 
-      pid:
-        elementaryPID,
+      pid,
 
       streamType,
 
       codec:
-        STREAM_TYPES[streamType] ||
+        STREAM_TYPES[
+          streamType
+        ] ||
         `0x${streamType
-          .toString(16)
-          .padStart(2, '0')}`
+          .toString(16)}`
     });
 
     offset +=
-      5 + esInfoLength;
+      5 + infoLength;
   }
 
   return {
@@ -852,32 +1305,31 @@ function parsePMT(
   };
 }
 
-/* =========================================================
-   ANALISADOR TS
-========================================================= */
-
-function scanTS(buffer) {
+function scanTs(buffer) {
 
   let start = -1;
 
   for (
     let i = 0;
-    i + 564 <= buffer.length;
+    i + 376 < buffer.length;
     i++
   ) {
 
     if (
-      buffer[i] === 0x47 &&
-      buffer[i + 188] === 0x47 &&
-      buffer[i + 376] === 0x47
+      buffer[i] === 71 &&
+      buffer[i + 188] === 71 &&
+      buffer[i + 376] === 71
     ) {
 
       start = i;
+
       break;
     }
   }
 
-  if (start < 0) {
+  if (
+    start < 0
+  ) {
 
     return {
 
@@ -887,10 +1339,10 @@ function scanTS(buffer) {
     };
   }
 
-  const patPrograms =
+  const pats =
     new Map();
 
-  const pmtPrograms =
+  const pmts =
     new Map();
 
   for (
@@ -906,60 +1358,63 @@ function scanTS(buffer) {
       );
 
     if (
-      packet[0] !== 0x47
+      packet[0] !== 71
     ) {
+
       break;
     }
 
     const pid =
-      getPID(packet);
+      pidOf(packet);
 
-    if (pid === 0) {
+    if (
+      pid === 0
+    ) {
 
-      const pats =
-        parsePAT(packet);
+      for (
+        const x
+        of pat(packet)
+      ) {
 
-      for (const p of pats) {
-
-        patPrograms.set(
-          p.program,
-          p
+        pats.set(
+          x.program,
+          x
         );
       }
     }
 
     for (
-      const p
-      of patPrograms.values()
+      const x
+      of pats.values()
     ) {
 
       if (
-        pid === p.pmtPid &&
-        !pmtPrograms.has(
-          p.program
+        pid === x.pmtPid &&
+        !pmts.has(
+          x.program
         )
       ) {
 
-        const pmt =
-          parsePMT(
+        const y =
+          pmt(
             packet,
-            p.pmtPid
+            x.pmtPid
           );
 
-        if (pmt) {
+        if (y) {
 
-          pmtPrograms.set(
-            p.program,
-            pmt
+          pmts.set(
+            x.program,
+            y
           );
         }
       }
     }
 
     if (
-      patPrograms.size > 0 &&
-      pmtPrograms.size ===
-      patPrograms.size
+      pats.size &&
+      pmts.size ===
+      pats.size
     ) {
 
       break;
@@ -969,29 +1424,32 @@ function scanTS(buffer) {
   const programs = [];
 
   for (
-    const [program, pat]
-    of patPrograms
+    const [
+      program,
+      x
+    ]
+    of pats
   ) {
 
-    const pmt =
-      pmtPrograms.get(program);
+    const y =
+      pmts.get(
+        program
+      );
 
     programs.push({
 
       program,
 
       pmtPid:
-        pat.pmtPid,
+        x.pmtPid,
 
       pcrPid:
-        pmt
-          ? pmt.pcrPid
-          : null,
+        y?.pcrPid ??
+        null,
 
       streams:
-        pmt
-          ? pmt.streams
-          : []
+        y?.streams ||
+        []
     });
   }
 
@@ -1003,23 +1461,19 @@ function scanTS(buffer) {
   };
 }
 
-/* =========================================================
-   AMOSTRA DO STREAM
-========================================================= */
-
-async function getStreamSample(
+async function sampleStream(
   url,
-  maxBytes = 1024 * 1024
+  max = 262144
 ) {
 
-  const response =
+  const r =
     await fetch(
       url,
       {
         headers: {
 
           'User-Agent':
-            'GC-PLAY-PRO-MPTS/1.3.1',
+            'GC-PLAY-PRO-MPTS/1.4',
 
           'Accept':
             '*/*'
@@ -1027,22 +1481,18 @@ async function getStreamSample(
       }
     );
 
-  if (!response.ok) {
+  if (
+    !r.ok ||
+    !r.body
+  ) {
 
     throw new Error(
-      `Stream HTTP ${response.status}`
+      `Stream HTTP ${r.status}`
     );
   }
 
-  if (!response.body) {
-
-    throw new Error(
-      'Stream sem body.'
-    );
-  }
-
-  const reader =
-    response.body.getReader();
+  const rd =
+    r.body.getReader();
 
   const chunks = [];
 
@@ -1051,25 +1501,23 @@ async function getStreamSample(
   try {
 
     while (
-      total < maxBytes
+      total < max
     ) {
 
       const {
         value,
         done
-      } = await reader.read();
+      } =
+        await rd.read();
 
       if (done) {
         break;
       }
 
-      const remaining =
-        maxBytes - total;
-
       const take =
         Math.min(
           value.byteLength,
-          remaining
+          max - total
         );
 
       chunks.push(
@@ -1087,15 +1535,16 @@ async function getStreamSample(
         take <
         value.byteLength
       ) {
+
         break;
       }
     }
 
   } finally {
 
-    try {
-      await reader.cancel();
-    } catch (_) {}
+    await rd
+      .cancel()
+      .catch(() => {});
   }
 
   return Buffer.concat(
@@ -1104,82 +1553,44 @@ async function getStreamSample(
   );
 }
 
-/* =========================================================
-   INSPEÇÃO MPTS
-========================================================= */
+async function findItem(id) {
 
-async function inspectMPTS(
-  item
-) {
-
-  const sample =
-    await getStreamSample(
-      item.url
+  const n =
+    Number(
+      String(id)
+        .replace(/^i/, '')
     );
 
-  const result =
-    scanTS(sample);
-
-  let mode =
-    'UNKNOWN';
-
   if (
-    result.programs.length === 1
+    !Number.isInteger(n) ||
+    n < 0 ||
+    n >= state.total
   ) {
 
-    mode = 'SPTS';
-
-  } else if (
-    result.programs.length > 1
-  ) {
-
-    mode = 'MPTS';
+    return null;
   }
 
-  return {
-
-    ok: true,
-
-    id:
-      item.id,
-
-    name:
-      item.name,
-
-    bytesAnalyzed:
-      sample.length,
-
-    transportStream:
-      result.aligned,
-
-    mode,
-
-    programCount:
-      result.programs.length,
-
-    programs:
-      result.programs
-  };
+  return readItem(n);
 }
 
-/* =========================================================
-   STREAM MPTS -> SPTS
-========================================================= */
+/* =====================================================
+   MPTS → SPTS
+===================================================== */
 
-async function streamMPTS(
+async function streamMpts(
   item,
-  requestedProgram,
+  programNumber,
   res
 ) {
 
-  const upstream =
+  const up =
     await fetch(
       item.url,
       {
         headers: {
 
           'User-Agent':
-            'GC-PLAY-PRO-MPTS/1.3.1',
+            'GC-PLAY-PRO-MPTS/1.4',
 
           'Accept':
             '*/*'
@@ -1188,12 +1599,12 @@ async function streamMPTS(
     );
 
   if (
-    !upstream.ok ||
-    !upstream.body
+    !up.ok ||
+    !up.body
   ) {
 
     throw new Error(
-      `Stream HTTP ${upstream.status}`
+      `Stream HTTP ${up.status}`
     );
   }
 
@@ -1217,7 +1628,7 @@ async function streamMPTS(
   res.flushHeaders?.();
 
   const reader =
-    upstream.body.getReader();
+    up.body.getReader();
 
   let pending =
     Buffer.alloc(0);
@@ -1225,16 +1636,20 @@ async function streamMPTS(
   let selected =
     null;
 
-  let buffered =
-    [];
+  let buffered = [];
 
-  function writePacket(packet) {
+  const emit =
+    packet => {
 
-    if (!res.destroyed) {
+      if (
+        !res.destroyed
+      ) {
 
-      res.write(packet);
-    }
-  }
+        res.write(
+          packet
+        );
+      }
+    };
 
   try {
 
@@ -1243,7 +1658,8 @@ async function streamMPTS(
       const {
         value,
         done
-      } = await reader.read();
+      } =
+        await reader.read();
 
       if (done) {
         break;
@@ -1259,56 +1675,67 @@ async function streamMPTS(
 
       for (
         let i = 0;
-        i + 564 <= pending.length;
+        i + 376 <
+        pending.length;
         i++
       ) {
 
         if (
-          pending[i] === 0x47 &&
-          pending[i + 188] === 0x47 &&
-          pending[i + 376] === 0x47
+          pending[i] === 71 &&
+          pending[i + 188] === 71 &&
+          pending[i + 376] === 71
         ) {
 
           sync = i;
+
           break;
         }
       }
 
-      if (sync < 0) {
+      if (
+        sync < 0
+      ) {
 
         if (
-          pending.length > 4096
+          pending.length >
+          4096
         ) {
 
           pending =
             pending.subarray(
-              pending.length - 4096
+              pending.length -
+              4096
             );
         }
 
         continue;
       }
 
-      if (sync > 0) {
+      if (
+        sync > 0
+      ) {
 
         pending =
-          pending.subarray(sync);
+          pending.subarray(
+            sync
+          );
       }
 
-      const completeLength =
+      const whole =
         Math.floor(
-          pending.length / 188
+          pending.length /
+          188
         ) * 188;
 
       const data =
         pending.subarray(
           0,
-          completeLength
+          whole
         );
 
       pending =
         pending.subarray(
-          completeLength
+          whole
         );
 
       for (
@@ -1324,44 +1751,39 @@ async function streamMPTS(
           );
 
         const pid =
-          getPID(packet);
+          pidOf(packet);
 
         if (!selected) {
 
           buffered.push(
-            Buffer.from(packet)
+            Buffer.from(
+              packet
+            )
           );
 
-          const sample =
-            Buffer.concat(
-              buffered
-            );
-
           const scan =
-            scanTS(sample);
+            scanTs(
+              Buffer.concat(
+                buffered
+              )
+            );
 
           if (
             scan.programs.length
           ) {
 
-            let program;
-
-            if (
-              requestedProgram !== null
-            ) {
-
-              program =
-                scan.programs.find(
-                  p =>
-                    p.program ===
-                    requestedProgram
-                );
-
-            } else {
-
-              program =
-                scan.programs[0];
-            }
+            const program =
+              scan.programs.find(
+                x =>
+                  x.program ===
+                  programNumber
+              ) ||
+              (
+                programNumber ==
+                null
+                  ? scan.programs[0]
+                  : null
+              );
 
             if (
               program &&
@@ -1369,55 +1791,32 @@ async function streamMPTS(
             ) {
 
               const pids =
-                new Set();
+                new Set([
+                  0,
+                  program.pmtPid,
+                  program.pcrPid,
+                  ...program.streams
+                    .map(
+                      x =>
+                        x.pid
+                    )
+                ]);
 
-              pids.add(0);
-
-              pids.add(
-                program.pmtPid
-              );
-
-              if (
-                program.pcrPid != null
-              ) {
-
-                pids.add(
-                  program.pcrPid
-                );
-              }
+              selected =
+                pids;
 
               for (
-                const stream
-                of program.streams
-              ) {
-
-                pids.add(
-                  stream.pid
-                );
-              }
-
-              selected = {
-
-                program:
-                  program.program,
-
-                pids
-              };
-
-              for (
-                const oldPacket
+                const old
                 of buffered
               ) {
 
                 if (
-                  selected.pids.has(
-                    getPID(oldPacket)
+                  pids.has(
+                    pidOf(old)
                   )
                 ) {
 
-                  writePacket(
-                    oldPacket
-                  );
+                  emit(old);
                 }
               }
 
@@ -1426,12 +1825,13 @@ async function streamMPTS(
           }
 
           if (
-            buffered.length > 3000
+            buffered.length >
+            1500
           ) {
 
             buffered =
               buffered.slice(
-                -1000
+                -400
               );
           }
 
@@ -1439,31 +1839,34 @@ async function streamMPTS(
         }
 
         if (
-          selected.pids.has(pid)
+          selected.has(pid)
         ) {
 
-          writePacket(packet);
+          emit(
+            packet
+          );
         }
       }
     }
 
-  } catch (error) {
+  } finally {
 
-    if (!res.destroyed) {
+    await reader
+      .cancel()
+      .catch(() => {});
+
+    if (
+      !res.destroyed
+    ) {
+
       res.end();
     }
-
-    throw error;
-  }
-
-  if (!res.destroyed) {
-    res.end();
   }
 }
 
-/* =========================================================
+/* =====================================================
    ROTAS
-========================================================= */
+===================================================== */
 
 app.get(
   '/',
@@ -1478,10 +1881,10 @@ app.get(
         'GC PLAY PRO',
 
       version:
-        '1.3.1',
+        '1.4.0',
 
       message:
-        'Backend + M3U + Series + MPTS'
+        'Backend memory-safe + M3U + Series + MPTS'
     });
   }
 );
@@ -1499,7 +1902,7 @@ app.get(
         'GC PLAY PRO',
 
       version:
-        '1.3.1',
+        '1.4.0',
 
       libraryLoaded:
         state.loaded,
@@ -1515,10 +1918,6 @@ app.get(
     });
   }
 );
-
-/* =========================================================
-   BIBLIOTECA
-========================================================= */
 
 app.get(
   '/api/library/status',
@@ -1555,13 +1954,14 @@ app.get(
           state.m3uBytes
       });
 
-    } catch (error) {
+    } catch (e) {
 
-      res.status(500).json({
-
-        error:
-          error.message
-      });
+      res
+        .status(500)
+        .json({
+          error:
+            e.message
+        });
     }
   }
 );
@@ -1574,24 +1974,21 @@ app.get(
 
       await ensureLibrary();
 
-      const groups =
-        [...state.groups.entries()]
-          .map(
-            ([name, items]) => ({
-
-              name,
-
-              count:
-                items.length
-            })
-          );
-
       res.json({
 
         total:
           state.total,
 
-        groups,
+        groups:
+          [
+            ...state.groups.entries()
+          ]
+            .map(
+              ([name, count]) => ({
+                name,
+                count
+              })
+            ),
 
         series:
           state.series.size,
@@ -1600,13 +1997,14 @@ app.get(
           state.loadedAt
       });
 
-    } catch (error) {
+    } catch (e) {
 
-      res.status(500).json({
-
-        error:
-          error.message
-      });
+      res
+        .status(500)
+        .json({
+          error:
+            e.message
+        });
     }
   }
 );
@@ -1619,74 +2017,176 @@ app.get(
 
       await ensureLibrary();
 
-      let items =
-        state.items;
-
       const group =
         String(
-          req.query.group || ''
+          req.query.group ||
+          ''
         )
           .trim()
           .toLowerCase();
 
       const search =
         String(
-          req.query.search || ''
+          req.query.search ||
+          ''
         )
           .trim()
           .toLowerCase();
 
-      if (group) {
+      let indices;
 
-        items =
-          items.filter(
-            item =>
-              String(
-                item.group
-              ).toLowerCase() ===
-              group
+      if (
+        !group &&
+        !search
+      ) {
+
+        const pg =
+          pageResult(
+            state.total,
+            req.query.page,
+            req.query.limit
           );
+
+        const pageIndices =
+          [];
+
+        for (
+          let i =
+            pg.start;
+          i <
+            pg.start +
+              pg.limit &&
+          i <
+            state.total;
+          i++
+        ) {
+
+          pageIndices.push(i);
+        }
+
+        const items =
+          await readPage(
+            pageIndices
+          );
+
+        return res.json({
+
+          page:
+            pg.page,
+
+          limit:
+            pg.limit,
+
+          total:
+            pg.total,
+
+          totalPages:
+            pg.totalPages,
+
+          items
+        });
       }
 
-      if (search) {
+      const cacheKey =
+        `${group}|${search}`;
 
-        items =
-          items.filter(
-            item =>
-              (
-                `${item.name} ` +
-                `${item.group} ` +
-                `${item.tvgId}`
-              )
-                .toLowerCase()
-                .includes(search)
+      indices =
+        state.searchCache.get(
+          cacheKey
+        );
+
+      if (
+        !indices
+      ) {
+
+        indices =
+          await scanFile(
+            item => {
+
+              const okGroup =
+                !group ||
+                String(
+                  item.group
+                )
+                  .toLowerCase() ===
+                  group;
+
+              const okSearch =
+                !search ||
+                `${item.name} ${item.group} ${item.tvgId}`
+                  .toLowerCase()
+                  .includes(search);
+
+              return (
+                okGroup &&
+                okSearch
+              );
+            }
           );
+
+        if (
+          state.searchCache.size >
+          10
+        ) {
+
+          state.searchCache.delete(
+            state.searchCache
+              .keys()
+              .next()
+              .value
+          );
+        }
+
+        state.searchCache.set(
+          cacheKey,
+          indices
+        );
       }
 
-      const result =
-        pageItems(
-          items,
+      const pg =
+        pageResult(
+          indices.length,
           req.query.page,
           req.query.limit
         );
 
+      const pageIndices =
+        indices.slice(
+          pg.start,
+          pg.start +
+            pg.limit
+        );
+
+      const items =
+        await readPage(
+          pageIndices
+        );
+
       res.json({
 
-        ...result,
+        page:
+          pg.page,
 
-        items:
-          result.items.map(
-            publicItem
-          )
+        limit:
+          pg.limit,
+
+        total:
+          pg.total,
+
+        totalPages:
+          pg.totalPages,
+
+        items
       });
 
-    } catch (error) {
+    } catch (e) {
 
-      res.status(500).json({
-
-        error:
-          error.message
-      });
+      res
+        .status(500)
+        .json({
+          error:
+            e.message
+        });
     }
   }
 );
@@ -1697,13 +2197,15 @@ app.post(
 
     try {
 
-      state.loaded = false;
+      state.loaded =
+        false;
 
-      await loadM3U();
+      await ensureLibrary();
 
       res.json({
 
-        ok: true,
+        ok:
+          true,
 
         total:
           state.total,
@@ -1712,20 +2214,21 @@ app.post(
           state.series.size
       });
 
-    } catch (error) {
+    } catch (e) {
 
-      res.status(500).json({
-
-        error:
-          error.message
-      });
+      res
+        .status(500)
+        .json({
+          error:
+            e.message
+        });
     }
   }
 );
 
-/* =========================================================
+/* =====================================================
    SERIES
-========================================================= */
+===================================================== */
 
 app.get(
   '/api/series',
@@ -1736,35 +2239,39 @@ app.get(
       await ensureLibrary();
 
       let list =
-        [...state.series.values()]
-          .map(series => ({
+        [
+          ...state.series.values()
+        ]
+          .map(
+            s => ({
 
-            id:
-              series.id,
+              id:
+                s.id,
 
-            name:
-              series.name,
+              name:
+                s.name,
 
-            logo:
-              series.logo,
+              logo:
+                s.logo,
 
-            episodeCount:
-              series.episodeCount,
+              episodeCount:
+                s.episodeCount,
 
-            seasons:
-              [...series.seasons.values()]
-                .map(
-                  season =>
-                    season.number
-                )
-                .sort(
-                  (a, b) => a - b
-                )
-          }));
+              seasons:
+                [
+                  ...s.seasons.keys()
+                ]
+                  .sort(
+                    (a, b) =>
+                      a - b
+                  )
+            })
+          );
 
       const search =
         String(
-          req.query.search || ''
+          req.query.search ||
+          ''
         )
           .trim()
           .toLowerCase();
@@ -1773,29 +2280,52 @@ app.get(
 
         list =
           list.filter(
-            series =>
-              series.name
+            s =>
+              s.name
                 .toLowerCase()
-                .includes(search)
+                .includes(
+                  search
+                )
           );
       }
 
-      const result =
-        pageItems(
-          list,
+      const pg =
+        pageResult(
+          list.length,
           req.query.page,
           req.query.limit
         );
 
-      res.json(result);
+      res.json({
 
-    } catch (error) {
+        page:
+          pg.page,
 
-      res.status(500).json({
+        limit:
+          pg.limit,
 
-        error:
-          error.message
+        total:
+          pg.total,
+
+        totalPages:
+          pg.totalPages,
+
+        items:
+          list.slice(
+            pg.start,
+            pg.start +
+              pg.limit
+          )
       });
+
+    } catch (e) {
+
+      res
+        .status(500)
+        .json({
+          error:
+            e.message
+        });
     }
   }
 );
@@ -1808,41 +2338,141 @@ app.get(
 
       await ensureLibrary();
 
-      const series =
-        [...state.series.values()]
+      const s =
+        [
+          ...state.series.values()
+        ]
           .find(
             x =>
               x.id ===
               req.params.id
           );
 
-      if (!series) {
+      if (!s) {
 
         return res
           .status(404)
           .json({
-
             error:
               'Série não encontrada.'
           });
       }
 
+      const episodes = [];
+
+      const target =
+        s.name.toLowerCase();
+
+      await scanFile(
+        item => {
+
+          const ep =
+            detectEpisode(
+              item.name
+            );
+
+          if (
+            cleanSeriesName(
+              item.name
+            )
+              .toLowerCase() ===
+            target
+          ) {
+
+            episodes.push({
+
+              ...item,
+
+              season:
+                ep?.season ||
+                1,
+
+              episode:
+                ep?.episode ||
+                1,
+
+              title:
+                String(
+                  item.name ||
+                  ''
+                )
+                  .replace(
+                    /\bS\d{1,2}E\d{1,3}\b/ig,
+                    ''
+                  )
+                  .trim() ||
+                item.name
+            });
+          }
+
+          return false;
+        }
+      );
+
+      const seasons =
+        new Map();
+
+      for (
+        const e
+        of episodes
+      ) {
+
+        if (
+          !seasons.has(
+            e.season
+          )
+        ) {
+
+          seasons.set(
+            e.season,
+            {
+              number:
+                e.season,
+
+              episodes:
+                []
+            }
+          );
+        }
+
+        seasons
+          .get(
+            e.season
+          )
+          .episodes
+          .push(e);
+      }
+
+      for (
+        const v
+        of seasons.values()
+      ) {
+
+        v.episodes.sort(
+          (a, b) =>
+            a.episode -
+            b.episode
+        );
+      }
+
       res.json({
 
         id:
-          series.id,
+          s.id,
 
         name:
-          series.name,
+          s.name,
 
         logo:
-          series.logo,
+          s.logo,
 
         episodeCount:
-          series.episodeCount,
+          s.episodeCount,
 
         seasons:
-          [...series.seasons.values()]
+          [
+            ...seasons.values()
+          ]
             .sort(
               (a, b) =>
                 a.number -
@@ -1850,20 +2480,21 @@ app.get(
             )
       });
 
-    } catch (error) {
+    } catch (e) {
 
-      res.status(500).json({
-
-        error:
-          error.message
-      });
+      res
+        .status(500)
+        .json({
+          error:
+            e.message
+        });
     }
   }
 );
 
-/* =========================================================
-   MPTS - INSPEÇÃO
-========================================================= */
+/* =====================================================
+   MPTS INSPECT
+===================================================== */
 
 app.get(
   '/api/mpts/inspect/:id',
@@ -1874,7 +2505,7 @@ app.get(
       await ensureLibrary();
 
       const item =
-        findItem(
+        await findItem(
           req.params.id
         );
 
@@ -1883,7 +2514,6 @@ app.get(
         return res
           .status(404)
           .json({
-
             error:
               'Conteúdo não encontrado.'
           });
@@ -1898,23 +2528,53 @@ app.get(
         return res
           .status(400)
           .json({
-
             error:
               'Este stream não usa HTTP/HTTPS.'
           });
       }
 
+      const sample =
+        await sampleStream(
+          item.url
+        );
+
       const result =
-        await inspectMPTS(item);
+        scanTs(
+          sample
+        );
 
-      res.json(result);
+      res.json({
 
-    } catch (error) {
+        ok:
+          true,
 
-      console.error(
-        'MPTS INSPECT:',
-        error
-      );
+        id:
+          item.id,
+
+        name:
+          item.name,
+
+        bytesAnalyzed:
+          sample.length,
+
+        transportStream:
+          result.aligned,
+
+        mode:
+          result.programs.length > 1
+            ? 'MPTS'
+            : result.programs.length === 1
+              ? 'SPTS'
+              : 'UNKNOWN',
+
+        programCount:
+          result.programs.length,
+
+        programs:
+          result.programs
+      });
+
+    } catch (e) {
 
       res
         .status(502)
@@ -1924,15 +2584,15 @@ app.get(
             'Não foi possível analisar o stream.',
 
           detail:
-            error.message
+            e.message
         });
     }
   }
 );
 
-/* =========================================================
-   MPTS - STREAM
-========================================================= */
+/* =====================================================
+   MPTS STREAM
+===================================================== */
 
 app.get(
   '/api/mpts/stream/:id',
@@ -1943,7 +2603,7 @@ app.get(
       await ensureLibrary();
 
       const item =
-        findItem(
+        await findItem(
           req.params.id
         );
 
@@ -1952,7 +2612,6 @@ app.get(
         return res
           .status(404)
           .json({
-
             error:
               'Conteúdo não encontrado.'
           });
@@ -1967,52 +2626,41 @@ app.get(
         return res
           .status(400)
           .json({
-
             error:
               'Este stream não usa HTTP/HTTPS.'
           });
       }
 
-      let program = null;
+      const program =
+        req.query.program ===
+        undefined
+          ? null
+          : Number(
+              req.query.program
+            );
 
       if (
-        req.query.program !==
-        undefined
+        program !== null &&
+        !Number.isInteger(
+          program
+        )
       ) {
 
-        program =
-          Number(
-            req.query.program
-          );
-
-        if (
-          !Number.isInteger(
-            program
-          )
-        ) {
-
-          return res
-            .status(400)
-            .json({
-
-              error:
-                'Número do programa inválido.'
-            });
-        }
+        return res
+          .status(400)
+          .json({
+            error:
+              'Programa inválido.'
+          });
       }
 
-      await streamMPTS(
+      await streamMpts(
         item,
         program,
         res
       );
 
-    } catch (error) {
-
-      console.error(
-        'MPTS STREAM:',
-        error
-      );
+    } catch (e) {
 
       if (
         !res.headersSent
@@ -2026,7 +2674,7 @@ app.get(
               'Não foi possível iniciar o MPTS.',
 
             detail:
-              error.message
+              e.message
           });
 
       } else if (
@@ -2039,24 +2687,36 @@ app.get(
   }
 );
 
-/* =========================================================
+/* =====================================================
    START
-========================================================= */
+===================================================== */
 
 app.listen(
   PORT,
   () => {
 
     console.log(
-      `GC PLAY PRO backend 1.3.1`
+      '================================'
     );
 
     console.log(
-      `Porta: ${PORT}`
+      'GC PLAY PRO BACKEND 1.4.0'
     );
 
     console.log(
-      'MPTS: ATIVO'
+      'MEMORY SAFE: ATIVO'
+    );
+
+    console.log(
+      'M3U + SERIES + MPTS'
+    );
+
+    console.log(
+      `PORTA: ${PORT}`
+    );
+
+    console.log(
+      '================================'
     );
   }
 );
