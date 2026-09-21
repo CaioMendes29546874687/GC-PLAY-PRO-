@@ -7,27 +7,16 @@ app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
 const PORT = process.env.PORT || 3000;
-
 const MAX_LIMIT = 200;
-const SEARCH_CACHE_MAX = 10;
 
-/*
-========================================
- ESTADO DA BIBLIOTECA
-========================================
-*/
-
-const library = {
+const state = {
   items: [],
   groups: new Map(),
   groupNames: new Map(),
-
-  total: 0,
+  series: new Map(),
   loadedAt: null,
-
   loading: false,
   lastError: null,
-
   progress: {
     bytes: 0,
     totalBytes: null,
@@ -36,20 +25,10 @@ const library = {
 };
 
 let refreshPromise = null;
-
-/*
-========================================
- CACHE DE BUSCA
-========================================
-*/
-
 const searchCache = new Map();
+const SEARCH_CACHE_MAX = 10;
 
-/*
-========================================
- NORMALIZAÇÃO
-========================================
-*/
+/* ==================== UTILIDADES ==================== */
 
 function normalize(value = "") {
   return String(value)
@@ -59,38 +38,160 @@ function normalize(value = "") {
     .trim();
 }
 
-/*
-========================================
- ATRIBUTOS DO EXTINF
-========================================
-*/
+function parseNumber(value, fallback, min, max) {
+  const n = Number.parseInt(value, 10);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
+}
 
 function parseAttributes(text) {
   const attrs = {};
-
   const regex = /([\w-]+)="([^"]*)"/g;
-
   let match;
 
   while ((match = regex.exec(text)) !== null) {
-    attrs[match[1]] = match[2];
+    attrs[match[1].toLowerCase()] = match[2];
   }
 
   return attrs;
 }
 
-/*
-========================================
- PARSE DO EXTINF
-========================================
-*/
+/* ==================== SÉRIES ==================== */
+
+function detectEpisode(text = "") {
+  const source = String(text);
+
+  const patterns = [
+    /\bS(\d{1,2})\s*E(\d{1,3})\b/i,
+    /\b(\d{1,2})\s*[xX]\s*(\d{1,3})\b/,
+    /\bT(?:emporada)?\s*(\d{1,2})\s*(?:[-._ ]*)E(?:p(?:is[oó]dio)?)?\s*(\d{1,3})\b/i,
+    /\bTemporada\s*(\d{1,2})\s*(?:[-._ ]*)Epis[oó]dio\s*(\d{1,3})\b/i
+  ];
+
+  for (const regex of patterns) {
+    const match = source.match(regex);
+
+    if (match) {
+      const season = Number(match[1]);
+      const episode = Number(match[2]);
+
+      if (
+        season >= 0 &&
+        season <= 99 &&
+        episode >= 0 &&
+        episode <= 999
+      ) {
+        return {
+          season,
+          episode,
+          token: match[0],
+          index: match.index
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+function cleanSeriesName(text = "") {
+  let name = String(text).trim();
+
+  const detected = detectEpisode(name);
+
+  if (detected) {
+    name =
+      name.slice(0, detected.index) +
+      " " +
+      name.slice(
+        detected.index + detected.token.length
+      );
+  }
+
+  name = name
+    .replace(/[\[\(\{]\s*[-_. ]*[\]\)\}]/g, " ")
+    .replace(
+      /\b(HD|FHD|SD|4K|1080P|720P)\b/gi,
+      " "
+    )
+    .replace(/[-_.|]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return name || "Série sem nome";
+}
+
+function addSeriesEpisode(seriesMap, itemIndex, item) {
+  const sourceText =
+    `${item.name || ""} ${item.title || ""}`;
+
+  const detected = detectEpisode(sourceText);
+
+  if (!detected) return null;
+
+  const seriesName = cleanSeriesName(
+    item.name || item.title || ""
+  );
+
+  const key = normalize(seriesName);
+
+  if (!key || key.length < 2) return null;
+
+  let series = seriesMap.get(key);
+
+  if (!series) {
+    series = {
+      id: `s${seriesMap.size + 1}`,
+      name: seriesName,
+      logo: item.logo || "",
+      group: item.group || "",
+      seasons: new Map(),
+      episodes: 0
+    };
+
+    seriesMap.set(key, series);
+  } else if (!series.logo && item.logo) {
+    series.logo = item.logo;
+  }
+
+  let season = series.seasons.get(detected.season);
+
+  if (!season) {
+    season = {
+      number: detected.season,
+      episodes: []
+    };
+
+    series.seasons.set(
+      detected.season,
+      season
+    );
+  }
+
+  season.episodes.push({
+    episode: detected.episode,
+    itemIndex
+  });
+
+  series.episodes++;
+
+  return {
+    seriesKey: key,
+    season: detected.season,
+    episode: detected.episode
+  };
+}
+
+/* ==================== M3U ==================== */
 
 function parseExtInf(line) {
   const commaIndex = line.indexOf(",");
 
-  const attributesText = line.slice(
+  const attrsText = line.slice(
     8,
-    commaIndex >= 0 ? commaIndex : line.length
+    commaIndex >= 0
+      ? commaIndex
+      : line.length
   );
 
   const title =
@@ -98,42 +199,38 @@ function parseExtInf(line) {
       ? line.slice(commaIndex + 1).trim()
       : "Sem nome";
 
-  const attrs = parseAttributes(attributesText);
-
-  const name =
-    attrs["tvg-name"] ||
-    title ||
-    "Sem nome";
-
-  const logo =
-    attrs["tvg-logo"] ||
-    "";
-
-  const group =
-    attrs["group-title"] ||
-    "Outros";
-
-  const tvgId =
-    attrs["tvg-id"] ||
-    "";
+  const attrs = parseAttributes(attrsText);
 
   return {
-    name,
+    name:
+      attrs["tvg-name"] ||
+      title ||
+      "Sem nome",
+
     title,
-    logo,
-    group,
-    tvgId
+
+    logo:
+      attrs["tvg-logo"] ||
+      "",
+
+    group:
+      attrs["group-title"] ||
+      "Outros",
+
+    tvgId:
+      attrs["tvg-id"] ||
+      ""
   };
 }
 
-/*
-========================================
- ADICIONAR ITEM
-========================================
-*/
-
-function addItem(items, groups, groupNames, info, url) {
-
+function addItem(
+  items,
+  groups,
+  groupNames,
+  seriesMap,
+  info,
+  url
+) {
   const id = items.length + 1;
 
   const item = {
@@ -146,16 +243,18 @@ function addItem(items, groups, groupNames, info, url) {
     url
   };
 
+  const index = items.length;
+
   items.push(item);
 
   const groupKey =
-    normalize(info.group) || "outros";
+    normalize(info.group) ||
+    "outros";
 
   let groupList =
     groups.get(groupKey);
 
   if (!groupList) {
-
     groupList = [];
 
     groups.set(
@@ -169,125 +268,75 @@ function addItem(items, groups, groupNames, info, url) {
     );
   }
 
-  /*
-  Guardamos o índice do item,
-  não o objeto inteiro.
-  */
+  groupList.push(index);
 
-  groupList.push(id - 1);
+  addSeriesEpisode(
+    seriesMap,
+    index,
+    item
+  );
 }
-
-/*
-========================================
- PARSER M3U EM STREAM
-========================================
-*/
-
 async function parseM3UStream(response) {
-
   const items = [];
-
   const groups = new Map();
-
   const groupNames = new Map();
+  const seriesMap = new Map();
 
-  let currentInfo = null;
-
+  let current = null;
   let buffer = "";
-
-  let bytesRead = 0;
+  let bytes = 0;
 
   const totalBytes =
     Number(
       response.headers.get("content-length")
     ) || null;
 
-  library.progress = {
+  state.progress = {
     bytes: 0,
     totalBytes,
     items: 0
   };
 
-  /*
-  --------------------------------------
-  PROCESSAR UMA LINHA
-  --------------------------------------
-  */
-
   function processLine(rawLine) {
-
     const line = rawLine.trim();
 
-    if (!line) {
-      return;
-    }
-
-    /*
-    EXTINF
-    */
+    if (!line) return;
 
     if (line.startsWith("#EXTINF:")) {
-
-      currentInfo =
-        parseExtInf(line);
-
+      current = parseExtInf(line);
       return;
     }
 
-    /*
-    Comentários / diretivas
-    */
+    if (line.startsWith("#")) return;
 
-    if (line.startsWith("#")) {
-      return;
-    }
-
-    /*
-    URL do conteúdo
-    */
-
-    if (currentInfo) {
-
+    if (current) {
       addItem(
         items,
         groups,
         groupNames,
-        currentInfo,
+        seriesMap,
+        current,
         line
       );
 
-      currentInfo = null;
+      current = null;
 
-      library.progress.items =
+      state.progress.items =
         items.length;
     }
   }
 
-  /*
-  --------------------------------------
-  CASO NÃO EXISTA STREAM
-  --------------------------------------
-  */
-
   if (!response.body) {
-
     const text =
       await response.text();
 
-    const lines =
-      text.split(/\r?\n/);
-
-    for (const line of lines) {
+    for (
+      const line of text.split(/\r?\n/)
+    ) {
       processLine(line);
     }
 
   } else {
-
-    /*
-    ------------------------------------
-    LEITURA STREAMING
-    ------------------------------------
-    */
 
     const reader =
       response.body.getReader();
@@ -296,21 +345,17 @@ async function parseM3UStream(response) {
       new TextDecoder();
 
     while (true) {
-
       const {
         done,
         value
       } = await reader.read();
 
-      if (done) {
-        break;
-      }
+      if (done) break;
 
-      bytesRead +=
-        value.byteLength;
+      bytes += value.byteLength;
 
-      library.progress.bytes =
-        bytesRead;
+      state.progress.bytes =
+        bytes;
 
       buffer +=
         decoder.decode(
@@ -324,7 +369,6 @@ async function parseM3UStream(response) {
         (newlineIndex =
           buffer.indexOf("\n")) !== -1
       ) {
-
         const line =
           buffer.slice(
             0,
@@ -340,12 +384,6 @@ async function parseM3UStream(response) {
       }
     }
 
-    /*
-    ------------------------------------
-    FINAL DO STREAM
-    ------------------------------------
-    */
-
     buffer +=
       decoder.decode();
 
@@ -357,104 +395,64 @@ async function parseM3UStream(response) {
   return {
     items,
     groups,
-    groupNames
+    groupNames,
+    series: seriesMap
   };
 }
 
-/*
-========================================
- CARREGAR M3U
-========================================
-*/
+/* ==================== CARREGAMENTO ==================== */
 
 async function refreshLibrary() {
-
-  if (refreshPromise) {
+  if (refreshPromise)
     return refreshPromise;
-  }
 
   refreshPromise =
     (async () => {
 
-      library.loading = true;
-      library.lastError = null;
-
-      searchCache.clear();
-
-      console.log(
-        "================================="
-      );
-
-      console.log(
-        "GC PLAY PRO"
-      );
-
-      console.log(
-        "Iniciando atualização M3U..."
-      );
-
-      console.log(
-        "================================="
-      );
+      state.loading = true;
+      state.lastError = null;
 
       const controller =
         new AbortController();
 
       const timeout =
-        setTimeout(
-          () => controller.abort(),
-          5 * 60 * 1000
-        );
+        setTimeout(() => {
+          controller.abort();
+        }, 300000);
 
       try {
 
         if (!process.env.M3U_URL) {
-
           throw new Error(
             "M3U_URL não configurada no Render."
           );
         }
 
-        /*
-        --------------------------------
-        DOWNLOAD
-        --------------------------------
-        */
+        console.log(
+          "Baixando M3U..."
+        );
 
         const response =
           await fetch(
             process.env.M3U_URL,
             {
               method: "GET",
-
               redirect: "follow",
+              signal:
+                controller.signal,
 
               headers: {
                 "User-Agent":
-                  "GC-PLAY-PRO/2.0"
-              },
-
-              signal:
-                controller.signal
+                  "GC-PLAY-PRO/1.2"
+              }
             }
           );
 
         if (!response.ok) {
-
           throw new Error(
-            `Falha ao baixar M3U. HTTP ${response.status}`
+            `Falha ao baixar M3U: HTTP ${response.status}`
           );
         }
-
-        console.log(
-          "M3U conectada."
-        );
-
-        /*
-        --------------------------------
-        PARSER
-        --------------------------------
-        */
 
         const parsed =
           await parseM3UStream(
@@ -464,57 +462,49 @@ async function refreshLibrary() {
         if (
           !parsed.items.length
         ) {
-
           throw new Error(
-            "Nenhum conteúdo foi encontrado na M3U."
+            "A M3U foi carregada, mas nenhum conteúdo foi encontrado."
           );
         }
 
-        /*
-        --------------------------------
-        TROCA ATÔMICA
-        --------------------------------
-        */
-
-        library.items =
+        state.items =
           parsed.items;
 
-        library.groups =
+        state.groups =
           parsed.groups;
 
-        library.groupNames =
+        state.groupNames =
           parsed.groupNames;
 
-        library.total =
-          parsed.items.length;
+        state.series =
+          parsed.series;
 
-        library.loadedAt =
+        state.loadedAt =
           new Date().toISOString();
 
-        library.lastError =
-          null;
+        state.lastError = null;
+
+        searchCache.clear();
 
         console.log(
-          `Biblioteca carregada: ${library.total} conteúdos`
+          `Biblioteca carregada: ${state.items.length} itens`
         );
 
         console.log(
-          `Categorias: ${library.groups.size}`
+          `Séries detectadas: ${state.series.size}`
         );
 
-        return library;
+        return state;
 
       } catch (error) {
 
-        library.lastError =
-          error.name === "AbortError"
-            ? "Tempo limite ao carregar a M3U."
-            : error.message;
+        state.lastError =
+          error.name ===
+          "AbortError"
 
-        console.error(
-          "Erro ao carregar M3U:",
-          error
-        );
+            ? "Tempo limite ao carregar a M3U."
+
+            : error.message;
 
         throw error;
 
@@ -522,306 +512,175 @@ async function refreshLibrary() {
 
         clearTimeout(timeout);
 
-        library.loading =
-          false;
+        state.loading = false;
 
-        refreshPromise =
-          null;
+        refreshPromise = null;
       }
-
     })();
 
   return refreshPromise;
 }
 
-/*
-========================================
- GARANTIR BIBLIOTECA CARREGADA
-========================================
-*/
-
 async function ensureLibrary() {
-
-  if (library.items.length > 0) {
-    return library;
-  }
+  if (state.items.length)
+    return state;
 
   return refreshLibrary();
 }
 
-/*
-========================================
- ITEM PÚBLICO DA API
-========================================
-*/
+/* ==================== RESPOSTA PÚBLICA ==================== */
 
 function publicItem(item) {
-
   return {
     id: item.id,
-
     name: item.name,
-
     title: item.title,
-
     logo: item.logo,
-
     group: item.group,
-
     tvgId: item.tvgId,
-
     tvgName: item.name,
-
     url: item.url
   };
 }
-
-/*
-========================================
- CACHE DE BUSCA
-========================================
-*/
 
 function getSearchMatches(
   query,
   groupKey
 ) {
-
   const cacheKey =
-    `${groupKey || "*"}::${query}`;
+    `${groupKey || "*"}|${query}`;
 
   if (
     searchCache.has(cacheKey)
   ) {
-
     return searchCache.get(
       cacheKey
     );
   }
 
-  const results = [];
+  const matches = [];
 
-  /*
-  --------------------------------------
-  CANDIDATOS
-  --------------------------------------
-  */
+  const candidates =
+    groupKey
+      ? state.groups.get(
+          groupKey
+        ) || []
+      : null;
 
-  let candidates = null;
+  const test = (index) => {
+    const item =
+      state.items[index];
 
-  if (groupKey) {
+    const text =
+      normalize(
+        `${item.name || ""} ${item.title || ""} ${item.group || ""}`
+      );
 
-    candidates =
-      library.groups.get(
-        groupKey
-      ) || [];
-  }
-
-  /*
-  --------------------------------------
-  BUSCA
-  --------------------------------------
-  */
+    return text.includes(query);
+  };
 
   if (candidates) {
 
     for (
       const index of candidates
     ) {
-
-      const item =
-        library.items[index];
-
-      const text =
-        normalize(
-          `${item.name} ${item.title} ${item.group}`
-        );
-
-      if (
-        text.includes(query)
-      ) {
-
-        results.push(index);
-      }
+      if (test(index))
+        matches.push(index);
     }
 
   } else {
 
     for (
-      let index = 0;
-      index < library.items.length;
-      index++
+      let i = 0;
+      i < state.items.length;
+      i++
     ) {
-
-      const item =
-        library.items[index];
-
-      const text =
-        normalize(
-          `${item.name} ${item.title} ${item.group}`
-        );
-
-      if (
-        text.includes(query)
-      ) {
-
-        results.push(index);
-      }
+      if (test(i))
+        matches.push(i);
     }
-  }
-
-  /*
-  --------------------------------------
-  LIMITAR CACHE
-  --------------------------------------
-  */
-
-  if (
-    searchCache.size >=
-    SEARCH_CACHE_MAX
-  ) {
-
-    const firstKey =
-      searchCache.keys().next().value;
-
-    searchCache.delete(
-      firstKey
-    );
   }
 
   searchCache.set(
     cacheKey,
-    results
+    matches
   );
 
-  return results;
-}
+  while (
+    searchCache.size >
+    SEARCH_CACHE_MAX
+  ) {
+    searchCache.delete(
+      searchCache.keys()
+        .next()
+        .value
+    );
+  }
 
-/*
-========================================
- HOME
-========================================
-*/
+  return matches;
+}
+/* ==================== ROTAS BÁSICAS ==================== */
 
 app.get("/", (req, res) => {
-
   res.json({
     status: "online",
-
     app: "GC PLAY PRO",
-
-    version: "2.0.0",
-
+    version: "1.2.0",
     message:
-      "Backend + Motor M3U otimizado",
-
-    library: {
-      ready:
-        library.items.length > 0,
-
-      loading:
-        library.loading,
-
-      total:
-        library.total,
-
-      groups:
-        library.groups.size,
-
-      loadedAt:
-        library.loadedAt
-    }
+      "Backend + M3U + organizador de séries funcionando!"
   });
 });
-
-/*
-========================================
- STATUS
-========================================
-*/
 
 app.get(
   "/api/status",
   (req, res) => {
-
     res.json({
       online: true,
-
       service:
         "GC PLAY PRO API",
-
-      version:
-        "2.0.0",
-
+      version: "1.2.0",
+      libraryReady:
+        state.items.length > 0,
+      total:
+        state.items.length,
+      series:
+        state.series.size,
+      loading:
+        state.loading,
+      loadedAt:
+        state.loadedAt,
+      error:
+        state.lastError,
+      progress:
+        state.progress,
       timestamp:
-        new Date().toISOString(),
-
-      library: {
-        ready:
-          library.items.length > 0,
-
-        loading:
-          library.loading,
-
-        total:
-          library.total,
-
-        groups:
-          library.groups.size,
-
-        loadedAt:
-          library.loadedAt,
-
-        error:
-          library.lastError
-      }
+        new Date().toISOString()
     });
   }
 );
-
-/*
-========================================
- STATUS DA BIBLIOTECA
-========================================
-*/
 
 app.get(
   "/api/library/status",
   (req, res) => {
-
     res.json({
-
-      success: true,
-
       ready:
-        library.items.length > 0,
-
+        state.items.length > 0,
       loading:
-        library.loading,
-
+        state.loading,
       total:
-        library.total,
-
+        state.items.length,
       groups:
-        library.groups.size,
-
+        state.groups.size,
+      series:
+        state.series.size,
       loadedAt:
-        library.loadedAt,
-
+        state.loadedAt,
       error:
-        library.lastError,
-
+        state.lastError,
       progress:
-        library.progress
+        state.progress
     });
   }
 );
-
-/*
-========================================
- RESUMO DA BIBLIOTECA
-========================================
-*/
 
 app.get(
   "/api/library",
@@ -835,17 +694,18 @@ app.get(
 
       for (
         const [
-          groupKey,
+          key,
           indexes
-        ] of library.groups
+        ] of state.groups.entries()
       ) {
 
         groups.push({
+          key,
 
           name:
-            library.groupNames.get(
-              groupKey
-            ) || groupKey,
+            state.groupNames
+              .get(key) ||
+            key,
 
           count:
             indexes.length
@@ -858,36 +718,26 @@ app.get(
       );
 
       res.json({
-
         success: true,
-
         total:
-          library.total,
-
+          state.items.length,
         groups,
-
+        series:
+          state.series.size,
         loadedAt:
-          library.loadedAt
+          state.loadedAt
       });
 
     } catch (error) {
 
       res.status(500).json({
-
         success: false,
-
         error:
           error.message
       });
     }
   }
 );
-
-/*
-========================================
- ITENS
-========================================
-*/
 
 app.get(
   "/api/library/items",
@@ -897,168 +747,132 @@ app.get(
 
       await ensureLibrary();
 
-      let page =
-        parseInt(
+      const page =
+        parseNumber(
           req.query.page,
-          10
-        ) || 1;
-
-      let limit =
-        parseInt(
-          req.query.limit,
-          10
-        ) || 50;
-
-      page =
-        Math.max(
           1,
-          page
+          1,
+          1000000
         );
 
-      limit =
-        Math.min(
-          MAX_LIMIT,
-          Math.max(
-            1,
-            limit
-          )
+      const limit =
+        parseNumber(
+          req.query.limit,
+          20,
+          1,
+          MAX_LIMIT
         );
 
       const search =
         normalize(
-          req.query.search || ""
+          req.query.search ||
+          ""
         );
 
       const groupKey =
         normalize(
-          req.query.group || ""
+          req.query.group ||
+          ""
         );
 
-      let indexes = null;
+      let indexes;
+      let total;
 
-      /*
-      ----------------------------------
-      SEM BUSCA
-      ----------------------------------
-      */
-
-      if (!search) {
-
-        if (groupKey) {
-
-          indexes =
-            library.groups.get(
-              groupKey
-            ) || [];
-
-        } else {
-
-          const start =
-            (page - 1) * limit;
-
-          const end =
-            start + limit;
-
-          const items =
-            library.items
-              .slice(start, end)
-              .map(publicItem);
-
-          res.json({
-
-            success: true,
-
-            page,
-
-            limit,
-
-            total:
-              library.total,
-
-            totalPages:
-              Math.ceil(
-                library.total / limit
-              ),
-
-            items
-          });
-
-          return;
-        }
-
-      } else {
-
-        /*
-        ------------------------------
-        COM BUSCA
-        ------------------------------
-        */
+      if (search) {
 
         indexes =
           getSearchMatches(
             search,
             groupKey
           );
+
+        total =
+          indexes.length;
+
+      } else if (groupKey) {
+
+        indexes =
+          state.groups.get(
+            groupKey
+          ) || [];
+
+        total =
+          indexes.length;
+
+      } else {
+
+        indexes = null;
+
+        total =
+          state.items.length;
       }
 
-      /*
-      ----------------------------------
-      PAGINAÇÃO DE ÍNDICES
-      ----------------------------------
-      */
-
-      const total =
-        indexes.length;
-
-      const start =
-        (page - 1) * limit;
-
-      const end =
-        start + limit;
-
-      const pageIndexes =
-        indexes.slice(
-          start,
-          end
-        );
-
-      const items =
-        pageIndexes.map(
-          index =>
-            publicItem(
-              library.items[index]
-            )
-        );
-
-      res.json({
-
-        success: true,
-
-        page,
-
-        limit,
-
-        total,
-
-        totalPages:
+      const totalPages =
+        Math.max(
+          1,
           Math.ceil(
             total / limit
-          ),
+          )
+        );
 
-        items
+      const safePage =
+        Math.min(
+          page,
+          totalPages
+        );
+
+      let resultItems = [];
+
+      if (indexes) {
+
+        const start =
+          (safePage - 1) *
+          limit;
+
+        const selected =
+          indexes.slice(
+            start,
+            start + limit
+          );
+
+        resultItems =
+          selected.map(
+            (index) =>
+              publicItem(
+                state.items[index]
+              )
+          );
+
+      } else {
+
+        const start =
+          (safePage - 1) *
+          limit;
+
+        resultItems =
+          state.items
+            .slice(
+              start,
+              start + limit
+            )
+            .map(publicItem);
+      }
+
+      res.json({
+        success: true,
+        page:
+          safePage,
+        limit,
+        total,
+        totalPages,
+        items:
+          resultItems
       });
 
     } catch (error) {
 
-      console.error(
-        "Erro na API de itens:",
-        error
-      );
-
       res.status(500).json({
-
         success: false,
-
         error:
           error.message
       });
@@ -1066,12 +880,283 @@ app.get(
   }
 );
 
-/*
-========================================
- ATUALIZAR M3U
-========================================
-*/
+/* ==================== API DE SÉRIES ==================== */
 
+function seriesToPublic(series) {
+
+  const seasons =
+    [...series.seasons.values()]
+      .sort(
+        (a, b) =>
+          a.number - b.number
+      )
+      .map(
+        (season) => ({
+          number:
+            season.number,
+
+          episodeCount:
+            season.episodes.length
+        })
+      );
+
+  return {
+    id:
+      series.id,
+
+    name:
+      series.name,
+
+    logo:
+      series.logo,
+
+    group:
+      series.group,
+
+    seasons,
+
+    episodeCount:
+      series.episodes
+  };
+}
+
+function findSeriesById(id) {
+
+  for (
+    const series
+    of state.series.values()
+  ) {
+
+    if (
+      series.id === id
+    ) {
+      return series;
+    }
+  }
+
+  return null;
+}
+
+app.get(
+  "/api/series",
+  async (req, res) => {
+
+    try {
+
+      await ensureLibrary();
+
+      const page =
+        parseNumber(
+          req.query.page,
+          1,
+          1,
+          100000
+        );
+
+      const limit =
+        parseNumber(
+          req.query.limit,
+          30,
+          1,
+          100
+        );
+
+      const search =
+        normalize(
+          req.query.search ||
+          ""
+        );
+
+      let list =
+        [
+          ...state.series.values()
+        ];
+
+      if (search) {
+
+        list =
+          list.filter(
+            (series) =>
+              normalize(
+                series.name
+              ).includes(search)
+          );
+      }
+
+      list.sort(
+        (a, b) =>
+          a.name.localeCompare(
+            b.name,
+            "pt-BR"
+          )
+      );
+
+      const total =
+        list.length;
+
+      const totalPages =
+        Math.max(
+          1,
+          Math.ceil(
+            total / limit
+          )
+        );
+
+      const safePage =
+        Math.min(
+          page,
+          totalPages
+        );
+
+      const start =
+        (safePage - 1) *
+        limit;
+
+      res.json({
+        success: true,
+        page:
+          safePage,
+        limit,
+        total,
+        totalPages,
+
+        items:
+          list
+            .slice(
+              start,
+              start + limit
+            )
+            .map(
+              seriesToPublic
+            )
+      });
+
+    } catch (error) {
+
+      res.status(500).json({
+        success: false,
+        error:
+          error.message
+      });
+    }
+  }
+);
+
+app.get(
+  "/api/series/:id",
+  async (req, res) => {
+
+    try {
+
+      await ensureLibrary();
+
+      const series =
+        findSeriesById(
+          req.params.id
+        );
+
+      if (!series) {
+
+        return res.status(
+          404
+        ).json({
+          success: false,
+          error:
+            "Série não encontrada."
+        });
+      }
+
+      const seasons =
+        [
+          ...series.seasons.values()
+        ]
+          .sort(
+            (a, b) =>
+              a.number - b.number
+          )
+          .map(
+            (season) => ({
+              number:
+                season.number,
+
+              episodeCount:
+                season.episodes.length,
+
+              episodes:
+                [
+                  ...season.episodes
+                ]
+                  .sort(
+                    (a, b) =>
+                      a.episode -
+                      b.episode
+                  )
+                  .map(
+                    (ep) => {
+
+                      const item =
+                        state.items[
+                          ep.itemIndex
+                        ];
+
+                      return {
+                        episode:
+                          ep.episode,
+
+                        id:
+                          item.id,
+
+                        name:
+                          item.name,
+
+                        title:
+                          item.title,
+
+                        logo:
+                          item.logo,
+
+                        group:
+                          item.group,
+
+                        url:
+                          item.url
+                      };
+                    }
+                  )
+            })
+          );
+
+      res.json({
+        success: true,
+
+        id:
+          series.id,
+
+        name:
+          series.name,
+
+        logo:
+          series.logo,
+
+        group:
+          series.group,
+
+        episodeCount:
+          series.episodes,
+
+        seasons
+      });
+
+    } catch (error) {
+
+      res.status(500).json({
+        success: false,
+        error:
+          error.message
+      });
+    }
+  }
+);
 app.get(
   "/api/library/refresh",
   async (req, res) => {
@@ -1081,28 +1166,19 @@ app.get(
       await refreshLibrary();
 
       res.json({
-
         success: true,
-
-        message:
-          "Biblioteca atualizada.",
-
         total:
-          library.total,
-
-        groups:
-          library.groups.size,
-
+          state.items.length,
+        series:
+          state.series.size,
         loadedAt:
-          library.loadedAt
+          state.loadedAt
       });
 
     } catch (error) {
 
       res.status(500).json({
-
         success: false,
-
         error:
           error.message
       });
@@ -1110,35 +1186,12 @@ app.get(
   }
 );
 
-/*
-========================================
- SERVIDOR
-========================================
-*/
-
 app.listen(
   PORT,
   "0.0.0.0",
   () => {
-
     console.log(
-      "================================="
-    );
-
-    console.log(
-      "GC PLAY PRO BACKEND"
-    );
-
-    console.log(
-      `Servidor rodando na porta ${PORT}`
-    );
-
-    console.log(
-      "Motor M3U otimizado: ATIVO"
-    );
-
-    console.log(
-      "================================="
+      `GC PLAY PRO API rodando na porta ${PORT}`
     );
   }
 );
