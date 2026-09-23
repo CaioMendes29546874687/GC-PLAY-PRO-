@@ -12,8 +12,29 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 
+app.use((req, res, next) => {
+  const started = process.hrtime.bigint();
+  state.metrics.requests++;
+  res.on('finish', () => {
+    const ms = Number(process.hrtime.bigint() - started) / 1e6;
+    state.metrics.totalMs += ms;
+    if (res.statusCode >= 400) state.metrics.errors++;
+    if (ms > 1000) {
+      console.warn(JSON.stringify({
+        event: 'slow_request',
+        method: req.method,
+        path: req.path,
+        status: res.statusCode,
+        ms: Math.round(ms)
+      }));
+    }
+  });
+  next();
+});
+
 const PORT = process.env.PORT || 10000;
 const M3U_URL = process.env.M3U_URL;
+const CLASSIFICATION_VERSION = 2;
 
 const DATA_DIR = path.join(
   os.tmpdir(),
@@ -48,7 +69,18 @@ const state = {
 
   series: new Map(),
 
-  searchCache: new Map()
+  types: { live: [], vod: [], series: [], music: [] },
+
+  searchCache: new Map(),
+
+  metrics: {
+    startedAt: new Date().toISOString(),
+    requests: 0,
+    errors: 0,
+    totalMs: 0
+  },
+
+  epgUrl: process.env.EPG_URL || ''
 };
 
 /* =====================================================
@@ -161,35 +193,56 @@ function cleanSeriesName(name) {
    CLASSIFICAÇÃO
 ===================================================== */
 
+function normalizeClassText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[_./|>:-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function classify(name, group) {
+  const n = normalizeClassText(name);
+  const g = normalizeClassText(group);
+  const text = `${g} ${n}`;
+  const ep = detectEpisode(name);
 
-  const text =
-    `${group || ''} ${name || ''}`
-      .toLowerCase();
-
-  const ep =
-    detectEpisode(name);
-
-  if (
-    ep ||
-    /series|série|temporada|season|epis[oó]dio|novela/.test(text)
-  ) {
-
+  // A estrutura de grupo da M3U tem prioridade. Isso evita que um canal
+  // chamado "Cultura FHD" apareça dentro de FILMES só porque a rota foi
+  // solicitada com type=vod.
+  if (/\b(series|series tv|tv shows|temporadas|novelas|episodios)\b/.test(g) || ep) {
     return 'series';
   }
 
-  if (
-    /filme|movie|cinema|vod/.test(text)
-  ) {
-
+  if (/\b(filmes?|movies?|cinema|vod)\b/.test(g)) {
     return 'vod';
   }
 
-  if (
-    /m[úu]sica|music|radio|rádio/.test(text)
-  ) {
-
+  if (/\b(musica|music|radios?|radio)\b/.test(g)) {
     return 'music';
+  }
+
+  if (/\b(canais?|tv ao vivo|tv aberta|tv fechada|live|televisao|abertos?|fechados?)\b/.test(g)) {
+    return 'live';
+  }
+
+  // Alguns provedores colocam a informação somente no nome.
+  if (/\b(series|serie|temporada|season|episodios?|novela)\b/.test(text)) {
+    return 'series';
+  }
+  if (/\b(filme|movie|cinema|vod)\b/.test(text)) {
+    return 'vod';
+  }
+  if (/\b(musica|music|radio)\b/.test(text)) {
+    return 'music';
+  }
+
+  // Extensões de VOD são um último indício, sem afetar canais ao vivo já
+  // classificados pelos grupos acima.
+  if (/\.(mp4|mkv|avi|mov|webm)(?:$|[?#])/.test(n)) {
+    return 'vod';
   }
 
   return 'live';
@@ -316,6 +369,7 @@ async function loadMetaIfPresent() {
 
     if (
       !meta ||
+      meta.classificationVersion !== CLASSIFICATION_VERSION ||
       !Array.isArray(
         meta.offsets
       )
@@ -361,6 +415,13 @@ async function loadMetaIfPresent() {
           )
       );
 
+    state.types = {
+      live: Array.isArray(meta.types?.live) ? meta.types.live : [],
+      vod: Array.isArray(meta.types?.vod) ? meta.types.vod : [],
+      series: Array.isArray(meta.types?.series) ? meta.types.series : [],
+      music: Array.isArray(meta.types?.music) ? meta.types.music : []
+    };
+
     state.loaded =
       state.total > 0 &&
       fs.existsSync(
@@ -378,6 +439,8 @@ async function loadMetaIfPresent() {
 async function saveMeta() {
 
   const meta = {
+
+    classificationVersion: CLASSIFICATION_VERSION,
 
     total:
       state.total,
@@ -405,7 +468,9 @@ async function saveMeta() {
                 [...v.seasons.entries()]
             }
           ]
-        )
+        ),
+
+    types: state.types
   };
 
   await fsp.writeFile(
@@ -688,6 +753,13 @@ async function parseM3UStreaming() {
   state.series =
     new Map();
 
+  state.types = {
+    live: [],
+    vod: [],
+    series: [],
+    music: []
+  };
+
   state.searchCache =
     new Map();
 
@@ -790,6 +862,10 @@ async function parseM3UStreaming() {
         );
 
       state.total++;
+
+      if (state.types[item.type]) {
+        state.types[item.type].push(state.total - 1);
+      }
 
       state.groups.set(
         item.group,
@@ -1881,7 +1957,7 @@ app.get(
         'GC PLAY PRO',
 
       version:
-        '1.4.0',
+        '2.2.0',
 
       message:
         'Backend memory-safe + M3U + Series + MPTS'
@@ -1902,7 +1978,7 @@ app.get(
         'GC PLAY PRO',
 
       version:
-        '1.4.0',
+        '2.2.0',
 
       libraryLoaded:
         state.loaded,
@@ -1924,44 +2000,33 @@ app.get(
   async (_req, res) => {
 
     try {
-
-      await ensureLibrary();
+      // Não bloqueia a primeira pintura do aplicativo esperando uma M3U
+      // enorme. Se ainda não existe cache, a carga começa em background.
+      if (!state.loaded && !state.loading) {
+        ensureLibrary().catch(err => {
+          console.error('[M3U_LOAD_ERROR]', err);
+        });
+      }
 
       res.json({
-
-        status:
-          'online',
-
-        loaded:
-          state.loaded,
-
-        loading:
-          state.loading,
-
-        total:
-          state.total,
-
-        groups:
-          state.groups.size,
-
-        series:
-          state.series.size,
-
-        loadedAt:
-          state.loadedAt,
-
-        m3uBytes:
-          state.m3uBytes
+        status: 'online',
+        loaded: state.loaded,
+        loading: state.loading,
+        total: state.total,
+        groups: state.groups.size,
+        series: state.series.size,
+        types: {
+          live: state.types.live.length,
+          vod: state.types.vod.length,
+          series: state.types.series.length,
+          music: state.types.music.length
+        },
+        loadedAt: state.loadedAt,
+        m3uBytes: state.m3uBytes
       });
 
     } catch (e) {
-
-      res
-        .status(500)
-        .json({
-          error:
-            e.message
-        });
+      res.status(500).json({ error: e.message });
     }
   }
 );
@@ -2010,6 +2075,137 @@ app.get(
 );
 
 app.get(
+  '/api/library/item/:id',
+  async (req, res) => {
+    try {
+      await ensureLibrary();
+      const item = await findItem(req.params.id);
+      if (!item) return res.status(404).json({ error: 'Conteúdo não encontrado.' });
+      res.json(item);
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  }
+);
+
+app.post('/api/library/rebuild', async (_req, res) => {
+  if (state.loading) return res.status(409).json({ error: 'Biblioteca já está sendo reconstruída.' });
+  state.loaded = false;
+  try {
+    await ensureLibrary();
+    res.json({ ok: true, total: state.total, groups: state.groups.size, series: state.series.size, types: Object.fromEntries(Object.entries(state.types).map(([k,v]) => [k, v.length])) });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+/* =====================================================
+   PLAY RESOLVER
+   Uma única entrada para o frontend descobrir como reproduzir
+   um item. O item continua sendo a única fonte de verdade da M3U.
+===================================================== */
+
+/* =====================================================
+   MEDIA PROXY
+   Usado somente para URLs que vieram da M3U configurada no servidor.
+   Mantém Range/Content-Type para MP4, HLS/TS e outros VOD compatíveis.
+===================================================== */
+
+app.get('/api/media/:id', async (req, res) => {
+  try {
+    await ensureLibrary();
+    const item = await findItem(req.params.id);
+    if (!item || !item.url) return res.status(404).json({ error: 'Mídia não encontrada.' });
+
+    const headers = {
+      'User-Agent': 'GC-PLAY-PRO/2.3',
+      'Accept': req.headers.accept || '*/*'
+    };
+    if (req.headers.range) headers.Range = req.headers.range;
+
+    const upstream = await fetch(item.url, { headers, redirect: 'follow' });
+    if (!upstream.ok && upstream.status !== 206) {
+      return res.status(upstream.status).json({ error: `Origem HTTP ${upstream.status}` });
+    }
+
+    const pass = [
+      'content-type', 'content-length', 'content-range', 'accept-ranges',
+      'cache-control', 'etag', 'last-modified'
+    ];
+    for (const h of pass) {
+      const value = upstream.headers.get(h);
+      if (value) res.setHeader(h, value);
+    }
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.status(upstream.status);
+
+    if (!upstream.body) return res.end();
+    const reader = upstream.body.getReader();
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        if (!res.write(Buffer.from(value))) await new Promise(resolve => res.once('drain', resolve));
+      }
+    } finally {
+      await reader.cancel().catch(() => {});
+    }
+    res.end();
+  } catch (e) {
+    console.error('[MEDIA_PROXY]', e.message);
+    if (!res.headersSent) res.status(502).json({ error: 'Falha ao abrir a mídia.', detail: e.message });
+    else res.end();
+  }
+});
+
+app.get(
+  '/api/play/:id',
+  async (req, res) => {
+    try {
+      await ensureLibrary();
+      const item = await findItem(req.params.id);
+      if (!item) {
+        return res.status(404).json({ error: 'Conteúdo não encontrado.' });
+      }
+
+      const url = String(item.url || '');
+      const lower = url.toLowerCase();
+      const isHls = /\.m3u8(?:$|[?#])/i.test(url);
+      const isTs = /\.(ts|mpeg|mpg|m2ts)(?:$|[?#])/i.test(url);
+      let engine = 'direct';
+      let streamUrl = url;
+
+      if (isHls) {
+        engine = 'hls';
+      } else if (item.type === 'live') {
+        engine = 'mpts';
+        streamUrl = `/api/mpts/stream/${encodeURIComponent(item.id)}`;
+      } else if (isTs) {
+        engine = 'mpegts';
+      }
+
+      res.set('Cache-Control', 'no-store');
+      res.json({
+        ok: true,
+        id: item.id,
+        name: item.name,
+        type: item.type,
+        group: item.group || '',
+        logo: item.logo || '',
+        url,
+        streamUrl,
+        engine,
+        live: item.type === 'live',
+        directUrl: url,
+        proxyUrl: `/api/media/${encodeURIComponent(item.id)}`
+      });
+    } catch (e) {
+      res.status(500).json({ error: 'Não foi possível resolver o conteúdo.', detail: e.message });
+    }
+  }
+);
+
+app.get(
   '/api/library/items',
   async (req, res) => {
 
@@ -2020,6 +2216,14 @@ app.get(
       const group =
         String(
           req.query.group ||
+          ''
+        )
+          .trim()
+          .toLowerCase();
+
+      const type =
+        String(
+          req.query.type ||
           ''
         )
           .trim()
@@ -2037,7 +2241,8 @@ app.get(
 
       if (
         !group &&
-        !search
+        !search &&
+        !type
       ) {
 
         const pg =
@@ -2088,7 +2293,7 @@ app.get(
       }
 
       const cacheKey =
-        `${group}|${search}`;
+        `${type}|${group}|${search}`;
 
       indices =
         state.searchCache.get(
@@ -2098,31 +2303,39 @@ app.get(
       if (
         !indices
       ) {
+        if (type && state.types[type] && !group && !search) {
+          indices = state.types[type];
+        } else {
+          indices =
+            await scanFile(
+              item => {
 
-        indices =
-          await scanFile(
-            item => {
+                const okType =
+                  !type ||
+                  item.type === type;
 
-              const okGroup =
-                !group ||
-                String(
-                  item.group
-                )
-                  .toLowerCase() ===
-                  group;
+                const okGroup =
+                  !group ||
+                  String(
+                    item.group
+                  )
+                    .toLowerCase() ===
+                    group;
 
-              const okSearch =
-                !search ||
-                `${item.name} ${item.group} ${item.tvgId}`
-                  .toLowerCase()
-                  .includes(search);
+                const okSearch =
+                  !search ||
+                  `${item.name} ${item.group} ${item.tvgId}`
+                    .toLowerCase()
+                    .includes(search);
 
-              return (
-                okGroup &&
-                okSearch
-              );
-            }
-          );
+                return (
+                  okType &&
+                  okGroup &&
+                  okSearch
+                );
+              }
+            );
+        }
 
         if (
           state.searchCache.size >
@@ -2190,6 +2403,164 @@ app.get(
     }
   }
 );
+
+
+app.get('/api/search', async (req, res) => {
+  const q = String(req.query.q || '').trim().toLowerCase();
+  const type = String(req.query.type || '').trim().toLowerCase();
+  const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 50);
+
+  try {
+    await ensureLibrary();
+    if (!q) return res.json({ total: 0, items: [] });
+
+    const key = `search|${type}|${q}`;
+    let indices = state.searchCache.get(key);
+
+    if (!indices) {
+      // Para buscas comuns, limitar a coleta evita uma varredura custosa
+      // continuar depois que já temos resultados suficientes.
+      indices = [];
+      const stream = fs.createReadStream(DATA_FILE, {
+        encoding: 'utf8',
+        highWaterMark: 1024 * 1024
+      });
+      let carry = '';
+      let index = 0;
+
+      for await (const chunk of stream) {
+        carry += chunk;
+        const lines = carry.split('\n');
+        carry = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line) { index++; continue; }
+          try {
+            const item = JSON.parse(line);
+            const hay = `${item.name} ${item.group} ${item.tvgId}`.toLowerCase();
+            if ((!type || item.type === type) && hay.includes(q)) {
+              indices.push(index);
+              if (indices.length >= 200) break;
+            }
+          } catch (_) {}
+          index++;
+        }
+        if (indices.length >= 200) break;
+      }
+
+      if (carry && indices.length < 200) {
+        try {
+          const item = JSON.parse(carry);
+          const hay = `${item.name} ${item.group} ${item.tvgId}`.toLowerCase();
+          if ((!type || item.type === type) && hay.includes(q)) indices.push(index);
+        } catch (_) {}
+      }
+
+      if (state.searchCache.size > 12) {
+        state.searchCache.delete(state.searchCache.keys().next().value);
+      }
+      state.searchCache.set(key, indices);
+    }
+
+    const items = await readPage(indices.slice(0, limit));
+    res.json({ total: indices.length, items });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/epg/status', (_req, res) => {
+  res.json({
+    configured: Boolean(state.epgUrl),
+    urlConfigured: Boolean(state.epgUrl)
+  });
+});
+
+app.get('/api/epg', async (req, res) => {
+  if (!state.epgUrl) {
+    return res.status(503).json({
+      configured: false,
+      error: 'EPG_URL não configurada no Render.'
+    });
+  }
+
+  try {
+    const response = await fetch(state.epgUrl, {
+      headers: {
+        'User-Agent': 'GC-PLAY-PRO-EPG/2.0',
+        'Accept': 'application/xml,text/xml,*/*'
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(502).json({
+        configured: true,
+        error: `EPG HTTP ${response.status}`
+      });
+    }
+
+    const xml = await response.text();
+    const channel = String(req.query.channel || '').trim();
+    const max = Math.min(Math.max(Number(req.query.limit) || 50, 1), 200);
+
+    const programs = [];
+    const re = /<programme\b([^>]*)>([\s\S]*?)<\/programme>/gi;
+    let m;
+
+    while ((m = re.exec(xml)) && programs.length < max) {
+      const attrs = {};
+      for (const a of m[1].matchAll(/([A-Za-z0-9_-]+)="([^"]*)"/g)) {
+        attrs[a[1]] = a[2];
+      }
+
+      if (channel && attrs.channel !== channel) continue;
+
+      const body = m[2];
+      const title = (body.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '')
+        .replace(/<[^>]+>/g, '').trim();
+
+      const desc = (body.match(/<desc[^>]*>([\s\S]*?)<\/desc>/i)?.[1] || '')
+        .replace(/<[^>]+>/g, '').trim();
+
+      programs.push({
+        channel: attrs.channel || '',
+        start: attrs.start || '',
+        stop: attrs.stop || '',
+        title,
+        description: desc
+      });
+    }
+
+    res.json({
+      configured: true,
+      channel,
+      count: programs.length,
+      programs
+    });
+  } catch (e) {
+    res.status(502).json({
+      configured: true,
+      error: e.message
+    });
+  }
+});
+
+app.get('/api/health', (_req, res) => {
+  res.json({
+    ok: true,
+    app: 'GC PLAY PRO',
+    version: '2.0.0',
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    library: {
+      loaded: state.loaded,
+      loading: state.loading,
+      total: state.total,
+      groups: state.groups.size,
+      series: state.series.size
+    }
+  });
+});
 
 app.post(
   '/api/library/refresh',
@@ -2700,7 +3071,7 @@ app.listen(
     );
 
     console.log(
-      'GC PLAY PRO BACKEND 1.4.0'
+      'GC PLAY PRO BACKEND 2.2.0'
     );
 
     console.log(
@@ -2708,7 +3079,7 @@ app.listen(
     );
 
     console.log(
-      'M3U + SERIES + MPTS'
+      'M3U + SERIES + MPTS + PLAY RESOLVER'
     );
 
     console.log(
