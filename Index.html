@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <meta name="theme-color" content="#050807">
+
+  <title>GC PLAY PRO</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- =====================================================
+       GC PLAY PRO
+       ESTRUTURA PRINCIPAL
+       ===================================================== -->
+
+  <div id="app">
+
+    <!-- ================= HEADER ================= -->
+
+    <header class="topbar">
+
+      <div class="brand">
+
+        <div class="brand-logo">
+          GC
+        </div>
+
+        <div class="brand-text">
+          <strong>PLAY PRO</strong>
+          <span>MEDIA CENTER</span>
+        </div>
+
+      </div>
+
+
+      <nav class="main-nav">
+
+        <button class="nav-item active" data-section="home">
+          INÍCIO
+        </button>
+
+        <button class="nav-item" data-section="live">
+          TV AO VIVO
+        </button>
+
+        <button class="nav-item" data-section="movies">
+          FILMES
+        </button>
+
+        <button class="nav-item" data-section="series">
+          SÉRIES
+        </button>
+
+        <button class="nav-item" data-section="favorites">
+          FAVORITOS
+        </button>
+
+      </nav>
+
+
+      <div class="top-actions">
+
+        <button
+          class="icon-button"
+          id="searchButton"
+          aria-label="Pesquisar"
+        >
+          🔎
+        </button>
+
+        <button
+          class="icon-button"
+          id="settingsButton"
+          aria-label="Configurações"
+        >
+          ⚙
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <!-- ================= CONTEÚDO ================= -->
+
+    <main>
+
+      <!-- ================= HERO ================= -->
+
+      <section class="hero">
+
+        <div class="hero-content">
+
+          <div class="hero-label">
+            <span class="status-dot"></span>
+            GC PLAY PRO
+          </div>
+
+          <h1>
+            Seu conteúdo.
+            <span>Do seu jeito.</span>
+          </h1>
+
+          <p>
+            Uma nova experiência para assistir seus canais,
+            filmes e séries em um único lugar.
+          </p>
+
+
+          <div class="hero-buttons">
+
+            <button
+              class="primary-button"
+              id="addPlaylistButton"
+            >
+              <span>＋</span>
+              ADICIONAR LISTA M3U
+            </button>
+
+            <button
+              class="secondary-button"
+              id="exploreButton"
+            >
+              EXPLORAR
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- ELEMENTO VISUAL -->
+
+        <div class="hero-visual">
+
+          <div class="visual-ring ring-1"></div>
+
+          <div class="visual-ring ring-2"></div>
+
+          <div class="visual-ring ring-3"></div>
+
+          <div class="visual-core">
+            GC
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================= ESTATÍSTICAS ================= -->
+
+      <section class="stats-grid">
+
+        <article class="stat-card">
+
+          <div class="stat-icon">
+            📺
+          </div>
+
+          <div>
+            <strong id="channelCount">0</strong>
+            <span>CANAIS</span>
+          </div>
+
+        </article>
+
+
+        <article class="stat-card">
+
+          <div class="stat-icon">
+            🎬
+          </div>
+
+          <div>
+            <strong id="movieCount">0</strong>
+            <span>FILMES</span>
+          </div>
+
+        </article>
+
+
+        <article class="stat-card">
+
+          <div class="stat-icon">
+            📚
+          </div>
+
+          <div>
+            <strong id="seriesCount">0</strong>
+            <span>SÉRIES</span>
+          </div>
+
+        </article>
+
+
+        <article class="stat-card">
+
+          <div class="stat-icon">
+            ●
+          </div>
+
+          <div>
+            <strong id="connectionStatus">
+              OFFLINE
+            </strong>
+
+            <span>STATUS</span>
+          </div>
+
+        </article>
+
+      </section>
+
+
+      <!-- ================= BIBLIOTECA ================= -->
+
+      <section class="library-section" id="librarySection">
+
+        <div class="section-header">
+
+          <div>
+
+            <span class="section-label">
+              BIBLIOTECA
+            </span>
+
+            <h2>
+              Seu conteúdo
+            </h2>
+
+          </div>
+
+
+          <div class="filters">
+
+            <button
+              class="filter-button active"
+              data-filter="all"
+            >
+              TODOS
+            </button>
+
+            <button
+              class="filter-button"
+              data-filter="live"
+            >
+              TV
+            </button>
+
+            <button
+              class="filter-button"
+              data-filter="movie"
+            >
+              FILMES
+            </button>
+
+            <button
+              class="filter-button"
+              data-filter="series"
+            >
+              SÉRIES
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- ================= LISTA DE CONTEÚDO ================= -->
+
+        <div
+          id="contentGrid"
+          class="content-grid"
+        >
+        </div>
+
+
+        <!-- ================= ESTADO VAZIO ================= -->
+
+        <div
+          id="emptyState"
+          class="empty-state"
+        >
+
+          <div class="empty-icon">
+            ▣
+          </div>
+
+          <h3>
+            Sua biblioteca está vazia
+          </h3>
+
+          <p>
+            Adicione uma lista M3U para começar.
+          </p>
+
+          <button
+            class="primary-button"
+            id="emptyAddButton"
+          >
+            ＋ ADICIONAR LISTA
+          </button>
+
+        </div>
+
+      </section>
+
+    </main>
+
+
+    <!-- ================= PLAYER ================= -->
+
+    <section
+      id="playerPanel"
+      class="player-panel hidden"
+    >
+
+      <div class="player-header">
+
+        <button
+          id="closePlayer"
+          class="icon-button"
+        >
+          ←
+        </button>
+
+        <div>
+
+          <span class="section-label">
+            REPRODUZINDO AGORA
+          </span>
+
+          <h2 id="playerTitle">
+            GC PLAY PRO
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div class="video-container">
+
+        <video
+          id="videoPlayer"
+          controls
+          playsinline
+          preload="metadata"
+        ></video>
+
+        <div
+          id="playerMessage"
+          class="player-message"
+        >
+          Selecione um conteúdo para reproduzir.
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================= MODAL M3U ================= -->
+
+    <dialog id="playlistDialog">
+
+      <form
+        id="playlistForm"
+        method="dialog"
+      >
+
+        <button
+          type="button"
+          class="modal-close"
+          id="closePlaylistDialog"
+        >
+          ×
+        </button>
+
+
+        <span class="section-label">
+          NOVA FONTE
+        </span>
+
+        <h2>
+          Adicionar lista M3U
+        </h2>
+
+        <p class="modal-description">
+          Informe o nome e o endereço da sua lista.
+        </p>
+
+
+        <label>
+          Nome da lista
+
+          <input
+            id="playlistName"
+            type="text"
+            placeholder="Minha lista"
+            autocomplete="off"
+            required
+          >
+
+        </label>
+
+
+        <label>
+          URL M3U
+
+          <input
+            id="playlistUrl"
+            type="url"
+            placeholder="https://exemplo.com/lista.m3u"
+            autocomplete="off"
+            required
+          >
+
+        </label>
+
+
+        <div
+          id="playlistMessage"
+          class="form-message"
+        ></div>
+
+
+        <button
+          type="submit"
+          class="primary-button"
+        >
+          SALVAR LISTA
+        </button>
+
+      </form>
+
+    </dialog>
+
+
+    <!-- ================= PESQUISA ================= -->
+
+    <dialog id="searchDialog">
+
+      <div class="search-modal">
+
+        <button
+          type="button"
+          class="modal-close"
+          id="closeSearchDialog"
+        >
+          ×
+        </button>
+
+        <span class="section-label">
+          PESQUISA GLOBAL
+        </span>
+
+        <h2>
+          Encontrar conteúdo
+        </h2>
+
+        <input
+          id="globalSearch"
+          type="search"
+          placeholder="Digite canal, filme ou série..."
+          autocomplete="off"
+        >
+
+        <div
+          id="searchResults"
+          class="search-results"
+        ></div>
+
+      </div>
+
+    </dialog>
+
+
+    <!-- ================= CONFIGURAÇÕES ================= -->
+
+    <dialog id="settingsDialog">
+
+      <div class="settings-modal">
+
+        <button
+          type="button"
+          class="modal-close"
+          id="closeSettingsDialog"
+        >
+          ×
+        </button>
+
+        <span class="section-label">
+          SISTEMA
+        </span>
+
+        <h2>
+          Configurações
+        </h2>
+
+
+        <div class="setting-item">
+
+          <div>
+
+            <strong>
+              Reprodução automática
+            </strong>
+
+            <span>
+              Iniciar conteúdo automaticamente
+            </span>
+
+          </div>
+
+          <input
+            type="checkbox"
+            id="autoplaySetting"
+            checked
+          >
+
+        </div>
+
+
+        <div class="setting-item">
+
+          <div>
+
+            <strong>
+              Interface compacta
+            </strong>
+
+            <span>
+              Reduzir espaços da biblioteca
+            </span>
+
+          </div>
+
+          <input
+            type="checkbox"
+            id="compactSetting"
+          >
+
+        </div>
+
+
+        <div class="settings-version">
+
+          GC PLAY PRO
+
+          <span>
+            versão 1.0
+          </span>
+
+        </div>
+
+      </div>
+
+    </dialog>
+
+
+    <!-- ================= TOAST ================= -->
+
+    <div
+      id="toast"
+      class="toast"
+      role="status"
+      aria-live="polite"
+    ></div>
+
+
+  </div>
+
+
+  <!-- ================= JAVASCRIPT ================= -->
+
+  <script src="app.js"></script>
+
+</body>
+</html>
