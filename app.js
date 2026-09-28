@@ -78,6 +78,7 @@ const state = {
   seriesCatalogChanged: new Set(),
   seriesCatalogReady: false,
   seriesCatalogBuilding: false,
+  seriesKeyAliases: new Map(),
 
   genreCatalog: {
     all: [],
@@ -866,6 +867,26 @@ function classifyItem(name, group, url) {
 }
 
 /* =========================================================
+   NORMALIZAÇÃO DO TÍTULO DA SÉRIE
+   ========================================================= */
+
+function canonicalSeriesTitle(value) {
+  let title = String(value || "").trim();
+
+  title = title
+    .replace(/\s*[-|:_./()\[\]]*\s*(?:s|season|t|temporada)\s*0*\d{1,3}\s*(?:[-_.:/ ]*?)?(?:e|ep|episode|episodio)\s*0*\d{1,4}.*$/i, "")
+    .replace(/\s*[-|:_./()\[\]]*\s*0*\d{1,3}\s*x\s*0*\d{1,4}.*$/i, "")
+    .replace(/\s*[-|:_./()\[\]]*\s*(?:season|temporada)\s*0*\d{1,3}.*$/i, "")
+    .replace(/\s*[-|:_./()\[\]]*\s*(?:s|t)\s*0*\d{1,3}\s*$/i, "")
+    .replace(/\s*[-|:_./()\[\]]*\s*(?:episode|episodio|ep)\s*0*\d{1,4}.*$/i, "")
+    .replace(/\s*[-|:_./()\[\]]*\s*e\s*0*\d{1,4}\s*$/i, "")
+    .replace(/\s*[-_.:#|]+\s*$/g, "")
+    .trim();
+
+  return title || "Série sem nome";
+}
+
+/* =========================================================
    INFORMAÇÕES DE SÉRIE
    ========================================================= */
 
@@ -1006,14 +1027,7 @@ function extractSeriesInfo(item) {
     seriesName = groupClean || name || "Série sem nome";
   }
 
-  /*
-     Limpeza final: remove números de episódio/temporada
-     que tenham ficado colados ao título por separadores
-     incomuns usados por provedores IPTV.
-  */
-  seriesName = seriesName
-    .replace(/\s*[-_.:#|]+\s*$/g, "")
-    .trim();
+  seriesName = canonicalSeriesTitle(seriesName);
 
   return {
     seriesName,
@@ -2228,43 +2242,92 @@ async function getFilteredSeriesItems() {
   return items;
 }
 
-function getSeriesEpisodes(seriesKey, season = null) {
+function querySeriesEpisodesByKey(key, season) {
   if (!state.db) {
-    let items = state.items.filter(looksLikeSeriesRecord);
-    items = items.filter(item => getDerivedSeriesInfo(item).seriesKey === seriesKey);
-    if (season !== null) {
-      items = items.filter(item => Number(getDerivedSeriesInfo(item).season ?? 0) === Number(season));
-    }
-    return Promise.resolve(items);
+    return Promise.resolve(
+      state.items
+        .filter(looksLikeSeriesRecord)
+        .filter(item => {
+          const info = getDerivedSeriesInfo(item);
+          return (
+            info.seriesKey === key &&
+            (season === null ||
+              Number(info.season ?? 0) === Number(season))
+          );
+        })
+    );
   }
 
   return new Promise((resolve, reject) => {
     const result = [];
     const transaction = state.db.transaction(STORE_NAME, "readonly");
     const store = transaction.objectStore(STORE_NAME);
-    const source = season !== null && store.indexNames.contains("seriesSeason")
+    const useSeasonIndex =
+      season !== null &&
+      store.indexNames.contains("seriesSeason");
+
+    const source = useSeasonIndex
       ? store.index("seriesSeason")
       : store.index("seriesKey");
-    const range = season !== null && store.indexNames.contains("seriesSeason")
-      ? IDBKeyRange.only([seriesKey, Number(season)])
-      : IDBKeyRange.only(seriesKey);
+
+    const range = useSeasonIndex
+      ? IDBKeyRange.only([key, Number(season)])
+      : IDBKeyRange.only(key);
+
     const request = source.openCursor(range);
 
     request.onsuccess = event => {
       const cursor = event.target.result;
+
       if (!cursor) {
-        result.sort((a,b) =>
-          Number(a.episode ?? 999999) - Number(b.episode ?? 999999) ||
-          String(a.name || "").localeCompare(String(b.name || ""), "pt-BR", {sensitivity:"base"})
-        );
         resolve(result);
         return;
       }
+
       result.push({...cursor.value, type:"series"});
       cursor.continue();
     };
+
     request.onerror = () => reject(request.error);
   });
+}
+
+async function getSeriesEpisodes(seriesKey, season = null) {
+  const keys = new Set([seriesKey]);
+
+  for (const [oldKey, canonicalKey] of state.seriesKeyAliases) {
+    if (canonicalKey === seriesKey) {
+      keys.add(oldKey);
+    }
+  }
+
+  const batches = await Promise.all(
+    Array.from(keys).map(key =>
+      querySeriesEpisodesByKey(key, season)
+    )
+  );
+
+  const seen = new Set();
+  const result = [];
+
+  for (const batch of batches) {
+    for (const item of batch) {
+      if (seen.has(item.id)) continue;
+      seen.add(item.id);
+      result.push(item);
+    }
+  }
+
+  result.sort((a,b) =>
+    Number(a.episode ?? 999999) - Number(b.episode ?? 999999) ||
+    String(a.name || "").localeCompare(
+      String(b.name || ""),
+      "pt-BR",
+      {sensitivity:"base"}
+    )
+  );
+
+  return result;
 }
 
 /* =========================================================
@@ -5225,9 +5288,57 @@ async function loadLocalCatalog() {
     state.seriesItemsCache = null;
 
     const storedSeries = await loadSeriesCatalogFromDB();
-    state.seriesCatalog = storedSeries;
-    state.seriesCatalogMap = new Map(storedSeries.map(item=>[item.seriesKey,item]));
-    state.seriesCatalogReady = storedSeries.length > 0;
+
+    /*
+       Consolida também catálogos antigos. Assim uma playlist
+       que já foi importada antes da correção não precisa ser
+       baixada novamente só para juntar os episódios.
+    */
+    const mergedSeries = new Map();
+    const aliases = new Map();
+
+    for (const entry of storedSeries) {
+      const title = canonicalSeriesTitle(
+        entry.seriesName || entry.name || ""
+      );
+      const canonicalKey = normalizeText(title);
+      const oldKey = String(entry.seriesKey || canonicalKey);
+
+      aliases.set(oldKey, canonicalKey);
+      aliases.set(canonicalKey, canonicalKey);
+
+      let target = mergedSeries.get(canonicalKey);
+
+      if (!target) {
+        target = {
+          ...entry,
+          seriesKey: canonicalKey,
+          seriesName: title,
+          nameLower: normalizeText(title),
+          episodeCount: 0,
+          seasons: {}
+        };
+        mergedSeries.set(canonicalKey, target);
+      }
+
+      target.episodeCount += Number(entry.episodeCount || 0);
+
+      for (const [season, count] of Object.entries(entry.seasons || {})) {
+        target.seasons[season] =
+          Number(target.seasons[season] || 0) + Number(count || 0);
+      }
+
+      if (!target.logo && entry.logo) target.logo = entry.logo;
+      if (!target.group && entry.group) target.group = entry.group;
+      if (!target.genre && entry.genre) target.genre = entry.genre;
+    }
+
+    state.seriesKeyAliases = aliases;
+    state.seriesCatalog = Array.from(mergedSeries.values());
+    state.seriesCatalogMap = new Map(
+      state.seriesCatalog.map(item => [item.seriesKey, item])
+    );
+    state.seriesCatalogReady = state.seriesCatalog.length > 0;
 
     try {
       const saved = JSON.parse(localStorage.getItem("GC_PLAY_PRO_GROUPS_V1") || "[]");
