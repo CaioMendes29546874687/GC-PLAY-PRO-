@@ -48,6 +48,7 @@ const state = {
   total: 0,
 
   currentFilter: "all",
+  currentGenre: "all",
   currentSection: "home",
 
   searchTerm: "",
@@ -1447,6 +1448,16 @@ function render() {
   }
 
   if (
+    state.currentGenre !== "all"
+  ) {
+    const wanted = normalizeText(state.currentGenre);
+
+    items = items.filter(item =>
+      normalizeText(getGenreName(item.group)) === wanted
+    );
+  }
+
+  if (
     state.searchTerm
   ) {
     const term =
@@ -2366,37 +2377,83 @@ function setupCardEvents() {
    ========================================================= */
 
 function setupFilters() {
-  const buttons =
-    $$(
-      "[data-filter]"
-    );
+  const buttons = $$("[data-filter]");
 
-  buttons.forEach(
-    button => {
-      button.addEventListener(
-        "click",
-        () => {
-          const filter =
-            button.dataset.filter;
+  buttons.forEach(button => {
+    button.addEventListener("click", () => {
+      state.currentFilter = button.dataset.filter || "all";
+      state.currentGenre = "all";
 
-          state.currentFilter =
-            filter ||
-            "all";
+      buttons.forEach(item => {
+        item.classList.toggle("active", item === button);
+      });
 
-          buttons.forEach(
-            item => {
-              item.classList.toggle(
-                "active",
-                item === button
-              );
-            }
-          );
+      renderGenreFilters();
+      render();
+    });
+  });
+}
 
-          render();
-        }
-      );
-    }
-  );
+function getGenreName(group) {
+  let value = String(group || "").trim();
+
+  value = value
+    .replace(/^\s*(tv|live|filmes?|movies?|series?|séries?)\s*[-|:/\\>]\s*/i, "")
+    .trim();
+
+  return value || "OUTROS";
+}
+
+function getAvailableGenres(type) {
+  const map = new Map();
+
+  for (const item of state.items) {
+    if (type !== "all" && item.type !== type) continue;
+
+    const genre = getGenreName(item.group);
+    const key = normalizeText(genre);
+
+    if (!map.has(key)) map.set(key, genre);
+  }
+
+  return Array.from(map.values())
+    .sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }))
+    .slice(0, 80);
+}
+
+function renderGenreFilters() {
+  const container = $("#genreFilters");
+  if (!container) return;
+
+  const genres = getAvailableGenres(state.currentFilter);
+
+  if (!genres.length) {
+    container.innerHTML = "";
+    return;
+  }
+
+  container.innerHTML = `
+    <button class="filter-button ${state.currentGenre === "all" ? "active" : ""}" data-genre="all">
+      TODAS AS CATEGORIAS
+    </button>
+    ${genres.map(genre => `
+      <button class="filter-button ${normalizeText(genre) === normalizeText(state.currentGenre) ? "active" : ""}" data-genre="${escapeHTML(genre)}">
+        ${escapeHTML(genre)}
+      </button>
+    `).join("")}
+  `;
+
+  container.querySelectorAll("[data-genre]").forEach(button => {
+    button.addEventListener("click", () => {
+      state.currentGenre = button.dataset.genre || "all";
+
+      container.querySelectorAll("[data-genre]").forEach(item => {
+        item.classList.toggle("active", item === button);
+      });
+
+      render();
+    });
+  });
 }
 
 /* =========================================================
@@ -2451,8 +2508,13 @@ async function handleSection(
     state.currentFilter =
       "all";
 
+    state.currentGenre =
+      "all";
+
     state.searchTerm =
       "";
+
+    renderGenreFilters();
 
     render();
 
@@ -2465,6 +2527,10 @@ async function handleSection(
     state.currentFilter =
       "live";
 
+    state.currentGenre =
+      "all";
+
+    renderGenreFilters();
     render();
 
     return;
@@ -2476,6 +2542,10 @@ async function handleSection(
     state.currentFilter =
       "movie";
 
+    state.currentGenre =
+      "all";
+
+    renderGenreFilters();
     render();
 
     return;
@@ -2487,6 +2557,10 @@ async function handleSection(
     state.currentFilter =
       "series";
 
+    state.currentGenre =
+      "all";
+
+    renderGenreFilters();
     render();
 
     return;
@@ -4635,6 +4709,8 @@ async function initApp() {
   setupCardEvents();
 
   setupFilters();
+
+  renderGenreFilters();
 
   setupNavigation();
 
