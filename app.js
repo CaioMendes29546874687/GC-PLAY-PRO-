@@ -1748,14 +1748,44 @@ async function playItem(item) {
      VÍDEO NORMAL
      ------------------------------------------------------- */
 
-  video.src = playbackUrl;
-
   video.controls = true;
+  video.playsInline = true;
+  video.style.visibility = "visible";
+  video.style.opacity = "1";
+  video.src = playbackUrl;
 
   if (message) {
     message.textContent =
-      "Reproduzindo...";
+      "Carregando vídeo...";
   }
+
+  video.onloadeddata = () => {
+    if (message) {
+      message.textContent = "";
+    }
+  };
+
+  video.onplaying = () => {
+    if (message) {
+      message.textContent = "";
+    }
+  };
+
+  video.onerror = () => {
+    const mediaError = video.error;
+
+    console.error(
+      "VIDEO ERROR:",
+      mediaError
+    );
+
+    if (message) {
+      message.textContent =
+        mediaError
+          ? `Formato/fluxo de vídeo não suportado (código ${mediaError.code}).`
+          : "O navegador não conseguiu decodificar este vídeo.";
+    }
+  };
 
   try {
     await video.play();
@@ -1831,11 +1861,44 @@ async function playHLS(
       );
     }
 
+    /*
+       O proxy precisa ser usado também nos segmentos,
+       chaves e playlists internas do HLS.
+       Sem isso o manifesto pode abrir, mas o vídeo
+       fica preto porque os .ts/.m4s continuam indo
+       direto para z1sv.site e sofrem CORS.
+    */
+    class GCProxyLoader extends Hls.DefaultConfig.loader {
+      load(context, config, callbacks) {
+        try {
+          if (
+            context &&
+            context.url &&
+            shouldUseProxy(context.url)
+          ) {
+            context.url =
+              buildProxyUrl(context.url);
+          }
+        } catch (error) {
+          console.warn(
+            "Erro preparando URL HLS:",
+            error
+          );
+        }
+
+        return super.load(
+          context,
+          config,
+          callbacks
+        );
+      }
+    }
+
     const hls =
       new Hls({
         enableWorker: true,
 
-        lowLatencyMode: true,
+        lowLatencyMode: false,
 
         backBufferLength: 30,
 
@@ -1847,11 +1910,17 @@ async function playHLS(
 
         liveMaxLatencyDurationCount: 8,
 
-        fragLoadingTimeOut: 20000,
+        fragLoadingTimeOut: 30000,
 
-        manifestLoadingTimeOut: 20000,
+        manifestLoadingTimeOut: 30000,
 
-        levelLoadingTimeOut: 20000
+        levelLoadingTimeOut: 30000,
+
+        loader: GCProxyLoader,
+
+        fLoader: GCProxyLoader,
+
+        pLoader: GCProxyLoader
       });
 
     state.hls =
@@ -1869,7 +1938,7 @@ async function playHLS(
       async () => {
         if (message) {
           message.textContent =
-            "";
+            "Carregando vídeo...";
         }
 
         if (
@@ -1880,9 +1949,18 @@ async function playHLS(
           } catch {
             if (message) {
               message.textContent =
-                "Toque no player para iniciar.";
+                "Toque no botão ▶ para iniciar.";
             }
           }
+        }
+      }
+    );
+
+    hls.on(
+      Hls.Events.FRAG_BUFFERED,
+      () => {
+        if (message) {
+          message.textContent = "";
         }
       }
     );
