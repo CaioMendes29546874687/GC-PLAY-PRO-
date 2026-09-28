@@ -1524,7 +1524,7 @@ function getDerivedSeriesInfo(item) {
   return extractSeriesInfo(item);
 }
 
-async async function getAllSeriesItems() {
+async function getAllSeriesItems() {
   if (Array.isArray(state.seriesCatalog) && state.seriesCatalog.length) {
     return state.seriesCatalog;
   }
@@ -3876,6 +3876,13 @@ async function loadFile(
 
   state.groups =
     [];
+
+  state.seriesItemsCache = null;
+  state.seriesCatalog = [];
+  state.seriesCatalogMap = new Map();
+  state.seriesCatalogChanged = new Set();
+  state.seriesCatalogReady = false;
+  state.seriesCatalogBuilding = false;
 
   renderStats();
 
