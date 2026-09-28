@@ -3788,7 +3788,7 @@ async function renderFavorites() {
     const item =
       await findItem(id);
 
-    if (item) {
+    if (item && !isAdultContent(item)) {
       items.push(item);
     }
   }
