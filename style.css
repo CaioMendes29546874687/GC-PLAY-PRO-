@@ -1566,3 +1566,44 @@ input[type="checkbox"]:checked::after {
   }
 
 }
+
+/* =====================================================
+   NAVEGADOR DE SÉRIES
+   ===================================================== */
+
+.gc-series-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 0 0 18px;
+  padding: 12px 0;
+  color: var(--text);
+}
+
+.gc-series-toolbar strong {
+  font-size: 18px;
+}
+
+.gc-series-inner-grid {
+  width: 100%;
+  margin-top: 0;
+}
+
+.gc-series-browser-card,
+.gc-season-browser-card {
+  cursor: pointer;
+}
+
+.gc-series-browser-card:hover,
+.gc-season-browser-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-strong);
+}
+
+.gc-series-browser-card,
+.gc-season-browser-card {
+  transition:
+    transform .2s ease,
+    border-color .2s ease;
+}
