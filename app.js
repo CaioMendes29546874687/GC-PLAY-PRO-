@@ -1718,6 +1718,32 @@ function getDerivedSeriesInfo(item) {
   return extractSeriesInfo(item);
 }
 
+function looksLikeSeriesRecord(item) {
+  if (!item) return false;
+
+  if (item.type === "series") return true;
+
+  const name = String(item.name || "");
+  const group = String(item.group || "");
+  const url = String(item.url || "");
+
+  return classifyItem(name, group, url) === "series";
+}
+
+function getDerivedSeriesInfo(item) {
+  if (item?.seriesKey && item?.seriesName) {
+    return {
+      seriesKey: item.seriesKey,
+      seriesName: item.seriesName,
+      season: item.season ?? null,
+      episode: item.episode ?? null,
+      genre: item.genre || getGenreName(item.group)
+    };
+  }
+
+  return extractSeriesInfo(item);
+}
+
 async function getAllSeriesItems() {
   if (Array.isArray(state.seriesItemsCache)) {
     return state.seriesItemsCache;
@@ -1727,12 +1753,14 @@ async function getAllSeriesItems() {
     const unique = new Map();
 
     for (const item of state.items) {
-      if (item.type !== "series") continue;
+      if (!looksLikeSeriesRecord(item)) continue;
 
       const info = getDerivedSeriesInfo(item);
+
       if (!unique.has(info.seriesKey)) {
         unique.set(info.seriesKey, {
           ...item,
+          type: "series",
           seriesKey: info.seriesKey,
           seriesName: info.seriesName,
           season: info.season,
@@ -1746,15 +1774,23 @@ async function getAllSeriesItems() {
     return state.seriesItemsCache;
   }
 
+  /*
+   * Não confiamos somente no campo type salvo no banco.
+   * A versão antiga do catálogo pode ter gravado séries
+   * como "live". Reclassificamos pelo nome/grupo/URL
+   * enquanto construímos o catálogo de séries.
+   */
   return new Promise((resolve, reject) => {
     const result = new Map();
     const transaction = state.db.transaction(STORE_NAME, "readonly");
-    const index = transaction.objectStore(STORE_NAME).index("type");
-    const request = index.openCursor(IDBKeyRange.only("series"));
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.openCursor();
 
     let processed = 0;
 
-    const continueCursor = cursor => {
+    request.onsuccess = event => {
+      const cursor = event.target.result;
+
       if (!cursor) {
         state.seriesItemsCache = Array.from(result.values());
         resolve(state.seriesItemsCache);
@@ -1762,25 +1798,25 @@ async function getAllSeriesItems() {
       }
 
       const item = cursor.value;
-      const info = getDerivedSeriesInfo(item);
 
-      if (!result.has(info.seriesKey)) {
-        result.set(info.seriesKey, {
-          ...item,
-          seriesKey: info.seriesKey,
-          seriesName: info.seriesName,
-          season: info.season,
-          episode: info.episode,
-          genre: info.genre
-        });
+      if (looksLikeSeriesRecord(item)) {
+        const info = getDerivedSeriesInfo(item);
+
+        if (!result.has(info.seriesKey)) {
+          result.set(info.seriesKey, {
+            ...item,
+            type: "series",
+            seriesKey: info.seriesKey,
+            seriesName: info.seriesName,
+            season: info.season,
+            episode: info.episode,
+            genre: info.genre
+          });
+        }
       }
 
       processed++;
 
-      /*
-       * Não trava a interface em listas enormes.
-       * A cada lote devolvemos o controle ao navegador.
-       */
       if (processed % 1000 === 0) {
         setTimeout(() => cursor.continue(), 0);
       } else {
@@ -1788,16 +1824,40 @@ async function getAllSeriesItems() {
       }
     };
 
-    request.onsuccess = event => {
-      try {
-        continueCursor(event.target.result);
-      } catch (error) {
-        reject(error);
-      }
-    };
-
     request.onerror = () => reject(request.error);
   });
+}
+
+async function getFilteredSeriesItems() {
+  let items = await getAllSeriesItems();
+
+  if (state.currentGenre !== "all") {
+    const wanted = normalizeText(state.currentGenre);
+
+    items = items.filter(item => {
+      const info = getDerivedSeriesInfo(item);
+
+      return normalizeText(
+        info.genre || getGenreName(item.group)
+      ) === wanted;
+    });
+  }
+
+  if (state.searchTerm) {
+    const term = normalizeText(state.searchTerm);
+
+    items = items.filter(item => {
+      const info = getDerivedSeriesInfo(item);
+
+      return (
+        normalizeText(item.name || "").includes(term) ||
+        normalizeText(item.group || "").includes(term) ||
+        normalizeText(info.seriesName || "").includes(term)
+      );
+    });
+  }
+
+  return items;
 }
 
 async function getFilteredSeriesItems() {
@@ -1831,7 +1891,7 @@ async function getFilteredSeriesItems() {
 
 function getSeriesEpisodes(seriesKey, season = null) {
   if (!state.db) {
-    let items = state.items.filter(item => item.type === "series");
+    let items = state.items.filter(looksLikeSeriesRecord);
 
     items = items.filter(item =>
       getDerivedSeriesInfo(item).seriesKey === seriesKey
@@ -1850,8 +1910,7 @@ function getSeriesEpisodes(seriesKey, season = null) {
     const result = [];
     const transaction = state.db.transaction(STORE_NAME, "readonly");
     const store = transaction.objectStore(STORE_NAME);
-    const index = store.index("type");
-    const request = index.openCursor(IDBKeyRange.only("series"));
+    const request = store.openCursor();
 
     let processed = 0;
 
@@ -1878,21 +1937,27 @@ function getSeriesEpisodes(seriesKey, season = null) {
       }
 
       const item = cursor.value;
-      const info = getDerivedSeriesInfo(item);
 
-      if (
-        info.seriesKey === seriesKey &&
-        (season === null ||
-          Number(info.season ?? 0) === Number(season))
-      ) {
-        result.push({
-          ...item,
-          seriesKey: info.seriesKey,
-          seriesName: info.seriesName,
-          season: info.season,
-          episode: info.episode,
-          genre: info.genre
-        });
+      if (looksLikeSeriesRecord(item)) {
+        const info = getDerivedSeriesInfo(item);
+
+        if (
+          info.seriesKey === seriesKey &&
+          (
+            season === null ||
+            Number(info.season ?? 0) === Number(season)
+          )
+        ) {
+          result.push({
+            ...item,
+            type: "series",
+            seriesKey: info.seriesKey,
+            seriesName: info.seriesName,
+            season: info.season,
+            episode: info.episode,
+            genre: info.genre
+          });
+        }
       }
 
       processed++;
@@ -1907,231 +1972,6 @@ function getSeriesEpisodes(seriesKey, season = null) {
     request.onerror = () => reject(request.error);
   });
 }
-function seasonPosterCard(seriesName, season, count, logo) {
-  const image = logo
-    ? `<img class="gc-card-image" src="${escapeHTML(logo)}" alt="" loading="lazy" onerror="this.style.display='none';">`
-    : `<div class="gc-card-placeholder">📚</div>`;
-
-  return `
-    <article class="gc-card gc-season-browser-card" data-season="${season}">
-      ${image}
-      <div class="gc-card-info">
-        <div class="gc-card-title">${season ? `Temporada ${season}` : "Temporada única"}</div>
-        <div class="gc-card-meta">${count} episódio(s)</div>
-      </div>
-    </article>
-  `;
-}
-
-function episodeCard(item, info) {
-  return `
-    <article class="gc-card" data-item-id="${escapeHTML(item.id)}">
-      ${item.logo
-        ? `<img class="gc-card-image" src="${escapeHTML(item.logo)}" alt="" loading="lazy" onerror="this.style.display='none';">`
-        : `<div class="gc-card-placeholder">▶</div>`}
-      <div class="gc-card-info">
-        <div class="gc-card-title">E${String(info.episode ?? 0).padStart(2, "0")} — ${escapeHTML(item.name)}</div>
-        <div class="gc-card-meta">Temporada ${info.season ?? "Única"}</div>
-      </div>
-    </article>
-  `;
-}
-
-async function renderSeriesBrowser(grid, empty) {
-  const items = await getFilteredSeriesItems();
-
-  if (!items.length) {
-    grid.innerHTML = "";
-    if (empty) empty.style.display = "block";
-    state.seriesView.seriesKey = null;
-    state.seriesView.season = null;
-    return;
-  }
-
-  if (empty) empty.style.display = "none";
-
-  /*
-   * Primeira tela: somente uma entrada por série.
-   * Os episódios permanecem no IndexedDB e só são
-   * buscados quando o usuário entra na série.
-   */
-  if (!state.seriesView.seriesKey) {
-    const seriesList = items.map(item => ({
-      key: item.seriesKey || normalizeText(item.name),
-      name: item.seriesName || getSeriesInfo(item).seriesName,
-      logo: item.logo || "",
-      group: item.group || ""
-    }));
-
-    const unique = new Map();
-
-    for (const series of seriesList) {
-      if (!unique.has(series.key)) {
-        unique.set(series.key, series);
-      }
-    }
-
-    const visible = Array.from(unique.values())
-      .sort((a, b) =>
-        a.name.localeCompare(
-          b.name,
-          "pt-BR",
-          { sensitivity: "base" }
-        )
-      );
-
-    grid.innerHTML = `
-      <div class="gc-series-toolbar">
-        <strong>${formatNumber(visible.length)} séries encontradas</strong>
-        <span>Selecione uma série para ver as temporadas</span>
-      </div>
-      <div class="content-grid gc-series-inner-grid">
-        ${visible.map(seriesPosterCard).join("")}
-      </div>
-    `;
-
-    grid.querySelectorAll("[data-series-key]").forEach(card => {
-      card.addEventListener("click", () => {
-        state.seriesView.seriesKey = card.dataset.seriesKey;
-        state.seriesView.season = null;
-        render();
-      });
-    });
-
-    return;
-  }
-
-  const selected = items.find(
-    item => item.seriesKey === state.seriesView.seriesKey
-  );
-
-  if (!selected) {
-    state.seriesView.seriesKey = null;
-    state.seriesView.season = null;
-    render();
-    return;
-  }
-
-  const seriesName =
-    selected.seriesName ||
-    getSeriesInfo(selected).seriesName;
-
-  const logo = selected.logo || "";
-
-  if (state.seriesView.season === null) {
-    grid.innerHTML = `
-      <div class="gc-series-toolbar">
-        <button class="filter-button gc-series-back" type="button">← SÉRIES</button>
-        <strong>${escapeHTML(seriesName)}</strong>
-        <span>Carregando temporadas...</span>
-      </div>
-    `;
-
-    const episodes = await getSeriesEpisodes(
-      state.seriesView.seriesKey
-    );
-
-    const seasons = new Map();
-
-    for (const item of episodes) {
-      const info = getSeriesInfo(item);
-      const key = info.season ?? 0;
-
-      if (!seasons.has(key)) {
-        seasons.set(key, {
-          count: 0,
-          logo: item.logo || logo
-        });
-      }
-
-      seasons.get(key).count++;
-    }
-
-    const seasonList = Array.from(seasons.entries())
-      .sort((a, b) => a[0] - b[0]);
-
-    grid.innerHTML = `
-      <div class="gc-series-toolbar">
-        <button class="filter-button gc-series-back" type="button">← SÉRIES</button>
-        <strong>${escapeHTML(seriesName)}</strong>
-        <span>${seasonList.length} temporada(s)</span>
-      </div>
-      <div class="content-grid gc-series-inner-grid">
-        ${seasonList.map(([season, info]) =>
-          seasonPosterCard(
-            seriesName,
-            season,
-            info.count,
-            info.logo || logo
-          )
-        ).join("")}
-      </div>
-    `;
-
-    grid.querySelector(".gc-series-back").addEventListener("click", () => {
-      state.seriesView.seriesKey = null;
-      state.seriesView.season = null;
-      render();
-    });
-
-    grid.querySelectorAll("[data-season]").forEach(card => {
-      card.addEventListener("click", () => {
-        state.seriesView.season = Number(card.dataset.season);
-        render();
-      });
-    });
-
-    return;
-  }
-
-  const season = Number(state.seriesView.season);
-
-  grid.innerHTML = `
-    <div class="gc-series-toolbar">
-      <button class="filter-button gc-series-back" type="button">← TEMPORADAS</button>
-      <strong>${escapeHTML(seriesName)} • Temporada ${season || "Única"}</strong>
-      <span>Carregando episódios...</span>
-    </div>
-  `;
-
-  const seasonItems = await getSeriesEpisodes(
-    state.seriesView.seriesKey,
-    season
-  );
-
-  seasonItems.sort((a, b) => {
-    const ea = getSeriesInfo(a).episode ?? 999999;
-    const eb = getSeriesInfo(b).episode ?? 999999;
-
-    return (
-      ea - eb ||
-      a.name.localeCompare(
-        b.name,
-        "pt-BR",
-        { sensitivity: "base" }
-      )
-    );
-  });
-
-  grid.innerHTML = `
-    <div class="gc-series-toolbar">
-      <button class="filter-button gc-series-back" type="button">← TEMPORADAS</button>
-      <strong>${escapeHTML(seriesName)} • Temporada ${season || "Única"}</strong>
-      <span>${formatNumber(seasonItems.length)} episódio(s)</span>
-    </div>
-    <div class="content-grid gc-series-inner-grid">
-      ${seasonItems.map(item =>
-        episodeCard(item, getSeriesInfo(item))
-      ).join("")}
-    </div>
-  `;
-
-  grid.querySelector(".gc-series-back").addEventListener("click", () => {
-    state.seriesView.season = null;
-    render();
-  });
-}
-
 /* =========================================================
    RENDER ESTATÍSTICAS
    ========================================================= */
@@ -3053,7 +2893,9 @@ async function buildGenreCatalog() {
     const key = normalizeText(genre);
     if (!key) return;
 
-    if (!catalog.all.has(key)) catalog.all.set(key, genre);
+    if (!catalog.all.has(key)) {
+      catalog.all.set(key, genre);
+    }
 
     if (catalog[type] && !catalog[type].has(key)) {
       catalog[type].set(key, genre);
@@ -3078,7 +2920,17 @@ async function buildGenreCatalog() {
         }
 
         const item = cursor.value;
-        add(item.type, item.group);
+
+        /*
+         * Corrige categorias de séries que foram salvas
+         * com type antigo antes do agrupamento novo.
+         */
+        const effectiveType =
+          looksLikeSeriesRecord(item)
+            ? "series"
+            : item.type;
+
+        add(effectiveType, item.group);
         cursor.continue();
       };
 
