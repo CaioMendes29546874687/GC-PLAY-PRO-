@@ -1707,17 +1707,29 @@ async function playItem(item) {
     video.load();
   } catch {}
 
-  const url =
+  const originalUrl =
     item.url;
+
+  /*
+     Muitos servidores de IPTV bloqueiam
+     o acesso direto do navegador por CORS.
+     Como o domínio da playlist já é autorizado
+     pelo nosso proxy, usamos o mesmo proxy
+     também para o fluxo de reprodução.
+  */
+  const playbackUrl =
+    shouldUseProxy(originalUrl)
+      ? buildProxyUrl(originalUrl)
+      : originalUrl;
 
   /* -------------------------------------------------------
      HLS
      ------------------------------------------------------- */
 
-  if (isHLS(url)) {
+  if (isHLS(originalUrl)) {
     await playHLS(
       video,
-      url,
+      playbackUrl,
       message
     );
 
@@ -1728,7 +1740,7 @@ async function playItem(item) {
      VÍDEO NORMAL
      ------------------------------------------------------- */
 
-  video.src = url;
+  video.src = playbackUrl;
 
   video.controls = true;
 
