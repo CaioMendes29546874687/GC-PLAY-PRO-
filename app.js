@@ -1868,8 +1868,9 @@ async function queryCatalogItems({
     const result = [];
     const transaction = state.db.transaction(STORE_NAME, "readonly");
     const store = transaction.objectStore(STORE_NAME);
-    const source = type ? store.index("type") : store;
-    const request = type
+    const useTypeIndex = !!type && type !== "adult";
+    const source = useTypeIndex ? store.index("type") : store;
+    const request = useTypeIndex
       ? source.openCursor(IDBKeyRange.only(type))
       : source.openCursor();
 
