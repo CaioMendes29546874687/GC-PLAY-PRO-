@@ -3373,8 +3373,8 @@ const DEFAULT_ADULT_PIN = "0000";
 
 function normalizeAdultText(value) {
   return normalizeText(value)
-    .replace(/[|/\\_:;()[\\]{}<>+]+/g, " ")
-    .replace(/\\s+/g, " ")
+    .replace(/[|/\\_:;(){}<>+]+/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
@@ -3393,7 +3393,7 @@ function isAdultContent(item) {
   if (!text) return false;
 
   const strongAdultTerms =
-    /(?:\\badult\\b|\\badultos?\\b|\\bxxx\\b|\\b18\\s*\\+\\b|\\bsexo\\b|\\bsexual\\b|\\bporn(?:o|ografia)?\\b|\\bpornhub\\b|\\bredtube\\b|\\bbrazzers\\b|\\bhentai\\b|\\berotic(?:a|o)\\b|\\berotismo\\b|\\bnudez?\\b|\\bonlyfans\\b|\\bplayboy\\b|\\bpenthouse\\b|\\bsexy\\b)/i;
+    /(?:\badult\b|\badultos?\b|\bxxx\b|\b18\\s*\\+\b|\bsexo\b|\bsexual\b|\bporn(?:o|ografia)?\b|\bpornhub\b|\bredtube\b|\bbrazzers\b|\bhentai\b|\berotic(?:a|o)\b|\berotismo\b|\bnudez?\b|\bonlyfans\b|\bplayboy\b|\bpenthouse\b|\bsexy\b)/i;
 
   return strongAdultTerms.test(text);
 }
@@ -3433,7 +3433,7 @@ async function unlockAdultArea() {
   const pin = window.prompt("ÁREA ADULTOS\\nDigite a senha de 4 dígitos:");
   if (pin === null) return false;
 
-  if (!/^\\d{4,8}$/.test(pin)) {
+  if (!/^\d{4,8}$/.test(pin)) {
     toast("A senha deve ter de 4 a 8 dígitos.");
     return false;
   }
@@ -3459,7 +3459,7 @@ async function changeAdultPin() {
   const next = window.prompt("Digite a nova senha (4 a 8 dígitos):");
   if (next === null) return;
 
-  if (!/^\\d{4,8}$/.test(next)) {
+  if (!/^\d{4,8}$/.test(next)) {
     toast("A nova senha deve ter de 4 a 8 dígitos.");
     return;
   }
