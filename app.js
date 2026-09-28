@@ -4062,6 +4062,25 @@ async function loadM3U(
       await sleep(50);
     }
 
+    /*
+       O índice de séries já foi gravado durante a importação.
+       Carregamos somente esse índice — nunca os 400k episódios.
+    */
+    state.seriesCatalog =
+      await loadSeriesCatalogFromDB();
+
+    state.seriesCatalogMap =
+      new Map(
+        state.seriesCatalog.map(
+          item => [item.seriesKey, item]
+        )
+      );
+
+    state.seriesCatalogReady =
+      state.seriesCatalog.length > 0;
+
+    renderGenreFilters();
+
     /* -----------------------------------------------------
        RESULTADO FINAL
        ----------------------------------------------------- */
