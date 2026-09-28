@@ -1015,6 +1015,13 @@ main {
    DIALOGS
    ===================================================== */
 
+dialog[open],
+dialog.active,
+dialog.open,
+dialog.show {
+  display: block;
+}
+
 dialog {
   width: min(450px, calc(100% - 30px));
 
