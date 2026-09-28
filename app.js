@@ -1,4736 +1,4316 @@
 /* =========================================================
-   GC PLAY PRO — APP.JS
-   Versão completa
-   M3U + IndexedDB + pesquisa + favoritos + HLS
-   + proxy Supabase para fontes autorizadas com CORS
+   GC PLAY PRO
+   APP.JS — MOTOR DE PLAYLIST PROGRESSIVO
    ========================================================= */
 
 "use strict";
 
 /* =========================================================
-   CONFIGURAÇÃO DO BACKEND
+   CONFIGURAÇÕES
    ========================================================= */
 
 const GC_SUPABASE_URL =
   "https://kuzgdvpdqmocklsgyzvt.supabase.co";
 
-/*
-  Chave ANON pública do projeto.
-  Ela pode ser usada no navegador.
-*/
-const GC_SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt1emdkdnBkbW9ja3NneXp2dCIsImlhdCI6MTc4ODkwNzY2NiwiZXhwIjoyMTA0NDgzNjY2fQ.i8sbcWehPQ0wl98Rmwe4TGzfufqK0U9G5iHIYCGIBoc";
-
 const GC_M3U_PROXY =
   `${GC_SUPABASE_URL}/functions/v1/m3u-proxy`;
 
-/*
-  Neste primeiro teste o Edge Function aceita
-  somente o domínio autorizado no servidor.
-*/
 const GC_PROXY_HOSTS = new Set([
   "z1sv.site"
 ]);
 
-function getM3URequest(url) {
-  const target = new URL(url);
+const DB_NAME = "GC_PLAY_PRO_FAST";
+const DB_VERSION = 1;
+const STORE_NAME = "items";
 
-  if (
-    GC_PROXY_HOSTS.has(
-      target.hostname.toLowerCase()
-    )
-  ) {
-    return {
-      url:
-        `${GC_M3U_PROXY}?url=${encodeURIComponent(url)}`,
+const RAM_LIMIT = 3000;
+const WRITE_BATCH = 500;
 
-      headers: {
-        Authorization:
-          `Bearer ${GC_SUPABASE_ANON_KEY}`,
-
-        apikey:
-          GC_SUPABASE_ANON_KEY
-      }
-    };
-  }
-
-  return {
-    url,
-    headers: {}
-  };
-}
-
-
-/* =========================================================
-   HELPERS
-   ========================================================= */
-
-const $ = (
-  selector,
-  root = document
-) =>
-  root.querySelector(selector);
-
-const $$ = (
-  selector,
-  root = document
-) =>
-  [...root.querySelectorAll(selector)];
-
-const esc = value =>
-  String(value ?? "").replace(
-    /[&<>"']/g,
-    char => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    }[char])
-  );
-
-const normalize = value =>
-  String(value ?? "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLocaleLowerCase("pt-BR")
-    .trim();
-
-const formatNumber = value =>
-  Number(value || 0)
-    .toLocaleString("pt-BR");
-
-function safeUrl(value) {
-  try {
-    return new URL(value).toString();
-  } catch {
-    return "";
-  }
-}
-
-
-/* =========================================================
-   ELEMENTOS
-   ========================================================= */
-
-const els = {
-
-  add:
-    $("#addPlaylistButton"),
-
-  emptyAdd:
-    $("#emptyAddButton"),
-
-  dialog:
-    $("#playlistDialog"),
-
-  form:
-    $("#playlistForm"),
-
-  closeDialog:
-    $("#closePlaylistDialog"),
-
-  name:
-    $("#playlistName"),
-
-  url:
-    $("#playlistUrl"),
-
-  message:
-    $("#playlistMessage"),
-
-  searchButton:
-    $("#searchButton"),
-
-  searchDialog:
-    $("#searchDialog"),
-
-  closeSearch:
-    $("#closeSearchDialog"),
-
-  search:
-    $("#globalSearch"),
-
-  searchResults:
-    $("#searchResults"),
-
-  settingsButton:
-    $("#settingsButton"),
-
-  settingsDialog:
-    $("#settingsDialog"),
-
-  closeSettings:
-    $("#closeSettingsDialog"),
-
-  autoplay:
-    $("#autoplaySetting"),
-
-  compact:
-    $("#compactSetting"),
-
-  explore:
-    $("#exploreButton"),
-
-  grid:
-    $("#contentGrid"),
-
-  empty:
-    $("#emptyState"),
-
-  library:
-    $("#librarySection"),
-
-  status:
-    $("#connectionStatus"),
-
-  channels:
-    $("#channelCount"),
-
-  movies:
-    $("#movieCount"),
-
-  series:
-    $("#seriesCount"),
-
-  player:
-    $("#playerPanel"),
-
-  closePlayer:
-    $("#closePlayer"),
-
-  video:
-    $("#videoPlayer"),
-
-  playerTitle:
-    $("#playerTitle"),
-
-  playerMessage:
-    $("#playerMessage"),
-
-  toast:
-    $("#toast")
-
-};
-
-
-/* =========================================================
-   STORAGE
-   ========================================================= */
-
-const KEY = {
-
-  playlist:
-    "gc_play_pro_playlist",
-
-  settings:
-    "gc_play_pro_settings",
-
-  favorites:
-    "gc_play_pro_favorites",
-
-  history:
-    "gc_play_pro_history"
-
-};
-
+const STATE_KEY = "GC_PLAY_PRO_STATE_V5";
+const SETTINGS_KEY = "GC_PLAY_PRO_SETTINGS_V5";
 
 /* =========================================================
    ESTADO
    ========================================================= */
 
 const state = {
+  db: null,
 
-  filter:
-    "all",
-
-  group:
-    "",
-
-  query:
-    "",
-
-  total:
-    0,
+  items: [],
+  groups: [],
 
   counts: {
-
-    live:
-      0,
-
-    movie:
-      0,
-
-    series:
-      0
-
+    live: 0,
+    movie: 0,
+    series: 0
   },
 
-  items:
-    [],
+  total: 0,
 
-  favorites:
-    new Set(),
+  currentFilter: "all",
+  currentSection: "home",
 
-  history:
-    [],
+  searchTerm: "",
 
-  playlist:
-    null,
+  favorites: new Set(),
+  history: [],
 
-  db:
-    null,
+  currentItem: null,
 
-  dbReady:
-    false,
+  loading: false,
 
-  rendering:
-    false,
+  loadAbort: null,
 
-  abort:
-    null,
+  hls: null,
 
-  hls:
-    null,
-
-  favoriteOnly:
-    false,
+  groupsReady: false,
 
   settings: {
-
-    autoplay:
-      true,
-
-    compact:
-      false
-
+    autoplay: true,
+    compact: false
   }
-
 };
 
-
 /* =========================================================
-   TOAST / STATUS
+   DOM
    ========================================================= */
 
-let toastTimer = null;
+const $ = (selector) => document.querySelector(selector);
 
-function toast(
-  message,
-  duration = 4000
-) {
-
-  if (!els.toast)
-    return;
-
-  els.toast.textContent =
-    message;
-
-  els.toast.classList.add(
-    "show"
-  );
-
-  clearTimeout(
-    toastTimer
-  );
-
-  toastTimer =
-    setTimeout(
-      () => {
-        els.toast.classList.remove(
-          "show"
-        );
-      },
-      duration
-    );
-
-}
-
-function updateStatus(text) {
-
-  if (els.status) {
-    els.status.textContent =
-      text;
-  }
-
-}
-
-function setMessage(
-  message,
-  error = false
-) {
-
-  if (!els.message)
-    return;
-
-  els.message.textContent =
-    message || "";
-
-  els.message.classList.toggle(
-    "error",
-    Boolean(error)
-  );
-
-}
-
+const $$ = (selector) =>
+  Array.from(document.querySelectorAll(selector));
 
 /* =========================================================
-   LOCAL STORAGE
+   UTILIDADES
    ========================================================= */
 
-function loadLocalState() {
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
+function normalizeText(value) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function formatNumber(number) {
+  return Number(number || 0).toLocaleString("pt-BR");
+}
+
+function formatType(type) {
+  if (type === "live") return "TV AO VIVO";
+  if (type === "movie") return "FILME";
+  if (type === "series") return "SÉRIE";
+  return "CONTEÚDO";
+}
+
+function isHttpUrl(url) {
   try {
-
-    state.playlist =
-      JSON.parse(
-        localStorage.getItem(
-          KEY.playlist
-        ) || "null"
-      );
-
+    const parsed = new URL(url);
+    return parsed.protocol === "http:" ||
+           parsed.protocol === "https:";
   } catch {
-
-    state.playlist =
-      null;
-
+    return false;
   }
-
-
-  try {
-
-    state.settings = {
-
-      ...state.settings,
-
-      ...JSON.parse(
-        localStorage.getItem(
-          KEY.settings
-        ) || "{}"
-      )
-
-    };
-
-  } catch {}
-
-
-  try {
-
-    const favorites =
-      JSON.parse(
-        localStorage.getItem(
-          KEY.favorites
-        ) || "[]"
-      );
-
-    state.favorites =
-      new Set(
-        Array.isArray(
-          favorites
-        )
-          ? favorites.map(
-              String
-            )
-          : []
-      );
-
-  } catch {
-
-    state.favorites =
-      new Set();
-
-  }
-
-
-  try {
-
-    state.history =
-      JSON.parse(
-        localStorage.getItem(
-          KEY.history
-        ) || "[]"
-      );
-
-    if (
-      !Array.isArray(
-        state.history
-      )
-    ) {
-
-      state.history =
-        [];
-
-    }
-
-  } catch {
-
-    state.history =
-      [];
-
-  }
-
-
-  if (els.autoplay) {
-
-    els.autoplay.checked =
-      state.settings.autoplay !==
-      false;
-
-  }
-
-
-  if (els.compact) {
-
-    els.compact.checked =
-      state.settings.compact ===
-      true;
-
-  }
-
-
-  document.body.classList.toggle(
-    "compact-mode",
-    state.settings.compact ===
-      true
-  );
-
 }
 
-
-function saveLocalState() {
-
-  try {
-
-    localStorage.setItem(
-      KEY.playlist,
-      JSON.stringify(
-        state.playlist
-      )
-    );
-
-    localStorage.setItem(
-      KEY.settings,
-      JSON.stringify(
-        state.settings
-      )
-    );
-
-    localStorage.setItem(
-      KEY.favorites,
-      JSON.stringify(
-        [...state.favorites]
-      )
-    );
-
-    localStorage.setItem(
-      KEY.history,
-      JSON.stringify(
-        state.history.slice(
-          0,
-          50
-        )
-      )
-    );
-
-  } catch (error) {
-
-    console.warn(
-      "localStorage:",
-      error
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   INDEXED DB
-   ========================================================= */
-
-const DB_NAME =
-  "GC_PLAY_PRO_DB";
-
-const DB_VERSION =
-  2;
-
-const STORE =
-  "items";
-
-
-function openDB() {
-
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-
-      if (
-        !(
-          "indexedDB"
-          in window
-        )
-      ) {
-
-        reject(
-          new Error(
-            "IndexedDB não disponível."
-          )
-        );
-
-        return;
-
-      }
-
-
-      const request =
-        indexedDB.open(
-          DB_NAME,
-          DB_VERSION
-        );
-
-
-      request.onupgradeneeded =
-        event => {
-
-          const db =
-            event.target.result;
-
-          let store;
-
-
-          if (
-            !db.objectStoreNames.contains(
-              STORE
-            )
-          ) {
-
-            store =
-              db.createObjectStore(
-                STORE,
-                {
-                  keyPath:
-                    "id"
-                }
-              );
-
-          } else {
-
-            store =
-              event
-                .target
-                .transaction
-                .objectStore(
-                  STORE
-                );
-
-          }
-
-
-          if (
-            !store.indexNames.contains(
-              "type"
-            )
-          ) {
-
-            store.createIndex(
-              "type",
-              "type",
-              {
-                unique:
-                  false
-              }
-            );
-
-          }
-
-
-          if (
-            !store.indexNames.contains(
-              "group"
-            )
-          ) {
-
-            store.createIndex(
-              "group",
-              "group",
-              {
-                unique:
-                  false
-              }
-            );
-
-          }
-
-
-          if (
-            !store.indexNames.contains(
-              "name"
-            )
-          ) {
-
-            store.createIndex(
-              "name",
-              "nameLower",
-              {
-                unique:
-                  false
-              }
-            );
-
-          }
-
-        };
-
-
-      request.onsuccess =
-        () => {
-
-          state.db =
-            request.result;
-
-          state.dbReady =
-            true;
-
-          state.db.onversionchange =
-            () => {
-
-              state.db.close();
-
-            };
-
-          resolve(
-            state.db
-          );
-
-        };
-
-
-      request.onerror =
-        () => {
-
-          reject(
-            request.error
-          );
-
-        };
-
-    }
-  );
-
-}
-
-
-function clearDB() {
-
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-
-      if (
-        !state.dbReady
-      ) {
-
-        resolve();
-
-        return;
-
-      }
-
-
-      const transaction =
-        state.db.transaction(
-          STORE,
-          "readwrite"
-        );
-
-
-      transaction
-        .objectStore(
-          STORE
-        )
-        .clear();
-
-
-      transaction.oncomplete =
-        resolve;
-
-      transaction.onerror =
-        () =>
-          reject(
-            transaction.error
-          );
-
-    }
-  );
-
-}
-
-
-function putBatch(batch) {
-
-  if (
-    !batch.length
-  ) {
-
-    return Promise.resolve();
-
-  }
-
-
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-
-      const transaction =
-        state.db.transaction(
-          STORE,
-          "readwrite"
-        );
-
-
-      const store =
-        transaction.objectStore(
-          STORE
-        );
-
-
-      for (
-        const item of batch
-      ) {
-
-        store.put(
-          item
-        );
-
-      }
-
-
-      transaction.oncomplete =
-        resolve;
-
-      transaction.onerror =
-        () =>
-          reject(
-            transaction.error
-          );
-
-    }
-  );
-
-}
-
-
-function getItemById(id) {
-
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-
-      if (
-        !state.dbReady
-      ) {
-
-        resolve(
-          null
-        );
-
-        return;
-
-      }
-
-
-      const request =
-        state.db
-          .transaction(
-            STORE,
-            "readonly"
-          )
-          .objectStore(
-            STORE
-          )
-          .get(id);
-
-
-      request.onsuccess =
-        () =>
-          resolve(
-            request.result ||
-              null
-          );
-
-
-      request.onerror =
-        () =>
-          reject(
-            request.error
-          );
-
-    }
-  );
-
-}
-
-
-function getItems(options = {}) {
-
-  const {
-
-    limit =
-      120,
-
-    type =
-      "",
-
-    group =
-      "",
-
-    query =
-      ""
-
-  } = options;
-
-
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-
-      if (
-        !state.dbReady
-      ) {
-
-        resolve(
-          []
-        );
-
-        return;
-
-      }
-
-
-      const transaction =
-        state.db.transaction(
-          STORE,
-          "readonly"
-        );
-
-
-      const store =
-        transaction.objectStore(
-          STORE
-        );
-
-
-      let source =
-        store;
-
-
-      if (
-        type &&
-        [
-          "live",
-          "movie",
-          "series"
-        ].includes(type)
-      ) {
-
-        source =
-          store.index(
-            "type"
-          );
-
-      }
-
-
-      const request =
-        source.openCursor(
-          type
-            ? IDBKeyRange.only(
-                type
-              )
-            : null
-        );
-
-
-      const result =
-        [];
-
-
-      const q =
-        normalize(
-          query
-        );
-
-
-      request.onsuccess =
-        event => {
-
-          const cursor =
-            event.target.result;
-
-
-          if (
-            !cursor ||
-            result.length >=
-              limit
-          ) {
-
-            resolve(
-              result
-            );
-
-            return;
-
-          }
-
-
-          const item =
-            cursor.value;
-
-
-          const matchesGroup =
-            !group ||
-            item.group ===
-              group;
-
-
-          const matchesQuery =
-            !q ||
-            item.nameLower.includes(
-              q
-            ) ||
-            item.groupLower.includes(
-              q
-            );
-
-
-          if (
-            matchesGroup &&
-            matchesQuery
-          ) {
-
-            result.push(
-              item
-            );
-
-          }
-
-
-          cursor.continue();
-
-        };
-
-
-      request.onerror =
-        () =>
-          reject(
-            request.error
-          );
-
-    }
-  );
-
-}
-
-
-function getAllGroups() {
-
-  return new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-
-      if (
-        !state.dbReady
-      ) {
-
-        resolve(
-          []
-        );
-
-        return;
-
-      }
-
-
-      const groups =
-        new Set();
-
-
-      const request =
-        state.db
-          .transaction(
-            STORE,
-            "readonly"
-          )
-          .objectStore(
-            STORE
-          )
-          .openCursor();
-
-
-      request.onsuccess =
-        event => {
-
-          const cursor =
-            event.target.result;
-
-
-          if (!cursor) {
-
-            resolve(
-              [...groups]
-                .filter(
-                  Boolean
-                )
-                .sort(
-                  (
-                    a,
-                    b
-                  ) =>
-                    a.localeCompare(
-                      b,
-                      "pt-BR"
-                    )
-                )
-            );
-
-            return;
-
-          }
-
-
-          if (
-            cursor.value.group
-          ) {
-
-            groups.add(
-              cursor.value.group
-            );
-
-          }
-
-
-          cursor.continue();
-
-        };
-
-
-      request.onerror =
-        () =>
-          reject(
-            request.error
-          );
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   M3U PARSER
-   ========================================================= */
-
-function parseAttributes(
-  line
-) {
-
-  const attrs =
-    {};
-
-  const regex =
-    /([A-Za-z0-9_-]+)="([^"]*)"/g;
-
-  let match;
-
-
-  while (
-    (
-      match =
-        regex.exec(
-          line
-        )
-    )
-  ) {
-
-    attrs[
-      match[1].toLowerCase()
-    ] =
-      match[2];
-
-  }
-
-
-  return attrs;
-
-}
-
-
-function classifyEntry(
-  name,
-  group,
-  url
-) {
-
-  const text =
-    `${name} ${group} ${url}`
-      .toLowerCase();
-
-
-  if (
-    /series|serie|s[eé]rie|season|temporada|episode|episodio|s\d{1,2}\s*e\d{1,2}/i
-      .test(
-        text
-      )
-  ) {
-
-    return "series";
-
-  }
-
-
-  if (
-    /\.(mp4|mkv|avi|mov|wmv)(\?|$)/i
-      .test(
-        url
-      ) ||
-    /filme|movie|cinema|vod/i
-      .test(
-        text
-      )
-  ) {
-
-    return "movie";
-
-  }
-
-
-  return "live";
-
-}
-
-
-function makeId(
-  name,
-  url,
-  group
-) {
-
-  const input =
-    `${name}|${url}|${group}`;
-
-
-  let hash =
-    2166136261;
-
-
-  for (
-    let i = 0;
-    i < input.length;
-    i++
-  ) {
-
-    hash ^=
-      input.charCodeAt(
-        i
-      );
-
-    hash =
-      Math.imul(
-        hash,
-        16777619
-      );
-
-  }
-
+function isHLS(url) {
+  const value = String(url || "").toLowerCase();
 
   return (
-    "gc_" +
-    (
-      hash >>> 0
-    ).toString(16) +
-    "_" +
-    Math.abs(
-      input.length
-    )
+    value.includes(".m3u8") ||
+    value.includes("m3u8?")
   );
-
 }
 
+function isM3U(url) {
+  const value = String(url || "").toLowerCase();
 
-function parseEntry(
-  extinf,
-  url,
-  pendingGroup = ""
-) {
-
-  if (
-    !extinf ||
-    !url
-  ) {
-
-    return null;
-
-  }
-
-
-  const attrs =
-    parseAttributes(
-      extinf
-    );
-
-
-  const comma =
-    extinf.indexOf(
-      ","
-    );
-
-
-  let name =
-    comma >= 0
-      ? extinf
-          .slice(
-            comma + 1
-          )
-          .trim()
-      : attrs[
-          "tvg-name"
-        ] ||
-        "Sem nome";
-
-
-  name =
-    name ||
-    "Sem nome";
-
-
-  const group =
-    attrs[
-      "group-title"
-    ] ||
-    pendingGroup ||
-    "";
-
-
-  const logo =
-    attrs[
-      "tvg-logo"
-    ] ||
-    attrs[
-      "logo"
-    ] ||
-    "";
-
-
-  const type =
-    classifyEntry(
-      name,
-      group,
-      url
-    );
-
-
-  return {
-
-    id:
-      makeId(
-        name,
-        url,
-        group
-      ),
-
-    name:
-
-      name,
-
-    nameLower:
-
-      normalize(
-        name
-      ),
-
-    group:
-
-      group,
-
-    groupLower:
-
-      normalize(
-        group
-      ),
-
-    logo:
-
-      logo,
-
-    url:
-
-      url,
-
-    type:
-
-      type,
-
-    tvgId:
-
-      attrs[
-        "tvg-id"
-      ] ||
-      "",
-
-    language:
-
-      attrs[
-        "tvg-language"
-      ] ||
-      "",
-
-    country:
-
-      attrs[
-        "tvg-country"
-      ] ||
-      ""
-
-  };
-
+  return (
+    value.includes(".m3u") ||
+    value.includes(".m3u8")
+  );
 }
 
+/* =========================================================
+   TOAST
+   ========================================================= */
 
-async function parseResponse(
-  response,
-  onBatch
-) {
+function toast(message, duration = 3000) {
+  const element = $("#toast");
 
-  if (
-    !response.body
-  ) {
-
-    throw new Error(
-      "O servidor não forneceu um fluxo de dados."
-    );
-
+  if (!element) {
+    console.log("[GC PLAY PRO]", message);
+    return;
   }
 
+  element.textContent = message;
+  element.classList.add("show");
 
-  const reader =
-    response.body.getReader();
+  clearTimeout(toast.timer);
 
+  toast.timer = setTimeout(() => {
+    element.classList.remove("show");
+  }, duration);
+}
 
-  const decoder =
-    new TextDecoder(
-      "utf-8"
+/* =========================================================
+   PERSISTÊNCIA DO ESTADO
+   ========================================================= */
+
+function saveState() {
+  try {
+    localStorage.setItem(
+      STATE_KEY,
+      JSON.stringify({
+        favorites: Array.from(state.favorites),
+        history: state.history.slice(0, 100)
+      })
     );
 
+    localStorage.setItem(
+      SETTINGS_KEY,
+      JSON.stringify(state.settings)
+    );
+  } catch (error) {
+    console.warn("Não foi possível salvar estado:", error);
+  }
+}
 
-  let buffer =
-    "";
+function loadState() {
+  try {
+    const saved = localStorage.getItem(STATE_KEY);
 
-  let extinf =
-    null;
+    if (saved) {
+      const data = JSON.parse(saved);
 
-  let pendingGroup =
-    "";
-
-  let batch =
-    [];
-
-
-  const flush =
-    async () => {
-
-      if (
-        !batch.length
-      ) {
-
-        return;
-
+      if (Array.isArray(data.favorites)) {
+        state.favorites = new Set(data.favorites);
       }
 
+      if (Array.isArray(data.history)) {
+        state.history = data.history;
+      }
+    }
 
-      const current =
-        batch;
+    const settings = localStorage.getItem(SETTINGS_KEY);
 
-      batch =
-        [];
+    if (settings) {
+      const data = JSON.parse(settings);
 
+      state.settings = {
+        ...state.settings,
+        ...data
+      };
+    }
+  } catch (error) {
+    console.warn("Erro carregando estado:", error);
+  }
+}
 
-      await onBatch(
-        current
-      );
+/* =========================================================
+   INDEXEDDB
+   ========================================================= */
 
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onupgradeneeded = event => {
+      const db = event.target.result;
+
+      let store;
+
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        store = db.createObjectStore(
+          STORE_NAME,
+          {
+            keyPath: "id"
+          }
+        );
+      } else {
+        store = event.target.transaction.objectStore(
+          STORE_NAME
+        );
+      }
+
+      if (!store.indexNames.contains("type")) {
+        store.createIndex(
+          "type",
+          "type",
+          { unique: false }
+        );
+      }
+
+      if (!store.indexNames.contains("group")) {
+        store.createIndex(
+          "group",
+          "group",
+          { unique: false }
+        );
+      }
+
+      if (!store.indexNames.contains("nameLower")) {
+        store.createIndex(
+          "nameLower",
+          "nameLower",
+          { unique: false }
+        );
+      }
     };
 
+    request.onsuccess = () => {
+      const db = request.result;
 
-  while (true) {
+      db.onversionchange = () => {
+        db.close();
+      };
 
-    const {
-      done,
-      value
-    } =
-      await reader.read();
+      resolve(db);
+    };
 
-
-    if (done)
-      break;
-
-
-    buffer +=
-      decoder.decode(
-        value,
-        {
-          stream:
-            true
-        }
-      );
-
-
-    const lines =
-      buffer.split(
-        /\r?\n/
-      );
-
-
-    buffer =
-      lines.pop() ||
-      "";
-
-
-    for (
-      let raw of lines
-    ) {
-
-      const line =
-        raw.trim();
-
-
-      if (!line)
-        continue;
-
-
-      if (
-        line.startsWith(
-          "#EXTGRP:"
-        )
-      ) {
-
-        pendingGroup =
-          line
-            .slice(
-              8
-            )
-            .trim();
-
-        continue;
-
-      }
-
-
-      if (
-        line.startsWith(
-          "#EXTINF:"
-        )
-      ) {
-
-        extinf =
-          line;
-
-        continue;
-
-      }
-
-
-      if (
-        line.startsWith(
-          "#"
-        )
-      ) {
-
-        continue;
-
-      }
-
-
-      if (extinf) {
-
-        const item =
-          parseEntry(
-            extinf,
-            line,
-            pendingGroup
-          );
-
-
-        extinf =
-          null;
-
-
-        if (item) {
-
-          batch.push(
-            item
-          );
-
-
-          if (
-            batch.length >=
-              1000
-          ) {
-
-            await flush();
-
-          }
-
-        }
-
-      }
-
-    }
-
-  }
-
-
-  buffer +=
-    decoder.decode();
-
-
-  const last =
-    buffer.trim();
-
-
-  if (
-    last &&
-    !last.startsWith(
-      "#"
-    ) &&
-    extinf
-  ) {
-
-    const item =
-      parseEntry(
-        extinf,
-        last,
-        pendingGroup
-      );
-
-
-    if (item) {
-
-      batch.push(
-        item
-      );
-
-    }
-
-  }
-
-
-  await flush();
-
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
 }
-
-
-async function parseText(
-  text,
-  onBatch
-) {
-
-  const response =
-    new Response(
-      new Blob(
-        [text],
-        {
-          type:
-            "audio/x-mpegurl"
-        }
-      )
-    );
-
-
-  await parseResponse(
-    response,
-    onBatch
-  );
-
-}
-
 
 /* =========================================================
-   CONTADORES
+   APAGAR BANCO ANTIGO RAPIDAMENTE
    ========================================================= */
 
-function updateCounters() {
+function resetDatabaseFast() {
+  return new Promise((resolve, reject) => {
+    try {
+      if (state.db) {
+        try {
+          state.db.close();
+        } catch {}
+      }
 
-  if (els.channels) {
+      const request = indexedDB.deleteDatabase(DB_NAME);
 
-    els.channels.textContent =
-      formatNumber(
-        state.counts.live
-      );
+      request.onsuccess = () => {
+        resolve();
+      };
 
-  }
+      request.onerror = () => {
+        reject(request.error);
+      };
 
-
-  if (els.movies) {
-
-    els.movies.textContent =
-      formatNumber(
-        state.counts.movie
-      );
-
-  }
-
-
-  if (els.series) {
-
-    els.series.textContent =
-      formatNumber(
-        state.counts.series
-      );
-
-  }
-
+      request.onblocked = () => {
+        console.warn(
+          "Exclusão do banco bloqueada por outra aba."
+        );
+      };
+    } catch (error) {
+      reject(error);
+    }
+  });
 }
-
 
 /* =========================================================
-   CSS DINÂMICO
+   ESCRITA EM LOTE
    ========================================================= */
 
-function ensureDynamicCSS() {
+let writeQueue = [];
+let writeProcessing = false;
 
-  if (
-    $("#gc-play-dynamic-css")
-  ) {
+function queueWrite(items) {
+  if (!items || !items.length) return;
 
-    return;
+  writeQueue.push(items);
 
-  }
-
-
-  const style =
-    document.createElement(
-      "style"
-    );
-
-
-  style.id =
-    "gc-play-dynamic-css";
-
-
-  style.textContent = `
-
-    .content-card{
-
-      position:relative;
-      overflow:hidden;
-      cursor:pointer;
-
-      border:
-        1px solid
-        rgba(
-          50,
-          255,
-          130,
-          .14
-        );
-
-      background:
-        linear-gradient(
-          145deg,
-          rgba(
-            10,
-            28,
-            19,
-            .96
-          ),
-          rgba(
-            3,
-            8,
-            6,
-            .96
-          )
-        );
-
-      border-radius:
-        20px;
-
-      min-height:
-        170px;
-
-      transition:
-        transform
-        .2s
-        ease,
-        border-color
-        .2s
-        ease,
-        box-shadow
-        .2s
-        ease;
-
-    }
-
-
-    .content-card:hover{
-
-      transform:
-        translateY(-3px);
-
-      border-color:
-        rgba(
-          50,
-          255,
-          130,
-          .5
-        );
-
-      box-shadow:
-        0 12px 35px
-        rgba(
-          0,
-          255,
-          120,
-          .12
-        );
-
-    }
-
-
-    .content-image{
-
-      height:
-        110px;
-
-      display:
-        flex;
-
-      align-items:
-        center;
-
-      justify-content:
-        center;
-
-      background:
-        radial-gradient(
-          circle at center,
-          rgba(
-            34,
-            255,
-            126,
-            .16
-          ),
-          rgba(
-            0,
-            0,
-            0,
-            .2
-          )
-        );
-
-      overflow:
-        hidden;
-
-    }
-
-
-    .content-image img{
-
-      width:
-        100%;
-
-      height:
-        100%;
-
-      object-fit:
-        cover;
-
-    }
-
-
-    .content-placeholder{
-
-      font-size:
-        32px;
-
-      opacity:
-        .7;
-
-    }
-
-
-    .content-info{
-
-      padding:
-        12px
-        14px
-        14px;
-
-    }
-
-
-    .content-type{
-
-      font-size:
-        10px;
-
-      letter-spacing:
-        1.5px;
-
-      font-weight:
-        800;
-
-      color:
-        #39ff87;
-
-      margin-bottom:
-        6px;
-
-    }
-
-
-    .content-name{
-
-      font-weight:
-        800;
-
-      white-space:
-        nowrap;
-
-      overflow:
-        hidden;
-
-      text-overflow:
-        ellipsis;
-
-    }
-
-
-    .content-group{
-
-      margin-top:
-        5px;
-
-      color:
-        rgba(
-          255,
-          255,
-          255,
-          .55
-        );
-
-      font-size:
-        11px;
-
-      white-space:
-        nowrap;
-
-      overflow:
-        hidden;
-
-      text-overflow:
-        ellipsis;
-
-    }
-
-
-    .fav-btn{
-
-      position:
-        absolute;
-
-      right:
-        10px;
-
-      top:
-        10px;
-
-      width:
-        34px;
-
-      height:
-        34px;
-
-      border-radius:
-        50%;
-
-      border:
-        1px solid
-        rgba(
-          50,
-          255,
-          130,
-          .25
-        );
-
-      background:
-        rgba(
-          0,
-          0,
-          0,
-          .65
-        );
-
-      color:
-        #fff;
-
-      cursor:
-        pointer;
-
-      z-index:
-        3;
-
-    }
-
-
-    .fav-btn.active{
-
-      color:
-        #39ff87;
-
-      border-color:
-        #39ff87;
-
-    }
-
-
-    .search-result{
-
-      display:
-        flex;
-
-      gap:
-        12px;
-
-      align-items:
-        center;
-
-      padding:
-        12px;
-
-      border:
-        1px solid
-        rgba(
-          50,
-          255,
-          130,
-          .12
-        );
-
-      border-radius:
-        14px;
-
-      margin-bottom:
-        8px;
-
-      cursor:
-        pointer;
-
-      background:
-        rgba(
-          5,
-          15,
-          10,
-          .8
-        );
-
-    }
-
-
-    .search-result:hover{
-
-      border-color:
-        rgba(
-          50,
-          255,
-          130,
-          .4
-        );
-
-    }
-
-
-    .search-result-thumb{
-
-      width:
-        48px;
-
-      height:
-        48px;
-
-      border-radius:
-        10px;
-
-      object-fit:
-        cover;
-
-      background:
-        #07140d;
-
-      flex:
-        0 0 auto;
-
-    }
-
-
-    .search-result-title{
-
-      font-weight:
-        800;
-
-    }
-
-
-    .search-result-meta{
-
-      font-size:
-        11px;
-
-      color:
-        rgba(
-          255,
-          255,
-          255,
-          .55
-        );
-
-      margin-top:
-        4px;
-
-    }
-
-
-    .search-empty{
-
-      padding:
-        25px
-        10px;
-
-      text-align:
-        center;
-
-      opacity:
-        .6;
-
-    }
-
-
-    .library-progress{
-
-      margin:
-        15px 0;
-
-      padding:
-        12px
-        15px;
-
-      border-radius:
-        14px;
-
-      border:
-        1px solid
-        rgba(
-          50,
-          255,
-          130,
-          .15
-        );
-
-      background:
-        rgba(
-          10,
-          30,
-          18,
-          .65
-        );
-
-      color:
-        #39ff87;
-
-      font-size:
-        12px;
-
-    }
-
-
-    .group-select{
-
-      max-width:
-        220px;
-
-      margin-left:
-        auto;
-
-      margin-bottom:
-        15px;
-
-    }
-
-
-    .group-select select{
-
-      width:
-        100%;
-
-      padding:
-        11px
-        13px;
-
-      border-radius:
-        12px;
-
-      border:
-        1px solid
-        rgba(
-          50,
-          255,
-          130,
-          .18
-        );
-
-      background:
-        #07110b;
-
-      color:
-        #fff;
-
-    }
-
-
-    .hidden{
-
-      display:
-        none !important;
-
-    }
-
-
-    .compact-mode
-    .content-card{
-
-      min-height:
-        135px;
-
-    }
-
-
-    .compact-mode
-    .content-image{
-
-      height:
-        80px;
-
-    }
-
-  `;
-
-
-  document.head.appendChild(
-    style
-  );
-
+  processWriteQueue();
 }
 
+async function processWriteQueue() {
+  if (writeProcessing) return;
+
+  writeProcessing = true;
+
+  try {
+    while (writeQueue.length) {
+      const batch = writeQueue.shift();
+
+      await writeBatch(batch);
+
+      await new Promise(requestAnimationFrame);
+    }
+  } catch (error) {
+    console.error(
+      "Erro gravando banco:",
+      error
+    );
+  } finally {
+    writeProcessing = false;
+  }
+}
+
+function writeBatch(items) {
+  return new Promise((resolve, reject) => {
+    if (!state.db) {
+      reject(
+        new Error("Banco de dados não inicializado.")
+      );
+      return;
+    }
+
+    const transaction = state.db.transaction(
+      STORE_NAME,
+      "readwrite"
+    );
+
+    const store = transaction.objectStore(
+      STORE_NAME
+    );
+
+    for (const item of items) {
+      store.put(item);
+    }
+
+    transaction.oncomplete = () => {
+      resolve();
+    };
+
+    transaction.onerror = () => {
+      reject(transaction.error);
+    };
+
+    transaction.onabort = () => {
+      reject(transaction.error);
+    };
+  });
+}
+
+/* =========================================================
+   BANCO — CONSULTAS
+   ========================================================= */
+
+function getItem(id) {
+  return new Promise((resolve, reject) => {
+    const transaction =
+      state.db.transaction(
+        STORE_NAME,
+        "readonly"
+      );
+
+    const store =
+      transaction.objectStore(STORE_NAME);
+
+    const request = store.get(id);
+
+    request.onsuccess = () => {
+      resolve(request.result || null);
+    };
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
+}
+
+function countAllItems() {
+  return new Promise((resolve, reject) => {
+    const transaction =
+      state.db.transaction(
+        STORE_NAME,
+        "readonly"
+      );
+
+    const store =
+      transaction.objectStore(STORE_NAME);
+
+    const request = store.count();
+
+    request.onsuccess = () => {
+      resolve(request.result || 0);
+    };
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
+}
+
+function countByType(type) {
+  return new Promise((resolve, reject) => {
+    const transaction =
+      state.db.transaction(
+        STORE_NAME,
+        "readonly"
+      );
+
+    const store =
+      transaction.objectStore(STORE_NAME);
+
+    const index =
+      store.index("type");
+
+    const request =
+      index.count(
+        IDBKeyRange.only(type)
+      );
+
+    request.onsuccess = () => {
+      resolve(request.result || 0);
+    };
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
+}
+
+/* =========================================================
+   CARREGAR AMOSTRA DO BANCO
+   ========================================================= */
+
+function loadSample(limit = RAM_LIMIT) {
+  return new Promise((resolve, reject) => {
+    const result = [];
+
+    const transaction =
+      state.db.transaction(
+        STORE_NAME,
+        "readonly"
+      );
+
+    const store =
+      transaction.objectStore(STORE_NAME);
+
+    const request =
+      store.openCursor();
+
+    request.onsuccess = event => {
+      const cursor = event.target.result;
+
+      if (!cursor) {
+        resolve(result);
+        return;
+      }
+
+      result.push(cursor.value);
+
+      if (result.length >= limit) {
+        resolve(result);
+        return;
+      }
+
+      cursor.continue();
+    };
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
+}
+
+/* =========================================================
+   CONSULTA DE ITENS
+   ========================================================= */
+
+function queryItems({
+  type = null,
+  group = null,
+  limit = 120
+} = {}) {
+  return new Promise((resolve, reject) => {
+    const result = [];
+
+    const transaction =
+      state.db.transaction(
+        STORE_NAME,
+        "readonly"
+      );
+
+    const store =
+      transaction.objectStore(STORE_NAME);
+
+    let source = store;
+
+    if (type) {
+      source = store.index("type");
+    }
+
+    const request = type
+      ? source.openCursor(
+          IDBKeyRange.only(type)
+        )
+      : source.openCursor();
+
+    request.onsuccess = event => {
+      const cursor = event.target.result;
+
+      if (!cursor) {
+        resolve(result);
+        return;
+      }
+
+      const item = cursor.value;
+
+      if (
+        (!group || item.group === group)
+      ) {
+        result.push(item);
+      }
+
+      if (result.length >= limit) {
+        resolve(result);
+        return;
+      }
+
+      cursor.continue();
+    };
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
+}
 
 /* =========================================================
    GRUPOS
    ========================================================= */
 
-let groupSelectEl =
-  null;
+function getGroups() {
+  return new Promise((resolve, reject) => {
+    const groups = new Set();
 
-
-async function buildGroupSelector() {
-
-  if (
-    !els.library
-  ) {
-
-    return;
-
-  }
-
-
-  const groups =
-    await getAllGroups();
-
-
-  if (
-    !groups.length &&
-    !groupSelectEl
-  ) {
-
-    return;
-
-  }
-
-
-  if (
-    !groupSelectEl
-  ) {
-
-    groupSelectEl =
-      document.createElement(
-        "div"
+    const transaction =
+      state.db.transaction(
+        STORE_NAME,
+        "readonly"
       );
 
-
-    groupSelectEl.className =
-      "group-select";
-
-
-    groupSelectEl.innerHTML = `
-
-      <select
-        aria-label="Grupo"
-      >
-
-        <option value="">
-          Todos os grupos
-        </option>
-
-      </select>
-
-    `;
-
-
-    const header =
-      els.library.querySelector(
-        ".section-header"
-      );
-
-
-    if (header) {
-
-      header.after(
-        groupSelectEl
-      );
-
-    }
-
-
-    const select =
-      $("select",
-        groupSelectEl
-      );
-
-
-    select.addEventListener(
-      "change",
-      () => {
-
-        state.group =
-          select.value;
-
-        render();
-
-      }
-    );
-
-  }
-
-
-  const select =
-    $("select",
-      groupSelectEl
-    );
-
-
-  select.innerHTML =
-    `
-      <option value="">
-        Todos os grupos
-      </option>
-    ` +
-    groups
-      .map(
-        group =>
-          `
-          <option
-            value="${esc(group)}"
-          >
-            ${esc(group)}
-          </option>
-          `
-      )
-      .join("");
-
-
-  select.value =
-    groups.includes(
-      state.group
-    )
-      ? state.group
-      : "";
-
-}
-
-
-/* =========================================================
-   CARD
-   ========================================================= */
-
-function typeLabel(type) {
-
-  if (
-    type === "movie"
-  ) {
-
-    return "FILME";
-
-  }
-
-
-  if (
-    type === "series"
-  ) {
-
-    return "SÉRIE";
-
-  }
-
-
-  return "TV AO VIVO";
-
-}
-
-
-function cardLogo(item) {
-
-  return item.logo
-
-    ? `
-      <img
-        src="${esc(item.logo)}"
-        alt=""
-        loading="lazy"
-        onerror="this.style.display='none'"
-      >
-    `
-
-    : `
-      <div
-        class="content-placeholder"
-      >
-        GC
-      </div>
-    `;
-
-}
-
-
-function createCard(item) {
-
-  const card =
-    document.createElement(
-      "article"
-    );
-
-
-  card.className =
-    "content-card";
-
-
-  const favorite =
-    state.favorites.has(
-      item.id
-    );
-
-
-  card.innerHTML = `
-
-    <button
-      class="fav-btn
-      ${favorite ? "active" : ""}"
-      title="Favorito"
-      aria-label="Favorito"
-    >
-      ★
-    </button>
-
-
-    <div
-      class="content-image"
-    >
-      ${cardLogo(item)}
-    </div>
-
-
-    <div
-      class="content-info"
-    >
-
-      <div
-        class="content-type"
-      >
-        ${typeLabel(
-          item.type
-        )}
-      </div>
-
-
-      <div
-        class="content-name"
-      >
-        ${esc(
-          item.name
-        )}
-      </div>
-
-
-      <div
-        class="content-group"
-      >
-        ${esc(
-          item.group ||
-          "Sem grupo"
-        )}
-      </div>
-
-    </div>
-
-  `;
-
-
-  const fav =
-    $(".fav-btn",
-      card
-    );
-
-
-  fav.addEventListener(
-    "click",
-    event => {
-
-      event.stopPropagation();
-
-      toggleFavorite(
-        item
-      );
-
-    }
-  );
-
-
-  card.addEventListener(
-    "click",
-    () => {
-
-      playItem(
-        item
-      );
-
-    }
-  );
-
-
-  return card;
-
-}
-
-
-/* =========================================================
-   RENDER
-   ========================================================= */
-
-async function getVisibleItems() {
-
-  if (
-    !state.dbReady
-  ) {
-
-    return [];
-
-  }
-
-
-  if (
-    state.favoriteOnly
-  ) {
-
-    const results =
-      [];
-
-
-    for (
-      const id of
-      state.favorites
-    ) {
-
-      if (
-        results.length >=
-        120
-      ) {
-
-        break;
-
-      }
-
-
-      const item =
-        await getItemById(
-          id
+    const store =
+      transaction.objectStore(STORE_NAME);
+
+    const request =
+      store.openCursor();
+
+    request.onsuccess = event => {
+      const cursor = event.target.result;
+
+      if (!cursor) {
+        resolve(
+          Array.from(groups).sort(
+            (a, b) =>
+              a.localeCompare(
+                b,
+                "pt-BR",
+                { sensitivity: "base" }
+              )
+          )
         );
 
-
-      if (item) {
-
-        results.push(
-          item
-        );
-
+        return;
       }
 
-    }
+      const group =
+        String(cursor.value.group || "").trim();
 
+      if (group) {
+        groups.add(group);
+      }
 
-    return results;
+      cursor.continue();
+    };
 
-  }
-
-
-  return getItems({
-
-    limit:
-      120,
-
-    type:
-      state.filter ===
-      "all"
-        ? ""
-        : state.filter,
-
-    group:
-      state.group,
-
-    query:
-      state.query
-
+    request.onerror = () => {
+      reject(request.error);
+    };
   });
-
 }
 
+/* =========================================================
+   HASH DETERMINÍSTICO
+   ========================================================= */
 
-async function render() {
+function hashString(value) {
+  let hash = 2166136261;
 
-  if (
-    state.rendering ||
-    !els.grid
-  ) {
+  const text = String(value || "");
 
-    return;
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
 
+    hash +=
+      (hash << 1) +
+      (hash << 4) +
+      (hash << 7) +
+      (hash << 8) +
+      (hash << 24);
   }
 
+  return (
+    hash >>> 0
+  ).toString(16);
+}
 
-  state.rendering =
-    true;
+/* =========================================================
+   CLASSIFICAÇÃO
+   ========================================================= */
 
+function classifyItem(name, group, url) {
+  const text = normalizeText(
+    `${name} ${group} ${url}`
+  );
+
+  if (
+    text.includes("serie") ||
+    text.includes("series") ||
+    text.includes("temporada") ||
+    text.includes("season") ||
+    text.includes("episodio") ||
+    text.includes("episode")
+  ) {
+    return "series";
+  }
+
+  if (
+    text.includes("filme") ||
+    text.includes("filmes") ||
+    text.includes("movie") ||
+    text.includes("movies") ||
+    text.includes("vod")
+  ) {
+    return "movie";
+  }
+
+  return "live";
+}
+
+/* =========================================================
+   NORMALIZA ITEM
+   ========================================================= */
+
+function normalizeItem(data) {
+  const name =
+    String(data.name || "Sem nome").trim();
+
+  const group =
+    String(data.group || "Sem categoria").trim();
+
+  const url =
+    String(data.url || "").trim();
+
+  const type =
+    data.type ||
+    classifyItem(
+      name,
+      group,
+      url
+    );
+
+  const id =
+    data.id ||
+    hashString(
+      `${name}|${group}|${url}`
+    );
+
+  return {
+    id,
+
+    name,
+
+    nameLower:
+      normalizeText(name),
+
+    group,
+
+    type,
+
+    url,
+
+    logo:
+      data.logo || "",
+
+    tvgId:
+      data.tvgId || "",
+
+    tvgName:
+      data.tvgName || "",
+
+    country:
+      data.country || "",
+
+    language:
+      data.language || ""
+  };
+}
+/* =========================================================
+   PROXY M3U
+   ========================================================= */
+
+function shouldUseProxy(url) {
+  try {
+    const parsed = new URL(url);
+
+    return GC_PROXY_HOSTS.has(
+      parsed.hostname.toLowerCase()
+    );
+  } catch {
+    return false;
+  }
+}
+
+function buildProxyUrl(url) {
+  return (
+    `${GC_M3U_PROXY}?url=` +
+    encodeURIComponent(url)
+  );
+}
+
+function resolvePlaylistUrl(url) {
+  if (shouldUseProxy(url)) {
+    return buildProxyUrl(url);
+  }
+
+  return url;
+}
+
+/* =========================================================
+   FETCH COM ABORT
+   ========================================================= */
+
+async function fetchPlaylist(url, signal) {
+  const finalUrl =
+    resolvePlaylistUrl(url);
+
+  const response = await fetch(
+    finalUrl,
+    {
+      method: "GET",
+      signal,
+
+      headers: {
+        "Accept":
+          "application/vnd.apple.mpegurl," +
+          "audio/x-mpegurl," +
+          "text/plain," +
+          "*/*"
+      },
+
+      cache: "no-store"
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Servidor respondeu HTTP ${response.status}`
+    );
+  }
+
+  if (!response.body) {
+    throw new Error(
+      "O servidor não retornou um fluxo de dados."
+    );
+  }
+
+  return response;
+}
+
+/* =========================================================
+   PARSER M3U PROGRESSIVO
+   ========================================================= */
+
+async function* parseM3UStream(
+  response,
+  signal
+) {
+  const reader =
+    response.body.getReader();
+
+  const decoder =
+    new TextDecoder("utf-8");
+
+  let buffer = "";
+
+  let currentInfo = null;
 
   try {
-
-    const items =
-      await getVisibleItems();
-
-
-    els.grid.innerHTML =
-      "";
-
-
-    if (
-      !items.length
-    ) {
-
-      els.grid.classList.add(
-        "hidden"
-      );
-
-
-      if (els.empty) {
-
-        els.empty.classList.remove(
-          "hidden"
+    while (true) {
+      if (signal?.aborted) {
+        throw new DOMException(
+          "Operação cancelada",
+          "AbortError"
         );
-
       }
 
+      const {
+        value,
+        done
+      } = await reader.read();
 
-      return;
+      if (done) {
+        break;
+      }
 
+      buffer +=
+        decoder.decode(
+          value,
+          { stream: true }
+        );
+
+      const lines =
+        buffer.split(/\r?\n/);
+
+      buffer =
+        lines.pop() || "";
+
+      for (const rawLine of lines) {
+        const line =
+          rawLine.trim();
+
+        if (!line) {
+          continue;
+        }
+
+        if (
+          line.startsWith("#EXTINF:")
+        ) {
+          currentInfo =
+            parseEXTINF(line);
+
+          continue;
+        }
+
+        if (
+          line.startsWith("#")
+        ) {
+          continue;
+        }
+
+        if (!currentInfo) {
+          continue;
+        }
+
+        const item =
+          normalizeItem({
+            ...currentInfo,
+            url: line
+          });
+
+        currentInfo = null;
+
+        yield item;
+      }
     }
 
+    buffer +=
+      decoder.decode();
 
-    els.grid.classList.remove(
-      "hidden"
-    );
+    const lastLines =
+      buffer.split(/\r?\n/);
 
+    for (const rawLine of lastLines) {
+      const line =
+        rawLine.trim();
 
-    if (els.empty) {
+      if (!line) {
+        continue;
+      }
 
-      els.empty.classList.add(
-        "hidden"
-      );
+      if (
+        line.startsWith("#EXTINF:")
+      ) {
+        currentInfo =
+          parseEXTINF(line);
 
+        continue;
+      }
+
+      if (
+        line.startsWith("#")
+      ) {
+        continue;
+      }
+
+      if (
+        currentInfo
+      ) {
+        const item =
+          normalizeItem({
+            ...currentInfo,
+            url: line
+          });
+
+        currentInfo = null;
+
+        yield item;
+      }
     }
-
-
-    const fragment =
-      document.createDocumentFragment();
-
-
-    for (
-      const item of items
-    ) {
-
-      fragment.appendChild(
-        createCard(
-          item
-        )
-      );
-
-    }
-
-
-    els.grid.appendChild(
-      fragment
-    );
-
   } finally {
-
-    state.rendering =
-      false;
-
+    try {
+      reader.releaseLock();
+    } catch {}
   }
-
 }
 
+/* =========================================================
+   PARSER EXTINF
+   ========================================================= */
+
+function parseEXTINF(line) {
+  const result = {
+    name: "",
+    group: "",
+    logo: "",
+    tvgId: "",
+    tvgName: "",
+    country: "",
+    language: ""
+  };
+
+  const colonIndex =
+    line.indexOf(":");
+
+  const content =
+    colonIndex >= 0
+      ? line.slice(
+          colonIndex + 1
+        )
+      : line;
+
+  const commaIndex =
+    findNameSeparator(content);
+
+  const attributes =
+    commaIndex >= 0
+      ? content.slice(
+          0,
+          commaIndex
+        )
+      : content;
+
+  const name =
+    commaIndex >= 0
+      ? content.slice(
+          commaIndex + 1
+        ).trim()
+      : "Sem nome";
+
+  result.name =
+    name || "Sem nome";
+
+  result.group =
+    getAttribute(
+      attributes,
+      [
+        "group-title",
+        "group"
+      ]
+    ) || "Sem categoria";
+
+  result.logo =
+    getAttribute(
+      attributes,
+      [
+        "tvg-logo",
+        "logo"
+      ]
+    );
+
+  result.tvgId =
+    getAttribute(
+      attributes,
+      [
+        "tvg-id"
+      ]
+    );
+
+  result.tvgName =
+    getAttribute(
+      attributes,
+      [
+        "tvg-name"
+      ]
+    );
+
+  result.country =
+    getAttribute(
+      attributes,
+      [
+        "tvg-country",
+        "country"
+      ]
+    );
+
+  result.language =
+    getAttribute(
+      attributes,
+      [
+        "tvg-language",
+        "language"
+      ]
+    );
+
+  return result;
+}
 
 /* =========================================================
-   CARREGAMENTO M3U
+   LOCALIZAR VÍRGULA DO NOME
+   ========================================================= */
+
+function findNameSeparator(text) {
+  let quote = null;
+
+  for (
+    let i = 0;
+    i < text.length;
+    i++
+  ) {
+    const char =
+      text[i];
+
+    if (
+      char === '"' ||
+      char === "'"
+    ) {
+      if (!quote) {
+        quote = char;
+      } else if (
+        quote === char
+      ) {
+        quote = null;
+      }
+
+      continue;
+    }
+
+    if (
+      char === "," &&
+      !quote
+    ) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+/* =========================================================
+   LER ATRIBUTO EXTINF
+   ========================================================= */
+
+function getAttribute(
+  text,
+  names
+) {
+  for (const name of names) {
+    const escaped =
+      name.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
+      );
+
+    const regex =
+      new RegExp(
+        `${escaped}\\s*=\\s*("([^"]*)"|'([^']*)'|([^\\s]+))`,
+        "i"
+      );
+
+    const match =
+      text.match(regex);
+
+    if (match) {
+      return (
+        match[2] ??
+        match[3] ??
+        match[4] ??
+        ""
+      ).trim();
+    }
+  }
+
+  return "";
+}
+
+/* =========================================================
+   CSS DINÂMICO
+   ========================================================= */
+
+function ensureCSS() {
+  if (
+    document.getElementById(
+      "gc-dynamic-css"
+    )
+  ) {
+    return;
+  }
+
+  const style =
+    document.createElement("style");
+
+  style.id =
+    "gc-dynamic-css";
+
+  style.textContent = `
+    .gc-card {
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .gc-card-image {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      display: block;
+      background: #090d0a;
+    }
+
+    .gc-card-placeholder {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        linear-gradient(
+          135deg,
+          #050805,
+          #101810
+        );
+      color: #69ff65;
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .gc-card-info {
+      padding: 10px;
+    }
+
+    .gc-card-title {
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .gc-card-meta {
+      opacity: .65;
+      font-size: 12px;
+      margin-top: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .gc-card-favorite {
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      width: 34px;
+      height: 34px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(0,0,0,.75);
+      color: #69ff65;
+      cursor: pointer;
+      z-index: 5;
+    }
+
+    .gc-card-favorite.active {
+      background: #69ff65;
+      color: #050805;
+    }
+
+    .gc-results-count {
+      opacity: .65;
+      font-size: 13px;
+      margin: 10px 0;
+    }
+
+    .gc-group-select {
+      width: 100%;
+      max-width: 360px;
+      margin: 10px 0 16px;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(105,255,101,.35);
+      background: #080c08;
+      color: #fff;
+      outline: none;
+    }
+
+    .gc-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 30px;
+      color: #69ff65;
+    }
+
+    .gc-spinner {
+      width: 22px;
+      height: 22px;
+      border: 3px solid rgba(105,255,101,.2);
+      border-top-color: #69ff65;
+      border-radius: 50%;
+      animation:
+        gcSpin .8s linear infinite;
+    }
+
+    @keyframes gcSpin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .gc-search-result {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .gc-search-result:hover {
+      background:
+        rgba(105,255,101,.08);
+    }
+
+    .gc-search-result img,
+    .gc-search-logo {
+      width: 60px;
+      height: 40px;
+      object-fit: contain;
+      border-radius: 6px;
+      background: #050805;
+    }
+
+    .gc-search-text {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .gc-search-name {
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .gc-search-meta {
+      opacity: .6;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .gc-progress {
+      height: 5px;
+      width: 100%;
+      background: rgba(255,255,255,.08);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .gc-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #69ff65;
+      transition: width .2s linear;
+    }
+  `;
+
+  document.head.appendChild(style);
+}
+
+/* =========================================================
+   RENDER CARD
+   ========================================================= */
+
+function renderCard(item) {
+  const favorite =
+    state.favorites.has(item.id);
+
+  const logo =
+    item.logo
+      ? `
+        <img
+          class="gc-card-image"
+          src="${escapeHTML(item.logo)}"
+          alt=""
+          loading="lazy"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+        >
+        <div
+          class="gc-card-placeholder"
+          style="display:none"
+        >
+          ${getTypeIcon(item.type)}
+        </div>
+      `
+      : `
+        <div class="gc-card-placeholder">
+          ${getTypeIcon(item.type)}
+        </div>
+      `;
+
+  return `
+    <article
+      class="gc-card"
+      data-item-id="${escapeHTML(item.id)}"
+    >
+
+      ${logo}
+
+      <button
+        class="gc-card-favorite ${
+          favorite ? "active" : ""
+        }"
+        data-favorite-id="${escapeHTML(item.id)}"
+        aria-label="Favorito"
+      >
+        ${favorite ? "★" : "☆"}
+      </button>
+
+      <div class="gc-card-info">
+
+        <div class="gc-card-title">
+          ${escapeHTML(item.name)}
+        </div>
+
+        <div class="gc-card-meta">
+          ${escapeHTML(item.group)}
+        </div>
+
+      </div>
+
+    </article>
+  `;
+}
+
+/* =========================================================
+   ÍCONES
+   ========================================================= */
+
+function getTypeIcon(type) {
+  if (type === "movie") {
+    return "🎬";
+  }
+
+  if (type === "series") {
+    return "📺";
+  }
+
+  return "▶";
+}
+
+/* =========================================================
+   RENDER BIBLIOTECA
+   ========================================================= */
+
+function render() {
+  const grid =
+    $("#contentGrid");
+
+  const empty =
+    $("#emptyState");
+
+  if (!grid) {
+    return;
+  }
+
+  let items =
+    state.items.slice();
+
+  if (
+    state.currentFilter !==
+    "all"
+  ) {
+    items =
+      items.filter(
+        item =>
+          item.type ===
+          state.currentFilter
+      );
+  }
+
+  if (
+    state.searchTerm
+  ) {
+    const term =
+      normalizeText(
+        state.searchTerm
+      );
+
+    items =
+      items.filter(item =>
+        item.nameLower.includes(term) ||
+        normalizeText(
+          item.group
+        ).includes(term)
+      );
+  }
+
+  items =
+    items.slice(0, 120);
+
+  if (!items.length) {
+    grid.innerHTML = "";
+
+    if (empty) {
+      empty.style.display =
+        "block";
+    }
+
+    return;
+  }
+
+  if (empty) {
+    empty.style.display =
+      "none";
+  }
+
+  grid.innerHTML =
+    items
+      .map(renderCard)
+      .join("");
+}
+
+/* =========================================================
+   RENDER ESTATÍSTICAS
+   ========================================================= */
+
+function renderStats() {
+  const channelCount =
+    $("#channelCount");
+
+  const movieCount =
+    $("#movieCount");
+
+  const seriesCount =
+    $("#seriesCount");
+
+  const connectionStatus =
+    $("#connectionStatus");
+
+  if (channelCount) {
+    channelCount.textContent =
+      formatNumber(
+        state.counts.live
+      );
+  }
+
+  if (movieCount) {
+    movieCount.textContent =
+      formatNumber(
+        state.counts.movie
+      );
+  }
+
+  if (seriesCount) {
+    seriesCount.textContent =
+      formatNumber(
+        state.counts.series
+      );
+  }
+
+  if (connectionStatus) {
+    connectionStatus.textContent =
+      state.loading
+        ? "CARREGANDO..."
+        : "ONLINE";
+  }
+}
+/* =========================================================
+   PLAYER — HLS.JS
+   ========================================================= */
+
+async function loadHLS() {
+  if (window.Hls) {
+    return window.Hls;
+  }
+
+  return new Promise((resolve, reject) => {
+    const existing =
+      document.querySelector(
+        'script[data-gc-hls="1"]'
+      );
+
+    if (existing) {
+      existing.addEventListener(
+        "load",
+        () => resolve(window.Hls)
+      );
+
+      existing.addEventListener(
+        "error",
+        reject
+      );
+
+      return;
+    }
+
+    const script =
+      document.createElement("script");
+
+    script.src =
+      "https://cdn.jsdelivr.net/npm/hls.js@latest";
+
+    script.async = true;
+
+    script.dataset.gcHls = "1";
+
+    script.onload = () => {
+      if (window.Hls) {
+        resolve(window.Hls);
+      } else {
+        reject(
+          new Error(
+            "HLS.js não foi carregado."
+          )
+        );
+      }
+    };
+
+    script.onerror = () => {
+      reject(
+        new Error(
+          "Não foi possível carregar HLS.js."
+        )
+      );
+    };
+
+    document.head.appendChild(script);
+  });
+}
+
+/* =========================================================
+   FECHAR PLAYER
+   ========================================================= */
+
+function closePlayer() {
+  const panel =
+    $("#playerPanel");
+
+  const video =
+    $("#videoPlayer");
+
+  if (state.hls) {
+    try {
+      state.hls.destroy();
+    } catch {}
+    state.hls = null;
+  }
+
+  if (video) {
+    try {
+      video.pause();
+    } catch {}
+
+    video.removeAttribute("src");
+
+    try {
+      video.load();
+    } catch {}
+  }
+
+  state.currentItem = null;
+
+  if (panel) {
+    panel.classList.remove(
+      "active",
+      "open",
+      "show"
+    );
+  }
+}
+
+/* =========================================================
+   ABRIR PLAYER
+   ========================================================= */
+
+async function playItem(item) {
+  if (!item || !item.url) {
+    toast(
+      "Este conteúdo não possui uma URL válida."
+    );
+    return;
+  }
+
+  const panel =
+    $("#playerPanel");
+
+  const video =
+    $("#videoPlayer");
+
+  const title =
+    $("#playerTitle");
+
+  const message =
+    $("#playerMessage");
+
+  if (!video) {
+    toast(
+      "Elemento de vídeo não encontrado."
+    );
+    return;
+  }
+
+  state.currentItem =
+    item;
+
+  if (title) {
+    title.textContent =
+      item.name;
+  }
+
+  if (message) {
+    message.textContent =
+      "Conectando ao conteúdo...";
+  }
+
+  if (panel) {
+    panel.classList.add(
+      "active",
+      "open",
+      "show"
+    );
+  }
+
+  addHistory(item);
+
+  if (state.hls) {
+    try {
+      state.hls.destroy();
+    } catch {}
+
+    state.hls = null;
+  }
+
+  try {
+    video.pause();
+  } catch {}
+
+  video.removeAttribute("src");
+
+  try {
+    video.load();
+  } catch {}
+
+  const url =
+    item.url;
+
+  /* -------------------------------------------------------
+     HLS
+     ------------------------------------------------------- */
+
+  if (isHLS(url)) {
+    await playHLS(
+      video,
+      url,
+      message
+    );
+
+    return;
+  }
+
+  /* -------------------------------------------------------
+     VÍDEO NORMAL
+     ------------------------------------------------------- */
+
+  video.src = url;
+
+  video.controls = true;
+
+  if (message) {
+    message.textContent =
+      "Reproduzindo...";
+  }
+
+  try {
+    await video.play();
+
+    if (message) {
+      message.textContent =
+        "";
+    }
+  } catch (error) {
+    console.warn(
+      "Autoplay bloqueado:",
+      error
+    );
+
+    if (message) {
+      message.textContent =
+        "Toque no botão ▶ do player para iniciar.";
+    }
+  }
+}
+
+/* =========================================================
+   PLAY HLS
+   ========================================================= */
+
+async function playHLS(
+  video,
+  url,
+  message
+) {
+  /* -------------------------------------------------------
+     Safari / iPhone / alguns Smart TVs
+     ------------------------------------------------------- */
+
+  if (
+    video.canPlayType(
+      "application/vnd.apple.mpegurl"
+    )
+  ) {
+    video.src = url;
+
+    try {
+      await video.play();
+
+      if (message) {
+        message.textContent =
+          "";
+      }
+    } catch {
+      if (message) {
+        message.textContent =
+          "Toque no player para iniciar.";
+      }
+    }
+
+    return;
+  }
+
+  /* -------------------------------------------------------
+     HLS.JS
+     ------------------------------------------------------- */
+
+  try {
+    const Hls =
+      await loadHLS();
+
+    if (
+      !Hls ||
+      !Hls.isSupported()
+    ) {
+      throw new Error(
+        "HLS não suportado neste navegador."
+      );
+    }
+
+    const hls =
+      new Hls({
+        enableWorker: true,
+
+        lowLatencyMode: true,
+
+        backBufferLength: 30,
+
+        maxBufferLength: 30,
+
+        maxMaxBufferLength: 60,
+
+        liveSyncDurationCount: 3,
+
+        liveMaxLatencyDurationCount: 8,
+
+        fragLoadingTimeOut: 20000,
+
+        manifestLoadingTimeOut: 20000,
+
+        levelLoadingTimeOut: 20000
+      });
+
+    state.hls =
+      hls;
+
+    hls.on(
+      Hls.Events.MEDIA_ATTACHED,
+      () => {
+        hls.loadSource(url);
+      }
+    );
+
+    hls.on(
+      Hls.Events.MANIFEST_PARSED,
+      async () => {
+        if (message) {
+          message.textContent =
+            "";
+        }
+
+        if (
+          state.settings.autoplay
+        ) {
+          try {
+            await video.play();
+          } catch {
+            if (message) {
+              message.textContent =
+                "Toque no player para iniciar.";
+            }
+          }
+        }
+      }
+    );
+
+    hls.on(
+      Hls.Events.ERROR,
+      (
+        event,
+        data
+      ) => {
+        console.warn(
+          "HLS ERROR:",
+          data
+        );
+
+        if (
+          data &&
+          data.fatal
+        ) {
+          if (message) {
+            message.textContent =
+              "Erro ao reproduzir este conteúdo.";
+          }
+
+          try {
+            hls.destroy();
+          } catch {}
+
+          state.hls =
+            null;
+        }
+      }
+    );
+
+    hls.attachMedia(
+      video
+    );
+
+  } catch (error) {
+    console.error(
+      "Erro HLS:",
+      error
+    );
+
+    if (message) {
+      message.textContent =
+        "Não foi possível iniciar este fluxo HLS.";
+    }
+  }
+}
+
+/* =========================================================
+   HISTÓRICO
+   ========================================================= */
+
+function addHistory(item) {
+  if (!item) {
+    return;
+  }
+
+  state.history =
+    state.history.filter(
+      id => id !== item.id
+    );
+
+  state.history.unshift(
+    item.id
+  );
+
+  state.history =
+    state.history.slice(
+      0,
+      100
+    );
+
+  saveState();
+}
+
+/* =========================================================
+   FAVORITO
+   ========================================================= */
+
+function toggleFavorite(id) {
+  if (
+    state.favorites.has(id)
+  ) {
+    state.favorites.delete(id);
+
+    toast(
+      "Removido dos favoritos."
+    );
+  } else {
+    state.favorites.add(id);
+
+    toast(
+      "Adicionado aos favoritos."
+    );
+  }
+
+  saveState();
+
+  render();
+}
+
+/* =========================================================
+   PROCURAR ITEM NA RAM
+   ========================================================= */
+
+function findRAMItem(id) {
+  return state.items.find(
+    item => item.id === id
+  );
+}
+
+/* =========================================================
+   PROCURAR ITEM NO BANCO
+   ========================================================= */
+
+async function findItem(id) {
+  const ram =
+    findRAMItem(id);
+
+  if (ram) {
+    return ram;
+  }
+
+  try {
+    return await getItem(id);
+  } catch {
+    return null;
+  }
+}
+
+/* =========================================================
+   EVENTOS DOS CARDS
+   ========================================================= */
+
+function setupCardEvents() {
+  const grid =
+    $("#contentGrid");
+
+  if (!grid) {
+    return;
+  }
+
+  grid.addEventListener(
+    "click",
+    async event => {
+      const favoriteButton =
+        event.target.closest(
+          "[data-favorite-id]"
+        );
+
+      if (favoriteButton) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const id =
+          favoriteButton.dataset.favoriteId;
+
+        toggleFavorite(id);
+
+        return;
+      }
+
+      const card =
+        event.target.closest(
+          "[data-item-id]"
+        );
+
+      if (!card) {
+        return;
+      }
+
+      const id =
+        card.dataset.itemId;
+
+      const item =
+        await findItem(id);
+
+      if (item) {
+        await playItem(item);
+      }
+    }
+  );
+}
+
+/* =========================================================
+   FILTROS
+   ========================================================= */
+
+function setupFilters() {
+  const buttons =
+    $$(
+      "[data-filter]"
+    );
+
+  buttons.forEach(
+    button => {
+      button.addEventListener(
+        "click",
+        () => {
+          const filter =
+            button.dataset.filter;
+
+          state.currentFilter =
+            filter ||
+            "all";
+
+          buttons.forEach(
+            item => {
+              item.classList.toggle(
+                "active",
+                item === button
+              );
+            }
+          );
+
+          render();
+        }
+      );
+    }
+  );
+}
+
+/* =========================================================
+   NAVEGAÇÃO
+   ========================================================= */
+
+function setupNavigation() {
+  const buttons =
+    $$(
+      "[data-section]"
+    );
+
+  buttons.forEach(
+    button => {
+      button.addEventListener(
+        "click",
+        async () => {
+          const section =
+            button.dataset.section;
+
+          state.currentSection =
+            section;
+
+          buttons.forEach(
+            item => {
+              item.classList.toggle(
+                "active",
+                item === button
+              );
+            }
+          );
+
+          await handleSection(
+            section
+          );
+        }
+      );
+    }
+  );
+}
+
+/* =========================================================
+   TRATAMENTO DAS SEÇÕES
+   ========================================================= */
+
+async function handleSection(
+  section
+) {
+  if (
+    section === "home"
+  ) {
+    state.currentFilter =
+      "all";
+
+    state.searchTerm =
+      "";
+
+    render();
+
+    return;
+  }
+
+  if (
+    section === "live"
+  ) {
+    state.currentFilter =
+      "live";
+
+    render();
+
+    return;
+  }
+
+  if (
+    section === "movies"
+  ) {
+    state.currentFilter =
+      "movie";
+
+    render();
+
+    return;
+  }
+
+  if (
+    section === "series"
+  ) {
+    state.currentFilter =
+      "series";
+
+    render();
+
+    return;
+  }
+
+  if (
+    section === "favorites"
+  ) {
+    await renderFavorites();
+
+    return;
+  }
+}
+
+/* =========================================================
+   FAVORITOS
+   ========================================================= */
+
+async function renderFavorites() {
+  const grid =
+    $("#contentGrid");
+
+  const empty =
+    $("#emptyState");
+
+  if (!grid) {
+    return;
+  }
+
+  if (
+    !state.favorites.size
+  ) {
+    grid.innerHTML = "";
+
+    if (empty) {
+      empty.style.display =
+        "block";
+    }
+
+    return;
+  }
+
+  const items = [];
+
+  for (
+    const id of state.favorites
+  ) {
+    const item =
+      await findItem(id);
+
+    if (item) {
+      items.push(item);
+    }
+  }
+
+  if (!items.length) {
+    grid.innerHTML = "";
+
+    if (empty) {
+      empty.style.display =
+        "block";
+    }
+
+    return;
+  }
+
+  if (empty) {
+    empty.style.display =
+      "none";
+  }
+
+  grid.innerHTML =
+    items
+      .slice(0, 120)
+      .map(renderCard)
+      .join("");
+}
+
+/* =========================================================
+   DIALOGS
+   ========================================================= */
+
+function openDialog(id) {
+  const dialog =
+    document.getElementById(id);
+
+  if (!dialog) {
+    return;
+  }
+
+  if (
+    typeof dialog.showModal ===
+    "function"
+  ) {
+    try {
+      dialog.showModal();
+      return;
+    } catch {}
+  }
+
+  dialog.classList.add(
+    "active",
+    "open",
+    "show"
+  );
+}
+
+function closeDialog(id) {
+  const dialog =
+    document.getElementById(id);
+
+  if (!dialog) {
+    return;
+  }
+
+  if (
+    typeof dialog.close ===
+    "function"
+  ) {
+    try {
+      dialog.close();
+    } catch {}
+  }
+
+  dialog.classList.remove(
+    "active",
+    "open",
+    "show"
+  );
+}
+
+/* =========================================================
+   BOTÕES DOS DIALOGS
+   ========================================================= */
+
+function setupDialogs() {
+  const addButton =
+    $("#addPlaylistButton");
+
+  const emptyAddButton =
+    $("#emptyAddButton");
+
+  const closePlaylist =
+    $("#closePlaylistDialog");
+
+  const searchButton =
+    $("#searchButton");
+
+  const closeSearch =
+    $("#closeSearchDialog");
+
+  const settingsButton =
+    $("#settingsButton");
+
+  const closeSettings =
+    $("#closeSettingsDialog");
+
+  const closePlayerButton =
+    $("#closePlayer");
+
+  if (addButton) {
+    addButton.addEventListener(
+      "click",
+      () => {
+        openDialog(
+          "playlistDialog"
+        );
+      }
+    );
+  }
+
+  if (emptyAddButton) {
+    emptyAddButton.addEventListener(
+      "click",
+      () => {
+        openDialog(
+          "playlistDialog"
+        );
+      }
+    );
+  }
+
+  if (closePlaylist) {
+    closePlaylist.addEventListener(
+      "click",
+      () => {
+        closeDialog(
+          "playlistDialog"
+        );
+      }
+    );
+  }
+
+  if (searchButton) {
+    searchButton.addEventListener(
+      "click",
+      () => {
+        openDialog(
+          "searchDialog"
+        );
+
+        setTimeout(
+          () => {
+            const input =
+              $("#globalSearch");
+
+            if (input) {
+              input.focus();
+            }
+          },
+          100
+        );
+      }
+    );
+  }
+
+  if (closeSearch) {
+    closeSearch.addEventListener(
+      "click",
+      () => {
+        closeDialog(
+          "searchDialog"
+        );
+      }
+    );
+  }
+
+  if (settingsButton) {
+    settingsButton.addEventListener(
+      "click",
+      () => {
+        syncSettingsUI();
+
+        openDialog(
+          "settingsDialog"
+        );
+      }
+    );
+  }
+
+  if (closeSettings) {
+    closeSettings.addEventListener(
+      "click",
+      () => {
+        closeDialog(
+          "settingsDialog"
+        );
+      }
+    );
+  }
+
+  if (closePlayerButton) {
+    closePlayerButton.addEventListener(
+      "click",
+      closePlayer
+    );
+  }
+}
+
+/* =========================================================
+   SETTINGS
+   ========================================================= */
+
+function syncSettingsUI() {
+  const autoplay =
+    $("#autoplaySetting");
+
+  const compact =
+    $("#compactSetting");
+
+  if (autoplay) {
+    autoplay.checked =
+      !!state.settings.autoplay;
+  }
+
+  if (compact) {
+    compact.checked =
+      !!state.settings.compact;
+  }
+}
+
+function setupSettings() {
+  const autoplay =
+    $("#autoplaySetting");
+
+  const compact =
+    $("#compactSetting");
+
+  if (autoplay) {
+    autoplay.addEventListener(
+      "change",
+      () => {
+        state.settings.autoplay =
+          autoplay.checked;
+
+        saveState();
+      }
+    );
+  }
+
+  if (compact) {
+    compact.addEventListener(
+      "change",
+      () => {
+        state.settings.compact =
+          compact.checked;
+
+        document.body.classList.toggle(
+          "gc-compact",
+          compact.checked
+        );
+
+        saveState();
+      }
+    );
+  }
+
+  document.body.classList.toggle(
+    "gc-compact",
+    state.settings.compact
+  );
+}
+/* =========================================================
+   ATUALIZAR PROGRESSO
+   ========================================================= */
+
+function updateLoadMessage(
+  message,
+  percent = null
+) {
+  const element =
+    $("#playlistMessage");
+
+  if (!element) {
+    return;
+  }
+
+  if (
+    percent !== null &&
+    Number.isFinite(percent)
+  ) {
+    element.innerHTML = `
+      ${escapeHTML(message)}
+
+      <div class="gc-progress">
+        <div
+          class="gc-progress-bar"
+          style="width:${Math.max(
+            0,
+            Math.min(100, percent)
+          )}%"
+        ></div>
+      </div>
+    `;
+  } else {
+    element.textContent =
+      message;
+  }
+}
+
+/* =========================================================
+   ATUALIZAR CONTADORES DURANTE A CARGA
+   ========================================================= */
+
+function updateLiveCounters() {
+  state.total =
+    state.counts.live +
+    state.counts.movie +
+    state.counts.series;
+
+  renderStats();
+}
+
+/* =========================================================
+   PROCESSAR ITEM DA M3U
+   ========================================================= */
+
+function processParsedItem(
+  item,
+  batch,
+  groups
+) {
+  if (!item || !item.url) {
+    return;
+  }
+
+  batch.push(item);
+
+  if (item.group) {
+    groups.add(
+      item.group
+    );
+  }
+
+  if (
+    item.type === "live"
+  ) {
+    state.counts.live++;
+  } else if (
+    item.type === "movie"
+  ) {
+    state.counts.movie++;
+  } else if (
+    item.type === "series"
+  ) {
+    state.counts.series++;
+  }
+
+  if (
+    state.items.length <
+    RAM_LIMIT
+  ) {
+    state.items.push(item);
+  }
+}
+
+/* =========================================================
+   CARREGAR M3U — MOTOR PRINCIPAL
    ========================================================= */
 
 async function loadM3U(
   url
 ) {
-
-  if (!url) {
-
-    throw new Error(
-      "URL da lista não informada."
+  if (
+    state.loading
+  ) {
+    toast(
+      "Já existe uma playlist sendo carregada."
     );
 
+    return;
   }
-
 
   if (
-    state.abort
+    !url ||
+    !isHttpUrl(url)
   ) {
+    toast(
+      "Informe uma URL M3U válida."
+    );
 
-    state.abort.abort();
-
+    return;
   }
 
+  /* -------------------------------------------------------
+     CANCELAR CARGA ANTERIOR
+     ------------------------------------------------------- */
 
-  state.abort =
+  if (state.loadAbort) {
+    try {
+      state.loadAbort.abort();
+    } catch {}
+  }
+
+  const controller =
     new AbortController();
 
+  state.loadAbort =
+    controller;
 
-  await clearDB();
-
+  state.loading =
+    true;
 
   state.items =
     [];
 
+  state.groups =
+    [];
+
+  state.groupsReady =
+    false;
+
+  state.counts = {
+    live: 0,
+    movie: 0,
+    series: 0
+  };
 
   state.total =
     0;
 
+  renderStats();
 
-  state.counts = {
-
-    live:
-      0,
-
-    movie:
-      0,
-
-    series:
-      0
-
-  };
-
-
-  state.group =
-    "";
-
-
-  updateCounters();
-
-
-  await render();
-
-
-  updateStatus(
-    "CARREGANDO"
+  updateLoadMessage(
+    "Preparando conexão..."
   );
 
-
-  toast(
-    "Conectando à lista M3U...",
-    5000
-  );
-
-
-  const request =
-    getM3URequest(
-      url
-    );
-
+  const startTime =
+    performance.now();
 
   try {
+    /* -----------------------------------------------------
+       INICIAR FETCH ANTES DE LIMPAR O BANCO
+       ----------------------------------------------------- */
 
-    const response =
-      await fetch(
-        request.url,
-        {
-
-          method:
-            "GET",
-
-          signal:
-            state.abort.signal,
-
-          cache:
-            "no-store",
-
-          redirect:
-            "follow",
-
-          headers:
-            request.headers
-
-        }
+    const responsePromise =
+      fetchPlaylist(
+        url,
+        controller.signal
       );
 
+    /*
+       A exclusão do banco acontece
+       enquanto a conexão começa.
+    */
 
-    if (
-      !response.ok
-    ) {
-
-      throw new Error(
-        `Servidor respondeu HTTP ${response.status}`
+    try {
+      await resetDatabaseFast();
+    } catch (error) {
+      console.warn(
+        "Não foi possível limpar banco antigo:",
+        error
       );
-
     }
 
+    if (
+      controller.signal.aborted
+    ) {
+      throw new DOMException(
+        "Operação cancelada",
+        "AbortError"
+      );
+    }
+
+    state.db =
+      await openDB();
+
+    updateLoadMessage(
+      "Conectado. Recebendo playlist..."
+    );
+
+    const response =
+      await responsePromise;
+
+    /* -----------------------------------------------------
+       VERIFICAR TIPO DE RESPOSTA
+       ----------------------------------------------------- */
 
     const contentType =
       response.headers.get(
         "content-type"
       ) || "";
 
-
     console.log(
-      "GC PLAY PRO M3U:",
-      {
-        url:
-          request.url,
-
-        contentType
-      }
+      "[GC PLAY PRO] Content-Type:",
+      contentType
     );
 
+    /* -----------------------------------------------------
+       BATCH ATUAL
+       ----------------------------------------------------- */
 
-    let lastPaint =
-      0;
+    let batch = [];
 
+    const groups =
+      new Set();
 
-    await parseResponse(
-      response,
-      async batch => {
+    let processed = 0;
 
-        await putBatch(
-          batch
+    let lastRender =
+      performance.now();
+
+    let firstPaint =
+      false;
+
+    /* -----------------------------------------------------
+       PARSE PROGRESSIVO
+       ----------------------------------------------------- */
+
+    for await (
+      const item of parseM3UStream(
+        response,
+        controller.signal
+      )
+    ) {
+      if (
+        controller.signal.aborted
+      ) {
+        throw new DOMException(
+          "Operação cancelada",
+          "AbortError"
+        );
+      }
+
+      processParsedItem(
+        item,
+        batch,
+        groups
+      );
+
+      processed++;
+
+      /* -----------------------------------------------
+         A CADA 500 ITENS
+         ----------------------------------------------- */
+
+      if (
+        batch.length >=
+        WRITE_BATCH
+      ) {
+        const batchToWrite =
+          batch;
+
+        batch = [];
+
+        queueWrite(
+          batchToWrite
         );
 
+        /* ---------------------------------------------
+           PRIMEIRA EXIBIÇÃO
+           --------------------------------------------- */
 
-        state.total +=
-          batch.length;
+        if (!firstPaint) {
+          firstPaint =
+            true;
 
+          render();
 
-        for (
-          const item of
-          batch
-        ) {
+          updateLiveCounters();
 
-          if (
-            state.counts[
-              item.type
-            ] !==
-            undefined
-          ) {
-
-            state.counts[
-              item.type
-            ]++;
-
-          }
-
-        }
-
-
-        /*
-          Mantemos apenas uma
-          pequena janela em RAM.
-          O restante fica no IndexedDB.
-        */
-
-        if (
-          state.items.length <
-          3000
-        ) {
-
-          const room =
-            3000 -
-            state.items.length;
-
-
-          state.items.push(
-            ...batch.slice(
-              0,
-              room
-            )
+          updateLoadMessage(
+            `Carregando... ${formatNumber(
+              processed
+            )} itens`
           );
-
         }
 
+        /* ---------------------------------------------
+           RENDER THROTTLE
+           --------------------------------------------- */
 
         const now =
           performance.now();
 
-
         if (
           now -
-          lastPaint >
-          300
+            lastRender >
+          700
         ) {
-
-          lastPaint =
+          lastRender =
             now;
 
+          render();
 
-          updateCounters();
+          updateLiveCounters();
 
-
-          updateStatus(
-            `CARREGANDO • ${formatNumber(
-              state.total
-            )}`
+          updateLoadMessage(
+            `Carregando... ${formatNumber(
+              processed
+            )} itens`
           );
 
+          /*
+             Entrega o controle ao navegador
+             para não travar a interface.
+          */
+
+          await new Promise(
+            requestAnimationFrame
+          );
         }
-
       }
+    }
+
+    /* -----------------------------------------------------
+       ÚLTIMO LOTE
+       ----------------------------------------------------- */
+
+    if (
+      batch.length
+    ) {
+      queueWrite(
+        batch
+      );
+    }
+
+    /* -----------------------------------------------------
+       ATUALIZAR ESTADO
+       ----------------------------------------------------- */
+
+    state.groups =
+      Array.from(groups)
+        .sort(
+          (a, b) =>
+            a.localeCompare(
+              b,
+              "pt-BR",
+              {
+                sensitivity:
+                  "base"
+              }
+            )
+        );
+
+    state.groupsReady =
+      true;
+
+    updateLiveCounters();
+
+    render();
+
+    /* -----------------------------------------------------
+       AGUARDAR FILA DE GRAVAÇÃO
+       ----------------------------------------------------- */
+
+    updateLoadMessage(
+      `Finalizando... ${formatNumber(
+        processed
+      )} itens`
     );
 
+    /*
+       Não bloqueamos a interface durante
+       todo o processo de gravação.
+    */
 
-    updateCounters();
+    while (
+      writeProcessing ||
+      writeQueue.length
+    ) {
+      await sleep(50);
+    }
 
+    /* -----------------------------------------------------
+       RESULTADO FINAL
+       ----------------------------------------------------- */
 
-    updateStatus(
-      `ONLINE • ${formatNumber(
-        state.total
-      )}`
+    const elapsed =
+      (
+        performance.now() -
+        startTime
+      ) / 1000;
+
+    updateLiveCounters();
+
+    render();
+
+    state.loading =
+      false;
+
+    renderStats();
+
+    updateLoadMessage(
+      `Playlist carregada: ${formatNumber(
+        processed
+      )} itens em ${elapsed.toFixed(
+        1
+      )}s`
     );
-
 
     toast(
-      `Lista carregada: ${formatNumber(
-        state.total
-      )} conteúdos.`,
+      `${formatNumber(
+        processed
+      )} conteúdos carregados.`,
       5000
     );
 
+    /*
+       Fechar diálogo depois de um pequeno
+       intervalo para o usuário visualizar
+       o resultado.
+    */
 
-    await buildGroupSelector();
-
-
-    await render();
-
-
-    saveLocalState();
-
-
-  } catch (
-    error
-  ) {
-
-    if (
-      error?.name ===
-      "AbortError"
-    ) {
-
-      return;
-
-    }
-
-
-    updateStatus(
-      "ERRO"
-    );
-
-
-    console.error(
-      "GC PLAY PRO M3U:",
-      error
-    );
-
-
-    const message =
-      error instanceof
-      TypeError
-
-        ? "O navegador não conseguiu acessar a fonte. Verifique CORS ou use o proxy autorizado."
-
-        : error.message ||
-          "Falha ao carregar a lista.";
-
-
-    setMessage(
-      message,
-      true
-    );
-
-
-    toast(
-      message,
-      7000
-    );
-
-
-    throw error;
-
-  }
-
-}
-
-
-/* =========================================================
-   FAVORITOS
-   ========================================================= */
-
-function toggleFavorite(
-  item
-) {
-
-  if (
-    state.favorites.has(
-      item.id
-    )
-  ) {
-
-    state.favorites.delete(
-      item.id
-    );
-
-  } else {
-
-    state.favorites.add(
-      item.id
-    );
-
-  }
-
-
-  saveLocalState();
-
-
-  render();
-
-}
-
-
-/* =========================================================
-   HISTÓRICO
-   ========================================================= */
-
-function addHistory(
-  item
-) {
-
-  state.history =
-    [
-
-      {
-        id:
-          item.id,
-
-        time:
-          Date.now()
-
+    setTimeout(
+      () => {
+        closeDialog(
+          "playlistDialog"
+        );
       },
-
-      ...state.history.filter(
-        entry =>
-          entry.id !==
-          item.id
-      )
-
-    ].slice(
-      0,
-      50
+      1800
     );
 
-
-  saveLocalState();
-
-}
-
-
-/* =========================================================
-   HLS / PLAYER
-   ========================================================= */
-
-function destroyHLS() {
-
-  if (
-    state.hls
-  ) {
-
-    try {
-
-      state.hls.destroy();
-
-    } catch {}
-
-    state.hls =
-      null;
-
-  }
-
-}
-
-
-async function loadHLS() {
-
-  if (
-    window.Hls
-  ) {
-
-    return window.Hls;
-
-  }
-
-
-  await new Promise(
-    (
-      resolve,
-      reject
-    ) => {
-
-      const existing =
-        document.querySelector(
-          'script[data-gc-hls]'
-        );
-
-
-      if (existing) {
-
-        existing.addEventListener(
-          "load",
-          resolve,
-          {
-            once:
-              true
-          }
-        );
-
-
-        existing.addEventListener(
-          "error",
-          reject,
-          {
-            once:
-              true
-          }
-        );
-
-
-        return;
-
-      }
-
-
-      const script =
-        document.createElement(
-          "script"
-        );
-
-
-      script.src =
-        "https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js";
-
-
-      script.dataset.gcHls =
-        "1";
-
-
-      script.onload =
-        resolve;
-
-
-      script.onerror =
-        () =>
-          reject(
-            new Error(
-              "Não foi possível carregar o HLS.js."
-            )
-          );
-
-
-      document.head.appendChild(
-        script
-      );
-
-    }
-  );
-
-
-  return window.Hls;
-
-}
-
-
-async function playItem(
-  item
-) {
-
-  if (
-    !item?.url
-  ) {
-
-    return;
-
-  }
-
-
-  addHistory(
-    item
-  );
-
-
-  if (
-    els.player
-  ) {
-
-    els.player.classList.remove(
-      "hidden"
-    );
-
-  }
-
-
-  if (
-    els.playerTitle
-  ) {
-
-    els.playerTitle.textContent =
-      item.name;
-
-  }
-
-
-  if (
-    els.playerMessage
-  ) {
-
-    els.playerMessage.textContent =
-      "Carregando...";
-
-  }
-
-
-  destroyHLS();
-
-
-  const video =
-    els.video;
-
-
-  if (!video)
-    return;
-
-
-  video.pause();
-
-
-  video.removeAttribute(
-    "src"
-  );
-
-
-  video.load();
-
-
-  const url =
-    safeUrl(
-      item.url
-    );
-
-
-  if (!url) {
-
-    if (
-      els.playerMessage
-    ) {
-
-      els.playerMessage.textContent =
-        "URL de reprodução inválida.";
-
-    }
-
-
-    return;
-
-  }
-
-
-  const isHLS =
-    /\.m3u8(\?|$)/i.test(
-      url
-    );
-
-
-  try {
-
-    if (
-      isHLS &&
-      window.Hls &&
-      window.Hls.isSupported()
-    ) {
-
-      state.hls =
-        new window.Hls({
-
-          enableWorker:
-            true,
-
-          lowLatencyMode:
-            false
-
-        });
-
-
-      state.hls.loadSource(
-        url
-      );
-
-
-      state.hls.attachMedia(
-        video
-      );
-
-
-      state.hls.on(
-        window.Hls.Events.MANIFEST_PARSED,
-        () => {
+    /*
+       Recriar grupos a partir do banco
+       em segundo plano.
+    */
+
+    setTimeout(
+      async () => {
+        try {
+          const databaseGroups =
+            await getGroups();
 
           if (
-            state.settings
-              .autoplay
+            databaseGroups.length
           ) {
-
-            video
-              .play()
-              .catch(
-                () => {}
-              );
-
+            state.groups =
+              databaseGroups;
           }
-
+        } catch (error) {
+          console.warn(
+            "Erro reconstruindo grupos:",
+            error
+          );
         }
+      },
+      100
+    );
+
+  } catch (error) {
+    state.loading =
+      false;
+
+    renderStats();
+
+    if (
+      error &&
+      error.name ===
+      "AbortError"
+    ) {
+      updateLoadMessage(
+        "Carregamento cancelado."
       );
 
+      toast(
+        "Carregamento cancelado."
+      );
 
-    } else if (
-      isHLS &&
-      video.canPlayType(
-        "application/vnd.apple.mpegurl"
-      )
-    ) {
-
-      video.src =
-        url;
-
-
-      if (
-        state.settings
-          .autoplay
-      ) {
-
-        await video
-          .play()
-          .catch(
-            () => {}
-          );
-
-      }
-
-
-    } else {
-
-      video.src =
-        url;
-
-
-      if (
-        state.settings
-          .autoplay
-      ) {
-
-        await video
-          .play()
-          .catch(
-            () => {}
-          );
-
-      }
-
+      return;
     }
-
-
-    if (
-      els.playerMessage
-    ) {
-
-      els.playerMessage.textContent =
-        "";
-
-    }
-
-
-    if (
-      els.player &&
-      state.settings
-        .autoplay
-    ) {
-
-      els.player.scrollIntoView({
-
-        behavior:
-          "smooth",
-
-        block:
-          "start"
-
-      });
-
-    }
-
-
-  } catch (
-    error
-  ) {
 
     console.error(
-      "Player:",
+      "[GC PLAY PRO] Erro M3U:",
       error
     );
 
+    let message =
+      "Não foi possível carregar a playlist.";
 
     if (
-      els.playerMessage
+      error &&
+      error.message
     ) {
-
-      els.playerMessage.textContent =
-        "Não foi possível iniciar este conteúdo.";
-
+      message +=
+        ` ${error.message}`;
     }
 
-  }
+    updateLoadMessage(
+      message
+    );
 
+    toast(
+      "Erro ao carregar a playlist.",
+      5000
+    );
+  } finally {
+    state.loadAbort =
+      null;
+
+    state.loading =
+      false;
+
+    renderStats();
+  }
 }
 
+/* =========================================================
+   CARREGAR ARQUIVO M3U LOCAL
+   ========================================================= */
+
+async function loadFile(
+  file
+) {
+  if (!file) {
+    return;
+  }
+
+  if (
+    !file.name
+      .toLowerCase()
+      .match(
+        /\.(m3u|m3u8|txt)$/i
+      )
+  ) {
+    toast(
+      "Selecione um arquivo M3U ou M3U8."
+    );
+
+    return;
+  }
+
+  state.loading =
+    true;
+
+  state.items =
+    [];
+
+  state.counts = {
+    live: 0,
+    movie: 0,
+    series: 0
+  };
+
+  state.groups =
+    [];
+
+  renderStats();
+
+  try {
+    updateLoadMessage(
+      "Lendo arquivo local..."
+    );
+
+    /*
+       Para arquivos locais grandes,
+       usamos Blob.stream quando disponível.
+    */
+
+    let response;
+
+    if (
+      typeof file.stream ===
+      "function"
+    ) {
+      response =
+        new Response(
+          file.stream()
+        );
+    } else {
+      const text =
+        await file.text();
+
+      response =
+        new Response(
+          text
+        );
+    }
+
+    if (
+      state.db
+    ) {
+      try {
+        state.db.close();
+      } catch {}
+    }
+
+    try {
+      await resetDatabaseFast();
+    } catch {}
+
+    state.db =
+      await openDB();
+
+    let batch = [];
+
+    const groups =
+      new Set();
+
+    let processed = 0;
+
+    for await (
+      const item of parseM3UStream(
+        response,
+        null
+      )
+    ) {
+      processParsedItem(
+        item,
+        batch,
+        groups
+      );
+
+      processed++;
+
+      if (
+        batch.length >=
+        WRITE_BATCH
+      ) {
+        queueWrite(
+          batch
+        );
+
+        batch = [];
+
+        render();
+
+        updateLiveCounters();
+
+        updateLoadMessage(
+          `Carregando arquivo... ${formatNumber(
+            processed
+          )} itens`
+        );
+
+        await new Promise(
+          requestAnimationFrame
+        );
+      }
+    }
+
+    if (
+      batch.length
+    ) {
+      queueWrite(
+        batch
+      );
+    }
+
+    state.groups =
+      Array.from(groups)
+        .sort(
+          (a, b) =>
+            a.localeCompare(
+              b,
+              "pt-BR",
+              {
+                sensitivity:
+                  "base"
+              }
+            )
+        );
+
+    while (
+      writeProcessing ||
+      writeQueue.length
+    ) {
+      await sleep(50);
+    }
+
+    render();
+
+    updateLiveCounters();
+
+    updateLoadMessage(
+      `Arquivo carregado: ${formatNumber(
+        processed
+      )} itens`
+    );
+
+    toast(
+      `${formatNumber(
+        processed
+      )} conteúdos carregados.`,
+      5000
+    );
+
+  } catch (error) {
+    console.error(
+      "Erro carregando arquivo:",
+      error
+    );
+
+    updateLoadMessage(
+      "Erro ao ler o arquivo."
+    );
+
+    toast(
+      "Erro ao carregar arquivo M3U."
+    );
+  } finally {
+    state.loading =
+      false;
+
+    renderStats();
+  }
+}
 
 /* =========================================================
-   PESQUISA GLOBAL
+   FORMULÁRIO DA PLAYLIST
+   ========================================================= */
+
+function setupPlaylistForm() {
+  const form =
+    $("#playlistForm");
+
+  if (!form) {
+    return;
+  }
+
+  form.addEventListener(
+    "submit",
+    async event => {
+      event.preventDefault();
+
+      const nameInput =
+        $("#playlistName");
+
+      const urlInput =
+        $("#playlistUrl");
+
+      const name =
+        nameInput
+          ? nameInput.value.trim()
+          : "";
+
+      const url =
+        urlInput
+          ? urlInput.value.trim()
+          : "";
+
+      if (!url) {
+        toast(
+          "Informe a URL da playlist."
+        );
+
+        if (urlInput) {
+          urlInput.focus();
+        }
+
+        return;
+      }
+
+      if (
+        !isHttpUrl(url)
+      ) {
+        toast(
+          "A URL precisa começar com http:// ou https://."
+        );
+
+        return;
+      }
+
+      /*
+         Salvar nome da playlist
+         para uso futuro.
+      */
+
+      try {
+        localStorage.setItem(
+          "GC_PLAY_PRO_PLAYLIST_NAME",
+          name ||
+            "Minha Playlist"
+        );
+
+        localStorage.setItem(
+          "GC_PLAY_PRO_PLAYLIST_URL",
+          url
+        );
+      } catch {}
+
+      const submitButton =
+        form.querySelector(
+          'button[type="submit"]'
+        );
+
+      if (submitButton) {
+        submitButton.disabled =
+          true;
+
+        submitButton.dataset.oldText =
+          submitButton.textContent;
+
+        submitButton.textContent =
+          "CARREGANDO...";
+      }
+
+      try {
+        await loadM3U(
+          url
+        );
+      } finally {
+        if (submitButton) {
+          submitButton.disabled =
+            false;
+
+          submitButton.textContent =
+            submitButton.dataset.oldText ||
+            "CARREGAR";
+        }
+      }
+    }
+  );
+}
+
+/* =========================================================
+   BOTÃO EXPLORAR
+   ========================================================= */
+
+function setupExploreButton() {
+  const button =
+    $("#exploreButton");
+
+  if (!button) {
+    return;
+  }
+
+  button.addEventListener(
+    "click",
+    () => {
+      const library =
+        $("#librarySection");
+
+      if (library) {
+        library.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }
+    }
+  );
+}
+
+/* =========================================================
+   BUSCA
    ========================================================= */
 
 let searchTimer =
   null;
 
+function setupSearch() {
+  const input =
+    $("#globalSearch");
 
-async function searchGlobal(
-  query
-) {
-
-  const q =
-    normalize(
-      query
-    );
-
-
-  if (
-    !els.searchResults
-  ) {
-
+  if (!input) {
     return;
-
   }
 
-
-  if (!q) {
-
-    els.searchResults.innerHTML =
-      "";
-
-    return;
-
-  }
-
-
-  els.searchResults.innerHTML =
-    `
-      <div
-        class="search-empty"
-      >
-        Pesquisando...
-      </div>
-    `;
-
-
-  try {
-
-    const results =
-      await getItems({
-
-        limit:
-          80,
-
-        query:
-          q
-
-      });
-
-
-    if (
-      !results.length
-    ) {
-
-      els.searchResults.innerHTML =
-        `
-          <div
-            class="search-empty"
-          >
-            Nenhum conteúdo encontrado.
-          </div>
-        `;
-
-      return;
-
-    }
-
-
-    els.searchResults.innerHTML =
-      results
-        .map(
-          item => `
-
-            <div
-              class="search-result"
-              data-id="${esc(
-                item.id
-              )}"
-            >
-
-              ${
-                item.logo
-
-                  ? `
-
-                    <img
-                      class="search-result-thumb"
-                      src="${esc(
-                        item.logo
-                      )}"
-                      alt=""
-                      onerror="this.style.display='none'"
-                    >
-
-                  `
-
-                  : `
-
-                    <div
-                      class="search-result-thumb"
-                    ></div>
-
-                  `
-              }
-
-
-              <div>
-
-                <div
-                  class="search-result-title"
-                >
-                  ${esc(
-                    item.name
-                  )}
-                </div>
-
-
-                <div
-                  class="search-result-meta"
-                >
-                  ${esc(
-                    typeLabel(
-                      item.type
-                    )
-                  )}
-
-                  ·
-
-                  ${esc(
-                    item.group ||
-                    "Sem grupo"
-                  )}
-
-                </div>
-
-              </div>
-
-            </div>
-
-          `
-        )
-        .join("");
-
-
-    $$(".search-result",
-      els.searchResults
-    )
-      .forEach(
-        element => {
-
-          element.addEventListener(
-            "click",
-            async () => {
-
-              const item =
-                await getItemById(
-                  element.dataset.id
-                );
-
-
-              if (!item) {
-
-                toast(
-                  "Conteúdo não encontrado."
-                );
-
-                return;
-
-              }
-
-
-              closeDialog(
-                els.searchDialog
-              );
-
-
-              playItem(
-                item
-              );
-
-            }
-          );
-
-        }
+  input.addEventListener(
+    "input",
+    () => {
+      clearTimeout(
+        searchTimer
       );
 
+      const value =
+        input.value.trim();
 
-  } catch (
-    error
-  ) {
+      state.searchTerm =
+        value;
 
-    console.error(
-      "Pesquisa:",
-      error
-    );
+      searchTimer =
+        setTimeout(
+          () => {
+            performSearch(
+              value
+            );
+          },
+          250
+        );
+    }
+  );
+}
 
+/* =========================================================
+   BUSCA GLOBAL
+   ========================================================= */
 
-    els.searchResults.innerHTML =
+async function performSearch(
+  term
+) {
+  const results =
+    $("#searchResults");
+
+  if (!results) {
+    return;
+  }
+
+  const normalized =
+    normalizeText(term);
+
+  if (!normalized) {
+    results.innerHTML =
       `
-        <div
-          class="search-empty"
-        >
-          Erro na pesquisa.
+        <div class="gc-results-count">
+          Digite o nome de um canal,
+          filme ou série.
         </div>
       `;
 
+    return;
   }
 
-}
+  results.innerHTML =
+    `
+      <div class="gc-loading">
+        <span class="gc-spinner"></span>
+        Procurando...
+      </div>
+    `;
 
+  /*
+     Primeiro procura na RAM.
+  */
 
-/* =========================================================
-   DIÁLOGOS
-   ========================================================= */
-
-function openDialog(
-  dialog
-) {
-
-  if (!dialog)
-    return;
-
-
-  if (
-    typeof dialog.showModal ===
-    "function"
-  ) {
-
-    if (
-      !dialog.open
-    ) {
-
-      dialog.showModal();
-
-    }
-
-  } else {
-
-    dialog.setAttribute(
-      "open",
-      ""
+  let matches =
+    state.items.filter(
+      item =>
+        item.nameLower.includes(
+          normalized
+        ) ||
+        normalizeText(
+          item.group
+        ).includes(
+          normalized
+        )
     );
 
-  }
+  /*
+     Limite inicial para evitar
+     travar a interface.
+  */
 
-}
-
-
-function closeDialog(
-  dialog
-) {
-
-  if (!dialog)
-    return;
-
-
-  if (
-    typeof dialog.close ===
-    "function"
-  ) {
-
-    if (
-      dialog.open
-    ) {
-
-      dialog.close();
-
-    }
-
-  } else {
-
-    dialog.removeAttribute(
-      "open"
+  matches =
+    matches.slice(
+      0,
+      100
     );
 
-  }
-
-}
-
-
-function openPlaylistDialog() {
-
-  setMessage(
-    ""
-  );
-
+  /*
+     Se não encontrou na RAM,
+     consulta o banco.
+  */
 
   if (
-    els.name &&
-    !els.name.value
+    matches.length === 0 &&
+    state.db
   ) {
-
-    els.name.value =
-      state.playlist?.name ||
-      "";
-
+    matches =
+      await searchDatabase(
+        normalized,
+        100
+      );
   }
 
+  if (!matches.length) {
+    results.innerHTML =
+      `
+        <div class="gc-results-count">
+          Nenhum resultado encontrado.
+        </div>
+      `;
 
-  if (
-    els.url &&
-    !els.url.value
-  ) {
-
-    els.url.value =
-      state.playlist?.url ||
-      "";
-
+    return;
   }
 
+  results.innerHTML =
+    `
+      <div class="gc-results-count">
+        ${formatNumber(
+          matches.length
+        )}
+        resultado(s)
+      </div>
 
-  openDialog(
-    els.dialog
-  );
+      ${matches
+        .map(
+          renderSearchResult
+        )
+        .join("")}
+    `;
 
+  setupSearchResultEvents();
 }
-
-
-function openSearchDialog() {
-
-  openDialog(
-    els.searchDialog
-  );
-
-
-  setTimeout(
-    () => {
-
-      els.search?.focus();
-
-    },
-    100
-  );
-
-}
-
-
-function openSettingsDialog() {
-
-  openDialog(
-    els.settingsDialog
-  );
-
-}
-
 
 /* =========================================================
-   IMPORTAÇÃO DE ARQUIVO
+   BUSCA NO BANCO
    ========================================================= */
 
-function createFileImporter() {
+function searchDatabase(
+  term,
+  limit = 100
+) {
+  return new Promise(
+    (resolve, reject) => {
+      const result = [];
 
-  if (!els.form)
+      const transaction =
+        state.db.transaction(
+          STORE_NAME,
+          "readonly"
+        );
+
+      const store =
+        transaction.objectStore(
+          STORE_NAME
+        );
+
+      const request =
+        store.openCursor();
+
+      request.onsuccess =
+        event => {
+          const cursor =
+            event.target.result;
+
+          if (!cursor) {
+            resolve(result);
+            return;
+          }
+
+          const item =
+            cursor.value;
+
+          if (
+            item.nameLower.includes(
+              term
+            ) ||
+            normalizeText(
+              item.group
+            ).includes(
+              term
+            )
+          ) {
+            result.push(
+              item
+            );
+
+            if (
+              result.length >=
+              limit
+            ) {
+              resolve(
+                result
+              );
+
+              return;
+            }
+          }
+
+          cursor.continue();
+        };
+
+      request.onerror =
+        () => {
+          reject(
+            request.error
+          );
+        };
+    }
+  );
+}
+
+/* =========================================================
+   RESULTADO DA BUSCA
+   ========================================================= */
+
+function renderSearchResult(
+  item
+) {
+  const image =
+    item.logo
+      ? `
+        <img
+          src="${escapeHTML(
+            item.logo
+          )}"
+          alt=""
+          loading="lazy"
+          onerror="this.style.display='none'"
+        >
+      `
+      : `
+        <div class="gc-search-logo">
+          ${getTypeIcon(
+            item.type
+          )}
+        </div>
+      `;
+
+  return `
+    <div
+      class="gc-search-result"
+      data-search-id="${escapeHTML(
+        item.id
+      )}"
+    >
+
+      ${image}
+
+      <div class="gc-search-text">
+
+        <div class="gc-search-name">
+          ${escapeHTML(
+            item.name
+          )}
+        </div>
+
+        <div class="gc-search-meta">
+          ${escapeHTML(
+            formatType(
+              item.type
+            )
+          )}
+          •
+          ${escapeHTML(
+            item.group
+          )}
+        </div>
+
+      </div>
+
+    </div>
+  `;
+}
+
+/* =========================================================
+   EVENTOS DOS RESULTADOS
+   ========================================================= */
+
+function setupSearchResultEvents() {
+  const results =
+    $("#searchResults");
+
+  if (!results) {
     return;
-
-
-  if (
-    $("#gcFileImportButton")
-  ) {
-
-    return;
-
   }
 
+  results
+    .querySelectorAll(
+      "[data-search-id]"
+    )
+    .forEach(
+      element => {
+        element.addEventListener(
+          "click",
+          async () => {
+            const id =
+              element.dataset.searchId;
+
+            const item =
+              await findItem(id);
+
+            if (item) {
+              closeDialog(
+                "searchDialog"
+              );
+
+              await playItem(
+                item
+              );
+            }
+          }
+        );
+      }
+    );
+}
+
+/* =========================================================
+   ARQUIVO LOCAL
+   ========================================================= */
+
+function setupLocalFileButton() {
+  const input =
+    document.createElement(
+      "input"
+    );
+
+  input.type =
+    "file";
+
+  input.accept =
+    ".m3u,.m3u8,.txt,audio/x-mpegurl,application/vnd.apple.mpegurl";
+
+  input.style.display =
+    "none";
+
+  document.body.appendChild(
+    input
+  );
 
   const button =
     document.createElement(
       "button"
     );
 
-
   button.type =
     "button";
 
-
-  button.id =
-    "gcFileImportButton";
-
-
   button.className =
-    "secondary-button";
-
+    "gc-local-file-button";
 
   button.textContent =
-    "USAR ARQUIVO M3U";
-
-
-  const input =
-    document.createElement(
-      "input"
-    );
-
-
-  input.type =
-    "file";
-
-
-  input.accept =
-    ".m3u,.m3u8,text/plain,audio/x-mpegurl";
-
-
-  input.hidden =
-    true;
-
+    "CARREGAR ARQUIVO M3U";
 
   button.addEventListener(
     "click",
-    () =>
-      input.click()
+    () => {
+      input.click();
+    }
   );
-
 
   input.addEventListener(
     "change",
     async () => {
-
       const file =
-        input.files?.[0];
+        input.files &&
+        input.files[0];
 
-
-      if (!file)
-        return;
-
-
-      setMessage(
-        "Lendo arquivo M3U..."
-      );
-
-
-      try {
-
-        await clearDB();
-
-
-        state.items =
-          [];
-
-
-        state.total =
-          0;
-
-
-        state.counts = {
-
-          live:
-            0,
-
-          movie:
-            0,
-
-          series:
-            0
-
-        };
-
-
-        updateCounters();
-
-
-        const text =
-          await file.text();
-
-
-        await parseText(
-          text,
-          async batch => {
-
-            await putBatch(
-              batch
-            );
-
-
-            state.total +=
-              batch.length;
-
-
-            for (
-              const item of
-              batch
-            ) {
-
-              state.counts[
-                item.type
-              ]++;
-
-            }
-
-
-            if (
-              state.items.length <
-              3000
-            ) {
-
-              const room =
-                3000 -
-                state.items.length;
-
-
-              state.items.push(
-                ...batch.slice(
-                  0,
-                  room
-                )
-              );
-
-            }
-
-
-            updateCounters();
-
-          }
+      if (file) {
+        await loadFile(
+          file
         );
-
-
-        state.playlist = {
-
-          name:
-            file.name,
-
-          url:
-            `file:${file.name}`,
-
-          source:
-            "local"
-
-        };
-
-
-        saveLocalState();
-
-
-        updateStatus(
-          `ONLINE • ${formatNumber(
-            state.total
-          )}`
-        );
-
-
-        await buildGroupSelector();
-
-
-        await render();
-
-
-        closeDialog(
-          els.dialog
-        );
-
-
-        toast(
-          `Arquivo carregado: ${formatNumber(
-            state.total
-          )} conteúdos.`,
-          5000
-        );
-
-
-      } catch (
-        error
-      ) {
-
-        console.error(
-          "Arquivo M3U:",
-          error
-        );
-
-
-        setMessage(
-          "Não foi possível ler o arquivo M3U.",
-          true
-        );
-
       }
-
 
       input.value =
         "";
-
     }
   );
 
+  const form =
+    $("#playlistForm");
 
-  els.form.appendChild(
-    button
-  );
-
-
-  els.form.appendChild(
-    input
-  );
-
+  if (form) {
+    form.appendChild(
+      button
+    );
+  }
 }
-
-
 /* =========================================================
-   NAVEGAÇÃO
+   CARREGAR CONTADORES DO BANCO
    ========================================================= */
 
-function setFilter(
-  filter
-) {
+async function loadDatabaseStats() {
+  try {
+    if (!state.db) {
+      return;
+    }
 
-  state.favoriteOnly =
-    false;
+    const [
+      total,
+      live,
+      movie,
+      series
+    ] = await Promise.all([
+      countAllItems(),
+      countByType("live"),
+      countByType("movie"),
+      countByType("series")
+    ]);
 
+    state.total =
+      total;
 
-  state.filter =
-    filter ||
-    "all";
+    state.counts.live =
+      live;
 
+    state.counts.movie =
+      movie;
 
-  $$(".filter-button")
-    .forEach(
-      button => {
+    state.counts.series =
+      series;
 
-        button.classList.toggle(
+    renderStats();
 
-          "active",
-
-          button.dataset
-            .filter ===
-            state.filter
-
-        );
-
-      }
+  } catch (error) {
+    console.error(
+      "Erro carregando estatísticas:",
+      error
     );
-
-
-  render();
-
-}
-
-
-function showFavorites() {
-
-  state.favoriteOnly =
-    true;
-
-
-  state.filter =
-    "all";
-
-
-  $$(".filter-button")
-    .forEach(
-      button => {
-
-        button.classList.toggle(
-
-          "active",
-
-          button.dataset
-            .filter ===
-            "all"
-
-        );
-
-      }
-    );
-
-
-  if (
-    els.library
-  ) {
-
-    els.library.scrollIntoView({
-
-      behavior:
-        "smooth",
-
-      block:
-        "start"
-
-    });
-
   }
-
-
-  render();
-
 }
 
+/* =========================================================
+   CARREGAR CATÁLOGO LOCAL
+   ========================================================= */
 
-function handleNavigation(
-  section
-) {
+async function loadLocalCatalog() {
+  try {
+    if (!state.db) {
+      return;
+    }
 
-  if (
-    section ===
-    "home"
-  ) {
+    const items =
+      await loadSample(
+        RAM_LIMIT
+      );
 
-    window.scrollTo({
+    state.items =
+      items;
 
-      top:
-        0,
+    await loadDatabaseStats();
 
-      behavior:
-        "smooth"
+    render();
 
-    });
+  } catch (error) {
+    console.error(
+      "Erro carregando catálogo:",
+      error
+    );
+  }
+}
 
+/* =========================================================
+   RESTAURAR PLAYLIST
+   ========================================================= */
 
-    state.favoriteOnly =
-      false;
+function getSavedPlaylist() {
+  try {
+    const url =
+      localStorage.getItem(
+        "GC_PLAY_PRO_PLAYLIST_URL"
+      );
 
+    const name =
+      localStorage.getItem(
+        "GC_PLAY_PRO_PLAYLIST_NAME"
+      );
 
+    if (!url) {
+      return null;
+    }
+
+    return {
+      url,
+      name:
+        name ||
+        "Minha Playlist"
+    };
+
+  } catch {
+    return null;
+  }
+}
+
+/* =========================================================
+   RESTAURAR FORMULÁRIO
+   ========================================================= */
+
+function restorePlaylistForm() {
+  const playlist =
+    getSavedPlaylist();
+
+  if (!playlist) {
     return;
-
   }
 
+  const name =
+    $("#playlistName");
 
-  if (
-    section ===
-    "live"
-  ) {
+  const url =
+    $("#playlistUrl");
 
-    setFilter(
-      "live"
-    );
-
+  if (name) {
+    name.value =
+      playlist.name;
   }
 
-
-  if (
-    section ===
-    "movies"
-  ) {
-
-    setFilter(
-      "movie"
-    );
-
+  if (url) {
+    url.value =
+      playlist.url;
   }
-
-
-  if (
-    section ===
-    "series"
-  ) {
-
-    setFilter(
-      "series"
-    );
-
-  }
-
-
-  if (
-    section ===
-    "favorites"
-  ) {
-
-    showFavorites();
-
-  }
-
-
-  if (
-    els.library
-  ) {
-
-    els.library.scrollIntoView({
-
-      behavior:
-        "smooth",
-
-      block:
-        "start"
-
-    });
-
-  }
-
 }
 
-
 /* =========================================================
-   EVENTOS
+   BOTÃO DE CANCELAR CARGA
    ========================================================= */
 
-function bindEvents() {
+function setupCancelLoad() {
+  const form =
+    $("#playlistForm");
 
-  els.add?.addEventListener(
-    "click",
-    openPlaylistDialog
-  );
+  if (!form) {
+    return;
+  }
 
+  /*
+     Permite cancelar com ESC.
+  */
 
-  els.emptyAdd?.addEventListener(
-    "click",
-    openPlaylistDialog
-  );
-
-
-  els.explore?.addEventListener(
-    "click",
-    () => {
-
-      els.library?.scrollIntoView({
-
-        behavior:
-          "smooth",
-
-        block:
-          "start"
-
-      });
-
+  document.addEventListener(
+    "keydown",
+    event => {
+      if (
+        event.key === "Escape" &&
+        state.loading
+      ) {
+        if (
+          state.loadAbort
+        ) {
+          state.loadAbort.abort();
+        }
+      }
     }
   );
+}
 
+/* =========================================================
+   TECLADO / SMART TV
+   ========================================================= */
 
-  els.closeDialog?.addEventListener(
-    "click",
-    () =>
-      closeDialog(
-        els.dialog
-      )
-  );
+function setupKeyboardNavigation() {
+  document.addEventListener(
+    "keydown",
+    event => {
+      /*
+         Não interferir enquanto
+         usuário estiver digitando.
+      */
 
-
-  els.searchButton?.addEventListener(
-    "click",
-    openSearchDialog
-  );
-
-
-  els.closeSearch?.addEventListener(
-    "click",
-    () =>
-      closeDialog(
-        els.searchDialog
-      )
-  );
-
-
-  els.settingsButton?.addEventListener(
-    "click",
-    openSettingsDialog
-  );
-
-
-  els.closeSettings?.addEventListener(
-    "click",
-    () =>
-      closeDialog(
-        els.settingsDialog
-      )
-  );
-
-
-  els.closePlayer?.addEventListener(
-    "click",
-    () => {
-
-      destroyHLS();
-
-
-      els.video?.pause();
-
+      const tag =
+        document.activeElement
+          ?.tagName
+          ?.toLowerCase();
 
       if (
-        els.video
+        tag === "input" ||
+        tag === "textarea" ||
+        tag === "select"
       ) {
-
-        els.video.removeAttribute(
-          "src"
-        );
-
-        els.video.load();
-
-      }
-
-
-      els.player?.classList.add(
-        "hidden"
-      );
-
-    }
-  );
-
-
-  $$(".filter-button")
-    .forEach(
-      button => {
-
-        button.addEventListener(
-          "click",
-          () =>
-            setFilter(
-              button.dataset
-                .filter
-            )
-        );
-
-      }
-    );
-
-
-  $$(".nav-item")
-    .forEach(
-      button => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            $$(".nav-item")
-              .forEach(
-                item =>
-                  item.classList.toggle(
-                    "active",
-                    item ===
-                      button
-                  )
-              );
-
-
-            handleNavigation(
-              button.dataset
-                .section
-            );
-
-          }
-        );
-
-      }
-    );
-
-
-  els.search?.addEventListener(
-    "input",
-    () => {
-
-      clearTimeout(
-        searchTimer
-      );
-
-
-      searchTimer =
-        setTimeout(
-          () =>
-            searchGlobal(
-              els.search.value
-            ),
-          180
-        );
-
-    }
-  );
-
-
-  els.autoplay?.addEventListener(
-    "change",
-    () => {
-
-      state.settings.autoplay =
-        els.autoplay.checked;
-
-      saveLocalState();
-
-    }
-  );
-
-
-  els.compact?.addEventListener(
-    "change",
-    () => {
-
-      state.settings.compact =
-        els.compact.checked;
-
-
-      document.body.classList.toggle(
-
-        "compact-mode",
-
-        state.settings.compact
-
-      );
-
-
-      saveLocalState();
-
-    }
-  );
-
-
-  els.form?.addEventListener(
-    "submit",
-    async event => {
-
-      event.preventDefault();
-
-
-      const name =
-        els.name?.value.trim() ||
-        "Minha lista";
-
-
-      const url =
-        els.url?.value.trim();
-
-
-      if (!url) {
-
-        setMessage(
-          "Informe a URL da lista.",
-          true
-        );
-
         return;
-
       }
 
+      /*
+         ESC fecha player/dialog.
+      */
 
-      try {
-
-        new URL(
-          url
-        );
-
-      } catch {
-
-        setMessage(
-          "URL inválida.",
-          true
-        );
-
-        return;
-
-      }
-
-
-      const submit =
-        $(
-          "button[type='submit']",
-          els.form
-        );
-
-
-      if (submit) {
-
-        submit.disabled =
-          true;
-
-        submit.textContent =
-          "CARREGANDO...";
-
-      }
-
-
-      setMessage(
-        "Conectando..."
-      );
-
-
-      try {
-
-        state.playlist = {
-
-          name,
-
-          url,
-
-          source:
-            "remote",
-
-          savedAt:
-            Date.now()
-
-        };
-
-
-        saveLocalState();
-
-
-        await loadM3U(
-          url
-        );
-
-
-        setMessage(
-          `Lista carregada com ${formatNumber(
-            state.total
-          )} conteúdos.`
-        );
-
+      if (
+        event.key === "Escape"
+      ) {
+        closePlayer();
 
         closeDialog(
-          els.dialog
+          "searchDialog"
         );
 
+        closeDialog(
+          "settingsDialog"
+        );
 
-      } catch {
-
-        /*
-          loadM3U já mostra
-          a mensagem detalhada.
-        */
-
-      } finally {
-
-        if (submit) {
-
-          submit.disabled =
-            false;
-
-          submit.textContent =
-            "SALVAR LISTA";
-
-        }
-
+        return;
       }
 
+      /*
+         ENTER em item focado.
+      */
+
+      if (
+        event.key === "Enter"
+      ) {
+        const focused =
+          document.activeElement;
+
+        if (
+          focused &&
+          focused.dataset &&
+          focused.dataset.itemId
+        ) {
+          const id =
+            focused.dataset.itemId;
+
+          findItem(id)
+            .then(item => {
+              if (item) {
+                playItem(item);
+              }
+            });
+        }
+      }
     }
   );
+}
 
+/* =========================================================
+   FOCUS NOS CARDS
+   ========================================================= */
 
-  [
-    els.dialog,
-    els.searchDialog,
-    els.settingsDialog
+function enableCardFocus() {
+  const observer =
+    new MutationObserver(
+      () => {
+        const cards =
+          document.querySelectorAll(
+            ".gc-card"
+          );
 
-  ]
-
-    .filter(
-      Boolean
-    )
-
-    .forEach(
-      dialog => {
-
-        dialog.addEventListener(
-          "click",
-          event => {
-
+        cards.forEach(
+          card => {
             if (
-              event.target ===
-              dialog
+              !card.hasAttribute(
+                "tabindex"
+              )
             ) {
-
-              closeDialog(
-                dialog
+              card.setAttribute(
+                "tabindex",
+                "0"
               );
-
             }
-
           }
         );
-
       }
     );
 
+  const grid =
+    $("#contentGrid");
+
+  if (grid) {
+    observer.observe(
+      grid,
+      {
+        childList: true
+      }
+    );
+  }
 }
 
+/* =========================================================
+   STATUS ONLINE / OFFLINE
+   ========================================================= */
+
+function setupConnectionStatus() {
+  const update =
+    () => {
+      const element =
+        $("#connectionStatus");
+
+      if (!element) {
+        return;
+      }
+
+      if (
+        !navigator.onLine
+      ) {
+        element.textContent =
+          "OFFLINE";
+      } else if (
+        state.loading
+      ) {
+        element.textContent =
+          "CARREGANDO...";
+      } else {
+        element.textContent =
+          "ONLINE";
+      }
+    };
+
+  window.addEventListener(
+    "online",
+    update
+  );
+
+  window.addEventListener(
+    "offline",
+    update
+  );
+
+  update();
+}
+
+/* =========================================================
+   LIMPAR CATÁLOGO
+   ========================================================= */
+
+async function clearCatalog() {
+  const confirmed =
+    window.confirm(
+      "Isso irá apagar a playlist armazenada neste navegador. Continuar?"
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    await resetDatabaseFast();
+
+    state.db =
+      await openDB();
+
+    state.items =
+      [];
+
+    state.groups =
+      [];
+
+    state.counts = {
+      live: 0,
+      movie: 0,
+      series: 0
+    };
+
+    state.total =
+      0;
+
+    render();
+
+    renderStats();
+
+    toast(
+      "Catálogo apagado."
+    );
+
+  } catch (error) {
+    console.error(
+      "Erro limpando catálogo:",
+      error
+    );
+
+    toast(
+      "Não foi possível apagar o catálogo."
+    );
+  }
+}
+
+/* =========================================================
+   EXPOR FUNÇÕES PARA DEBUG
+   ========================================================= */
+
+window.GC_PLAY_PRO = {
+  state,
+
+  loadM3U,
+
+  loadFile,
+
+  playItem,
+
+  closePlayer,
+
+  clearCatalog,
+
+  searchDatabase,
+
+  resetDatabaseFast
+};
 
 /* =========================================================
    INICIALIZAÇÃO
    ========================================================= */
 
-async function init() {
-
-  ensureDynamicCSS();
-
-
-  loadLocalState();
-
-
-  bindEvents();
-
-
-  createFileImporter();
-
-
-  updateCounters();
-
-
-  updateStatus(
-    "OFFLINE"
+async function initApp() {
+  console.log(
+    "%cGC PLAY PRO",
+    "font-size:24px;font-weight:900;color:#69ff65;"
   );
 
+  console.log(
+    "Inicializando sistema..."
+  );
+
+  ensureCSS();
+
+  loadState();
+
+  setupCardEvents();
+
+  setupFilters();
+
+  setupNavigation();
+
+  setupDialogs();
+
+  setupSettings();
+
+  setupPlaylistForm();
+
+  setupExploreButton();
+
+  setupSearch();
+
+  setupLocalFileButton();
+
+  setupCancelLoad();
+
+  setupKeyboardNavigation();
+
+  enableCardFocus();
+
+  setupConnectionStatus();
+
+  restorePlaylistForm();
 
   try {
+    updateLoadMessage(
+      "Inicializando catálogo..."
+    );
+  } catch {}
 
-    await openDB();
+  /* -------------------------------------------------------
+     ABRIR BANCO
+     ------------------------------------------------------- */
 
+  try {
+    state.db =
+      await openDB();
 
-    if (
-      state.playlist?.source ===
-        "remote" &&
-      state.playlist.url
-    ) {
+    console.log(
+      "IndexedDB conectado."
+    );
 
-      updateStatus(
-        state.total
-          ? `ONLINE • ${formatNumber(
-              state.total
-            )}`
-          : "CONFIGURADO"
-      );
-
-    }
-
-
-    const first =
-      await getItems({
-        limit:
-          1
-      });
-
-
-    if (
-      first.length
-    ) {
-
-      updateStatus(
-        "ONLINE"
-      );
-
-    }
-
-
-    await buildGroupSelector();
-
-
-    await render();
-
-
-  } catch (
-    error
-  ) {
-
+  } catch (error) {
     console.error(
-      "IndexedDB:",
+      "Erro abrindo IndexedDB:",
       error
     );
 
-
     toast(
-      "Armazenamento local avançado indisponível."
+      "Erro ao inicializar banco local."
     );
 
+    return;
   }
 
+  /* -------------------------------------------------------
+     CARREGAR CATÁLOGO
+     ------------------------------------------------------- */
+
+  await loadLocalCatalog();
+
+  /* -------------------------------------------------------
+     ESTATÍSTICAS
+     ------------------------------------------------------- */
+
+  renderStats();
+
+  /* -------------------------------------------------------
+     MENSAGEM INICIAL
+     ------------------------------------------------------- */
+
+  const total =
+    state.total;
+
+  if (total > 0) {
+    console.log(
+      `Catálogo local: ${formatNumber(
+        total
+      )} itens.`
+    );
+  } else {
+    console.log(
+      "Nenhuma playlist carregada."
+    );
+  }
+
+  console.log(
+    "%cGC PLAY PRO pronto.",
+    "color:#69ff65;font-weight:bold;"
+  );
 }
 
-
 /* =========================================================
-   INICIAR
+   START
    ========================================================= */
 
-init();
-
-
-/* =========================================================
-   FIM DO GC PLAY PRO
-   ========================================================= */
+if (
+  document.readyState ===
+  "loading"
+) {
+  document.addEventListener(
+    "DOMContentLoaded",
+    initApp,
+    {
+      once: true
+    }
+  );
+} else {
+  initApp();
+}
