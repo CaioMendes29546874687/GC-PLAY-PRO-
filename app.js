@@ -51,6 +51,8 @@ const state = {
   currentGenre: "all",
   currentSection: "home",
 
+  adultUnlocked: false,
+
   seriesView: {
     seriesKey: null,
     season: null
@@ -1835,8 +1837,13 @@ async function queryCatalogItems({
   if (!state.db) {
     let fallback = state.items.slice();
 
-    if (type) {
-      fallback = fallback.filter(item => item.type === type);
+    if (type === "adult") {
+      fallback = fallback.filter(isAdultContent);
+    } else {
+      fallback = fallback.filter(item =>
+        !isAdultContent(item) &&
+        (!type || item.type === type)
+      );
     }
 
     if (genre !== "all") {
@@ -1875,6 +1882,16 @@ async function queryCatalogItems({
       }
 
       const item = cursor.value;
+      const matchesAdult =
+        type === "adult"
+          ? isAdultContent(item)
+          : !isAdultContent(item);
+
+      const matchesType =
+        type === "adult"
+          ? true
+          : (!type || item.type === type);
+
       const matchesGenre =
         genre === "all" ||
         normalizeText(getGenreName(item.group)) === normalizeText(genre);
@@ -1884,7 +1901,7 @@ async function queryCatalogItems({
         item.nameLower.includes(normalizeText(term)) ||
         normalizeText(item.group).includes(normalizeText(term));
 
-      if (matchesGenre && matchesTerm) {
+      if (matchesAdult && matchesType && matchesGenre && matchesTerm) {
         result.push(item);
       }
 
@@ -1918,8 +1935,8 @@ async function render() {
   }
 
   const type =
-    state.currentFilter === "all"
-      ? null
+    state.currentFilter === "all" || state.currentFilter === "adult"
+      ? (state.currentFilter === "adult" ? "adult" : null)
       : state.currentFilter;
 
   const items = await queryCatalogItems({
@@ -2286,6 +2303,12 @@ async function rebuildSeriesCatalogInBackground(force = false) {
 
 async function getFilteredSeriesItems() {
   let items = await getAllSeriesItems();
+
+  items = items.filter(item =>
+    state.currentFilter === "adult"
+      ? isAdultSeries(item)
+      : !isAdultSeries(item)
+  );
 
   if (state.currentGenre !== "all") {
     const wanted = normalizeText(state.currentGenre);
@@ -3329,6 +3352,7 @@ function setupFilters() {
   buttons.forEach(button => {
     button.addEventListener("click", () => {
       state.currentFilter = button.dataset.filter || "all";
+      state.adultUnlocked = false;
       state.currentGenre = "all";
       state.seriesView.seriesKey = null;
       state.seriesView.season = null;
@@ -3341,6 +3365,117 @@ function setupFilters() {
       render();
     });
   });
+}
+
+const ADULT_PIN_KEY = "GC_PLAY_PRO_ADULT_PIN_SHA256_V1";
+const DEFAULT_ADULT_PIN = "0000";
+
+function normalizeAdultText(value) {
+  return normalizeText(value)
+    .replace(/[|/\\_:;()[\\]{}<>+]+/g, " ")
+    .replace(/\\s+/g, " ")
+    .trim();
+}
+
+function isAdultContent(item) {
+  if (!item) return false;
+
+  const text = normalizeAdultText([
+    item.group,
+    item.name,
+    item.tvgName,
+    item.category,
+    item.genre,
+    item.url
+  ].filter(Boolean).join(" "));
+
+  if (!text) return false;
+
+  const strongAdultTerms =
+    /(?:\\badult\\b|\\badultos?\\b|\\bxxx\\b|\\b18\\s*\\+\\b|\\bsexo\\b|\\bsexual\\b|\\bporn(?:o|ografia)?\\b|\\bpornhub\\b|\\bredtube\\b|\\bbrazzers\\b|\\bhentai\\b|\\berotic(?:a|o)\\b|\\berotismo\\b|\\bnudez?\\b|\\bonlyfans\\b|\\bplayboy\\b|\\bpenthouse\\b|\\bsexy\\b)/i;
+
+  return strongAdultTerms.test(text);
+}
+
+function isAdultSeries(item) {
+  return isAdultContent(item);
+}
+
+async function hashAdultPin(pin) {
+  const value = String(pin || "");
+  if (!value || !window.crypto?.subtle) return value;
+  const data = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return Array.from(new Uint8Array(digest))
+    .map(byte => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function ensureAdultPin() {
+  try {
+    const stored = localStorage.getItem(ADULT_PIN_KEY);
+    if (stored) return stored;
+    const hash = await hashAdultPin(DEFAULT_ADULT_PIN);
+    localStorage.setItem(ADULT_PIN_KEY, hash);
+    return hash;
+  } catch {
+    return await hashAdultPin(DEFAULT_ADULT_PIN);
+  }
+}
+
+async function verifyAdultPin(pin) {
+  const stored = await ensureAdultPin();
+  return (await hashAdultPin(pin)) === stored;
+}
+
+async function unlockAdultArea() {
+  const pin = window.prompt("ÁREA ADULTOS\\nDigite a senha de 4 dígitos:");
+  if (pin === null) return false;
+
+  if (!/^\\d{4,8}$/.test(pin)) {
+    toast("A senha deve ter de 4 a 8 dígitos.");
+    return false;
+  }
+
+  if (!(await verifyAdultPin(pin))) {
+    toast("Senha incorreta.");
+    return false;
+  }
+
+  state.adultUnlocked = true;
+  return true;
+}
+
+async function changeAdultPin() {
+  const current = window.prompt("ALTERAR SENHA\\nDigite a senha atual:");
+  if (current === null) return;
+
+  if (!(await verifyAdultPin(current))) {
+    toast("Senha atual incorreta.");
+    return;
+  }
+
+  const next = window.prompt("Digite a nova senha (4 a 8 dígitos):");
+  if (next === null) return;
+
+  if (!/^\\d{4,8}$/.test(next)) {
+    toast("A nova senha deve ter de 4 a 8 dígitos.");
+    return;
+  }
+
+  const confirmation = window.prompt("Digite a nova senha novamente:");
+  if (confirmation !== next) {
+    toast("As senhas não conferem.");
+    return;
+  }
+
+  try {
+    localStorage.setItem(ADULT_PIN_KEY, await hashAdultPin(next));
+    state.adultUnlocked = false;
+    toast("Senha da área Adultos alterada.");
+  } catch {
+    toast("Não foi possível alterar a senha.");
+  }
 }
 
 function getGenreName(group) {
@@ -3394,6 +3529,10 @@ async function buildGenreCatalog() {
         }
 
         const item = cursor.value;
+        if (isAdultContent(item)) {
+          cursor.continue();
+          return;
+        }
 
         /*
          * Corrige categorias de séries que foram salvas
@@ -3429,11 +3568,12 @@ async function buildGenreCatalog() {
 }
 
 function getAvailableGenres(type) {
-  const key=["live","movie","series"].includes(type)?type:"all";
+  const key=["live","movie","series","adult"].includes(type)?type:"all";
   if(key==="series" && state.seriesCatalog.length){
     return Array.from(new Set(state.seriesCatalog.map(item=>item.genre || getGenreName(item.group)).filter(Boolean)))
       .sort((a,b)=>a.localeCompare(b,"pt-BR",{sensitivity:"base"}));
   }
+  if (key === "adult") return [];
   const cached=state.genreCatalog[key];
   if(Array.isArray(cached) && cached.length) return cached;
   return Array.from(new Set(state.groups.map(getGenreName).filter(Boolean)))
@@ -3587,6 +3727,18 @@ async function handleSection(
     renderGenreFilters();
     render();
 
+    return;
+  }
+
+  if (
+    section === "adult"
+  ) {
+    state.currentFilter = "adult";
+    state.currentGenre = "all";
+    state.seriesView.seriesKey = null;
+    state.seriesView.season = null;
+    renderGenreFilters();
+    render();
     return;
   }
 
@@ -3867,6 +4019,12 @@ function syncSettingsUI() {
 }
 
 function setupSettings() {
+  const changePinButton = $("#changeAdultPinButton");
+
+  if (changePinButton) {
+    changePinButton.addEventListener("click", changeAdultPin);
+  }
+
   const autoplay =
     $("#autoplaySetting");
 
