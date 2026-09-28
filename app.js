@@ -383,75 +383,14 @@ function resetDatabaseFast() {
    ESCRITA EM LOTE
    ========================================================= */
 
-function queueWrite(items) {
-  if (!items || !items.length) return;
-
-  writeQueue.push(items);
-
-  processWriteQueue();
-}
-
-async function processWriteQueue() {
-  if (writeProcessing) return;
-
-  writeProcessing = true;
-
-  try {
-    while (writeQueue.length) {
-      const batch = writeQueue.shift();
-
-      await writeBatch(batch);
-
-      await new Promise(requestAnimationFrame);
-    }
-  } catch (error) {
-    console.error(
-      "Erro gravando banco:",
-      error
-    );
-  } finally {
-    writeProcessing = false;
-  }
-}
-
-function writeBatch(items) {
-  return new Promise((resolve, reject) => {
-    if (!state.db) {
-      reject(
-        new Error("Banco de dados não inicializado.")
-      );
-      return;
-    }
-
-    const transaction = state.db.transaction(
-      STORE_NAME,
-      "readwrite"
-    );
-
-    const store = transaction.objectStore(
-      STORE_NAME
-    );
-
-    for (const item of items) {
-      store.put(item);
-    }
-
-    transaction.oncomplete = () => {
-      resolve();
-    };
-
-    transaction.onerror = () => {
-      reject(transaction.error);
-    };
-
-    transaction.onabort = () => {
-      reject(transaction.error);
-    };
-  });
-}
+let writeQueue = [];
+let writeProcessing = false;
 
 function queueWrite(items, seriesUpdates = []) {
-  if ((!items || !items.length) && (!seriesUpdates || !seriesUpdates.length)) {
+  if (
+    (!items || !items.length) &&
+    (!seriesUpdates || !seriesUpdates.length)
+  ) {
     return;
   }
 
@@ -477,7 +416,9 @@ async function processWriteQueue() {
         payload.seriesUpdates
       );
 
-      await new Promise(requestAnimationFrame);
+      await new Promise(
+        requestAnimationFrame
+      );
     }
   } catch (error) {
     console.error(
@@ -489,45 +430,70 @@ async function processWriteQueue() {
   }
 }
 
-function writeBatch(items, seriesUpdates = []) {
+function writeBatch(
+  items,
+  seriesUpdates = []
+) {
   return new Promise((resolve, reject) => {
     if (!state.db) {
       reject(
-        new Error("Banco de dados não inicializado.")
+        new Error(
+          "Banco de dados não inicializado."
+        )
       );
       return;
     }
 
     const stores = [STORE_NAME];
 
-    if (state.db.objectStoreNames.contains(SERIES_STORE)) {
+    if (
+      state.db.objectStoreNames.contains(
+        SERIES_STORE
+      )
+    ) {
       stores.push(SERIES_STORE);
     }
 
-    const transaction = state.db.transaction(
-      stores,
-      "readwrite"
-    );
+    const transaction =
+      state.db.transaction(
+        stores,
+        "readwrite"
+      );
 
-    const store = transaction.objectStore(STORE_NAME);
+    const store =
+      transaction.objectStore(
+        STORE_NAME
+      );
 
     for (const item of items) {
       store.put(item);
     }
 
-    if (stores.includes(SERIES_STORE)) {
-      const seriesStore = transaction.objectStore(SERIES_STORE);
+    if (
+      stores.includes(SERIES_STORE)
+    ) {
+      const seriesStore =
+        transaction.objectStore(
+          SERIES_STORE
+        );
 
       for (const series of seriesUpdates) {
         seriesStore.put(series);
       }
     }
 
-    transaction.oncomplete = () => resolve();
+    transaction.oncomplete =
+      () => resolve();
 
-    transaction.onerror = () => reject(transaction.error);
+    transaction.onerror =
+      () => reject(
+        transaction.error
+      );
 
-    transaction.onabort = () => reject(transaction.error);
+    transaction.onabort =
+      () => reject(
+        transaction.error
+      );
   });
 }
 
