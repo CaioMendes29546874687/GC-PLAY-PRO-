@@ -1625,7 +1625,7 @@ function seasonPosterCard(seriesName, season, count, logo) {
     <article class="gc-card gc-season-browser-card" data-season="${season}">
       ${image}
       <div class="gc-card-info">
-        <div class="gc-card-title">Temporada ${season}</div>
+        <div class="gc-card-title">${season ? `Temporada ${season}` : "Temporada única"}</div>
         <div class="gc-card-meta">${count} episódio(s)</div>
       </div>
     </article>
@@ -1729,7 +1729,7 @@ function renderSeriesBrowser(grid, empty) {
       </div>
       <div class="content-grid gc-series-inner-grid">
         ${seasons.map(([season, list]) =>
-          seasonPosterCard(series.name, season || "Única", list.length, series.logo)
+          seasonPosterCard(series.name, season, list.length, series.logo)
         ).join("")}
       </div>
     `;
