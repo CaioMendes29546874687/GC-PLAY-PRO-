@@ -20,7 +20,7 @@ const GC_PROXY_HOSTS = new Set([
 ]);
 
 const DB_NAME = "GC_PLAY_PRO_FAST";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = "items";
 
 const RAM_LIMIT = 3000;
@@ -72,6 +72,13 @@ const state = {
   mpegts: null,
 
   seriesItemsCache: null,
+
+  genreCatalog: {
+    all: [],
+    live: [],
+    movie: [],
+    series: []
+  },
 
   groupsReady: false,
 
@@ -714,15 +721,17 @@ function extractSeriesInfo(item) {
   const group = String(item?.group || "").trim();
   const url = String(item?.url || "");
 
-  const source = `${name} ${url}`;
+  const source = normalizeText(`${name} ${tvgName} ${group} ${url}`);
 
   let season = null;
   let episode = null;
 
   const patterns = [
-    /(?:^|[\s._()\[\]-])(?:s|season|t|temporada)\s*0*(\d{1,3})\s*(?:e|ep|episode|episodio)\s*0*(\d{1,4})/i,
-    /(?:^|[\s._()\[\]-])0*(\d{1,3})\s*x\s*0*(\d{1,4})(?:$|[\s._()\[\]-])/i,
-    /[/\\]season[/\\_-]?0*(\d{1,3})[/\\]episode[/\\_-]?0*(\d{1,4})/i
+    /(?:^|[\\s._()[\\]-])(?:s|season|t|temporada)\\s*0*(\\d{1,3})\\s*(?:[-_.:/ ]?)(?:e|ep|episode|episodio)\\s*0*(\\d{1,4})(?=$|[\\s._()[\\]-])/i,
+    /(?:^|[\\s._()[\\]-])0*(\\d{1,3})\\s*x\\s*0*(\\d{1,4})(?=$|[\\s._()[\\]-])/i,
+    /[/\\\\]season[/\\\\_-]?0*(\\d{1,3})[/\\\\_-]episode[/\\\\_-]?0*(\\d{1,4})/i,
+    /[/\\\\]s0*(\\d{1,3})[/\\\\_-]e0*(\\d{1,4})/i,
+    /(?:season|temporada)[\\s._-]*0*(\\d{1,3})[^0-9]{0,8}(?:episode|episodio|ep)[\\s._-]*0*(\\d{1,4})/i
   ];
 
   for (const pattern of patterns) {
@@ -735,35 +744,56 @@ function extractSeriesInfo(item) {
   }
 
   if (season === null) {
-    const seasonOnly = source.match(
-      /(?:^|[\s._()\[\]-])(?:s|season|t|temporada)\s*0*(\d{1,3})(?:$|[\s._()\[\]-])/i
-    );
-    if (seasonOnly) season = Number(seasonOnly[1]);
+    const seasonOnly =
+      source.match(/(?:^|[\\s._()[\\]-])(?:s|season|t|temporada)\\s*0*(\\d{1,3})(?=$|[\\s._()[\\]-])/i) ||
+      source.match(/[/\\\\](?:season|s)[/\\\\_-]?0*(\\d{1,3})(?=[/\\\\_-])/i);
+
+    if (seasonOnly) {
+      season = Number(seasonOnly[1]);
+    }
   }
 
   if (season === null) {
     const urlSeason =
-      url.match(/[?&]season=0*(\d+)/i) ||
-      url.match(/[/\\]season[/\\_-]?0*(\d+)/i);
+      url.match(/[?&](?:season|temporada|s)=0*(\\d+)/i) ||
+      url.match(/[/\\\\](?:season|s)[/\\\\_-]?0*(\\d+)/i);
+
     if (urlSeason) season = Number(urlSeason[1]);
   }
 
   if (episode === null) {
     const urlEpisode =
-      url.match(/[?&](?:episode|ep)=0*(\d+)/i) ||
-      url.match(/[/\\](?:episode|ep)[/\\_-]?0*(\d+)/i);
+      url.match(/[?&](?:episode|episodio|ep|e)=0*(\\d+)/i) ||
+      url.match(/[/\\\\](?:episode|episodio|ep|e)[/\\\\_-]?0*(\\d+)/i);
+
     if (urlEpisode) episode = Number(urlEpisode[1]);
   }
 
   let seriesName = tvgName || name;
 
-  seriesName = seriesName
-    .replace(/\s*(?:[-|:]\s*)?(?:s|season|t|temporada)\s*0*\d{1,3}\s*(?:e|ep|episode|episodio)\s*0*\d{1,4}.*$/i, "")
-    .replace(/\s*(?:[-|:]\s*)?0*\d{1,3}\s*x\s*0*\d{1,4}.*$/i, "")
-    .replace(/\s*[-|:]\s*(?:episode|episodio|ep)\s*0*\d+.*$/i, "")
+  const groupWithoutPrefix = group
+    .replace(/^\\s*(?:series?|séries?)\\s*[-|:/\\\\>]\\s*/i, "")
     .trim();
 
-  if (!seriesName) seriesName = name || "Série sem nome";
+  if (groupWithoutPrefix && /(?:temporada|season|\\bt\\b|\\bs\\b)\\s*\\d+/i.test(groupWithoutPrefix)) {
+    const groupMatch = groupWithoutPrefix.match(
+      /^(.*?)\\s*(?:[-|:/\\\\>]\\s*)?(?:temporada|season|t|s)\\s*0*\\d+/i
+    );
+    if (groupMatch?.[1]?.trim()) {
+      seriesName = groupMatch[1].trim();
+    }
+  }
+
+  seriesName = seriesName
+    .replace(/\\s*(?:[-|:]\\s*)?(?:s|season|t|temporada)\\s*0*\\d{1,3}\\s*(?:[-_.:/ ]?)(?:e|ep|episode|episodio)\\s*0*\\d{1,4}.*$/i, "")
+    .replace(/\\s*(?:[-|:]\\s*)?0*\\d{1,3}\\s*x\\s*0*\\d{1,4}.*$/i, "")
+    .replace(/\\s*[-|:]\\s*(?:episode|episodio|ep)\\s*0*\\d+.*$/i, "")
+    .replace(/\\s*[-|:]\\s*(?:temporada|season|s|t)\\s*0*\\d+.*$/i, "")
+    .trim();
+
+  if (!seriesName) {
+    seriesName = name || groupWithoutPrefix || "Série sem nome";
+  }
 
   return {
     seriesName,
@@ -841,8 +871,10 @@ function normalizeItem(data) {
 
       return {
         seriesName: info.seriesName,
+        seriesKey: info.seriesKey,
         season: info.season,
-        episode: info.episode
+        episode: info.episode,
+        genre: info.genre
       };
     })()
   };
@@ -1514,11 +1546,84 @@ function getTypeIcon(type) {
    RENDER BIBLIOTECA
    ========================================================= */
 
-function render() {
+let renderRequestId = 0;
+
+async function queryCatalogItems({
+  type = null,
+  genre = "all",
+  term = "",
+  limit = 120
+} = {}) {
+  if (!state.db) {
+    let fallback = state.items.slice();
+
+    if (type) {
+      fallback = fallback.filter(item => item.type === type);
+    }
+
+    if (genre !== "all") {
+      const wanted = normalizeText(genre);
+      fallback = fallback.filter(item =>
+        normalizeText(getGenreName(item.group)) === wanted
+      );
+    }
+
+    if (term) {
+      const normalized = normalizeText(term);
+      fallback = fallback.filter(item =>
+        item.nameLower.includes(normalized) ||
+        normalizeText(item.group).includes(normalized)
+      );
+    }
+
+    return fallback.slice(0, limit);
+  }
+
+  return new Promise((resolve, reject) => {
+    const result = [];
+    const transaction = state.db.transaction(STORE_NAME, "readonly");
+    const store = transaction.objectStore(STORE_NAME);
+    const source = type ? store.index("type") : store;
+    const request = type
+      ? source.openCursor(IDBKeyRange.only(type))
+      : source.openCursor();
+
+    request.onsuccess = event => {
+      const cursor = event.target.result;
+
+      if (!cursor || result.length >= limit) {
+        resolve(result);
+        return;
+      }
+
+      const item = cursor.value;
+      const matchesGenre =
+        genre === "all" ||
+        normalizeText(getGenreName(item.group)) === normalizeText(genre);
+
+      const matchesTerm =
+        !term ||
+        item.nameLower.includes(normalizeText(term)) ||
+        normalizeText(item.group).includes(normalizeText(term));
+
+      if (matchesGenre && matchesTerm) {
+        result.push(item);
+      }
+
+      cursor.continue();
+    };
+
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function render() {
   const grid = $("#contentGrid");
   const empty = $("#emptyState");
 
   if (!grid) return;
+
+  const requestId = ++renderRequestId;
 
   if (state.currentFilter === "series") {
     grid.innerHTML = `
@@ -1528,47 +1633,25 @@ function render() {
       </div>
     `;
 
-    renderSeriesBrowser(grid, empty)
-      .catch(error => {
-        console.error(
-          "Erro organizando séries:",
-          error
-        );
+    await renderSeriesBrowser(grid, empty);
 
-        grid.innerHTML = `
-          <div class="gc-results-count">
-            Não foi possível organizar as séries.
-          </div>
-        `;
-      });
-
+    if (requestId !== renderRequestId) return;
     return;
   }
 
-  let items = state.items.slice();
+  const type =
+    state.currentFilter === "all"
+      ? null
+      : state.currentFilter;
 
-  if (state.currentFilter !== "all") {
-    items = items.filter(
-      item => item.type === state.currentFilter
-    );
-  }
+  const items = await queryCatalogItems({
+    type,
+    genre: state.currentGenre,
+    term: state.searchTerm,
+    limit: 120
+  });
 
-  if (state.currentGenre !== "all") {
-    const wanted = normalizeText(state.currentGenre);
-    items = items.filter(item =>
-      normalizeText(getGenreName(item.group)) === wanted
-    );
-  }
-
-  if (state.searchTerm) {
-    const term = normalizeText(state.searchTerm);
-    items = items.filter(item =>
-      item.nameLower.includes(term) ||
-      normalizeText(item.group).includes(term)
-    );
-  }
-
-  items = items.slice(0, 120);
+  if (requestId !== renderRequestId) return;
 
   if (!items.length) {
     grid.innerHTML = "";
@@ -2771,38 +2854,102 @@ function getGenreName(group) {
   let value = String(group || "").trim();
 
   value = value
-    .replace(/^\s*(tv|live|filmes?|movies?|series?|séries?)\s*[-|:/\\>]\s*/i, "")
+    .replace(/^\\s*(?:tv|live|live tv|iptv|filmes?|movies?|v[oó]d|series?|séries?|animes?|kids?|infantil|canais?)\\s*[-|:/\\\\>]\\s*/i, "")
+    .replace(/^\\s*[|:/\\\\>-]+\\s*/, "")
     .trim();
 
   return value || "OUTROS";
 }
 
-function getAvailableGenres(type) {
-  const map = new Map();
+async function buildGenreCatalog() {
+  const catalog = {
+    all: new Map(),
+    live: new Map(),
+    movie: new Map(),
+    series: new Map()
+  };
 
-  // state.groups é montado durante a leitura completa da M3U,
-  // portanto não fica limitado aos primeiros 3000 itens em RAM.
-  if (type === "all" && state.groups.length) {
-    for (const group of state.groups) {
-      const genre = getGenreName(group);
-      const key = normalizeText(genre);
-      if (!map.has(key)) map.set(key, genre);
+  const add = (type, group) => {
+    const genre = getGenreName(group);
+    const key = normalizeText(genre);
+    if (!key) return;
+
+    if (!catalog.all.has(key)) catalog.all.set(key, genre);
+
+    if (catalog[type] && !catalog[type].has(key)) {
+      catalog[type].set(key, genre);
+    }
+  };
+
+  if (!state.db) {
+    for (const item of state.items) {
+      add(item.type, item.group);
     }
   } else {
-    for (const item of state.items) {
-      if (type !== "all" && item.type !== type) continue;
+    await new Promise((resolve, reject) => {
+      const transaction = state.db.transaction(STORE_NAME, "readonly");
+      const request = transaction.objectStore(STORE_NAME).openCursor();
 
-      const genre = getGenreName(item.group);
-      const key = normalizeText(genre);
+      request.onsuccess = event => {
+        const cursor = event.target.result;
 
-      if (!map.has(key)) map.set(key, genre);
+        if (!cursor) {
+          resolve();
+          return;
+        }
+
+        const item = cursor.value;
+        add(item.type, item.group);
+        cursor.continue();
+      };
+
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  state.genreCatalog = {
+    all: Array.from(catalog.all.values()).sort((a,b) =>
+      a.localeCompare(b, "pt-BR", { sensitivity: "base" })
+    ),
+    live: Array.from(catalog.live.values()).sort((a,b) =>
+      a.localeCompare(b, "pt-BR", { sensitivity: "base" })
+    ),
+    movie: Array.from(catalog.movie.values()).sort((a,b) =>
+      a.localeCompare(b, "pt-BR", { sensitivity: "base" })
+    ),
+    series: Array.from(catalog.series.values()).sort((a,b) =>
+      a.localeCompare(b, "pt-BR", { sensitivity: "base" })
+    )
+  };
+}
+
+function getAvailableGenres(type) {
+  const key = ["live", "movie", "series"].includes(type)
+    ? type
+    : "all";
+
+  const cached = state.genreCatalog[key];
+
+  if (Array.isArray(cached) && cached.length) {
+    return cached;
+  }
+
+  const map = new Map();
+
+  for (const item of state.items) {
+    if (type !== "all" && item.type !== type) continue;
+
+    const genre = getGenreName(item.group);
+    const normalized = normalizeText(genre);
+
+    if (!map.has(normalized)) {
+      map.set(normalized, genre);
     }
   }
 
-  return Array.from(map.values())
-    .sort((a, b) =>
-      a.localeCompare(b, "pt-BR", { sensitivity: "base" })
-    );
+  return Array.from(map.values()).sort((a,b) =>
+    a.localeCompare(b, "pt-BR", { sensitivity: "base" })
+  );
 }
 
 function renderGenreFilters() {
@@ -4740,6 +4887,8 @@ async function loadLocalCatalog() {
 
     await loadDatabaseStats();
 
+    await buildGenreCatalog();
+
     renderGenreFilters();
     render();
 
@@ -5042,6 +5191,16 @@ async function clearCatalog() {
     state.total =
       0;
 
+    state.seriesItemsCache = null;
+
+    state.genreCatalog = {
+      all: [],
+      live: [],
+      movie: [],
+      series: []
+    };
+
+    renderGenreFilters();
     render();
 
     renderStats();
