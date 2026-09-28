@@ -931,6 +931,25 @@ function extractSeriesInfo(item) {
     }
   }
 
+  /*
+     Muitos provedores informam somente S01/T01 no nome
+     e colocam o episódio em outro campo ou na URL.
+     Mesmo sem o episódio, a temporada precisa ser reconhecida
+     para que todos os episódios compartilhem a mesma série.
+  */
+  if (season === null) {
+    for (const source of sources) {
+      const seasonOnly =
+        source.match(/(?:^|[\s._()[\]-])(?:s|season|t|temporada)\s*0*(\d{1,3})(?=$|[\s._()[\]-])/i) ||
+        source.match(/[\\/](?:season|temporada|s|t)[\\/_-]?0*(\d{1,3})(?=[\\/_-]|$)/i);
+
+      if (seasonOnly) {
+        season = Number(seasonOnly[1]);
+        break;
+      }
+    }
+  }
+
   let seriesName = tvgName || name;
 
   /*
@@ -967,6 +986,16 @@ function extractSeriesInfo(item) {
       /\s*[-|:_./()\[\]]*\s*(?:season|temporada)\s*0*\d{1,3}.*$/i,
       ""
     )
+    /*
+       Remove também S01/T01 isolado.
+       Isso corrige listas que usam nomes como:
+       "A Pequena Sereia S01", "A Pequena Sereia - S01",
+       "A Pequena Sereia T01" etc.
+    */
+    .replace(
+      /\s*[-|:_./()\[\]]*\s*(?:s|t)\s*0*\d{1,3}\s*$/i,
+      ""
+    )
     .replace(
       /\s*[-|:_./()\[\]]*\s*(?:episode|episodio|ep)\s*0*\d{1,4}.*$/i,
       ""
@@ -976,6 +1005,15 @@ function extractSeriesInfo(item) {
   if (!seriesName) {
     seriesName = groupClean || name || "Série sem nome";
   }
+
+  /*
+     Limpeza final: remove números de episódio/temporada
+     que tenham ficado colados ao título por separadores
+     incomuns usados por provedores IPTV.
+  */
+  seriesName = seriesName
+    .replace(/\s*[-_.:#|]+\s*$/g, "")
+    .trim();
 
   return {
     seriesName,
