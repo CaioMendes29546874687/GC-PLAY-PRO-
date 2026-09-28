@@ -20,7 +20,7 @@ const GC_PROXY_HOSTS = new Set([
 ]);
 
 const DB_NAME = "GC_PLAY_PRO_FAST";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_NAME = "items";
 
 const RAM_LIMIT = 3000;
@@ -283,6 +283,30 @@ function openDB() {
         store.createIndex(
           "nameLower",
           "nameLower",
+          { unique: false }
+        );
+      }
+
+      if (!store.indexNames.contains("seriesKey")) {
+        store.createIndex(
+          "seriesKey",
+          "seriesKey",
+          { unique: false }
+        );
+      }
+
+      if (!store.indexNames.contains("seriesSeason")) {
+        store.createIndex(
+          "seriesSeason",
+          ["seriesKey", "season"],
+          { unique: false }
+        );
+      }
+
+      if (!store.indexNames.contains("typeGroup")) {
+        store.createIndex(
+          "typeGroup",
+          ["type", "group"],
           { unique: false }
         );
       }
@@ -1693,91 +1717,129 @@ async function getAllSeriesItems() {
 
   return new Promise((resolve, reject) => {
     const result = [];
+    const transaction = state.db.transaction(STORE_NAME, "readonly");
+    const index = transaction.objectStore(STORE_NAME).index("seriesKey");
+    const request = index.openCursor();
 
-    const transaction =
-      state.db.transaction(
-        STORE_NAME,
-        "readonly"
-      );
+    let lastKey = null;
 
-    const index =
-      transaction
-        .objectStore(STORE_NAME)
-        .index("type");
+    request.onsuccess = event => {
+      const cursor = event.target.result;
 
-    const request =
-      index.openCursor(
-        IDBKeyRange.only("series")
-      );
+      if (!cursor) {
+        state.seriesItemsCache = result;
+        resolve(result);
+        return;
+      }
 
-    request.onsuccess =
-      event => {
-        const cursor =
-          event.target.result;
+      const item = cursor.value;
 
-        if (!cursor) {
-          state.seriesItemsCache =
-            result;
+      if (
+        item.type === "series" &&
+        item.seriesKey &&
+        item.seriesKey !== lastKey
+      ) {
+        result.push(item);
+        lastKey = item.seriesKey;
 
-          resolve(result);
-          return;
-        }
-
-        result.push(
-          cursor.value
+        /*
+         * Salta diretamente para a próxima série.
+         * Assim não precisamos carregar os 400 mil episódios
+         * para montar a primeira tela.
+         */
+        cursor.continue(
+          String(lastKey) + "\uffff"
         );
+        return;
+      }
 
-        cursor.continue();
-      };
-
-    request.onerror = () => {
-      reject(request.error);
+      cursor.continue();
     };
+
+    request.onerror = () => reject(request.error);
   });
 }
 
 async function getFilteredSeriesItems() {
-  let items =
-    await getAllSeriesItems();
+  let items = await getAllSeriesItems();
 
   if (state.currentGenre !== "all") {
-    const wanted =
-      normalizeText(
-        state.currentGenre
-      );
-
-    items =
-      items.filter(item =>
-        normalizeText(
-          getGenreName(item.group)
-        ) === wanted
-      );
+    const wanted = normalizeText(state.currentGenre);
+    items = items.filter(item =>
+      normalizeText(getGenreName(item.group)) === wanted
+    );
   }
 
   if (state.searchTerm) {
-    const term =
-      normalizeText(
-        state.searchTerm
+    const term = normalizeText(state.searchTerm);
+    items = items.filter(item => {
+      const info = getSeriesInfo(item);
+
+      return (
+        item.nameLower.includes(term) ||
+        normalizeText(item.group).includes(term) ||
+        normalizeText(info.seriesName).includes(term)
       );
-
-    items =
-      items.filter(item => {
-        const info =
-          getSeriesInfo(item);
-
-        return (
-          item.nameLower.includes(term) ||
-          normalizeText(
-            item.group
-          ).includes(term) ||
-          normalizeText(
-            info.seriesName
-          ).includes(term)
-        );
-      });
+    });
   }
 
   return items;
+}
+
+function getSeriesEpisodes(seriesKey, season = null) {
+  if (!state.db) {
+    let items = state.items.filter(
+      item => item.type === "series" &&
+        item.seriesKey === seriesKey
+    );
+
+    if (season !== null) {
+      items = items.filter(
+        item => Number(item.season ?? 0) === Number(season)
+      );
+    }
+
+    return Promise.resolve(items);
+  }
+
+  return new Promise((resolve, reject) => {
+    const result = [];
+    const transaction = state.db.transaction(STORE_NAME, "readonly");
+    const store = transaction.objectStore(STORE_NAME);
+
+    let request;
+
+    if (season === null) {
+      const index = store.index("seriesKey");
+      request = index.openCursor(
+        IDBKeyRange.only(seriesKey)
+      );
+    } else {
+      const index = store.index("seriesSeason");
+      request = index.openCursor(
+        IDBKeyRange.only([seriesKey, Number(season)])
+      );
+    }
+
+    request.onsuccess = event => {
+      const cursor = event.target.result;
+
+      if (!cursor) {
+        resolve(result);
+        return;
+      }
+
+      const item = cursor.value;
+
+      if (item.type === "series") {
+        result.push(item);
+      }
+
+      cursor.continue();
+    };
+
+    request.onerror = () => reject(request.error);
+  });
 }
 function seriesPosterCard(series) {
   const image = series.logo
@@ -1789,7 +1851,7 @@ function seriesPosterCard(series) {
       ${image}
       <div class="gc-card-info">
         <div class="gc-card-title">${escapeHTML(series.name)}</div>
-        <div class="gc-card-meta">${series.seasonCount} temporada(s) • ${series.episodeCount} episódio(s)</div>
+        <div class="gc-card-meta">Abrir temporadas e episódios</div>
       </div>
     </article>
   `;
@@ -1838,44 +1900,45 @@ async function renderSeriesBrowser(grid, empty) {
 
   if (empty) empty.style.display = "none";
 
-  const catalog = new Map();
+  /*
+   * Primeira tela: somente uma entrada por série.
+   * Os episódios permanecem no IndexedDB e só são
+   * buscados quando o usuário entra na série.
+   */
+  if (!state.seriesView.seriesKey) {
+    const seriesList = items.map(item => ({
+      key: item.seriesKey || normalizeText(item.name),
+      name: item.seriesName || getSeriesInfo(item).seriesName,
+      logo: item.logo || "",
+      group: item.group || ""
+    }));
 
-  for (const item of items) {
-    const info = getSeriesInfo(item);
-    const key = info.seriesKey || normalizeText(item.name);
+    const unique = new Map();
 
-    if (!catalog.has(key)) {
-      catalog.set(key, {
-        key,
-        name: info.seriesName,
-        logo: item.logo || "",
-        seasons: new Map()
-      });
+    for (const series of seriesList) {
+      if (!unique.has(series.key)) {
+        unique.set(series.key, series);
+      }
     }
 
-    const series = catalog.get(key);
-    if (!series.logo && item.logo) series.logo = item.logo;
+    const visible = Array.from(unique.values())
+      .sort((a, b) =>
+        a.name.localeCompare(
+          b.name,
+          "pt-BR",
+          { sensitivity: "base" }
+        )
+      );
 
-    const seasonKey = info.season ?? 0;
-    if (!series.seasons.has(seasonKey)) {
-      series.seasons.set(seasonKey, []);
-    }
-    series.seasons.get(seasonKey).push(item);
-  }
-
-  const selectedKey = state.seriesView.seriesKey;
-
-  if (!selectedKey) {
-    const seriesList = Array.from(catalog.values())
-      .map(series => ({
-        ...series,
-        seasonCount: series.seasons.size,
-        episodeCount: Array.from(series.seasons.values())
-          .reduce((sum, list) => sum + list.length, 0)
-      }))
-      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }));
-
-    grid.innerHTML = seriesList.map(seriesPosterCard).join("");
+    grid.innerHTML = `
+      <div class="gc-series-toolbar">
+        <strong>${formatNumber(visible.length)} séries encontradas</strong>
+        <span>Selecione uma série para ver as temporadas</span>
+      </div>
+      <div class="content-grid gc-series-inner-grid">
+        ${visible.map(seriesPosterCard).join("")}
+      </div>
+    `;
 
     grid.querySelectorAll("[data-series-key]").forEach(card => {
       card.addEventListener("click", () => {
@@ -1888,27 +1951,69 @@ async function renderSeriesBrowser(grid, empty) {
     return;
   }
 
-  const series = catalog.get(selectedKey);
+  const selected = items.find(
+    item => item.seriesKey === state.seriesView.seriesKey
+  );
 
-  if (!series) {
+  if (!selected) {
     state.seriesView.seriesKey = null;
     state.seriesView.season = null;
     render();
     return;
   }
 
+  const seriesName =
+    selected.seriesName ||
+    getSeriesInfo(selected).seriesName;
+
+  const logo = selected.logo || "";
+
   if (state.seriesView.season === null) {
-    const seasons = Array.from(series.seasons.entries())
+    grid.innerHTML = `
+      <div class="gc-series-toolbar">
+        <button class="filter-button gc-series-back" type="button">← SÉRIES</button>
+        <strong>${escapeHTML(seriesName)}</strong>
+        <span>Carregando temporadas...</span>
+      </div>
+    `;
+
+    const episodes = await getSeriesEpisodes(
+      state.seriesView.seriesKey
+    );
+
+    const seasons = new Map();
+
+    for (const item of episodes) {
+      const info = getSeriesInfo(item);
+      const key = info.season ?? 0;
+
+      if (!seasons.has(key)) {
+        seasons.set(key, {
+          count: 0,
+          logo: item.logo || logo
+        });
+      }
+
+      seasons.get(key).count++;
+    }
+
+    const seasonList = Array.from(seasons.entries())
       .sort((a, b) => a[0] - b[0]);
 
     grid.innerHTML = `
       <div class="gc-series-toolbar">
         <button class="filter-button gc-series-back" type="button">← SÉRIES</button>
-        <strong>${escapeHTML(series.name)}</strong>
+        <strong>${escapeHTML(seriesName)}</strong>
+        <span>${seasonList.length} temporada(s)</span>
       </div>
       <div class="content-grid gc-series-inner-grid">
-        ${seasons.map(([season, list]) =>
-          seasonPosterCard(series.name, season, list.length, series.logo)
+        ${seasonList.map(([season, info]) =>
+          seasonPosterCard(
+            seriesName,
+            season,
+            info.count,
+            info.logo || logo
+          )
         ).join("")}
       </div>
     `;
@@ -1929,21 +2034,45 @@ async function renderSeriesBrowser(grid, empty) {
     return;
   }
 
-  const seasonItems = series.seasons.get(state.seriesView.season) || [];
+  const season = Number(state.seriesView.season);
+
+  grid.innerHTML = `
+    <div class="gc-series-toolbar">
+      <button class="filter-button gc-series-back" type="button">← TEMPORADAS</button>
+      <strong>${escapeHTML(seriesName)} • Temporada ${season || "Única"}</strong>
+      <span>Carregando episódios...</span>
+    </div>
+  `;
+
+  const seasonItems = await getSeriesEpisodes(
+    state.seriesView.seriesKey,
+    season
+  );
 
   seasonItems.sort((a, b) => {
     const ea = getSeriesInfo(a).episode ?? 999999;
     const eb = getSeriesInfo(b).episode ?? 999999;
-    return ea - eb || a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" });
+
+    return (
+      ea - eb ||
+      a.name.localeCompare(
+        b.name,
+        "pt-BR",
+        { sensitivity: "base" }
+      )
+    );
   });
 
   grid.innerHTML = `
     <div class="gc-series-toolbar">
       <button class="filter-button gc-series-back" type="button">← TEMPORADAS</button>
-      <strong>${escapeHTML(series.name)} • Temporada ${state.seriesView.season || "Única"}</strong>
+      <strong>${escapeHTML(seriesName)} • Temporada ${season || "Única"}</strong>
+      <span>${formatNumber(seasonItems.length)} episódio(s)</span>
     </div>
     <div class="content-grid gc-series-inner-grid">
-      ${seasonItems.map(item => episodeCard(item, getSeriesInfo(item))).join("")}
+      ${seasonItems.map(item =>
+        episodeCard(item, getSeriesInfo(item))
+      ).join("")}
     </div>
   `;
 
