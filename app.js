@@ -1632,6 +1632,10 @@ function closePlayer() {
       "open",
       "show"
     );
+
+    panel.classList.add(
+      "hidden"
+    );
   }
 }
 
@@ -1680,6 +1684,10 @@ async function playItem(item) {
   }
 
   if (panel) {
+    panel.classList.remove(
+      "hidden"
+    );
+
     panel.classList.add(
       "active",
       "open",
