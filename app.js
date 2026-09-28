@@ -51,6 +51,11 @@ const state = {
   currentGenre: "all",
   currentSection: "home",
 
+  seriesView: {
+    seriesKey: null,
+    season: null
+  },
+
   searchTerm: "",
 
   favorites: new Set(),
@@ -671,19 +676,19 @@ function classifyItem(name, group, url) {
   const text = normalizeText(
     `${name} ${group} ${url}`
   );
+  const lowerUrl = String(url || "").toLowerCase();
 
+  // Playlists Xtream/M3U normalmente revelam o tipo diretamente na URL.
   if (
-    text.includes("serie") ||
-    text.includes("series") ||
-    text.includes("temporada") ||
-    text.includes("season") ||
-    text.includes("episodio") ||
-    text.includes("episode")
+    /\/series\//i.test(lowerUrl) ||
+    /(?:^|[\\/._ -])(s|t)\\d{1,3}(?:e|x)\\d{1,4}/i.test(text) ||
+    /temporada\\s*\\d+.*(?:episodio|ep)\\s*\\d+/i.test(text)
   ) {
     return "series";
   }
 
   if (
+    /\/movie(?:s)?\//i.test(lowerUrl) ||
     text.includes("filme") ||
     text.includes("filmes") ||
     text.includes("movie") ||
@@ -693,7 +698,83 @@ function classifyItem(name, group, url) {
     return "movie";
   }
 
+  if (
+    /\/live\//i.test(lowerUrl) ||
+    text.includes("tv ao vivo") ||
+    text.includes("live")
+  ) {
+    return "live";
+  }
+
   return "live";
+}
+
+/* =========================================================
+   INFORMAÇÕES DE SÉRIE
+   ========================================================= */
+
+function extractSeriesInfo(item) {
+  const name = String(item?.name || "").trim();
+  const tvgName = String(item?.tvgName || "").trim();
+  const group = String(item?.group || "").trim();
+  const url = String(item?.url || "");
+
+  const source = `${name} ${url}`;
+
+  let season = null;
+  let episode = null;
+
+  const patterns = [
+    /(?:^|[\\s._()\\[\\]-])(?:s|season|t|temporada)\\s*0*(\\d{1,3})\\s*(?:e|ep|episode|episodio)\\s*0*(\\d{1,4})/i,
+    /(?:^|[\\s._()\\[\\]-])0*(\\d{1,3})\\s*x\\s*0*(\\d{1,4})(?:$|[\\s._()\\[\\]-])/i,
+    /[\\/]season[\\/_-]?0*(\\d{1,3})[\\/]episode[\\/_-]?0*(\\d{1,4})/i
+  ];
+
+  for (const pattern of patterns) {
+    const match = source.match(pattern);
+    if (match) {
+      season = Number(match[1]);
+      episode = Number(match[2]);
+      break;
+    }
+  }
+
+  if (season === null) {
+    const seasonOnly = source.match(
+      /(?:^|[\\s._()\\[\\]-])(?:s|season|t|temporada)\\s*0*(\\d{1,3})(?:$|[\\s._()\\[\\]-])/i
+    );
+    if (seasonOnly) season = Number(seasonOnly[1]);
+  }
+
+  // Algumas listas colocam temporada/episódio como parâmetros da URL.
+  if (season === null) {
+    const urlSeason = url.match(/[?&]season=0*(\\d+)/i) || url.match(/[/\\]season[/\\_-]?0*(\\d+)/i);
+    if (urlSeason) season = Number(urlSeason[1]);
+  }
+
+  if (episode === null) {
+    const urlEpisode = url.match(/[?&](?:episode|ep)=0*(\\d+)/i) || url.match(/[/\\](?:episode|ep)[/\\_-]?0*(\\d+)/i);
+    if (urlEpisode) episode = Number(urlEpisode[1]);
+  }
+
+  let seriesName = tvgName || name;
+
+  // Remove a parte do episódio para obter o nome da série.
+  seriesName = seriesName
+    .replace(/\\s*(?:[-|:]\\s*)?(?:s|season|t|temporada)\\s*0*\\d{1,3}\\s*(?:e|ep|episode|episodio)\\s*0*\\d{1,4}.*$/i, "")
+    .replace(/\\s*(?:[-|:]\\s*)?0*\\d{1,3}\\s*x\\s*0*\\d{1,4}.*$/i, "")
+    .replace(/\\s*[-|:]\\s*(?:episode|episodio|ep)\\s*0*\\d+.*$/i, "")
+    .trim();
+
+  if (!seriesName) seriesName = name || "Série sem nome";
+
+  return {
+    seriesName,
+    seriesKey: normalizeText(seriesName),
+    season,
+    episode,
+    genre: getGenreName(group)
+  };
 }
 
 /* =========================================================
@@ -751,7 +832,22 @@ function normalizeItem(data) {
       data.country || "",
 
     language:
-      data.language || ""
+      data.language || "",
+
+    ...(() => {
+      const info = extractSeriesInfo({
+        name,
+        group,
+        url,
+        tvgName: data.tvgName || ""
+      });
+
+      return {
+        seriesName: info.seriesName,
+        season: info.season,
+        episode: info.episode
+      };
+    })()
   };
 }
 /* =========================================================
@@ -1422,81 +1518,265 @@ function getTypeIcon(type) {
    ========================================================= */
 
 function render() {
-  const grid =
-    $("#contentGrid");
+  const grid = $("#contentGrid");
+  const empty = $("#emptyState");
 
-  const empty =
-    $("#emptyState");
+  if (!grid) return;
 
-  if (!grid) {
+  if (state.currentFilter === "series") {
+    renderSeriesBrowser(grid, empty);
     return;
   }
 
-  let items =
-    state.items.slice();
+  let items = state.items.slice();
 
-  if (
-    state.currentFilter !==
-    "all"
-  ) {
-    items =
-      items.filter(
-        item =>
-          item.type ===
-          state.currentFilter
-      );
+  if (state.currentFilter !== "all") {
+    items = items.filter(
+      item => item.type === state.currentFilter
+    );
   }
 
-  if (
-    state.currentGenre !== "all"
-  ) {
+  if (state.currentGenre !== "all") {
     const wanted = normalizeText(state.currentGenre);
-
     items = items.filter(item =>
       normalizeText(getGenreName(item.group)) === wanted
     );
   }
 
-  if (
-    state.searchTerm
-  ) {
-    const term =
-      normalizeText(
-        state.searchTerm
-      );
-
-    items =
-      items.filter(item =>
-        item.nameLower.includes(term) ||
-        normalizeText(
-          item.group
-        ).includes(term)
-      );
+  if (state.searchTerm) {
+    const term = normalizeText(state.searchTerm);
+    items = items.filter(item =>
+      item.nameLower.includes(term) ||
+      normalizeText(item.group).includes(term)
+    );
   }
 
-  items =
-    items.slice(0, 120);
+  items = items.slice(0, 120);
 
   if (!items.length) {
     grid.innerHTML = "";
+    if (empty) empty.style.display = "block";
+    return;
+  }
 
-    if (empty) {
-      empty.style.display =
-        "block";
+  if (empty) empty.style.display = "none";
+  grid.innerHTML = items.map(renderCard).join("");
+}
+
+/* =========================================================
+   NAVEGADOR DE SÉRIES
+   SÉRIE -> TEMPORADA -> EPISÓDIOS
+   ========================================================= */
+
+function getSeriesInfo(item) {
+  const parsed = extractSeriesInfo(item);
+
+  return {
+    ...parsed,
+    seriesName: item.seriesName || parsed.seriesName,
+    seriesKey: item.seriesKey || parsed.seriesKey,
+    season: item.season ?? parsed.season,
+    episode: item.episode ?? parsed.episode
+  };
+}
+
+function getFilteredSeriesItems() {
+  let items = state.items.filter(item => item.type === "series");
+
+  if (state.currentGenre !== "all") {
+    const wanted = normalizeText(state.currentGenre);
+    items = items.filter(item =>
+      normalizeText(getGenreName(item.group)) === wanted
+    );
+  }
+
+  if (state.searchTerm) {
+    const term = normalizeText(state.searchTerm);
+    items = items.filter(item => {
+      const info = getSeriesInfo(item);
+      return (
+        item.nameLower.includes(term) ||
+        normalizeText(item.group).includes(term) ||
+        normalizeText(info.seriesName).includes(term)
+      );
+    });
+  }
+
+  return items;
+}
+
+function seriesPosterCard(series) {
+  const image = series.logo
+    ? `<img class="gc-card-image" src="${escapeHTML(series.logo)}" alt="" loading="lazy" onerror="this.style.display='none';">`
+    : `<div class="gc-card-placeholder">📺</div>`;
+
+  return `
+    <article class="gc-card gc-series-browser-card" data-series-key="${escapeHTML(series.key)}">
+      ${image}
+      <div class="gc-card-info">
+        <div class="gc-card-title">${escapeHTML(series.name)}</div>
+        <div class="gc-card-meta">${series.seasonCount} temporada(s) • ${series.episodeCount} episódio(s)</div>
+      </div>
+    </article>
+  `;
+}
+
+function seasonPosterCard(seriesName, season, count, logo) {
+  const image = logo
+    ? `<img class="gc-card-image" src="${escapeHTML(logo)}" alt="" loading="lazy" onerror="this.style.display='none';">`
+    : `<div class="gc-card-placeholder">📚</div>`;
+
+  return `
+    <article class="gc-card gc-season-browser-card" data-season="${season}">
+      ${image}
+      <div class="gc-card-info">
+        <div class="gc-card-title">Temporada ${season}</div>
+        <div class="gc-card-meta">${count} episódio(s)</div>
+      </div>
+    </article>
+  `;
+}
+
+function episodeCard(item, info) {
+  return `
+    <article class="gc-card" data-item-id="${escapeHTML(item.id)}">
+      ${item.logo
+        ? `<img class="gc-card-image" src="${escapeHTML(item.logo)}" alt="" loading="lazy" onerror="this.style.display='none';">`
+        : `<div class="gc-card-placeholder">▶</div>`}
+      <div class="gc-card-info">
+        <div class="gc-card-title">E${String(info.episode ?? 0).padStart(2, "0")} — ${escapeHTML(item.name)}</div>
+        <div class="gc-card-meta">Temporada ${info.season ?? "Única"}</div>
+      </div>
+    </article>
+  `;
+}
+
+function renderSeriesBrowser(grid, empty) {
+  const items = getFilteredSeriesItems();
+
+  if (!items.length) {
+    grid.innerHTML = "";
+    if (empty) empty.style.display = "block";
+    state.seriesView.seriesKey = null;
+    state.seriesView.season = null;
+    return;
+  }
+
+  if (empty) empty.style.display = "none";
+
+  const catalog = new Map();
+
+  for (const item of items) {
+    const info = getSeriesInfo(item);
+    const key = info.seriesKey || normalizeText(item.name);
+
+    if (!catalog.has(key)) {
+      catalog.set(key, {
+        key,
+        name: info.seriesName,
+        logo: item.logo || "",
+        seasons: new Map()
+      });
     }
+
+    const series = catalog.get(key);
+    if (!series.logo && item.logo) series.logo = item.logo;
+
+    const seasonKey = info.season ?? 0;
+    if (!series.seasons.has(seasonKey)) {
+      series.seasons.set(seasonKey, []);
+    }
+    series.seasons.get(seasonKey).push(item);
+  }
+
+  const selectedKey = state.seriesView.seriesKey;
+
+  if (!selectedKey) {
+    const seriesList = Array.from(catalog.values())
+      .map(series => ({
+        ...series,
+        seasonCount: series.seasons.size,
+        episodeCount: Array.from(series.seasons.values())
+          .reduce((sum, list) => sum + list.length, 0)
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }));
+
+    grid.innerHTML = seriesList.map(seriesPosterCard).join("");
+
+    grid.querySelectorAll("[data-series-key]").forEach(card => {
+      card.addEventListener("click", () => {
+        state.seriesView.seriesKey = card.dataset.seriesKey;
+        state.seriesView.season = null;
+        render();
+      });
+    });
 
     return;
   }
 
-  if (empty) {
-    empty.style.display =
-      "none";
+  const series = catalog.get(selectedKey);
+
+  if (!series) {
+    state.seriesView.seriesKey = null;
+    state.seriesView.season = null;
+    render();
+    return;
   }
 
-  grid.innerHTML =
-    items
-      .map(renderCard)
-      .join("");
+  if (state.seriesView.season === null) {
+    const seasons = Array.from(series.seasons.entries())
+      .sort((a, b) => a[0] - b[0]);
+
+    grid.innerHTML = `
+      <div class="gc-series-toolbar">
+        <button class="filter-button gc-series-back" type="button">← SÉRIES</button>
+        <strong>${escapeHTML(series.name)}</strong>
+      </div>
+      <div class="content-grid gc-series-inner-grid">
+        ${seasons.map(([season, list]) =>
+          seasonPosterCard(series.name, season || "Única", list.length, series.logo)
+        ).join("")}
+      </div>
+    `;
+
+    grid.querySelector(".gc-series-back").addEventListener("click", () => {
+      state.seriesView.seriesKey = null;
+      state.seriesView.season = null;
+      render();
+    });
+
+    grid.querySelectorAll("[data-season]").forEach(card => {
+      card.addEventListener("click", () => {
+        state.seriesView.season = Number(card.dataset.season);
+        render();
+      });
+    });
+
+    return;
+  }
+
+  const seasonItems = series.seasons.get(state.seriesView.season) || [];
+
+  seasonItems.sort((a, b) => {
+    const ea = getSeriesInfo(a).episode ?? 999999;
+    const eb = getSeriesInfo(b).episode ?? 999999;
+    return ea - eb || a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" });
+  });
+
+  grid.innerHTML = `
+    <div class="gc-series-toolbar">
+      <button class="filter-button gc-series-back" type="button">← TEMPORADAS</button>
+      <strong>${escapeHTML(series.name)} • Temporada ${state.seriesView.season || "Única"}</strong>
+    </div>
+    <div class="content-grid gc-series-inner-grid">
+      ${seasonItems.map(item => episodeCard(item, getSeriesInfo(item))).join("")}
+    </div>
+  `;
+
+  grid.querySelector(".gc-series-back").addEventListener("click", () => {
+    state.seriesView.season = null;
+    render();
+  });
 }
 
 /* =========================================================
@@ -2383,6 +2663,8 @@ function setupFilters() {
     button.addEventListener("click", () => {
       state.currentFilter = button.dataset.filter || "all";
       state.currentGenre = "all";
+      state.seriesView.seriesKey = null;
+      state.seriesView.season = null;
 
       buttons.forEach(item => {
         item.classList.toggle("active", item === button);
@@ -2417,8 +2699,7 @@ function getAvailableGenres(type) {
   }
 
   return Array.from(map.values())
-    .sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }))
-    .slice(0, 80);
+    .sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
 }
 
 function renderGenreFilters() {
@@ -2446,6 +2727,8 @@ function renderGenreFilters() {
   container.querySelectorAll("[data-genre]").forEach(button => {
     button.addEventListener("click", () => {
       state.currentGenre = button.dataset.genre || "all";
+      state.seriesView.seriesKey = null;
+      state.seriesView.season = null;
 
       container.querySelectorAll("[data-genre]").forEach(item => {
         item.classList.toggle("active", item === button);
@@ -2559,6 +2842,9 @@ async function handleSection(
 
     state.currentGenre =
       "all";
+
+    state.seriesView.seriesKey = null;
+    state.seriesView.season = null;
 
     renderGenreFilters();
     render();
