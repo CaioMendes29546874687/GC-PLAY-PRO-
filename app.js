@@ -2684,17 +2684,29 @@ function getGenreName(group) {
 function getAvailableGenres(type) {
   const map = new Map();
 
-  for (const item of state.items) {
-    if (type !== "all" && item.type !== type) continue;
+  // state.groups é montado durante a leitura completa da M3U,
+  // portanto não fica limitado aos primeiros 3000 itens em RAM.
+  if (type === "all" && state.groups.length) {
+    for (const group of state.groups) {
+      const genre = getGenreName(group);
+      const key = normalizeText(genre);
+      if (!map.has(key)) map.set(key, genre);
+    }
+  } else {
+    for (const item of state.items) {
+      if (type !== "all" && item.type !== type) continue;
 
-    const genre = getGenreName(item.group);
-    const key = normalizeText(genre);
+      const genre = getGenreName(item.group);
+      const key = normalizeText(genre);
 
-    if (!map.has(key)) map.set(key, genre);
+      if (!map.has(key)) map.set(key, genre);
+    }
   }
 
   return Array.from(map.values())
-    .sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }));
+    .sort((a, b) =>
+      a.localeCompare(b, "pt-BR", { sensitivity: "base" })
+    );
 }
 
 function renderGenreFilters() {
@@ -4624,8 +4636,12 @@ async function loadLocalCatalog() {
     state.items =
       items;
 
+    state.groups =
+      await getGroups();
+
     await loadDatabaseStats();
 
+    renderGenreFilters();
     render();
 
   } catch (error) {
