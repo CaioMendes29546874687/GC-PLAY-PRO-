@@ -1,374 +1,3 @@
-/* =========================================================
-   GC PLAY PRO
-   APP.JS — MOTOR DE PLAYLIST PROGRESSIVO
-   ========================================================= */
-
-"use strict";
-
-/* =========================================================
-   CONFIGURAÇÕES
-   ========================================================= */
-
-const GC_SUPABASE_URL =
-  "https://kuzgdvpdqmocklsgyzvt.supabase.co";
-
-const GC_M3U_PROXY =
-  `${GC_SUPABASE_URL}/functions/v1/m3u-proxy`;
-
-const GC_PROXY_HOSTS = new Set([
-  "z1sv.site"
-]);
-
-const DB_NAME = "GC_PLAY_PRO_FAST";
-const DB_VERSION = 3;
-const STORE_NAME = "items";
-
-const RAM_LIMIT = 3000;
-const WRITE_BATCH = 500;
-
-const STATE_KEY = "GC_PLAY_PRO_STATE_V5";
-const SETTINGS_KEY = "GC_PLAY_PRO_SETTINGS_V5";
-
-/* =========================================================
-   ESTADO
-   ========================================================= */
-
-const state = {
-  db: null,
-
-  items: [],
-  groups: [],
-
-  counts: {
-    live: 0,
-    movie: 0,
-    series: 0
-  },
-
-  total: 0,
-
-  currentFilter: "all",
-  currentGenre: "all",
-  currentSection: "home",
-
-  seriesView: {
-    seriesKey: null,
-    season: null
-  },
-
-  searchTerm: "",
-
-  favorites: new Set(),
-  history: [],
-
-  currentItem: null,
-
-  loading: false,
-
-  loadAbort: null,
-
-  hls: null,
-
-  mpegts: null,
-
-  seriesItemsCache: null,
-
-  genreCatalog: {
-    all: [],
-    live: [],
-    movie: [],
-    series: []
-  },
-
-  groupsReady: false,
-
-  settings: {
-    autoplay: true,
-    compact: false
-  }
-};
-
-/* =========================================================
-   DOM
-   ========================================================= */
-
-const $ = (selector) => document.querySelector(selector);
-
-const $$ = (selector) =>
-  Array.from(document.querySelectorAll(selector));
-
-/* =========================================================
-   UTILIDADES
-   ========================================================= */
-
-function escapeHTML(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-function normalizeText(value) {
-  return String(value ?? "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function formatNumber(number) {
-  return Number(number || 0).toLocaleString("pt-BR");
-}
-
-function formatType(type) {
-  if (type === "live") return "TV AO VIVO";
-  if (type === "movie") return "FILME";
-  if (type === "series") return "SÉRIE";
-  return "CONTEÚDO";
-}
-
-function isHttpUrl(url) {
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === "http:" ||
-           parsed.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
-function isHLS(url) {
-  const value = String(url || "").toLowerCase();
-
-  return (
-    value.includes(".m3u8") ||
-    value.includes("m3u8?")
-  );
-}
-
-function isM3U(url) {
-  const value = String(url || "").toLowerCase();
-
-  return (
-    value.includes(".m3u") ||
-    value.includes(".m3u8")
-  );
-}
-
-/* =========================================================
-   TOAST
-   ========================================================= */
-
-function toast(message, duration = 3000) {
-  const element = $("#toast");
-
-  if (!element) {
-    console.log("[GC PLAY PRO]", message);
-    return;
-  }
-
-  element.textContent = message;
-  element.classList.add("show");
-
-  clearTimeout(toast.timer);
-
-  toast.timer = setTimeout(() => {
-    element.classList.remove("show");
-  }, duration);
-}
-
-/* =========================================================
-   PERSISTÊNCIA DO ESTADO
-   ========================================================= */
-
-function saveState() {
-  try {
-    localStorage.setItem(
-      STATE_KEY,
-      JSON.stringify({
-        favorites: Array.from(state.favorites),
-        history: state.history.slice(0, 100)
-      })
-    );
-
-    localStorage.setItem(
-      SETTINGS_KEY,
-      JSON.stringify(state.settings)
-    );
-  } catch (error) {
-    console.warn("Não foi possível salvar estado:", error);
-  }
-}
-
-function loadState() {
-  try {
-    const saved = localStorage.getItem(STATE_KEY);
-
-    if (saved) {
-      const data = JSON.parse(saved);
-
-      if (Array.isArray(data.favorites)) {
-        state.favorites = new Set(data.favorites);
-      }
-
-      if (Array.isArray(data.history)) {
-        state.history = data.history;
-      }
-    }
-
-    const settings = localStorage.getItem(SETTINGS_KEY);
-
-    if (settings) {
-      const data = JSON.parse(settings);
-
-      state.settings = {
-        ...state.settings,
-        ...data
-      };
-    }
-  } catch (error) {
-    console.warn("Erro carregando estado:", error);
-  }
-}
-
-/* =========================================================
-   INDEXEDDB
-   ========================================================= */
-
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onupgradeneeded = event => {
-      const db = event.target.result;
-
-      let store;
-
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        store = db.createObjectStore(
-          STORE_NAME,
-          {
-            keyPath: "id"
-          }
-        );
-      } else {
-        store = event.target.transaction.objectStore(
-          STORE_NAME
-        );
-      }
-
-      if (!store.indexNames.contains("type")) {
-        store.createIndex(
-          "type",
-          "type",
-          { unique: false }
-        );
-      }
-
-      if (!store.indexNames.contains("group")) {
-        store.createIndex(
-          "group",
-          "group",
-          { unique: false }
-        );
-      }
-
-      if (!store.indexNames.contains("nameLower")) {
-        store.createIndex(
-          "nameLower",
-          "nameLower",
-          { unique: false }
-        );
-      }
-
-      if (!store.indexNames.contains("seriesKey")) {
-        store.createIndex(
-          "seriesKey",
-          "seriesKey",
-          { unique: false }
-        );
-      }
-
-      if (!store.indexNames.contains("seriesSeason")) {
-        store.createIndex(
-          "seriesSeason",
-          ["seriesKey", "season"],
-          { unique: false }
-        );
-      }
-
-      if (!store.indexNames.contains("typeGroup")) {
-        store.createIndex(
-          "typeGroup",
-          ["type", "group"],
-          { unique: false }
-        );
-      }
-    };
-
-    request.onsuccess = () => {
-      const db = request.result;
-
-      db.onversionchange = () => {
-        db.close();
-      };
-
-      resolve(db);
-    };
-
-    request.onerror = () => {
-      reject(request.error);
-    };
-  });
-}
-
-/* =========================================================
-   APAGAR BANCO ANTIGO RAPIDAMENTE
-   ========================================================= */
-
-function resetDatabaseFast() {
-  return new Promise((resolve, reject) => {
-    try {
-      if (state.db) {
-        try {
-          state.db.close();
-        } catch {}
-      }
-
-      const request = indexedDB.deleteDatabase(DB_NAME);
-
-      request.onsuccess = () => {
-        resolve();
-      };
-
-      request.onerror = () => {
-        reject(request.error);
-      };
-
-      request.onblocked = () => {
-        console.warn(
-          "Exclusão do banco bloqueada por outra aba."
-        );
-      };
-    } catch (error) {
-      reject(error);
-    }
-  });
-}
-
-/* =========================================================
-   ESCRITA EM LOTE
-   ========================================================= */
-
-let writeQueue = [];
-let writeProcessing = false;
-
 function queueWrite(items) {
   if (!items || !items.length) return;
 
@@ -434,6 +63,157 @@ function writeBatch(items) {
       reject(transaction.error);
     };
   });
+}
+
+function queueWrite(items, seriesUpdates = []) {
+  if ((!items || !items.length) && (!seriesUpdates || !seriesUpdates.length)) {
+    return;
+  }
+
+  writeQueue.push({
+    items: items || [],
+    seriesUpdates: seriesUpdates || []
+  });
+
+  processWriteQueue();
+}
+
+async function processWriteQueue() {
+  if (writeProcessing) return;
+
+  writeProcessing = true;
+
+  try {
+    while (writeQueue.length) {
+      const payload = writeQueue.shift();
+
+      await writeBatch(
+        payload.items,
+        payload.seriesUpdates
+      );
+
+      await new Promise(requestAnimationFrame);
+    }
+  } catch (error) {
+    console.error(
+      "Erro gravando banco:",
+      error
+    );
+  } finally {
+    writeProcessing = false;
+  }
+}
+
+function writeBatch(items, seriesUpdates = []) {
+  return new Promise((resolve, reject) => {
+    if (!state.db) {
+      reject(
+        new Error("Banco de dados não inicializado.")
+      );
+      return;
+    }
+
+    const stores = [STORE_NAME];
+
+    if (state.db.objectStoreNames.contains(SERIES_STORE)) {
+      stores.push(SERIES_STORE);
+    }
+
+    const transaction = state.db.transaction(
+      stores,
+      "readwrite"
+    );
+
+    const store = transaction.objectStore(STORE_NAME);
+
+    for (const item of items) {
+      store.put(item);
+    }
+
+    if (stores.includes(SERIES_STORE)) {
+      const seriesStore = transaction.objectStore(SERIES_STORE);
+
+      for (const series of seriesUpdates) {
+        seriesStore.put(series);
+      }
+    }
+
+    transaction.oncomplete = () => resolve();
+
+    transaction.onerror = () => reject(transaction.error);
+
+    transaction.onabort = () => reject(transaction.error);
+  });
+}
+
+function updateSeriesCatalogEntry(item) {
+  if (!item || !looksLikeSeriesRecord(item)) return;
+
+  const info = getDerivedSeriesInfo(item);
+
+  if (!info.seriesKey) return;
+
+  let entry = state.seriesCatalogMap.get(info.seriesKey);
+
+  if (!entry) {
+    entry = {
+      seriesKey: info.seriesKey,
+      seriesName: info.seriesName || item.name || "Série sem nome",
+      nameLower: normalizeText(
+        info.seriesName || item.name || ""
+      ),
+      logo: item.logo || "",
+      group: item.group || "",
+      genre: info.genre || getGenreName(item.group),
+      episodeCount: 0,
+      seasons: {}
+    };
+
+    state.seriesCatalogMap.set(
+      info.seriesKey,
+      entry
+    );
+  }
+
+  if (!entry.logo && item.logo) {
+    entry.logo = item.logo;
+  }
+
+  if (info.season !== null && info.season !== undefined) {
+    const season = String(Number(info.season));
+
+    entry.seasons[season] =
+      Number(entry.seasons[season] || 0) + 1;
+  }
+
+  entry.episodeCount++;
+
+  state.seriesCatalogChanged.add(info.seriesKey);
+}
+
+function takeSeriesCatalogUpdates() {
+  if (!state.seriesCatalogChanged.size) {
+    return [];
+  }
+
+  const updates = [];
+
+  for (const key of state.seriesCatalogChanged) {
+    const entry = state.seriesCatalogMap.get(key);
+
+    if (!entry) continue;
+
+    updates.push({
+      ...entry,
+      seasons: {
+        ...entry.seasons
+      }
+    });
+  }
+
+  state.seriesCatalogChanged.clear();
+
+  return updates;
 }
 
 /* =========================================================
@@ -1744,88 +1524,196 @@ function getDerivedSeriesInfo(item) {
   return extractSeriesInfo(item);
 }
 
-async function getAllSeriesItems() {
-  if (Array.isArray(state.seriesItemsCache)) {
-    return state.seriesItemsCache;
+async async function getAllSeriesItems() {
+  if (Array.isArray(state.seriesCatalog) && state.seriesCatalog.length) {
+    return state.seriesCatalog;
   }
 
   if (!state.db) {
-    const unique = new Map();
-
-    for (const item of state.items) {
-      if (!looksLikeSeriesRecord(item)) continue;
-
-      const info = getDerivedSeriesInfo(item);
-
-      if (!unique.has(info.seriesKey)) {
-        unique.set(info.seriesKey, {
+    return state.items
+      .filter(looksLikeSeriesRecord)
+      .map(item => {
+        const info = getDerivedSeriesInfo(item);
+        return {
           ...item,
           type: "series",
           seriesKey: info.seriesKey,
           seriesName: info.seriesName,
-          season: info.season,
-          episode: info.episode,
-          genre: info.genre
-        });
-      }
-    }
+          genre: info.genre,
+          episodeCount: 1,
+          seasons: info.season
+            ? { [String(info.season)]: 1 }
+            : {}
+        };
+      });
+  }
 
-    state.seriesItemsCache = Array.from(unique.values());
-    return state.seriesItemsCache;
+  const stored = await loadSeriesCatalogFromDB();
+
+  if (stored.length) {
+    state.seriesCatalog = stored;
+    state.seriesCatalogMap = new Map(
+      stored.map(item => [item.seriesKey, item])
+    );
+    state.seriesCatalogReady = true;
+    return stored;
   }
 
   /*
-   * Não confiamos somente no campo type salvo no banco.
-   * A versão antiga do catálogo pode ter gravado séries
-   * como "live". Reclassificamos pelo nome/grupo/URL
-   * enquanto construímos o catálogo de séries.
+   * Catálogo antigo sem índice: usamos somente a RAM
+   * imediatamente. A reconstrução completa acontece
+   * em segundo plano, sem bloquear a abertura da tela.
    */
-  return new Promise((resolve, reject) => {
-    const result = new Map();
-    const transaction = state.db.transaction(STORE_NAME, "readonly");
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.openCursor();
+  const quick = [];
+  const seen = new Set();
 
-    let processed = 0;
+  for (const item of state.items) {
+    if (!looksLikeSeriesRecord(item)) continue;
 
-    request.onsuccess = event => {
-      const cursor = event.target.result;
+    const info = getDerivedSeriesInfo(item);
 
-      if (!cursor) {
-        state.seriesItemsCache = Array.from(result.values());
-        resolve(state.seriesItemsCache);
-        return;
-      }
+    if (!seen.has(info.seriesKey)) {
+      seen.add(info.seriesKey);
 
-      const item = cursor.value;
+      quick.push({
+        ...item,
+        type: "series",
+        seriesKey: info.seriesKey,
+        seriesName: info.seriesName,
+        genre: info.genre,
+        episodeCount: 1,
+        seasons: info.season
+          ? { [String(info.season)]: 1 }
+          : {}
+      });
+    }
+  }
 
-      if (looksLikeSeriesRecord(item)) {
-        const info = getDerivedSeriesInfo(item);
+  rebuildSeriesCatalogInBackground();
 
-        if (!result.has(info.seriesKey)) {
-          result.set(info.seriesKey, {
-            ...item,
-            type: "series",
-            seriesKey: info.seriesKey,
-            seriesName: info.seriesName,
-            season: info.season,
-            episode: info.episode,
-            genre: info.genre
-          });
+  return quick;
+}
+
+async function rebuildSeriesCatalogInBackground() {
+  if (
+    state.seriesCatalogReady ||
+    state.seriesCatalogBuilding ||
+    !state.db
+  ) {
+    return;
+  }
+
+  state.seriesCatalogBuilding = true;
+
+  try {
+    const map = new Map();
+
+    await new Promise((resolve, reject) => {
+      const transaction = state.db.transaction(
+        STORE_NAME,
+        "readonly"
+      );
+
+      const request =
+        transaction.objectStore(STORE_NAME).openCursor();
+
+      let scanned = 0;
+
+      request.onsuccess = event => {
+        const cursor = event.target.result;
+
+        if (!cursor) {
+          resolve();
+          return;
         }
-      }
 
-      processed++;
+        const item = cursor.value;
 
-      if (processed % 1000 === 0) {
-        setTimeout(() => cursor.continue(), 0);
-      } else {
-        cursor.continue();
-      }
-    };
+        if (looksLikeSeriesRecord(item)) {
+          const info = getDerivedSeriesInfo(item);
+          let entry = map.get(info.seriesKey);
 
-    request.onerror = () => reject(request.error);
-  });
+          if (!entry) {
+            entry = {
+              seriesKey: info.seriesKey,
+              seriesName: info.seriesName || item.name,
+              nameLower: normalizeText(
+                info.seriesName || item.name
+              ),
+              logo: item.logo || "",
+              group: item.group || "",
+              genre: info.genre || getGenreName(item.group),
+              episodeCount: 0,
+              seasons: {}
+            };
+
+            map.set(info.seriesKey, entry);
+          }
+
+          if (!entry.logo && item.logo) {
+            entry.logo = item.logo;
+          }
+
+          if (info.season !== null && info.season !== undefined) {
+            const season = String(Number(info.season));
+            entry.seasons[season] =
+              Number(entry.seasons[season] || 0) + 1;
+          }
+
+          entry.episodeCount++;
+        }
+
+        scanned++;
+
+        if (scanned % 1500 === 0) {
+          setTimeout(() => cursor.continue(), 0);
+        } else {
+          cursor.continue();
+        }
+      };
+
+      request.onerror = () => reject(request.error);
+    });
+
+    const result = Array.from(map.values());
+
+    if (state.db.objectStoreNames.contains(SERIES_STORE)) {
+      await new Promise((resolve, reject) => {
+        const transaction = state.db.transaction(
+          SERIES_STORE,
+          "readwrite"
+        );
+
+        const store = transaction.objectStore(SERIES_STORE);
+
+        for (const item of result) {
+          store.put(item);
+        }
+
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error);
+        transaction.onabort = () => reject(transaction.error);
+      });
+    }
+
+    state.seriesCatalog = result;
+    state.seriesCatalogMap = new Map(
+      result.map(item => [item.seriesKey, item])
+    );
+    state.seriesCatalogReady = true;
+    state.seriesItemsCache = result;
+
+    if (state.currentFilter === "series") {
+      render();
+    }
+  } catch (error) {
+    console.warn(
+      "Reconstrução do catálogo de séries falhou:",
+      error
+    );
+  } finally {
+    state.seriesCatalogBuilding = false;
+  }
 }
 
 async function getFilteredSeriesItems() {
@@ -1834,56 +1722,21 @@ async function getFilteredSeriesItems() {
   if (state.currentGenre !== "all") {
     const wanted = normalizeText(state.currentGenre);
 
-    items = items.filter(item => {
-      const info = getDerivedSeriesInfo(item);
-
-      return normalizeText(
-        info.genre || getGenreName(item.group)
-      ) === wanted;
-    });
+    items = items.filter(item =>
+      normalizeText(
+        item.genre || getGenreName(item.group)
+      ) === wanted
+    );
   }
 
   if (state.searchTerm) {
     const term = normalizeText(state.searchTerm);
 
-    items = items.filter(item => {
-      const info = getDerivedSeriesInfo(item);
-
-      return (
-        normalizeText(item.name || "").includes(term) ||
-        normalizeText(item.group || "").includes(term) ||
-        normalizeText(info.seriesName || "").includes(term)
-      );
-    });
-  }
-
-  return items;
-}
-
-async function getFilteredSeriesItems() {
-  let items = await getAllSeriesItems();
-
-  if (state.currentGenre !== "all") {
-    const wanted = normalizeText(state.currentGenre);
-
-    items = items.filter(item => {
-      const info = getDerivedSeriesInfo(item);
-      return normalizeText(info.genre || getGenreName(item.group)) === wanted;
-    });
-  }
-
-  if (state.searchTerm) {
-    const term = normalizeText(state.searchTerm);
-
-    items = items.filter(item => {
-      const info = getDerivedSeriesInfo(item);
-
-      return (
-        normalizeText(item.name || "").includes(term) ||
-        normalizeText(item.group || "").includes(term) ||
-        normalizeText(info.seriesName || "").includes(term)
-      );
-    });
+    items = items.filter(item =>
+      normalizeText(item.name || item.seriesName || "").includes(term) ||
+      normalizeText(item.group || "").includes(term) ||
+      normalizeText(item.seriesName || "").includes(term)
+    );
   }
 
   return items;
@@ -3517,29 +3370,22 @@ function processParsedItem(
   batch.push(item);
 
   if (item.group) {
-    groups.add(
-      item.group
-    );
+    groups.add(item.group);
   }
 
-  if (
-    item.type === "live"
-  ) {
+  if (item.type === "live") {
     state.counts.live++;
-  } else if (
-    item.type === "movie"
-  ) {
+  } else if (item.type === "movie") {
     state.counts.movie++;
-  } else if (
-    item.type === "series"
-  ) {
+  } else if (item.type === "series") {
     state.counts.series++;
   }
 
-  if (
-    state.items.length <
-    RAM_LIMIT
-  ) {
+  if (looksLikeSeriesRecord(item)) {
+    updateSeriesCatalogEntry(item);
+  }
+
+  if (state.items.length < RAM_LIMIT) {
     state.items.push(item);
   }
 }
@@ -3608,6 +3454,12 @@ async function loadM3U(
 
   state.total =
     0;
+
+  state.seriesItemsCache = null;
+  state.seriesCatalog = [];
+  state.seriesCatalogMap = new Map();
+  state.seriesCatalogChanged = new Set();
+  state.seriesCatalogReady = false;
 
   renderStats();
 
@@ -3734,7 +3586,8 @@ async function loadM3U(
         batch = [];
 
         queueWrite(
-          batchToWrite
+          batchToWrite,
+          takeSeriesCatalogUpdates()
         );
 
         /* ---------------------------------------------
@@ -3797,11 +3650,10 @@ async function loadM3U(
        ÚLTIMO LOTE
        ----------------------------------------------------- */
 
-    if (
-      batch.length
-    ) {
+    if (batch.length) {
       queueWrite(
-        batch
+        batch,
+        takeSeriesCatalogUpdates()
       );
     }
 
@@ -4097,11 +3949,13 @@ async function loadFile(
         batch.length >=
         WRITE_BATCH
       ) {
-        queueWrite(
-          batch
-        );
-
+        const batchToWrite = batch;
         batch = [];
+
+        queueWrite(
+          batchToWrite,
+          takeSeriesCatalogUpdates()
+        );
 
         render();
 
@@ -4119,11 +3973,10 @@ async function loadFile(
       }
     }
 
-    if (
-      batch.length
-    ) {
+    if (batch.length) {
       queueWrite(
-        batch
+        batch,
+        takeSeriesCatalogUpdates()
       );
     }
 
@@ -4896,25 +4749,47 @@ async function loadDatabaseStats() {
    CARREGAR CATÁLOGO LOCAL
    ========================================================= */
 
-async function loadLocalCatalog() {
-  try {
-    if (!state.db) {
+function loadSeriesCatalogFromDB() {
+  return new Promise((resolve, reject) => {
+    if (!state.db || !state.db.objectStoreNames.contains(SERIES_STORE)) {
+      resolve([]);
       return;
     }
 
-    const items =
-      await loadSample(
-        RAM_LIMIT
-      );
+    const transaction = state.db.transaction(
+      SERIES_STORE,
+      "readonly"
+    );
 
-    state.items =
-      items;
+    const request =
+      transaction.objectStore(SERIES_STORE).getAll();
 
-    state.seriesItemsCache =
-      null;
+    request.onsuccess = () => {
+      resolve(request.result || []);
+    };
 
-    state.groups =
-      await getGroups();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function loadLocalCatalog() {
+  try {
+    if (!state.db) return;
+
+    const items = await loadSample(RAM_LIMIT);
+
+    state.items = items;
+    state.seriesItemsCache = null;
+
+    const storedSeries = await loadSeriesCatalogFromDB();
+
+    state.seriesCatalog = storedSeries;
+    state.seriesCatalogMap = new Map(
+      storedSeries.map(item => [item.seriesKey, item])
+    );
+    state.seriesCatalogReady = storedSeries.length > 0;
+
+    state.groups = await getGroups();
 
     await loadDatabaseStats();
 
@@ -5223,6 +5098,11 @@ async function clearCatalog() {
       0;
 
     state.seriesItemsCache = null;
+    state.seriesCatalog = [];
+    state.seriesCatalogMap = new Map();
+    state.seriesCatalogChanged = new Set();
+    state.seriesCatalogReady = false;
+    state.seriesCatalogBuilding = false;
 
     state.genreCatalog = {
       all: [],
