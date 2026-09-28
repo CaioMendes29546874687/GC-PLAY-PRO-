@@ -20,7 +20,7 @@ const GC_PROXY_HOSTS = new Set([
 ]);
 
 const DB_NAME = "GC_PLAY_PRO_FAST";
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 const STORE_NAME = "items";
 const SERIES_STORE = "seriesCatalog";
 
@@ -1093,8 +1093,31 @@ async function fetchPlaylist(url, signal) {
   );
 
   if (!response.ok) {
+    let detail = "";
+
+    try {
+      const contentType =
+        response.headers.get("content-type") || "";
+
+      if (contentType.includes("application/json")) {
+        const data = await response.clone().json();
+
+        if (data?.error) {
+          detail = ` — ${data.error}`;
+
+          if (data?.host) {
+            detail += ` (${data.host})`;
+          }
+
+          if (data?.status) {
+            detail += ` [origem HTTP ${data.status}]`;
+          }
+        }
+      }
+    } catch {}
+
     throw new Error(
-      `Servidor respondeu HTTP ${response.status}`
+      `Servidor respondeu HTTP ${response.status}${detail}`
     );
   }
 
@@ -3803,28 +3826,20 @@ async function loadM3U(
 
   try {
     /* -----------------------------------------------------
-       INICIAR FETCH ANTES DE LIMPAR O BANCO
+       CONECTAR PRIMEIRO — só apaga o catálogo antigo
+       depois que a nova playlist respondeu.
+       Assim uma URL com erro não destrói a lista atual.
        ----------------------------------------------------- */
 
-    const responsePromise =
-      fetchPlaylist(
+    updateLoadMessage(
+      "Testando conexão com a playlist..."
+    );
+
+    const response =
+      await fetchPlaylist(
         url,
         controller.signal
       );
-
-    /*
-       A exclusão do banco acontece
-       enquanto a conexão começa.
-    */
-
-    try {
-      await resetDatabaseFast();
-    } catch (error) {
-      console.warn(
-        "Não foi possível limpar banco antigo:",
-        error
-      );
-    }
 
     if (
       controller.signal.aborted
@@ -3835,15 +3850,25 @@ async function loadM3U(
       );
     }
 
+    updateLoadMessage(
+      "Playlist encontrada. Preparando catálogo..."
+    );
+
+    try {
+      await resetDatabaseFast();
+    } catch (error) {
+      console.warn(
+        "Não foi possível limpar banco antigo:",
+        error
+      );
+    }
+
     state.db =
       await openDB();
 
     updateLoadMessage(
       "Conectado. Recebendo playlist..."
     );
-
-    const response =
-      await responsePromise;
 
     /* -----------------------------------------------------
        VERIFICAR TIPO DE RESPOSTA
