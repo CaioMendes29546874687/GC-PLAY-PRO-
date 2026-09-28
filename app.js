@@ -1948,11 +1948,20 @@ async function render() {
 
 function renderSeriesCard(item) {
   const title = item.seriesName || item.name || "Série sem nome";
-  const seasons = Object.keys(item.seasons || {}).map(Number).filter(Number.isFinite).sort((a,b)=>a-b);
+  const seasons = Object.keys(item.seasons || {})
+    .map(Number)
+    .filter(Number.isFinite)
+    .sort((a,b)=>a-b);
+
+  const seasonLabel = seasons.length
+    ? seasons.map(s => `T${s}`).join(" • ")
+    : "Temporadas não identificadas";
+
   const logo = item.logo
     ? `<img class="gc-card-image" src="${escapeHTML(item.logo)}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><div class="gc-card-placeholder" style="display:none">📺</div>`
     : `<div class="gc-card-placeholder">📺</div>`;
-  return `<article class="gc-card" data-series-key="${escapeHTML(item.seriesKey)}" tabindex="0">${logo}<div class="gc-card-info"><div class="gc-card-title">${escapeHTML(title)}</div><div class="gc-card-meta">${formatNumber(item.episodeCount || 0)} episódios • ${escapeHTML(seasons.length ? seasons.map(s=>`T${s}`).join(" • ") : "Temporadas")}</div></div></article>`;
+
+  return `<article class="gc-card" data-series-key="${escapeHTML(item.seriesKey)}" tabindex="0">${logo}<div class="gc-card-info"><div class="gc-card-title">${escapeHTML(title)}</div><div class="gc-card-meta">${formatNumber(item.episodeCount || 0)} episódios • ${escapeHTML(seasonLabel)}</div></div></article>`;
 }
 function renderSeasonCard(season,count) {
   return `<article class="gc-card" data-series-season="${escapeHTML(String(season))}" tabindex="0"><div class="gc-card-placeholder">📂</div><div class="gc-card-info"><div class="gc-card-title">Temporada ${escapeHTML(String(season))}</div><div class="gc-card-meta">${formatNumber(count)} episódios</div></div></article>`;
@@ -1977,7 +1986,37 @@ async function renderSeriesBrowser(grid,empty) {
   const selected=items.find(item=>item.seriesKey===key)||state.seriesCatalogMap.get(key);
   if(!selected){state.seriesView.seriesKey=null;state.seriesView.season=null;return renderSeriesBrowser(grid,empty);}
   if(season===null){
-    const seasons=Object.entries(selected.seasons||{}).sort((a,b)=>Number(a[0])-Number(b[0]));
+    let seasons=Object.entries(selected.seasons||{});
+
+    if(!seasons.length){
+      const episodes=await getSeriesEpisodes(key,null);
+      const derived={};
+
+      for(const episode of episodes){
+        const info=extractSeriesInfo(episode);
+        const n=Number(info.season ?? 1);
+        derived[String(n)]=Number(derived[String(n)]||0)+1;
+      }
+
+      if(Object.keys(derived).length){
+        selected.seasons=derived;
+        seasons=Object.entries(derived);
+
+        try{
+          await new Promise((resolve,reject)=>{
+            const tx=state.db.transaction(SERIES_STORE,"readwrite");
+            tx.objectStore(SERIES_STORE).put(selected);
+            tx.oncomplete=resolve;
+            tx.onerror=()=>reject(tx.error);
+            tx.onabort=()=>reject(tx.error);
+          });
+        }catch(error){
+          console.warn("Não foi possível salvar temporadas derivadas:",error);
+        }
+      }
+    }
+
+    seasons.sort((a,b)=>Number(a[0])-Number(b[0]));
     grid.innerHTML=`<div class="gc-series-toolbar"><button type="button" class="filter-button" data-series-back>← VOLTAR</button><div class="gc-series-heading"><strong>${escapeHTML(selected.seriesName)}</strong><span>${formatNumber(selected.episodeCount||0)} episódios</span></div></div><div class="gc-series-grid">${seasons.length?seasons.map(([n,count])=>renderSeasonCard(n,count)).join(""):`<div class="gc-results-count">Nenhuma temporada identificada.</div>`}</div>`;
     setupSeriesBrowserEvents(grid);if(empty)empty.style.display="none";return;
   }
@@ -1999,17 +2038,19 @@ function getSeriesInfo(item) {
 }
 
 function getDerivedSeriesInfo(item) {
+  const parsed = extractSeriesInfo(item);
+
   if (item?.seriesKey && item?.seriesName) {
     return {
       seriesKey: item.seriesKey,
       seriesName: item.seriesName,
-      season: item.season ?? null,
-      episode: item.episode ?? null,
-      genre: item.genre || getGenreName(item.group)
+      season: item.season ?? parsed.season,
+      episode: item.episode ?? parsed.episode,
+      genre: item.genre || parsed.genre || getGenreName(item.group)
     };
   }
 
-  return extractSeriesInfo(item);
+  return parsed;
 }
 
 function looksLikeSeriesRecord(item) {
@@ -2289,25 +2330,22 @@ function querySeriesEpisodesByKey(key, season) {
     const result = [];
     const transaction = state.db.transaction(STORE_NAME, "readonly");
     const store = transaction.objectStore(STORE_NAME);
-    const useSeasonIndex =
-      season !== null &&
-      store.indexNames.contains("seriesSeason");
-
-    const source = useSeasonIndex
-      ? store.index("seriesSeason")
-      : store.index("seriesKey");
-
-    const range = useSeasonIndex
-      ? IDBKeyRange.only([key, Number(season)])
-      : IDBKeyRange.only(key);
-
+    const source = store.index("seriesKey");
+    const range = IDBKeyRange.only(key);
     const request = source.openCursor(range);
 
     request.onsuccess = event => {
       const cursor = event.target.result;
 
       if (!cursor) {
-        resolve(result);
+        const filtered = season === null
+          ? result
+          : result.filter(item => {
+              const info = extractSeriesInfo(item);
+              return Number(info.season ?? 1) === Number(season);
+            });
+
+        resolve(filtered);
         return;
       }
 
