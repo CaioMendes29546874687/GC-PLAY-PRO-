@@ -15,10 +15,8 @@ const GC_SUPABASE_URL =
 const GC_M3U_PROXY =
   `${GC_SUPABASE_URL}/functions/v1/m3u-proxy`;
 
-const GC_PROXY_HOSTS = new Set([
-  "z1sv.site",
-  "radiodiamomd.com"
-]);
+/* O proxy é genérico: cada playlist pode usar um domínio diferente. */
+const GC_PROXY_HOSTS = null;
 
 const DB_NAME = "GC_PLAY_PRO_FAST";
 const DB_VERSION = 5;
@@ -1044,8 +1042,14 @@ function shouldUseProxy(url) {
   try {
     const parsed = new URL(url);
 
-    return GC_PROXY_HOSTS.has(
-      parsed.hostname.toLowerCase()
+    /*
+       Qualquer URL HTTP/HTTPS pode passar pelo proxy.
+       Isso permite usar playlists de domínios diferentes
+       sem precisar cadastrar cada servidor manualmente.
+    */
+    return (
+      parsed.protocol === "http:" ||
+      parsed.protocol === "https:"
     );
   } catch {
     return false;
