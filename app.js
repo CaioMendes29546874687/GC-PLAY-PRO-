@@ -16,7 +16,8 @@ const GC_M3U_PROXY =
   `${GC_SUPABASE_URL}/functions/v1/m3u-proxy`;
 
 const GC_PROXY_HOSTS = new Set([
-  "z1sv.site"
+  "z1sv.site",
+  "radiodiamomd.com"
 ]);
 
 const DB_NAME = "GC_PLAY_PRO_FAST";
