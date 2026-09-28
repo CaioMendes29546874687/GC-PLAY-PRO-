@@ -2501,21 +2501,33 @@ function loadMpegTS() {
 }
 
 function isMpegTSLive(item) {
-  if (!item) return false;
+  if (!item || item.type !== "live") return false;
 
-  const url =
-    String(item.url || "").toLowerCase();
+  const url = String(item.url || "").toLowerCase();
+
+  if (isHLS(url)) return false;
+
+  /*
+     IPTV ao vivo frequentemente entrega MPEG-TS sem
+     ".ts" no final da URL. Tratamos endpoints de vídeo
+     ao vivo como TS por padrão, exceto formatos que
+     normalmente são reproduzidos nativamente.
+  */
+  if (
+    /\.(mp4|m4v|webm|ogg|ogv|flv)(?:$|[?#])/i.test(url)
+  ) {
+    return false;
+  }
 
   return (
-    item.type === "live" &&
-    !isHLS(url) &&
-    (
-      url.includes(".ts") ||
-      url.includes(".m2ts") ||
-      url.includes("mpegts") ||
-      url.includes("/live/") ||
-      url.includes("/stream/")
-    )
+    url.includes(".ts") ||
+    url.includes(".m2ts") ||
+    url.includes("mpegts") ||
+    url.includes("/live/") ||
+    url.includes("/stream/") ||
+    url.includes("/play/") ||
+    url.includes("/channel/") ||
+    url.includes("/tv/")
   );
 }
 
@@ -2559,10 +2571,16 @@ async function playMpegTS(
         },
         {
           enableWorker: true,
-          enableWorkerForMSE: false,
-          enableStashBuffer: false,
-          liveBufferLatencyChasing: true,
-          liveBufferLatencyMaxLatency: 2
+          enableWorkerForMSE: true,
+          enableStashBuffer: true,
+          stashInitialSize: 384 * 1024,
+          lazyLoad: false,
+          deferLoadAfterSourceOpen: true,
+          liveBufferLatencyChasing: false,
+          liveSync: false,
+          autoCleanupSourceBuffer: true,
+          autoCleanupMaxBackwardDuration: 30,
+          autoCleanupMinBackwardDuration: 10
         }
       );
 
@@ -2579,9 +2597,42 @@ async function playMpegTS(
           errorInfo
         );
 
+        const detail =
+          errorDetail || errorType || "erro desconhecido";
+
         if (message) {
           message.textContent =
-            "Erro ao reproduzir MPEG-TS.";
+            `MPEG-TS: ${detail}`;
+        }
+
+        /*
+           Algumas emissoras encerram a conexão ou enviam
+           um TS com pequena interrupção. Tentamos uma única
+           reconexão automática antes de informar erro final.
+        */
+        if (
+          !player.__gcRetried &&
+          (
+            errorType === mpegts.ErrorTypes.NETWORK_ERROR ||
+            errorDetail === mpegts.ErrorDetails.NETWORK_TIMEOUT ||
+            errorDetail === mpegts.ErrorDetails.NETWORK_UNRECOVERABLE_EARLY_EOF
+          )
+        ) {
+          player.__gcRetried = true;
+
+          setTimeout(async () => {
+            if (state.mpegts !== player) return;
+
+            try {
+              player.unload();
+              player.load();
+              await player.play();
+
+              if (message) message.textContent = "";
+            } catch (retryError) {
+              console.warn("MPEG-TS retry falhou:", retryError);
+            }
+          }, 1200);
         }
       }
     );
