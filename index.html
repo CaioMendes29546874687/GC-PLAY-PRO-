@@ -60,6 +60,10 @@
           SÉRIES
         </button>
 
+        <button class="nav-item gc-adult-nav" data-section="adult">
+          🔒 ADULTOS
+        </button>
+
         <button class="nav-item" data-section="favorites">
           FAVORITOS
         </button>
@@ -541,15 +545,8 @@
         <div class="setting-item">
 
           <div>
-
-            <strong>
-              Interface compacta
-            </strong>
-
-            <span>
-              Reduzir espaços da biblioteca
-            </span>
-
+            <strong>Interface compacta</strong>
+            <span>Reduzir espaços da biblioteca</span>
           </div>
 
           <input
@@ -557,6 +554,21 @@
             id="compactSetting"
           >
 
+        </div>
+
+        <div class="setting-item gc-adult-setting">
+          <div>
+            <strong>🔒 Senha da área Adultos</strong>
+            <span>Protege a entrada e permite trocar a senha usando a senha atual.</span>
+          </div>
+
+          <button
+            type="button"
+            class="secondary-button"
+            id="changeAdultPinButton"
+          >
+            ALTERAR SENHA
+          </button>
         </div>
 
 
@@ -590,7 +602,7 @@
 
   <!-- ================= JAVASCRIPT ================= -->
 
-  <script src="app.js?v=20260928-6"></script>
+  <script src="app.js?v=20260928-7"></script>
 
 </body>
 </html>
