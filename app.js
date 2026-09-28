@@ -1704,56 +1704,96 @@ function getSeriesInfo(item) {
   };
 }
 
+function getDerivedSeriesInfo(item) {
+  if (item?.seriesKey && item?.seriesName) {
+    return {
+      seriesKey: item.seriesKey,
+      seriesName: item.seriesName,
+      season: item.season ?? null,
+      episode: item.episode ?? null,
+      genre: item.genre || getGenreName(item.group)
+    };
+  }
+
+  return extractSeriesInfo(item);
+}
+
 async function getAllSeriesItems() {
   if (Array.isArray(state.seriesItemsCache)) {
     return state.seriesItemsCache;
   }
 
   if (!state.db) {
-    return state.items.filter(
-      item => item.type === "series"
-    );
+    const unique = new Map();
+
+    for (const item of state.items) {
+      if (item.type !== "series") continue;
+
+      const info = getDerivedSeriesInfo(item);
+      if (!unique.has(info.seriesKey)) {
+        unique.set(info.seriesKey, {
+          ...item,
+          seriesKey: info.seriesKey,
+          seriesName: info.seriesName,
+          season: info.season,
+          episode: info.episode,
+          genre: info.genre
+        });
+      }
+    }
+
+    state.seriesItemsCache = Array.from(unique.values());
+    return state.seriesItemsCache;
   }
 
   return new Promise((resolve, reject) => {
-    const result = [];
+    const result = new Map();
     const transaction = state.db.transaction(STORE_NAME, "readonly");
-    const index = transaction.objectStore(STORE_NAME).index("seriesKey");
-    const request = index.openCursor();
+    const index = transaction.objectStore(STORE_NAME).index("type");
+    const request = index.openCursor(IDBKeyRange.only("series"));
 
-    let lastKey = null;
+    let processed = 0;
 
-    request.onsuccess = event => {
-      const cursor = event.target.result;
-
+    const continueCursor = cursor => {
       if (!cursor) {
-        state.seriesItemsCache = result;
-        resolve(result);
+        state.seriesItemsCache = Array.from(result.values());
+        resolve(state.seriesItemsCache);
         return;
       }
 
       const item = cursor.value;
+      const info = getDerivedSeriesInfo(item);
 
-      if (
-        item.type === "series" &&
-        item.seriesKey &&
-        item.seriesKey !== lastKey
-      ) {
-        result.push(item);
-        lastKey = item.seriesKey;
-
-        /*
-         * Salta diretamente para a próxima série.
-         * Assim não precisamos carregar os 400 mil episódios
-         * para montar a primeira tela.
-         */
-        cursor.continue(
-          String(lastKey) + "\uffff"
-        );
-        return;
+      if (!result.has(info.seriesKey)) {
+        result.set(info.seriesKey, {
+          ...item,
+          seriesKey: info.seriesKey,
+          seriesName: info.seriesName,
+          season: info.season,
+          episode: info.episode,
+          genre: info.genre
+        });
       }
 
-      cursor.continue();
+      processed++;
+
+      /*
+       * Não trava a interface em listas enormes.
+       * A cada lote devolvemos o controle ao navegador.
+       */
+      if (processed % 1000 === 0) {
+        setTimeout(() => cursor.continue(), 0);
+      } else {
+        cursor.continue();
+      }
+    };
+
+    request.onsuccess = event => {
+      try {
+        continueCursor(event.target.result);
+      } catch (error) {
+        reject(error);
+      }
     };
 
     request.onerror = () => reject(request.error);
@@ -1765,20 +1805,23 @@ async function getFilteredSeriesItems() {
 
   if (state.currentGenre !== "all") {
     const wanted = normalizeText(state.currentGenre);
-    items = items.filter(item =>
-      normalizeText(getGenreName(item.group)) === wanted
-    );
+
+    items = items.filter(item => {
+      const info = getDerivedSeriesInfo(item);
+      return normalizeText(info.genre || getGenreName(item.group)) === wanted;
+    });
   }
 
   if (state.searchTerm) {
     const term = normalizeText(state.searchTerm);
+
     items = items.filter(item => {
-      const info = getSeriesInfo(item);
+      const info = getDerivedSeriesInfo(item);
 
       return (
-        item.nameLower.includes(term) ||
-        normalizeText(item.group).includes(term) ||
-        normalizeText(info.seriesName).includes(term)
+        normalizeText(item.name || "").includes(term) ||
+        normalizeText(item.group || "").includes(term) ||
+        normalizeText(info.seriesName || "").includes(term)
       );
     });
   }
@@ -1788,14 +1831,15 @@ async function getFilteredSeriesItems() {
 
 function getSeriesEpisodes(seriesKey, season = null) {
   if (!state.db) {
-    let items = state.items.filter(
-      item => item.type === "series" &&
-        item.seriesKey === seriesKey
+    let items = state.items.filter(item => item.type === "series");
+
+    items = items.filter(item =>
+      getDerivedSeriesInfo(item).seriesKey === seriesKey
     );
 
     if (season !== null) {
-      items = items.filter(
-        item => Number(item.season ?? 0) === Number(season)
+      items = items.filter(item =>
+        Number(getDerivedSeriesInfo(item).season ?? 0) === Number(season)
       );
     }
 
@@ -1806,57 +1850,63 @@ function getSeriesEpisodes(seriesKey, season = null) {
     const result = [];
     const transaction = state.db.transaction(STORE_NAME, "readonly");
     const store = transaction.objectStore(STORE_NAME);
+    const index = store.index("type");
+    const request = index.openCursor(IDBKeyRange.only("series"));
 
-    let request;
-
-    if (season === null) {
-      const index = store.index("seriesKey");
-      request = index.openCursor(
-        IDBKeyRange.only(seriesKey)
-      );
-    } else {
-      const index = store.index("seriesSeason");
-      request = index.openCursor(
-        IDBKeyRange.only([seriesKey, Number(season)])
-      );
-    }
+    let processed = 0;
 
     request.onsuccess = event => {
       const cursor = event.target.result;
 
       if (!cursor) {
+        result.sort((a, b) => {
+          const ia = getDerivedSeriesInfo(a);
+          const ib = getDerivedSeriesInfo(b);
+
+          return (
+            (ia.episode ?? 999999) - (ib.episode ?? 999999) ||
+            String(a.name || "").localeCompare(
+              String(b.name || ""),
+              "pt-BR",
+              { sensitivity: "base" }
+            )
+          );
+        });
+
         resolve(result);
         return;
       }
 
       const item = cursor.value;
+      const info = getDerivedSeriesInfo(item);
 
-      if (item.type === "series") {
-        result.push(item);
+      if (
+        info.seriesKey === seriesKey &&
+        (season === null ||
+          Number(info.season ?? 0) === Number(season))
+      ) {
+        result.push({
+          ...item,
+          seriesKey: info.seriesKey,
+          seriesName: info.seriesName,
+          season: info.season,
+          episode: info.episode,
+          genre: info.genre
+        });
       }
 
-      cursor.continue();
+      processed++;
+
+      if (processed % 1000 === 0) {
+        setTimeout(() => cursor.continue(), 0);
+      } else {
+        cursor.continue();
+      }
     };
 
     request.onerror = () => reject(request.error);
   });
 }
-function seriesPosterCard(series) {
-  const image = series.logo
-    ? `<img class="gc-card-image" src="${escapeHTML(series.logo)}" alt="" loading="lazy" onerror="this.style.display='none';">`
-    : `<div class="gc-card-placeholder">📺</div>`;
-
-  return `
-    <article class="gc-card gc-series-browser-card" data-series-key="${escapeHTML(series.key)}">
-      ${image}
-      <div class="gc-card-info">
-        <div class="gc-card-title">${escapeHTML(series.name)}</div>
-        <div class="gc-card-meta">Abrir temporadas e episódios</div>
-      </div>
-    </article>
-  `;
-}
-
 function seasonPosterCard(seriesName, season, count, logo) {
   const image = logo
     ? `<img class="gc-card-image" src="${escapeHTML(logo)}" alt="" loading="lazy" onerror="this.style.display='none';">`
