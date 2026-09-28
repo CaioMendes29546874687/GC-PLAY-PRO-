@@ -907,6 +907,9 @@ function extractSeriesInfo(item) {
   let episode = null;
 
   const patterns = [
+    /\b(?:s|t)\s*0*(\d{1,3})\s*e\s*0*(\d{1,4})\b/i,
+    /\b(?:season|temporada)\s*0*(\d{1,3})\s*(?:e|ep|episode|episodio)\s*0*(\d{1,4})\b/i,
+    /\b0*(\d{1,3})\s*x\s*0*(\d{1,4})\b/i,
     /(?:^|[\s._()[\]-])(?:s|season|t|temporada)\s*0*(\d{1,3})\s*(?:[-_.:/ ]*?)?(?:e|ep|episode|episodio)\s*0*(\d{1,4})(?=$|[\s._()[\]-])/i,
     /(?:^|[\s._()[\]-])0*(\d{1,3})\s*x\s*0*(\d{1,4})(?=$|[\s._()[\]-])/i,
     /(?:season|temporada)\s*0*(\d{1,3})[^0-9]{0,15}(?:episode|episodio|ep)\s*0*(\d{1,4})/i,
@@ -958,6 +961,17 @@ function extractSeriesInfo(item) {
      Mesmo sem o episódio, a temporada precisa ser reconhecida
      para que todos os episódios compartilhem a mesma série.
   */
+  if (season === null) {
+    /*
+       Algumas listas trazem apenas o número do episódio
+       ou um padrão incompleto. Para séries sem temporada
+       explícita, agrupamos esses episódios como Temporada 1.
+    */
+    if (episode !== null) {
+      season = 1;
+    }
+  }
+
   if (season === null) {
     for (const source of sources) {
       const seasonOnly =
@@ -5434,7 +5448,22 @@ async function loadLocalCatalog() {
     renderGenreFilters();
     render();
 
-    if (needsSeriesCatalogMigration(state.seriesCatalog)) {
+    const migrationKey = "GC_PLAY_PRO_SERIES_MIGRATION_V3";
+    let migrated = false;
+
+    try {
+      migrated = localStorage.getItem(migrationKey) === "1";
+    } catch {}
+
+    if (!migrated) {
+      setTimeout(async () => {
+        await rebuildSeriesCatalogInBackground(true);
+
+        try {
+          localStorage.setItem(migrationKey, "1");
+        } catch {}
+      }, 50);
+    } else if (needsSeriesCatalogMigration(state.seriesCatalog)) {
       setTimeout(() => {
         rebuildSeriesCatalogInBackground(true);
       }, 50);
