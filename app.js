@@ -3430,7 +3430,7 @@ async function verifyAdultPin(pin) {
 }
 
 async function unlockAdultArea() {
-  const pin = window.prompt("ÁREA ADULTOS\\nDigite a senha de 4 dígitos:");
+  const pin = window.prompt("ÁREA ADULTOS\nDigite a senha de 4 dígitos:");
   if (pin === null) return false;
 
   if (!/^\d{4,8}$/.test(pin)) {
@@ -3448,7 +3448,7 @@ async function unlockAdultArea() {
 }
 
 async function changeAdultPin() {
-  const current = window.prompt("ALTERAR SENHA\\nDigite a senha atual:");
+  const current = window.prompt("ALTERAR SENHA\nDigite a senha atual:");
   if (current === null) return;
 
   if (!(await verifyAdultPin(current))) {
