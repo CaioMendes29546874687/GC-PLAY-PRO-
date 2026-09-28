@@ -1355,8 +1355,36 @@ input[type="checkbox"]:checked::after {
 
 @media (max-width: 1000px) {
 
+  .topbar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
   .main-nav {
+    display: flex;
+    order: 3;
+    flex-basis: 100%;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 0 4px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .main-nav::-webkit-scrollbar {
     display: none;
+  }
+
+  .nav-item {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 9px 12px;
+  }
+
+  .top-actions {
+    margin-left: auto;
   }
 
   .hero-visual {
