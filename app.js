@@ -875,78 +875,106 @@ function extractSeriesInfo(item) {
   const group = String(item?.group || "").trim();
   const url = String(item?.url || "");
 
-  const source = normalizeText(`${name} ${tvgName} ${group} ${url}`);
+  /*
+     Mantemos o nome original para descobrir temporada/episódio.
+     Não usamos normalizeText() aqui porque queremos preservar
+     separadores e números exatamente como vieram.
+  */
+  const sources = [name, tvgName, group, url];
 
   let season = null;
   let episode = null;
 
   const patterns = [
-    /(?:^|[\\s._()[\\]-])(?:s|season|t|temporada)\\s*0*(\\d{1,3})\\s*(?:[-_.:/ ]?)(?:e|ep|episode|episodio)\\s*0*(\\d{1,4})(?=$|[\\s._()[\\]-])/i,
-    /(?:^|[\\s._()[\\]-])0*(\\d{1,3})\\s*x\\s*0*(\\d{1,4})(?=$|[\\s._()[\\]-])/i,
-    /[/\\\\]season[/\\\\_-]?0*(\\d{1,3})[/\\\\_-]episode[/\\\\_-]?0*(\\d{1,4})/i,
-    /[/\\\\]s0*(\\d{1,3})[/\\\\_-]e0*(\\d{1,4})/i,
-    /(?:season|temporada)[\\s._-]*0*(\\d{1,3})[^0-9]{0,8}(?:episode|episodio|ep)[\\s._-]*0*(\\d{1,4})/i
+    /(?:^|[\s._()[\]-])(?:s|season|t|temporada)\s*0*(\d{1,3})\s*(?:[-_.:/ ]*?)?(?:e|ep|episode|episodio)\s*0*(\d{1,4})(?=$|[\s._()[\]-])/i,
+    /(?:^|[\s._()[\]-])0*(\d{1,3})\s*x\s*0*(\d{1,4})(?=$|[\s._()[\]-])/i,
+    /(?:season|temporada)\s*0*(\d{1,3})[^0-9]{0,15}(?:episode|episodio|ep)\s*0*(\d{1,4})/i,
+    /[\\/]season[\\/_-]?0*(\d{1,3})[\\/_-](?:episode|ep)[\\/_-]?0*(\d{1,4})/i,
+    /[\\/]s0*(\d{1,3})[\\/_-]e0*(\d{1,4})/i
   ];
 
-  for (const pattern of patterns) {
-    const match = source.match(pattern);
-    if (match) {
-      season = Number(match[1]);
-      episode = Number(match[2]);
-      break;
+  for (const source of sources) {
+    for (const pattern of patterns) {
+      const match = source.match(pattern);
+
+      if (match) {
+        season = Number(match[1]);
+        episode = Number(match[2]);
+        break;
+      }
     }
+
+    if (season !== null && episode !== null) break;
   }
 
+  /*
+     Alguns provedores colocam temporada/episódio apenas
+     na URL ou em parâmetros.
+  */
   if (season === null) {
-    const seasonOnly =
-      source.match(/(?:^|[\\s._()[\\]-])(?:s|season|t|temporada)\\s*0*(\\d{1,3})(?=$|[\\s._()[\\]-])/i) ||
-      source.match(/[/\\\\](?:season|s)[/\\\\_-]?0*(\\d{1,3})(?=[/\\\\_-])/i);
+    const seasonMatch =
+      url.match(/[?&](?:season|temporada|s|t)=0*(\d+)/i) ||
+      url.match(/[\\/](?:season|temporada|s|t)[\\/_-]?0*(\d+)/i);
 
-    if (seasonOnly) {
-      season = Number(seasonOnly[1]);
+    if (seasonMatch) {
+      season = Number(seasonMatch[1]);
     }
-  }
-
-  if (season === null) {
-    const urlSeason =
-      url.match(/[?&](?:season|temporada|s)=0*(\\d+)/i) ||
-      url.match(/[/\\\\](?:season|s)[/\\\\_-]?0*(\\d+)/i);
-
-    if (urlSeason) season = Number(urlSeason[1]);
   }
 
   if (episode === null) {
-    const urlEpisode =
-      url.match(/[?&](?:episode|episodio|ep|e)=0*(\\d+)/i) ||
-      url.match(/[/\\\\](?:episode|episodio|ep|e)[/\\\\_-]?0*(\\d+)/i);
+    const episodeMatch =
+      url.match(/[?&](?:episode|episodio|ep|e)=0*(\d+)/i) ||
+      url.match(/[\\/](?:episode|episodio|ep|e)[\\/_-]?0*(\d+)/i);
 
-    if (urlEpisode) episode = Number(urlEpisode[1]);
+    if (episodeMatch) {
+      episode = Number(episodeMatch[1]);
+    }
   }
 
   let seriesName = tvgName || name;
 
-  const groupWithoutPrefix = group
-    .replace(/^\\s*(?:series?|séries?)\\s*[-|:/\\\\>]\\s*/i, "")
+  /*
+     Se o grupo já contém o nome da série + temporada,
+     aproveitamos o nome antes de "Temporada/S01".
+  */
+  const groupClean = group
+    .replace(/^\s*(?:series?|séries?)\s*[-|:/\\>]+\s*/i, "")
     .trim();
 
-  if (groupWithoutPrefix && /(?:temporada|season|\\bt\\b|\\bs\\b)\\s*\\d+/i.test(groupWithoutPrefix)) {
-    const groupMatch = groupWithoutPrefix.match(
-      /^(.*?)\\s*(?:[-|:/\\\\>]\\s*)?(?:temporada|season|t|s)\\s*0*\\d+/i
-    );
-    if (groupMatch?.[1]?.trim()) {
-      seriesName = groupMatch[1].trim();
-    }
+  const groupSeries = groupClean.match(
+    /^(.*?)\s*(?:[-|:/\\>]+\s*)?(?:temporada|season|s|t)\s*0*\d+/i
+  );
+
+  if (groupSeries?.[1]?.trim()) {
+    seriesName = groupSeries[1].trim();
   }
 
+  /*
+     Remove o identificador de episódio/temporada do nome.
+     Isso é o ponto principal: todos os episódios passam a ter
+     o mesmo seriesKey.
+  */
   seriesName = seriesName
-    .replace(/\\s*(?:[-|:]\\s*)?(?:s|season|t|temporada)\\s*0*\\d{1,3}\\s*(?:[-_.:/ ]?)(?:e|ep|episode|episodio)\\s*0*\\d{1,4}.*$/i, "")
-    .replace(/\\s*(?:[-|:]\\s*)?0*\\d{1,3}\\s*x\\s*0*\\d{1,4}.*$/i, "")
-    .replace(/\\s*[-|:]\\s*(?:episode|episodio|ep)\\s*0*\\d+.*$/i, "")
-    .replace(/\\s*[-|:]\\s*(?:temporada|season|s|t)\\s*0*\\d+.*$/i, "")
+    .replace(
+      /\s*[-|:_./()\[\]]*\s*(?:s|season|t|temporada)\s*0*\d{1,3}\s*[-_.:/ ]*\s*(?:e|ep|episode|episodio)\s*0*\d{1,4}.*$/i,
+      ""
+    )
+    .replace(
+      /\s*[-|:_./()\[\]]*\s*0*\d{1,3}\s*x\s*0*\d{1,4}.*$/i,
+      ""
+    )
+    .replace(
+      /\s*[-|:_./()\[\]]*\s*(?:season|temporada)\s*0*\d{1,3}.*$/i,
+      ""
+    )
+    .replace(
+      /\s*[-|:_./()\[\]]*\s*(?:episode|episodio|ep)\s*0*\d{1,4}.*$/i,
+      ""
+    )
     .trim();
 
   if (!seriesName) {
-    seriesName = name || groupWithoutPrefix || "Série sem nome";
+    seriesName = groupClean || name || "Série sem nome";
   }
 
   return {
