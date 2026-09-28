@@ -3414,6 +3414,8 @@ function setupSearch() {
    BUSCA GLOBAL
    ========================================================= */
 
+let searchRequestId = 0;
+
 async function performSearch(
   term
 ) {
@@ -3423,6 +3425,9 @@ async function performSearch(
   if (!results) {
     return;
   }
+
+  const requestId =
+    ++searchRequestId;
 
   const normalized =
     normalizeText(term);
@@ -3443,15 +3448,11 @@ async function performSearch(
     `
       <div class="gc-loading">
         <span class="gc-spinner"></span>
-        Procurando...
+        Procurando rapidamente...
       </div>
     `;
 
-  /*
-     Primeiro procura na RAM.
-  */
-
-  let matches =
+  const ramMatches =
     state.items.filter(
       item =>
         item.nameLower.includes(
@@ -3464,32 +3465,47 @@ async function performSearch(
         )
     );
 
-  /*
-     Limite inicial para evitar
-     travar a interface.
-  */
+  const unique =
+    new Map();
 
-  matches =
-    matches.slice(
-      0,
-      100
+  ramMatches
+    .slice(0, 100)
+    .forEach(
+      item => unique.set(
+        item.id,
+        item
+      )
     );
 
-  /*
-     Se não encontrou na RAM,
-     consulta o banco.
-  */
-
   if (
-    matches.length === 0 &&
+    unique.size < 100 &&
     state.db
   ) {
-    matches =
+    const dbMatches =
       await searchDatabase(
         normalized,
-        100
+        100 - unique.size,
+        requestId
       );
+
+    if (
+      requestId !== searchRequestId
+    ) {
+      return;
+    }
+
+    dbMatches.forEach(
+      item => unique.set(
+        item.id,
+        item
+      )
+    );
   }
+
+  const matches =
+    Array.from(
+      unique.values()
+    ).slice(0, 100);
 
   if (!matches.length) {
     results.innerHTML =
@@ -3505,33 +3521,39 @@ async function performSearch(
   results.innerHTML =
     `
       <div class="gc-results-count">
-        ${formatNumber(
-          matches.length
-        )}
-        resultado(s)
+        Até ${formatNumber(matches.length)}
+        resultado(s) encontrados
       </div>
 
       ${matches
-        .map(
-          renderSearchResult
-        )
+        .map(renderSearchResult)
         .join("")}
     `;
 
   setupSearchResultEvents();
 }
-
 /* =========================================================
    BUSCA NO BANCO
    ========================================================= */
 
 function searchDatabase(
   term,
-  limit = 100
+  limit = 100,
+  requestId = 0
 ) {
   return new Promise(
     (resolve, reject) => {
+      if (
+        !state.db ||
+        !term ||
+        limit <= 0
+      ) {
+        resolve([]);
+        return;
+      }
+
       const result = [];
+      const seen = new Set();
 
       const transaction =
         state.db.transaction(
@@ -3544,16 +3566,130 @@ function searchDatabase(
           STORE_NAME
         );
 
-      const request =
-        store.openCursor();
+      const index =
+        store.index("nameLower");
 
-      request.onsuccess =
+      const upper =
+        term + "\\uffff";
+
+      const prefixRange =
+        IDBKeyRange.bound(
+          term,
+          upper,
+          false,
+          false
+        );
+
+      const prefixRequest =
+        index.openCursor(
+          prefixRange
+        );
+
+      let fallbackStarted =
+        false;
+
+      const startFallback =
+        () => {
+          if (fallbackStarted) {
+            return;
+          }
+
+          fallbackStarted = true;
+
+          if (
+            result.length >= limit
+          ) {
+            resolve(result);
+            return;
+          }
+
+          const fallbackRequest =
+            store.openCursor();
+
+          let scanned = 0;
+
+          fallbackRequest.onsuccess =
+            async event => {
+              const cursor =
+                event.target.result;
+
+              if (!cursor) {
+                resolve(result);
+                return;
+              }
+
+              if (
+                requestId !== searchRequestId
+              ) {
+                resolve([]);
+                return;
+              }
+
+              const item =
+                cursor.value;
+
+              if (
+                !seen.has(item.id) &&
+                (
+                  item.nameLower.includes(term) ||
+                  normalizeText(
+                    item.group
+                  ).includes(term)
+                )
+              ) {
+                seen.add(item.id);
+                result.push(item);
+
+                if (
+                  result.length >= limit
+                ) {
+                  resolve(result);
+                  return;
+                }
+              }
+
+              scanned++;
+
+              if (
+                scanned % 1000 === 0
+              ) {
+                await new Promise(
+                  requestAnimationFrame
+                );
+
+                if (
+                  requestId !== searchRequestId
+                ) {
+                  resolve([]);
+                  return;
+                }
+              }
+
+              cursor.continue();
+            };
+
+          fallbackRequest.onerror =
+            () => {
+              reject(
+                fallbackRequest.error
+              );
+            };
+        };
+
+      prefixRequest.onsuccess =
         event => {
           const cursor =
             event.target.result;
 
           if (!cursor) {
-            resolve(result);
+            startFallback();
+            return;
+          }
+
+          if (
+            requestId !== searchRequestId
+          ) {
+            resolve([]);
             return;
           }
 
@@ -3561,44 +3697,29 @@ function searchDatabase(
             cursor.value;
 
           if (
-            item.nameLower.includes(
-              term
-            ) ||
-            normalizeText(
-              item.group
-            ).includes(
-              term
-            )
+            !seen.has(item.id)
           ) {
-            result.push(
-              item
-            );
+            seen.add(item.id);
+            result.push(item);
+          }
 
-            if (
-              result.length >=
-              limit
-            ) {
-              resolve(
-                result
-              );
-
-              return;
-            }
+          if (
+            result.length >= limit
+          ) {
+            resolve(result);
+            return;
           }
 
           cursor.continue();
         };
 
-      request.onerror =
+      prefixRequest.onerror =
         () => {
-          reject(
-            request.error
-          );
+          startFallback();
         };
     }
   );
 }
-
 /* =========================================================
    RESULTADO DA BUSCA
    ========================================================= */
