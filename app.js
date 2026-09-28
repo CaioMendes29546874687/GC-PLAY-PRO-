@@ -2094,9 +2094,9 @@ async function getAllSeriesItems() {
   return quick;
 }
 
-async function rebuildSeriesCatalogInBackground() {
+async function rebuildSeriesCatalogInBackground(force = false) {
   if (
-    state.seriesCatalogReady ||
+    (!force && state.seriesCatalogReady) ||
     state.seriesCatalogBuilding ||
     !state.db
   ) {
@@ -2107,6 +2107,7 @@ async function rebuildSeriesCatalogInBackground() {
 
   try {
     const map = new Map();
+    const aliases = new Map();
 
     await new Promise((resolve, reject) => {
       const transaction = state.db.transaction(
@@ -2130,13 +2131,22 @@ async function rebuildSeriesCatalogInBackground() {
         const item = cursor.value;
 
         if (looksLikeSeriesRecord(item)) {
-          const info = getDerivedSeriesInfo(item);
-          let entry = map.get(info.seriesKey);
+          const info = extractSeriesInfo(item);
+          const canonicalKey = normalizeText(
+            canonicalSeriesTitle(info.seriesName || item.name)
+          );
+
+          if (item.seriesKey) {
+            aliases.set(String(item.seriesKey), canonicalKey);
+          }
+          aliases.set(canonicalKey, canonicalKey);
+
+          let entry = map.get(canonicalKey);
 
           if (!entry) {
             entry = {
-              seriesKey: info.seriesKey,
-              seriesName: info.seriesName || item.name,
+              seriesKey: canonicalKey,
+              seriesName: canonicalSeriesTitle(info.seriesName || item.name),
               nameLower: normalizeText(
                 info.seriesName || item.name
               ),
@@ -2186,6 +2196,8 @@ async function rebuildSeriesCatalogInBackground() {
 
         const store = transaction.objectStore(SERIES_STORE);
 
+        store.clear();
+
         for (const item of result) {
           store.put(item);
         }
@@ -2196,6 +2208,7 @@ async function rebuildSeriesCatalogInBackground() {
       });
     }
 
+    state.seriesKeyAliases = aliases;
     state.seriesCatalog = result;
     state.seriesCatalogMap = new Map(
       result.map(item => [item.seriesKey, item])
@@ -5332,6 +5345,15 @@ function loadSeriesCatalogFromDB() {
   });
 }
 
+function needsSeriesCatalogMigration(catalog) {
+  if (!Array.isArray(catalog) || !catalog.length) return false;
+
+  return catalog.some(item =>
+    Number(item.episodeCount || 0) > 0 &&
+    Object.keys(item.seasons || {}).length === 0
+  );
+}
+
 async function loadLocalCatalog() {
   try {
     if (!state.db) return;
@@ -5411,6 +5433,12 @@ async function loadLocalCatalog() {
     await loadDatabaseStats();
     renderGenreFilters();
     render();
+
+    if (needsSeriesCatalogMigration(state.seriesCatalog)) {
+      setTimeout(() => {
+        rebuildSeriesCatalogInBackground(true);
+      }, 50);
+    }
   } catch (error) {
     console.error("Erro carregando catálogo:", error);
   }
