@@ -71,6 +71,8 @@ const state = {
 
   mpegts: null,
 
+  seriesItemsCache: null,
+
   groupsReady: false,
 
   settings: {
@@ -1519,7 +1521,27 @@ function render() {
   if (!grid) return;
 
   if (state.currentFilter === "series") {
-    renderSeriesBrowser(grid, empty);
+    grid.innerHTML = `
+      <div class="gc-loading">
+        <span class="gc-spinner"></span>
+        Organizando séries, temporadas e episódios...
+      </div>
+    `;
+
+    renderSeriesBrowser(grid, empty)
+      .catch(error => {
+        console.error(
+          "Erro organizando séries:",
+          error
+        );
+
+        grid.innerHTML = `
+          <div class="gc-results-count">
+            Não foi possível organizar as séries.
+          </div>
+        `;
+      });
+
     return;
   }
 
@@ -1575,31 +1597,105 @@ function getSeriesInfo(item) {
   };
 }
 
-function getFilteredSeriesItems() {
-  let items = state.items.filter(item => item.type === "series");
+async function getAllSeriesItems() {
+  if (Array.isArray(state.seriesItemsCache)) {
+    return state.seriesItemsCache;
+  }
 
-  if (state.currentGenre !== "all") {
-    const wanted = normalizeText(state.currentGenre);
-    items = items.filter(item =>
-      normalizeText(getGenreName(item.group)) === wanted
+  if (!state.db) {
+    return state.items.filter(
+      item => item.type === "series"
     );
   }
 
-  if (state.searchTerm) {
-    const term = normalizeText(state.searchTerm);
-    items = items.filter(item => {
-      const info = getSeriesInfo(item);
-      return (
-        item.nameLower.includes(term) ||
-        normalizeText(item.group).includes(term) ||
-        normalizeText(info.seriesName).includes(term)
+  return new Promise((resolve, reject) => {
+    const result = [];
+
+    const transaction =
+      state.db.transaction(
+        STORE_NAME,
+        "readonly"
       );
-    });
+
+    const index =
+      transaction
+        .objectStore(STORE_NAME)
+        .index("type");
+
+    const request =
+      index.openCursor(
+        IDBKeyRange.only("series")
+      );
+
+    request.onsuccess =
+      event => {
+        const cursor =
+          event.target.result;
+
+        if (!cursor) {
+          state.seriesItemsCache =
+            result;
+
+          resolve(result);
+          return;
+        }
+
+        result.push(
+          cursor.value
+        );
+
+        cursor.continue();
+      };
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
+}
+
+async function getFilteredSeriesItems() {
+  let items =
+    await getAllSeriesItems();
+
+  if (state.currentGenre !== "all") {
+    const wanted =
+      normalizeText(
+        state.currentGenre
+      );
+
+    items =
+      items.filter(item =>
+        normalizeText(
+          getGenreName(item.group)
+        ) === wanted
+      );
+  }
+
+  if (state.searchTerm) {
+    const term =
+      normalizeText(
+        state.searchTerm
+      );
+
+    items =
+      items.filter(item => {
+        const info =
+          getSeriesInfo(item);
+
+        return (
+          item.nameLower.includes(term) ||
+          normalizeText(
+            item.group
+          ).includes(term) ||
+          normalizeText(
+            info.seriesName
+          ).includes(term)
+        );
+      });
   }
 
   return items;
 }
-
 function seriesPosterCard(series) {
   const image = series.logo
     ? `<img class="gc-card-image" src="${escapeHTML(series.logo)}" alt="" loading="lazy" onerror="this.style.display='none';">`
@@ -1646,8 +1742,8 @@ function episodeCard(item, info) {
   `;
 }
 
-function renderSeriesBrowser(grid, empty) {
-  const items = getFilteredSeriesItems();
+async function renderSeriesBrowser(grid, empty) {
+  const items = await getFilteredSeriesItems();
 
   if (!items.length) {
     grid.innerHTML = "";
@@ -4635,6 +4731,9 @@ async function loadLocalCatalog() {
 
     state.items =
       items;
+
+    state.seriesItemsCache =
+      null;
 
     state.groups =
       await getGroups();
