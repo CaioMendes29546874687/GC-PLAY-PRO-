@@ -3499,23 +3499,23 @@ async function buildGenreCatalog() {
   };
 
   const add = (type, group) => {
+    if (!["live", "movie", "series"].includes(type)) return;
+
     const genre = getGenreName(group);
     const key = normalizeText(genre);
     if (!key) return;
 
-    if (!catalog.all.has(key)) {
-      catalog.all.set(key, genre);
-    }
+    if (!catalog.all.has(key)) catalog.all.set(key, genre);
+    if (!catalog[type].has(key)) catalog[type].set(key, genre);
+  };
 
-    if (catalog[type] && !catalog[type].has(key)) {
-      catalog[type].set(key, genre);
-    }
+  const addItem = item => {
+    if (!item || isAdultContent(item)) return;
+    add(item.type, item.group);
   };
 
   if (!state.db) {
-    for (const item of state.items) {
-      add(item.type, item.group);
-    }
+    for (const item of state.items) addItem(item);
   } else {
     await new Promise((resolve, reject) => {
       const transaction = state.db.transaction(STORE_NAME, "readonly");
@@ -3529,22 +3529,7 @@ async function buildGenreCatalog() {
           return;
         }
 
-        const item = cursor.value;
-        if (isAdultContent(item)) {
-          cursor.continue();
-          return;
-        }
-
-        /*
-         * Corrige categorias de séries que foram salvas
-         * com type antigo antes do agrupamento novo.
-         */
-        const effectiveType =
-          looksLikeSeriesRecord(item)
-            ? "series"
-            : item.type;
-
-        add(effectiveType, item.group);
+        addItem(cursor.value);
         cursor.continue();
       };
 
@@ -3569,16 +3554,22 @@ async function buildGenreCatalog() {
 }
 
 function getAvailableGenres(type) {
-  const key=["live","movie","series","adult"].includes(type)?type:"all";
-  if(key==="series" && state.seriesCatalog.length){
-    return Array.from(new Set(state.seriesCatalog.map(item=>item.genre || getGenreName(item.group)).filter(Boolean)))
-      .sort((a,b)=>a.localeCompare(b,"pt-BR",{sensitivity:"base"}));
-  }
+  const key = ["live", "movie", "series", "adult"].includes(type) ? type : "all";
+
   if (key === "adult") return [];
-  const cached=state.genreCatalog[key];
-  if(Array.isArray(cached) && cached.length) return cached;
-  return Array.from(new Set(state.groups.map(getGenreName).filter(Boolean)))
-    .sort((a,b)=>a.localeCompare(b,"pt-BR",{sensitivity:"base"}));
+
+  if (key === "series" && state.seriesCatalog.length) {
+    return Array.from(new Set(
+      state.seriesCatalog
+        .map(item => item.genre || getGenreName(item.group))
+        .filter(Boolean)
+    )).sort((a,b) =>
+      a.localeCompare(b, "pt-BR", { sensitivity: "base" })
+    );
+  }
+
+  const cached = state.genreCatalog[key];
+  return Array.isArray(cached) ? cached : [];
 }
 
 function renderGenreFilters() {
@@ -3623,38 +3614,29 @@ function renderGenreFilters() {
    ========================================================= */
 
 function setupNavigation() {
-  const buttons =
-    $$(
-      "[data-section]"
-    );
+  const buttons = $$("[data-section]");
 
-  buttons.forEach(
-    button => {
-      button.addEventListener(
-        "click",
-        async () => {
-          const section =
-            button.dataset.section;
+  buttons.forEach(button => {
+    button.addEventListener("click", async () => {
+      const section = button.dataset.section || "home";
 
-          state.currentSection =
-            section;
+      if (section === "adult") {
+        const unlocked = await unlockAdultArea();
+        if (!unlocked) return;
+        state.adultUnlocked = true;
+      } else {
+        state.adultUnlocked = false;
+      }
 
-          buttons.forEach(
-            item => {
-              item.classList.toggle(
-                "active",
-                item === button
-              );
-            }
-          );
+      state.currentSection = section;
 
-          await handleSection(
-            section
-          );
-        }
-      );
-    }
-  );
+      buttons.forEach(item => {
+        item.classList.toggle("active", item === button);
+      });
+
+      await handleSection(section);
+    });
+  });
 }
 
 /* =========================================================
@@ -3667,6 +3649,7 @@ async function handleSection(
   if (
     section === "home"
   ) {
+    state.adultUnlocked = false;
     state.currentFilter =
       "all";
 
@@ -3686,6 +3669,7 @@ async function handleSection(
   if (
     section === "live"
   ) {
+    state.adultUnlocked = false;
     state.currentFilter =
       "live";
 
@@ -3701,6 +3685,7 @@ async function handleSection(
   if (
     section === "movies"
   ) {
+    state.adultUnlocked = false;
     state.currentFilter =
       "movie";
 
@@ -3716,6 +3701,7 @@ async function handleSection(
   if (
     section === "series"
   ) {
+    state.adultUnlocked = false;
     state.currentFilter =
       "series";
 
