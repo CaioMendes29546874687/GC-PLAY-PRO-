@@ -3393,7 +3393,7 @@ function isAdultContent(item) {
   if (!text) return false;
 
   const strongAdultTerms =
-    /(?:\badult\b|\badultos?\b|\bxxx\b|\b18\\s*\\+\b|\bsexo\b|\bsexual\b|\bporn(?:o|ografia)?\b|\bpornhub\b|\bredtube\b|\bbrazzers\b|\bhentai\b|\berotic(?:a|o)\b|\berotismo\b|\bnudez?\b|\bonlyfans\b|\bplayboy\b|\bpenthouse\b|\bsexy\b)/i;
+    /(?:\badult\b|\badultos?\b|\bxxx\b|\b18\s*\+\b|\bsexo\b|\bsexual\b|\bporn(?:o|ografia)?\b|\bpornhub\b|\bredtube\b|\bbrazzers\b|\bhentai\b|\berotic(?:a|o)\b|\berotismo\b|\bnudez?\b|\bonlyfans\b|\bplayboy\b|\bpenthouse\b|\bsexy\b)/i
 
   return strongAdultTerms.test(text);
 }
