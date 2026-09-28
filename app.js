@@ -63,6 +63,8 @@ const state = {
 
   hls: null,
 
+  mpegts: null,
+
   groupsReady: false,
 
   settings: {
@@ -1595,6 +1597,196 @@ async function loadHLS() {
 }
 
 /* =========================================================
+   MPEG-TS PLAYER
+   ========================================================= */
+
+function loadMpegTS() {
+  if (window.mpegts) {
+    return Promise.resolve(window.mpegts);
+  }
+
+  return new Promise((resolve, reject) => {
+    const existing =
+      document.querySelector(
+        'script[data-gc-mpegts="1"]'
+      );
+
+    if (existing) {
+      existing.addEventListener(
+        "load",
+        () => resolve(window.mpegts)
+      );
+
+      existing.addEventListener(
+        "error",
+        reject
+      );
+
+      return;
+    }
+
+    const script =
+      document.createElement("script");
+
+    script.src =
+      "https://cdn.jsdelivr.net/npm/mpegts.js@latest/dist/mpegts.min.js";
+
+    script.async = true;
+    script.dataset.gcMpegts = "1";
+
+    script.onload = () => {
+      if (window.mpegts) {
+        resolve(window.mpegts);
+      } else {
+        reject(
+          new Error(
+            "mpegts.js não foi carregado."
+          )
+        );
+      }
+    };
+
+    script.onerror = () => {
+      reject(
+        new Error(
+          "Não foi possível carregar mpegts.js."
+        )
+      );
+    };
+
+    document.head.appendChild(script);
+  });
+}
+
+function isMpegTSLive(item) {
+  if (!item) return false;
+
+  const url =
+    String(item.url || "").toLowerCase();
+
+  return (
+    item.type === "live" &&
+    !isHLS(url) &&
+    (
+      url.includes(".ts") ||
+      url.includes(".m2ts") ||
+      url.includes("mpegts") ||
+      url.includes("/live/") ||
+      url.includes("/stream/")
+    )
+  );
+}
+
+async function playMpegTS(
+  video,
+  url,
+  message
+) {
+  try {
+    const mpegts =
+      await loadMpegTS();
+
+    if (
+      !mpegts ||
+      !mpegts.isSupported()
+    ) {
+      throw new Error(
+        "MPEG-TS não é suportado neste navegador."
+      );
+    }
+
+    if (
+      state.mpegts
+    ) {
+      try {
+        state.mpegts.destroy();
+      } catch {}
+
+      state.mpegts = null;
+    }
+
+    const player =
+      mpegts.createPlayer(
+        {
+          type: "mpegts",
+          isLive: true,
+          url,
+          cors: true,
+          hasAudio: true,
+          hasVideo: true
+        },
+        {
+          enableWorker: true,
+          enableWorkerForMSE: false,
+          enableStashBuffer: false,
+          liveBufferLatencyChasing: true,
+          liveBufferLatencyMaxLatency: 2
+        }
+      );
+
+    state.mpegts =
+      player;
+
+    player.on(
+      mpegts.Events.ERROR,
+      (errorType, errorDetail, errorInfo) => {
+        console.warn(
+          "MPEG-TS ERROR:",
+          errorType,
+          errorDetail,
+          errorInfo
+        );
+
+        if (message) {
+          message.textContent =
+            "Erro ao reproduzir MPEG-TS.";
+        }
+      }
+    );
+
+    player.attachMediaElement(
+      video
+    );
+
+    player.load();
+
+    if (message) {
+      message.textContent =
+        "Conectando ao canal MPEG-TS...";
+    }
+
+    try {
+      await player.play();
+
+      if (message) {
+        message.textContent = "";
+      }
+    } catch (error) {
+      console.warn(
+        "MPEG-TS autoplay:",
+        error
+      );
+
+      if (message) {
+        message.textContent =
+          "Toque no botão ▶ para iniciar.";
+      }
+    }
+
+  } catch (error) {
+    console.error(
+      "Erro MPEG-TS:",
+      error
+    );
+
+    if (message) {
+      message.textContent =
+        "Não foi possível iniciar o MPEG-TS.";
+    }
+  }
+}
+
+/* =========================================================
    FECHAR PLAYER
    ========================================================= */
 
@@ -1610,6 +1802,13 @@ function closePlayer() {
       state.hls.destroy();
     } catch {}
     state.hls = null;
+  }
+
+  if (state.mpegts) {
+    try {
+      state.mpegts.destroy();
+    } catch {}
+    state.mpegts = null;
   }
 
   if (video) {
@@ -1729,6 +1928,20 @@ async function playItem(item) {
     shouldUseProxy(originalUrl)
       ? buildProxyUrl(originalUrl)
       : originalUrl;
+
+  /* -------------------------------------------------------
+     MPEG-TS AO VIVO
+     ------------------------------------------------------- */
+
+  if (isMpegTSLive(item)) {
+    await playMpegTS(
+      video,
+      playbackUrl,
+      message
+    );
+
+    return;
+  }
 
   /* -------------------------------------------------------
      HLS
