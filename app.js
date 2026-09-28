@@ -678,11 +678,12 @@ function classifyItem(name, group, url) {
   );
   const lowerUrl = String(url || "").toLowerCase();
 
-  // Playlists Xtream/M3U normalmente revelam o tipo diretamente na URL.
   if (
     /\/series\//i.test(lowerUrl) ||
-    /(?:^|[\\/._ -])(s|t)\\d{1,3}(?:e|x)\\d{1,4}/i.test(text) ||
-    /temporada\\s*\\d+.*(?:episodio|ep)\\s*\\d+/i.test(text)
+    /(?:^|[\\s._()\\[\\]-])(?:s|season|t|temporada)\\s*\\d+\\s*(?:e|ep|episode|episodio)\\s*\\d+/i.test(text) ||
+    /(?:^|[\\s._()\\[\\]-])\\d+\\s*x\\s*\\d+/i.test(text) ||
+    text.includes("serie") ||
+    text.includes("series")
   ) {
     return "series";
   }
@@ -696,14 +697,6 @@ function classifyItem(name, group, url) {
     text.includes("vod")
   ) {
     return "movie";
-  }
-
-  if (
-    /\/live\//i.test(lowerUrl) ||
-    text.includes("tv ao vivo") ||
-    text.includes("live")
-  ) {
-    return "live";
   }
 
   return "live";
@@ -725,9 +718,9 @@ function extractSeriesInfo(item) {
   let episode = null;
 
   const patterns = [
-    /(?:^|[\\s._()\\[\\]-])(?:s|season|t|temporada)\\s*0*(\\d{1,3})\\s*(?:e|ep|episode|episodio)\\s*0*(\\d{1,4})/i,
-    /(?:^|[\\s._()\\[\\]-])0*(\\d{1,3})\\s*x\\s*0*(\\d{1,4})(?:$|[\\s._()\\[\\]-])/i,
-    /[\\/]season[\\/_-]?0*(\\d{1,3})[\\/]episode[\\/_-]?0*(\\d{1,4})/i
+    /(?:^|[\s._()\[\]-])(?:s|season|t|temporada)\s*0*(\d{1,3})\s*(?:e|ep|episode|episodio)\s*0*(\d{1,4})/i,
+    /(?:^|[\s._()\[\]-])0*(\d{1,3})\s*x\s*0*(\d{1,4})(?:$|[\s._()\[\]-])/i,
+    /[/\\]season[/\\_-]?0*(\d{1,3})[/\\]episode[/\\_-]?0*(\d{1,4})/i
   ];
 
   for (const pattern of patterns) {
@@ -741,29 +734,31 @@ function extractSeriesInfo(item) {
 
   if (season === null) {
     const seasonOnly = source.match(
-      /(?:^|[\\s._()\\[\\]-])(?:s|season|t|temporada)\\s*0*(\\d{1,3})(?:$|[\\s._()\\[\\]-])/i
+      /(?:^|[\s._()\[\]-])(?:s|season|t|temporada)\s*0*(\d{1,3})(?:$|[\s._()\[\]-])/i
     );
     if (seasonOnly) season = Number(seasonOnly[1]);
   }
 
-  // Algumas listas colocam temporada/episódio como parâmetros da URL.
   if (season === null) {
-    const urlSeason = url.match(/[?&]season=0*(\\d+)/i) || url.match(/[/\\]season[/\\_-]?0*(\\d+)/i);
+    const urlSeason =
+      url.match(/[?&]season=0*(\d+)/i) ||
+      url.match(/[/\\]season[/\\_-]?0*(\d+)/i);
     if (urlSeason) season = Number(urlSeason[1]);
   }
 
   if (episode === null) {
-    const urlEpisode = url.match(/[?&](?:episode|ep)=0*(\\d+)/i) || url.match(/[/\\](?:episode|ep)[/\\_-]?0*(\\d+)/i);
+    const urlEpisode =
+      url.match(/[?&](?:episode|ep)=0*(\d+)/i) ||
+      url.match(/[/\\](?:episode|ep)[/\\_-]?0*(\d+)/i);
     if (urlEpisode) episode = Number(urlEpisode[1]);
   }
 
   let seriesName = tvgName || name;
 
-  // Remove a parte do episódio para obter o nome da série.
   seriesName = seriesName
-    .replace(/\\s*(?:[-|:]\\s*)?(?:s|season|t|temporada)\\s*0*\\d{1,3}\\s*(?:e|ep|episode|episodio)\\s*0*\\d{1,4}.*$/i, "")
-    .replace(/\\s*(?:[-|:]\\s*)?0*\\d{1,3}\\s*x\\s*0*\\d{1,4}.*$/i, "")
-    .replace(/\\s*[-|:]\\s*(?:episode|episodio|ep)\\s*0*\\d+.*$/i, "")
+    .replace(/\s*(?:[-|:]\s*)?(?:s|season|t|temporada)\s*0*\d{1,3}\s*(?:e|ep|episode|episodio)\s*0*\d{1,4}.*$/i, "")
+    .replace(/\s*(?:[-|:]\s*)?0*\d{1,3}\s*x\s*0*\d{1,4}.*$/i, "")
+    .replace(/\s*[-|:]\s*(?:episode|episodio|ep)\s*0*\d+.*$/i, "")
     .trim();
 
   if (!seriesName) seriesName = name || "Série sem nome";
