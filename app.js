@@ -680,8 +680,8 @@ function classifyItem(name, group, url) {
 
   if (
     /\/series\//i.test(lowerUrl) ||
-    /(?:^|[\\s._()\\[\\]-])(?:s|season|t|temporada)\\s*\\d+\\s*(?:e|ep|episode|episodio)\\s*\\d+/i.test(text) ||
-    /(?:^|[\\s._()\\[\\]-])\\d+\\s*x\\s*\\d+/i.test(text) ||
+    /(?:^|[\s._()\[\]-])(?:s|season|t|temporada)\s*\d+\s*(?:e|ep|episode|episodio)\s*\d+/i.test(text) ||
+    /(?:^|[\s._()\[\]-])\d+\s*x\s*\d+/i.test(text) ||
     text.includes("serie") ||
     text.includes("series")
   ) {
