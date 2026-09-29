@@ -15,6 +15,9 @@ const GC_SUPABASE_URL =
 const GC_M3U_PROXY =
   `${GC_SUPABASE_URL}/functions/v1/m3u-proxy`;
 
+const GC_HEALTH_URL =
+  `${GC_SUPABASE_URL}/functions/v1/gc-health`;
+
 /* O proxy é genérico: cada playlist pode usar um domínio diferente. */
 const GC_PROXY_HOSTS = null;
 
@@ -6060,42 +6063,72 @@ function enableCardFocus() {
    ========================================================= */
 
 function setupConnectionStatus() {
-  const update =
-    () => {
-      const element =
-        $("#connectionStatus");
+  let backendOnline = null;
+  let healthTimer = null;
 
-      if (!element) {
-        return;
-      }
+  const update = () => {
+    const element = $("#connectionStatus");
+    if (!element) return;
 
-      if (
-        !navigator.onLine
-      ) {
-        element.textContent =
-          "OFFLINE";
-      } else if (
-        state.loading
-      ) {
-        element.textContent =
-          "CARREGANDO...";
-      } else {
-        element.textContent =
-          "ONLINE";
-      }
-    };
+    if (!navigator.onLine) {
+      element.textContent = "OFFLINE";
+      return;
+    }
 
-  window.addEventListener(
-    "online",
-    update
-  );
+    if (state.loading) {
+      element.textContent = "CARREGANDO...";
+      return;
+    }
 
-  window.addEventListener(
-    "offline",
-    update
-  );
+    if (backendOnline === false) {
+      element.textContent = "SERVIDOR";
+      return;
+    }
+
+    element.textContent = "ONLINE";
+  };
+
+  const checkHealth = async () => {
+    if (!navigator.onLine) {
+      backendOnline = false;
+      update();
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    try {
+      const response = await fetch(GC_HEALTH_URL, {
+        method: "GET",
+        cache: "no-store",
+        signal: controller.signal,
+        headers: { "Accept": "application/json" }
+      });
+      backendOnline = response.ok;
+    } catch (error) {
+      backendOnline = false;
+      console.warn("[GC PLAY PRO] Health check:", error?.message || error);
+    } finally {
+      clearTimeout(timeout);
+      update();
+    }
+  };
+
+  window.addEventListener("online", () => {
+    update();
+    checkHealth();
+  });
+
+  window.addEventListener("offline", () => {
+    backendOnline = false;
+    update();
+  });
 
   update();
+  checkHealth();
+  healthTimer = setInterval(checkHealth, 60000);
+  window.addEventListener("beforeunload", () => clearInterval(healthTimer), { once: true });
 }
 
 /* =========================================================
