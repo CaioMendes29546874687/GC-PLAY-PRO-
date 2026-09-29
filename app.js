@@ -1956,6 +1956,95 @@ function getTypeIcon(type) {
 }
 
 /* =========================================================
+   HOME DINÂMICA — DASHBOARD REAL
+   ========================================================= */
+
+function renderHomeRail(containerId, items, emptyText = "Nenhum conteúdo disponível.") {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = items.length ? items.map(renderCard).join("") : `<div class="gc-home-empty">${escapeHTML(emptyText)}</div>`;
+}
+
+async function getHomeSample(type = null, limit = 12) {
+  const ram = state.items.filter(item => item && !isAdultContent(item) && (!type || item.type === type));
+  if (ram.length) return ram.slice(0, limit);
+  try { return await queryCatalogItems({ type, genre: "all", term: "", limit }); }
+  catch (error) { console.warn("Home sample:", error); return []; }
+}
+
+async function renderHomeDashboard() {
+  const dashboard = document.getElementById("homeDashboard");
+  const library = document.getElementById("librarySection");
+  const empty = document.getElementById("emptyState");
+  if (!dashboard) return;
+  dashboard.style.display = "block";
+  if (library) library.style.display = "none";
+  if (empty) empty.style.display = "none";
+
+  if (!state.total && !state.items.length) {
+    const featured = document.getElementById("homeFeatured");
+    if (featured) featured.innerHTML = `<div class="gc-home-welcome"><span class="section-label">GC PLAY PRO</span><h2>Seu painel está pronto.</h2><p>Adicione uma lista M3U para transformar esta tela em uma central com TV, filmes e séries.</p><button type="button" class="primary-button" data-home-action="add">＋ ADICIONAR LISTA</button></div>`;
+    ["homeRecent","homeLive","homeMovies","homeSeries"].forEach(id => renderHomeRail(id, []));
+    return;
+  }
+
+  const [live, movies, series] = await Promise.all([getHomeSample("live", 12), getHomeSample("movie", 12), getHomeSample("series", 12)]);
+  let featuredItem = null;
+  for (const id of state.history) { const item = await findItem(id); if (item && !isAdultContent(item)) { featuredItem = item; break; } }
+  if (!featuredItem) featuredItem = movies[0] || series[0] || live[0] || null;
+
+  const featured = document.getElementById("homeFeatured");
+  if (featured) {
+    featured.innerHTML = featuredItem ? `
+      ${featuredItem.logo ? `<img class="gc-home-featured-bg" src="${escapeHTML(featuredItem.logo)}" alt="" aria-hidden="true">` : ""}
+      <div class="gc-home-featured-overlay"></div>
+      <div class="gc-home-featured-content">
+        <span class="hero-label"><span class="status-dot"></span> ${escapeHTML(formatType(featuredItem.type))}</span>
+        <span class="section-label">EM DESTAQUE</span>
+        <h2>${escapeHTML(featuredItem.name)}</h2>
+        <p>${escapeHTML(featuredItem.group || "Conteúdo da sua biblioteca")}</p>
+        <div class="hero-buttons"><button type="button" class="primary-button" data-home-play="${escapeHTML(featuredItem.id)}">▶ ASSISTIR AGORA</button><button type="button" class="secondary-button" data-home-action="${escapeHTML(featuredItem.type)}">EXPLORAR ${escapeHTML(formatType(featuredItem.type))}</button></div>
+      </div>` : `<div class="gc-home-welcome"><h2>Nenhum conteúdo encontrado.</h2></div>`;
+  }
+
+  const recent = state.history.length ? (await Promise.all(state.history.slice(0, 12).map(id => findItem(id))).then(list => list.filter(item => item && !isAdultContent(item)))) : [];
+  const discovery = recent.length ? recent : [...movies, ...series, ...live].slice(0, 12);
+  renderHomeRail("homeRecent", discovery.slice(0, 12), "Nenhum destaque ainda.");
+  renderHomeRail("homeLive", live, "Nenhum canal disponível.");
+  renderHomeRail("homeMovies", movies, "Nenhum filme disponível.");
+  renderHomeRail("homeSeries", series, "Nenhuma série disponível.");
+}
+
+function showHomeOrLibrary(showHome) {
+  const dashboard = document.getElementById("homeDashboard");
+  const library = document.getElementById("librarySection");
+  const empty = document.getElementById("emptyState");
+  if (dashboard) dashboard.style.display = showHome ? "block" : "none";
+  if (library) library.style.display = showHome ? "none" : "";
+  if (showHome && empty) empty.style.display = "none";
+}
+
+function setupHomeEvents() {
+  const dashboard = document.getElementById("homeDashboard");
+  if (!dashboard) return;
+  dashboard.addEventListener("click", async event => {
+    const favoriteButton = event.target.closest("[data-favorite-id]");
+    if (favoriteButton) { event.preventDefault(); event.stopPropagation(); toggleFavorite(favoriteButton.dataset.favoriteId); return; }
+    const playButton = event.target.closest("[data-home-play]");
+    if (playButton) { const item = await findItem(playButton.dataset.homePlay); if (item) await playItem(item); return; }
+    const card = event.target.closest("[data-item-id]");
+    if (card) { const item = await findItem(card.dataset.itemId); if (item) await playItem(item); return; }
+    const action = event.target.closest("[data-home-action]");
+    if (!action) return;
+    const value = action.dataset.homeAction;
+    if (value === "add") { openDialog("playlistDialog"); return; }
+    if (value === "all") { state.currentSection="home"; state.currentFilter="all"; state.currentGenre="all"; showHomeOrLibrary(false); syncSectionNavigation("home"); renderGenreFilters(); render(); document.getElementById("librarySection")?.scrollIntoView({behavior:"smooth",block:"start"}); return; }
+    const sectionMap = { live:"live", movie:"movies", series:"series" };
+    if (sectionMap[value]) { state.currentSection=sectionMap[value]; state.currentFilter=value==="movie"?"movie":value; state.currentGenre="all"; state.seriesView.seriesKey=null; state.seriesView.season=null; showHomeOrLibrary(false); syncSectionNavigation(state.currentSection); renderGenreFilters(); render(); document.getElementById("librarySection")?.scrollIntoView({behavior:"smooth",block:"start"}); }
+  });
+}
+
+/* =========================================================
    RENDER BIBLIOTECA
    ========================================================= */
 
@@ -2047,6 +2136,13 @@ async function queryCatalogItems({
 }
 
 async function render() {
+  if (state.currentSection === "home" && state.currentFilter === "all") {
+    await renderHomeDashboard();
+    return;
+  }
+
+  showHomeOrLibrary(false);
+
   const grid = $("#contentGrid");
   const empty = $("#emptyState");
 
@@ -3515,6 +3611,8 @@ function setupFilters() {
           movie: "movies",
           series: "series"
         })[state.currentFilter] || "home";
+
+      showHomeOrLibrary(state.currentSection === "home" && state.currentFilter === "all");
       syncSectionNavigation(state.currentSection);
       state.currentGenre = "all";
       state.seriesView.seriesKey = null;
@@ -3796,10 +3894,17 @@ function syncSectionNavigation(section = null) {
     "home";
 
   $("[data-section]").forEach(button => {
-    button.classList.toggle(
-      "active",
-      button.dataset.section === targetSection
-    );
+    button.classList.toggle("active", button.dataset.section === targetSection);
+  });
+
+  $(".gc-quick-card[data-section]").forEach(button => {
+    button.classList.toggle("active", button.dataset.section === targetSection);
+  });
+
+  $(".gc-quick-card[data-filter]").forEach(button => {
+    const filter = button.dataset.filter || "";
+    const active = (targetSection === "live" && filter === "live") || (targetSection === "movies" && filter === "movie") || (targetSection === "series" && filter === "series");
+    button.classList.toggle("active", active);
   });
 }
 
@@ -3846,25 +3951,21 @@ async function handleSection(
     section === "home"
   ) {
     state.adultUnlocked = false;
-    state.currentFilter =
-      "all";
-
-    state.currentGenre =
-      "all";
-
-    state.searchTerm =
-      "";
-
+    state.currentFilter = "all";
+    state.currentGenre = "all";
+    state.searchTerm = "";
+    state.seriesView.seriesKey = null;
+    state.seriesView.season = null;
+    showHomeOrLibrary(true);
     renderGenreFilters();
-
-    render();
-
+    await renderHomeDashboard();
     return;
   }
 
   if (
     section === "live"
   ) {
+    showHomeOrLibrary(false);
     state.adultUnlocked = false;
     state.currentFilter =
       "live";
@@ -3881,6 +3982,7 @@ async function handleSection(
   if (
     section === "movies"
   ) {
+    showHomeOrLibrary(false);
     state.adultUnlocked = false;
     state.currentFilter =
       "movie";
@@ -3897,6 +3999,7 @@ async function handleSection(
   if (
     section === "series"
   ) {
+    showHomeOrLibrary(false);
     state.adultUnlocked = false;
     state.currentFilter =
       "series";
@@ -3916,6 +4019,7 @@ async function handleSection(
   if (
     section === "adult"
   ) {
+    showHomeOrLibrary(false);
     state.currentFilter = "adult";
     state.currentGenre = "all";
     state.seriesView.seriesKey = null;
@@ -3928,8 +4032,8 @@ async function handleSection(
   if (
     section === "favorites"
   ) {
+    showHomeOrLibrary(false);
     await renderFavorites();
-
     return;
   }
 }
@@ -5133,15 +5237,8 @@ function setupExploreButton() {
   button.addEventListener(
     "click",
     () => {
-      const library =
-        $("#librarySection");
-
-      if (library) {
-        library.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
-      }
+      const target = state.currentSection === "home" ? $("#homeDashboard") : $("#librarySection");
+      if (target) target.scrollIntoView({behavior:"smooth",block:"start"});
     }
   );
 }
@@ -6255,6 +6352,7 @@ async function initApp() {
   loadState();
 
   setupCardEvents();
+  setupHomeEvents();
 
   setupFilters();
 
