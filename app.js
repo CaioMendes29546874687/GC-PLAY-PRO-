@@ -5237,6 +5237,8 @@ function setupPlaylistForm() {
     return;
   }
 
+  form.dataset.gcSubmitBound = "1";
+
   form.addEventListener(
     "submit",
     async event => {
@@ -6455,6 +6457,68 @@ window.GC_PLAY_PRO = {
    ========================================================= */
 
 /* =========================================================
+   FORMULÁRIO M3U — FALLBACK GLOBAL
+   Garante o envio mesmo se a inicialização normal falhar.
+   ========================================================= */
+function setupPlaylistFormFallback() {
+  if (window.__GC_PLAYLIST_FORM_FALLBACK__) return;
+  window.__GC_PLAYLIST_FORM_FALLBACK__ = true;
+
+  document.addEventListener("submit", async event => {
+    const form = event.target.closest("#playlistForm");
+    if (!form) return;
+
+    if (form.dataset.gcSubmitBound === "1") return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const nameInput = document.getElementById("playlistName");
+    const urlInput = document.getElementById("playlistUrl");
+    const name = nameInput?.value.trim() || "Minha Playlist";
+    const url = urlInput?.value.trim() || "";
+
+    if (!url) {
+      toast("Informe a URL da playlist.");
+      urlInput?.focus();
+      return;
+    }
+
+    if (!isHttpUrl(url)) {
+      toast("A URL precisa começar com http:// ou https://.");
+      urlInput?.focus();
+      return;
+    }
+
+    try {
+      localStorage.setItem("GC_PLAY_PRO_PLAYLIST_NAME", name);
+      localStorage.setItem("GC_PLAY_PRO_PLAYLIST_URL", url);
+    } catch {}
+
+    const button = form.querySelector('button[type="submit"]');
+    if (button) {
+      button.disabled = true;
+      button.dataset.oldText = button.textContent;
+      button.textContent = "CARREGANDO...";
+    }
+
+    try {
+      await loadM3U(url);
+      const dialog = document.getElementById("playlistDialog");
+      if (dialog?.open) dialog.close();
+    } catch (error) {
+      console.error("[GC PLAY PRO] Falha no envio M3U:", error);
+      toast(error?.message || "Erro ao carregar a playlist.", 6000);
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = button.dataset.oldText || "SALVAR LISTA";
+      }
+    }
+  }, true);
+}
+
+/* =========================================================
    BOTÕES M3U — FALLBACK DE CLIQUE GLOBAL
    Garante que o modal abra mesmo se outro módulo da interface
    falhar durante a inicialização.
@@ -6511,6 +6575,7 @@ async function initApp() {
   ensureCSS();
 
   setupPlaylistButtonFallback();
+  setupPlaylistFormFallback();
 
   loadState();
 
