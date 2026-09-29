@@ -3484,6 +3484,14 @@ function setupFilters() {
     button.addEventListener("click", () => {
       state.currentFilter = button.dataset.filter || "all";
       state.adultUnlocked = false;
+      state.currentSection =
+        ({
+          all: "home",
+          live: "live",
+          movie: "movies",
+          series: "series"
+        })[state.currentFilter] || "home";
+      syncSectionNavigation(state.currentSection);
       state.currentGenre = "all";
       state.seriesView.seriesKey = null;
       state.seriesView.season = null;
@@ -3738,6 +3746,33 @@ function renderGenreFilters() {
 }
 
 /* =========================================================
+   SINCRONIZAÇÃO DA NAVEGAÇÃO
+   ========================================================= */
+
+function syncSectionNavigation(section = null) {
+  const map = {
+    all: "home",
+    live: "live",
+    movie: "movies",
+    series: "series",
+    adult: "adult"
+  };
+
+  const targetSection =
+    section ||
+    map[state.currentFilter] ||
+    state.currentSection ||
+    "home";
+
+  $("[data-section]").forEach(button => {
+    button.classList.toggle(
+      "active",
+      button.dataset.section === targetSection
+    );
+  });
+}
+
+/* =========================================================
    NAVEGAÇÃO
    ========================================================= */
 
@@ -3774,6 +3809,8 @@ function setupNavigation() {
 async function handleSection(
   section
 ) {
+  syncSectionNavigation(section);
+
   if (
     section === "home"
   ) {
