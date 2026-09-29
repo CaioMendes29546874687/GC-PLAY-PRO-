@@ -1165,7 +1165,7 @@ async function migrateCatalogTypes() {
   if (!state.db) return 0;
 
   const migrationKey =
-    "GC_PLAY_PRO_CATEGORY_TYPES_V2";
+    "GC_PLAY_PRO_CATEGORY_TYPES_V3";
 
   try {
     if (localStorage.getItem(migrationKey) === "1") {
