@@ -3021,6 +3021,7 @@ async function playItem(item) {
   } catch {}
 
   video.removeAttribute("src");
+  delete video.dataset.gcProxyRetry;
 
   try {
     video.load();
@@ -3030,15 +3031,16 @@ async function playItem(item) {
     item.url;
 
   /*
-     Muitos servidores de IPTV bloqueiam
-     o acesso direto do navegador por CORS.
-     Como o domínio da playlist já é autorizado
-     pelo nosso proxy, usamos o mesmo proxy
-     também para o fluxo de reprodução.
+     Para arquivos de vídeo normais, tentamos primeiro a origem
+     direta. Isso evita jogar todo o tráfego de vídeo pelo proxy
+     quando o servidor já permite reprodução no navegador.
+     HLS.js e MPEG-TS continuam usando o proxy quando necessário.
   */
   const playbackUrl =
-    shouldUseProxy(originalUrl)
-      ? buildProxyUrl(originalUrl)
+    isMpegTSLive(item) || isHLS(originalUrl)
+      ? (shouldUseProxy(originalUrl)
+          ? buildProxyUrl(originalUrl)
+          : originalUrl)
       : originalUrl;
 
   /* -------------------------------------------------------
@@ -3098,6 +3100,25 @@ async function playItem(item) {
 
   video.onerror = () => {
     const mediaError = video.error;
+
+    /*
+       Fallback único: se a origem direta falhar, tenta o proxy.
+       Assim servidores compatíveis ficam fora do proxy e os
+       demais continuam funcionando.
+    */
+    if (
+      playbackUrl === originalUrl &&
+      shouldUseProxy(originalUrl) &&
+      !video.dataset.gcProxyRetry
+    ) {
+      video.dataset.gcProxyRetry = "1";
+      video.src = buildProxyUrl(originalUrl);
+      video.load();
+      if (state.settings.autoplay) {
+        video.play().catch(() => {});
+      }
+      return;
+    }
 
     console.error(
       "VIDEO ERROR:",
