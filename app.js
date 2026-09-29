@@ -6510,6 +6510,8 @@ async function initApp() {
 
   ensureCSS();
 
+  setupPlaylistButtonFallback();
+
   loadState();
 
   setupCardEvents();
