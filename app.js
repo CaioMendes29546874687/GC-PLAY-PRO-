@@ -839,28 +839,55 @@ function hashString(value) {
    ========================================================= */
 
 function classifyItem(name, group, url) {
-  const text = normalizeText(
-    `${name} ${group} ${url}`
-  );
+  const nameText = normalizeText(name);
+  const groupText = normalizeText(group);
   const lowerUrl = String(url || "").toLowerCase();
 
-  if (
+  /*
+     A classificação precisa ser EXCLUSIVA.
+     Não podemos usar apenas "serie" ou "filme" em qualquer
+     parte do texto, porque grupos como "CANAIS | FILMES & SERIES"
+     são canais, não séries.
+  */
+
+  const explicitSeries =
     /\/series\//i.test(lowerUrl) ||
-    /(?:^|[\s._()\[\]-])(?:s|season|t|temporada)\s*\d+\s*(?:e|ep|episode|episodio)\s*\d+/i.test(text) ||
-    /(?:^|[\s._()\[\]-])\d+\s*x\s*\d+/i.test(text) ||
-    text.includes("serie") ||
-    text.includes("series")
-  ) {
+    /\b(?:s|season|t|temporada)\s*0*\d{1,3}\s*(?:e|ep|episode|episodio)\s*0*\d{1,4}\b/i.test(nameText) ||
+    /\b0*\d{1,3}\s*x\s*0*\d{1,4}\b/i.test(nameText) ||
+    /\b(?:s|season|t|temporada)\s*0*\d{1,3}\s*(?:e|ep|episode|episodio)\s*0*\d{1,4}\b/i.test(lowerUrl);
+
+  if (explicitSeries) {
+    return "series";
+  }
+
+  const groupHead = groupText
+    .split(/[|>:/\\]+/)[0]
+    .trim();
+
+  const groupIsSeries =
+    /^(?:serie|series|série|séries)\b/i.test(groupHead);
+
+  const groupIsMovie =
+    /^(?:filme|filmes|movie|movies|vod)\b/i.test(groupHead);
+
+  if (groupIsSeries) {
     return "series";
   }
 
   if (
     /\/movie(?:s)?\//i.test(lowerUrl) ||
-    text.includes("filme") ||
-    text.includes("filmes") ||
-    text.includes("movie") ||
-    text.includes("movies") ||
-    text.includes("vod")
+    groupIsMovie
+  ) {
+    return "movie";
+  }
+
+  /*
+     Alguns provedores usam [FILME], FILME: ou MOVIE:
+     no próprio nome. Só aceitamos esses formatos explícitos,
+     nunca uma palavra "filme" perdida no grupo.
+  */
+  if (
+    /^(?:filme|movie)\s*[:\-]|\[(?:filme|movie)\]/i.test(nameText)
   ) {
     return "movie";
   }
@@ -1130,6 +1157,84 @@ function normalizeItem(data) {
     })()
   };
 }
+/* =========================================================
+   CORREÇÃO DO CATÁLOGO ANTIGO — TIPOS EXCLUSIVOS
+   ========================================================= */
+
+async function migrateCatalogTypes() {
+  if (!state.db) return 0;
+
+  const migrationKey =
+    "GC_PLAY_PRO_CATEGORY_TYPES_V2";
+
+  try {
+    if (localStorage.getItem(migrationKey) === "1") {
+      return 0;
+    }
+  } catch {}
+
+  return new Promise((resolve, reject) => {
+    let changed = 0;
+
+    const transaction =
+      state.db.transaction(STORE_NAME, "readwrite");
+
+    const store =
+      transaction.objectStore(STORE_NAME);
+
+    const request =
+      store.openCursor();
+
+    request.onsuccess = event => {
+      const cursor = event.target.result;
+
+      if (!cursor) {
+        return;
+      }
+
+      const item = cursor.value;
+      const newType = classifyItem(
+        item.name,
+        item.group,
+        item.url
+      );
+
+      if (item.type !== newType) {
+        item.type = newType;
+        cursor.update(item);
+        changed++;
+      }
+
+      cursor.continue();
+    };
+
+    request.onerror = () => {
+      reject(request.error);
+    };
+
+    transaction.oncomplete = () => {
+      try {
+        localStorage.setItem(migrationKey, "1");
+      } catch {}
+
+      console.log(
+        "[GC PLAY PRO] Tipos corrigidos:",
+        changed
+      );
+
+      resolve(changed);
+    };
+
+    transaction.onerror = () => {
+      reject(transaction.error);
+    };
+
+    transaction.onabort = () => {
+      reject(transaction.error);
+    };
+  });
+}
+
 /* =========================================================
    PROXY M3U
    ========================================================= */
@@ -2203,7 +2308,7 @@ async function rebuildSeriesCatalogInBackground(force = false) {
 
         const item = cursor.value;
 
-        if (looksLikeSeriesRecord(item)) {
+        if (item.type === "series") {
           const info = extractSeriesInfo(item);
           const canonicalKey = normalizeText(
             canonicalSeriesTitle(info.seriesName || item.name)
@@ -3554,21 +3659,19 @@ async function buildGenreCatalog() {
 }
 
 function getAvailableGenres(type) {
-  const key = ["live", "movie", "series", "adult"].includes(type) ? type : "all";
+  const key = ["live", "movie", "series", "adult"].includes(type)
+    ? type
+    : "all";
 
   if (key === "adult") return [];
 
-  if (key === "series" && state.seriesCatalog.length) {
-    return Array.from(new Set(
-      state.seriesCatalog
-        .map(item => item.genre || getGenreName(item.group))
-        .filter(Boolean)
-    )).sort((a,b) =>
-      a.localeCompare(b, "pt-BR", { sensitivity: "base" })
-    );
-  }
-
+  /*
+     As categorias agora vêm SOMENTE do catálogo por tipo.
+     Não usamos mais seriesCatalog aqui, porque ele pode conter
+     registros antigos de versões anteriores.
+  */
   const cached = state.genreCatalog[key];
+
   return Array.isArray(cached) ? cached : [];
 }
 
@@ -5620,12 +5723,12 @@ async function loadLocalCatalog() {
       try { localStorage.setItem("GC_PLAY_PRO_GROUPS_V1", JSON.stringify(state.groups)); } catch {}
     }
 
-    state.genreCatalog = {
-      all: Array.from(new Set(state.groups.map(getGenreName))),
-      live: [],
-      movie: [],
-      series: Array.from(new Set(storedSeries.map(item=>item.genre || getGenreName(item.group))))
-    };
+    /*
+       Nunca montar categorias a partir de "groups" globais.
+       Isso misturava TV, filmes e séries.
+       O catálogo é separado pelo item.type real.
+    */
+    await buildGenreCatalog();
 
     await loadDatabaseStats();
     renderGenreFilters();
@@ -6065,6 +6168,12 @@ async function initApp() {
   try {
     state.db =
       await openDB();
+
+    /*
+       Corrige uma vez os registros antigos que foram classificados
+       pela regra antiga e depois reconstrói as séries/categorias.
+    */
+    await migrateCatalogTypes();
 
     console.log(
       "IndexedDB conectado."
