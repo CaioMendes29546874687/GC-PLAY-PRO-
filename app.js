@@ -4289,6 +4289,7 @@ function setupDialogs() {
       openDialog("playlistDialog");
     });
   }
+}
 
 /* =========================================================
    SETTINGS
