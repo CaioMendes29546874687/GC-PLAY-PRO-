@@ -27,7 +27,7 @@ const STORE_NAME = "items";
 const SERIES_STORE = "seriesCatalog";
 
 const RAM_LIMIT = 3000;
-const WRITE_BATCH = 500;
+const WRITE_BATCH = 1500;
 
 const STATE_KEY = "GC_PLAY_PRO_STATE_V5";
 const SETTINGS_KEY = "GC_PLAY_PRO_SETTINGS_V5";
@@ -882,6 +882,29 @@ function classifyItem(name, group, url) {
     groupIsMovie
   ) {
     return "movie";
+  }
+
+  /*
+     Alguns provedores usam grupos como:
+     "FILMES | AÇÃO", "MOVIES | NETFLIX" ou
+     "SÉRIES | DRAMA". Aceitamos esses grupos somente
+     quando não são uma categoria mista de canais.
+  */
+  const groupHasMovie =
+    /\b(?:filme|filmes|movie|movies|vod)\b/i.test(groupText);
+
+  const groupHasSeries =
+    /\b(?:serie|series|série|séries|season|temporada)\b/i.test(groupText);
+
+  const groupHasLive =
+    /\b(?:canais?|canal|tv|ao vivo|live|iptv)\b/i.test(groupText);
+
+  if (groupHasMovie && !groupHasSeries && !groupHasLive) {
+    return "movie";
+  }
+
+  if (groupHasSeries && !groupHasMovie && !groupHasLive) {
+    return "series";
   }
 
   /*
@@ -4678,7 +4701,7 @@ async function loadM3U(
         if (
           now -
             lastRender >
-          700
+          1500
         ) {
           lastRender =
             now;
