@@ -4210,6 +4210,48 @@ function closeDialog(id) {
 }
 
 /* =========================================================
+   ABERTURA ROBUSTA DO MODAL M3U
+   ========================================================= */
+
+function setupPlaylistDialogDelegation() {
+  if (window.__gcPlaylistDialogDelegation) return;
+  window.__gcPlaylistDialogDelegation = true;
+
+  document.addEventListener("click", event => {
+    const button = event.target.closest(
+      "#addPlaylistButton, #emptyAddButton, #quickAddPlaylist"
+    );
+
+    if (!button) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const dialog = document.getElementById("playlistDialog");
+
+    if (!dialog) {
+      console.error("[GC PLAY PRO] playlistDialog não encontrado.");
+      return;
+    }
+
+    try {
+      if (typeof dialog.showModal === "function" && !dialog.open) {
+        dialog.showModal();
+      } else {
+        dialog.classList.add("active", "open", "show");
+        dialog.setAttribute("open", "");
+      }
+    } catch (error) {
+      console.warn("[GC PLAY PRO] Fallback do modal M3U:", error);
+      dialog.classList.add("active", "open", "show");
+      dialog.setAttribute("open", "");
+    }
+  }, true);
+}
+
+setupPlaylistDialogDelegation();
+
+/* =========================================================
    BOTÕES DOS DIALOGS
    ========================================================= */
 
