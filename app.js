@@ -841,10 +841,32 @@ function hashString(value) {
    CLASSIFICAÇÃO
    ========================================================= */
 
+function getXtreamPathType(url) {
+  try {
+    const path = new URL(String(url || "")).pathname.toLowerCase();
+
+    if (/(?:^|\\/)series(?:\\/|$)/.test(path)) return "series";
+    if (/(?:^|\\/)movie(?:s)?(?:\\/|$)/.test(path)) return "movie";
+    if (/(?:^|\\/)live(?:\\/|$)/.test(path)) return "live";
+  } catch {}
+
+  return null;
+}
+
 function classifyItem(name, group, url) {
   const nameText = normalizeText(name);
   const groupText = normalizeText(group);
   const lowerUrl = String(url || "").toLowerCase();
+
+  /*
+     Em playlists Xtream/M3U Plus, o caminho da própria URL é
+     a fonte mais confiável: /live/, /movie/ e /series/.
+     Isso tem prioridade sobre nomes e grupos mistos. */
+  const pathType = getXtreamPathType(url);
+
+  if (pathType) {
+    return pathType;
+  }
 
   /*
      A classificação precisa ser EXCLUSIVA.
@@ -1191,7 +1213,7 @@ async function migrateCatalogTypes() {
   if (!state.db) return 0;
 
   const migrationKey =
-    "GC_PLAY_PRO_CATEGORY_TYPES_V3";
+    "GC_PLAY_PRO_CATEGORY_TYPES_V4";
 
   try {
     if (localStorage.getItem(migrationKey) === "1") {
@@ -1261,6 +1283,9 @@ async function migrateCatalogTypes() {
         */
         localStorage.removeItem(
           "GC_PLAY_PRO_SERIES_MIGRATION_V3"
+        );
+        localStorage.removeItem(
+          "GC_PLAY_PRO_SERIES_MIGRATION_V2"
         );
       } catch {}
 
@@ -2482,7 +2507,7 @@ async function rebuildSeriesCatalogInBackground(force = false) {
               seasons: {}
             };
 
-            map.set(info.seriesKey, entry);
+            map.set(canonicalKey, entry);
           }
 
           if (!entry.logo && item.logo) {
@@ -2540,6 +2565,11 @@ async function rebuildSeriesCatalogInBackground(force = false) {
     );
     state.seriesCatalogReady = true;
     state.seriesItemsCache = result;
+
+    /* O contador mostra séries únicas; episódios ficam dentro
+       de cada série/temporada. */
+    state.counts.series = result.length;
+    renderStats();
 
     if (state.currentFilter === "series") {
       render();
@@ -5839,8 +5869,15 @@ async function loadDatabaseStats() {
     state.counts.movie =
       movie;
 
+    /*
+       "series" representa séries únicas, não episódios.
+       Enquanto o catálogo ainda está sendo reconstruído, usamos
+       o contador bruto apenas como valor transitório.
+    */
     state.counts.series =
-      series;
+      state.seriesCatalogReady
+        ? state.seriesCatalog.length
+        : series;
 
     renderStats();
 
@@ -6438,7 +6475,28 @@ async function initApp() {
        Corrige uma vez os registros antigos que foram classificados
        pela regra antiga e depois reconstrói as séries/categorias.
     */
-    await migrateCatalogTypes();
+    /*
+       A correção de categorias roda em segundo plano para que uma
+       biblioteca grande não bloqueie a abertura do aplicativo.
+    */
+    migrateCatalogTypes()
+      .then(async changed => {
+        if (changed > 0) {
+          state.seriesCatalog = [];
+          state.seriesCatalogMap = new Map();
+          state.seriesCatalogReady = false;
+          state.seriesItemsCache = null;
+
+          await rebuildSeriesCatalogInBackground(true);
+          await buildGenreCatalog();
+          await loadDatabaseStats();
+          renderGenreFilters();
+          await render();
+        }
+      })
+      .catch(error => {
+        console.warn("[GC PLAY PRO] Migração de categorias:", error);
+      });
 
     console.log(
       "IndexedDB conectado."
