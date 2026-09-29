@@ -4461,9 +4461,13 @@ function processParsedItem(
     state.counts.series++;
   }
 
-  if (looksLikeSeriesRecord(item)) {
-    updateSeriesCatalogEntry(item);
-  }
+  /*
+     Não reconstruir o catálogo de séries durante a importação.
+     Em listas grandes isso cria milhares de operações extras no
+     IndexedDB e pode deixar o navegador aparentemente travado.
+     O catálogo será reconstruído somente depois que a importação
+     terminar.
+  */
 
   if (state.items.length < RAM_LIMIT) {
     state.items.push(item);
@@ -4701,7 +4705,7 @@ async function loadM3U(
         if (
           now -
             lastRender >
-          1500
+          2500
         ) {
           lastRender =
             now;
@@ -5111,6 +5115,15 @@ async function loadFile(
         processed
       )} itens`
     );
+
+    /*
+       Só agora reconstruímos o catálogo de séries. A importação
+       principal já terminou, então o usuário recupera o controle
+       da interface imediatamente.
+    */
+    setTimeout(() => {
+      rebuildSeriesCatalogInBackground(true);
+    }, 50);
 
     toast(
       `${formatNumber(
