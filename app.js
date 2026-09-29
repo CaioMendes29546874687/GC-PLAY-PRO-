@@ -3524,6 +3524,13 @@ function setupFilters() {
         item.classList.toggle("active", item === button);
       });
 
+      $(".gc-quick-card[data-filter]").forEach(item => {
+        item.classList.toggle(
+          "active",
+          item.dataset.filter === state.currentFilter
+        );
+      });
+
       renderGenreFilters();
       render();
     });
@@ -4170,7 +4177,13 @@ function setupDialogs() {
       closePlayer
     );
   }
-}
+
+  const quickAddPlaylist = $("#quickAddPlaylist");
+  if (quickAddPlaylist) {
+    quickAddPlaylist.addEventListener("click", () => {
+      openDialog("playlistDialog");
+    });
+  }
 
 /* =========================================================
    SETTINGS
