@@ -6,13 +6,13 @@
 
 "use strict";
 
-const CACHE_NAME = "gc-play-pro-shell-v15";
+const CACHE_NAME = "gc-play-pro-shell-v16";
 
 const APP_SHELL = [
   "./",
   "./index.html",
   "./style.css",
-  "./app.js?v=20260928-15"
+  "./app.js?v=20260929-16"
 ];
 
 self.addEventListener("install", event => {
