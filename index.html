@@ -602,7 +602,16 @@
 
   <!-- ================= JAVASCRIPT ================= -->
 
-  <script src="app.js?v=20260928-12"></script>
+  <script src="app.js?v=20260928-13"></script>
+
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js", { scope: "./" })
+          .catch(error => console.warn("[GC PLAY PRO] Service Worker:", error));
+      });
+    }
+  </script>
 
 </body>
 </html>
