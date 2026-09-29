@@ -2038,7 +2038,7 @@ function setupHomeEvents() {
     if (!action) return;
     const value = action.dataset.homeAction;
     if (value === "add") { openDialog("playlistDialog"); return; }
-    if (value === "all") { state.currentSection="home"; state.currentFilter="all"; state.currentGenre="all"; showHomeOrLibrary(false); syncSectionNavigation("home"); renderGenreFilters(); render(); document.getElementById("librarySection")?.scrollIntoView({behavior:"smooth",block:"start"}); return; }
+    if (value === "all") { state.currentSection="catalog"; state.currentFilter="all"; state.currentGenre="all"; showHomeOrLibrary(false); syncSectionNavigation("home"); renderGenreFilters(); render(); document.getElementById("librarySection")?.scrollIntoView({behavior:"smooth",block:"start"}); return; }
     const sectionMap = { live:"live", movie:"movies", series:"series" };
     if (sectionMap[value]) { state.currentSection=sectionMap[value]; state.currentFilter=value==="movie"?"movie":value; state.currentGenre="all"; state.seriesView.seriesKey=null; state.seriesView.season=null; showHomeOrLibrary(false); syncSectionNavigation(state.currentSection); renderGenreFilters(); render(); document.getElementById("librarySection")?.scrollIntoView({behavior:"smooth",block:"start"}); }
   });
@@ -3881,6 +3881,7 @@ function renderGenreFilters() {
 function syncSectionNavigation(section = null) {
   const map = {
     all: "home",
+    catalog: "home",
     live: "live",
     movie: "movies",
     series: "series",
