@@ -1176,11 +1176,24 @@ async function migrateCatalogTypes() {
   return new Promise((resolve, reject) => {
     let changed = 0;
 
+    const storeNames =
+      state.db.objectStoreNames.contains(SERIES_STORE)
+        ? [STORE_NAME, SERIES_STORE]
+        : [STORE_NAME];
+
     const transaction =
-      state.db.transaction(STORE_NAME, "readwrite");
+      state.db.transaction(storeNames, "readwrite");
 
     const store =
       transaction.objectStore(STORE_NAME);
+
+    if (storeNames.includes(SERIES_STORE)) {
+      /*
+         O catálogo de séries antigo foi criado com a regra
+         incorreta. Ele será reconstruído usando item.type.
+      */
+      transaction.objectStore(SERIES_STORE).clear();
+    }
 
     const request =
       store.openCursor();
@@ -1215,7 +1228,19 @@ async function migrateCatalogTypes() {
     transaction.oncomplete = () => {
       try {
         localStorage.setItem(migrationKey, "1");
+
+        /*
+           Obriga a reconstrução do catálogo de séries depois
+           da correção dos tipos.
+        */
+        localStorage.removeItem(
+          "GC_PLAY_PRO_SERIES_MIGRATION_V3"
+        );
       } catch {}
+
+      state.seriesCatalog = [];
+      state.seriesCatalogMap = new Map();
+      state.seriesCatalogReady = false;
 
       console.log(
         "[GC PLAY PRO] Tipos corrigidos:",
@@ -2209,7 +2234,7 @@ async function getAllSeriesItems() {
 
   if (!state.db) {
     return state.items
-      .filter(looksLikeSeriesRecord)
+      .filter(item => item && item.type === "series")
       .map(item => {
         const info = getDerivedSeriesInfo(item);
         return {
@@ -2246,7 +2271,7 @@ async function getAllSeriesItems() {
   const seen = new Set();
 
   for (const item of state.items) {
-    if (!looksLikeSeriesRecord(item)) continue;
+    if (!item || item.type !== "series") continue;
 
     const info = getDerivedSeriesInfo(item);
 
