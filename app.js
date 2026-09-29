@@ -6454,6 +6454,50 @@ window.GC_PLAY_PRO = {
    INICIALIZAÇÃO
    ========================================================= */
 
+/* =========================================================
+   BOTÕES M3U — FALLBACK DE CLIQUE GLOBAL
+   Garante que o modal abra mesmo se outro módulo da interface
+   falhar durante a inicialização.
+   ========================================================= */
+function setupPlaylistButtonFallback() {
+  if (window.__GC_PLAYLIST_BUTTON_FALLBACK__) return;
+  window.__GC_PLAYLIST_BUTTON_FALLBACK__ = true;
+
+  document.addEventListener("click", event => {
+    const button = event.target.closest(
+      "#addPlaylistButton, #emptyAddButton, #quickAddPlaylist"
+    );
+
+    if (!button) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const dialog = document.getElementById("playlistDialog");
+    if (!dialog) {
+      console.error("[GC PLAY PRO] playlistDialog não encontrado.");
+      return;
+    }
+
+    try {
+      if (dialog.open) return;
+
+      if (typeof dialog.showModal === "function") {
+        dialog.showModal();
+      } else {
+        dialog.classList.add("active", "open", "show");
+        dialog.removeAttribute("hidden");
+      }
+
+      const name = document.getElementById("playlistName");
+      if (name) setTimeout(() => name.focus(), 50);
+    } catch (error) {
+      console.error("[GC PLAY PRO] Erro abrindo modal M3U:", error);
+      dialog.classList.add("active", "open", "show");
+    }
+  }, true);
+}
+
 async function initApp() {
   console.log(
     "%cGC PLAY PRO",
