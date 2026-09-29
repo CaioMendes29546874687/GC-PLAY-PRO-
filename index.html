@@ -127,6 +127,8 @@
             <button
               class="primary-button"
               id="addPlaylistButton"
+              type="button"
+              onclick="(function(){const d=document.getElementById('playlistDialog');if(d){if(typeof d.showModal==='function'&&!d.open)d.showModal();else{d.setAttribute('open','');d.classList.add('active','open','show')}}})()"
             >
               <span>＋</span>
               ADICIONAR LISTA M3U
@@ -180,7 +182,7 @@
           <span class="gc-quick-icon">♡</span>
           <span><strong>FAVORITOS</strong><small>Seu conteúdo salvo</small></span>
         </button>
-        <button class="gc-quick-card gc-quick-add" id="quickAddPlaylist">
+        <button class="gc-quick-card gc-quick-add" id="quickAddPlaylist" type="button" onclick="(function(){const d=document.getElementById('playlistDialog');if(d){if(typeof d.showModal==='function'&&!d.open)d.showModal();else{d.setAttribute('open','');d.classList.add('active','open','show')}}})()">
           <span class="gc-quick-icon">＋</span>
           <span><strong>NOVA LISTA</strong><small>Adicionar M3U</small></span>
         </button>
@@ -351,6 +353,8 @@
           <button
             class="primary-button"
             id="emptyAddButton"
+            type="button"
+            onclick="(function(){const d=document.getElementById('playlistDialog');if(d){if(typeof d.showModal==='function'&&!d.open)d.showModal();else{d.setAttribute('open','');d.classList.add('active','open','show')}}})()"
           >
             ＋ ADICIONAR LISTA
           </button>
