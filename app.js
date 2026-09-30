@@ -2800,20 +2800,6 @@ function looksLikeSeriesRecord(item) {
   return classifyItem(name, group, url) === "series";
 }
 
-function getDerivedSeriesInfo(item) {
-  if (item?.seriesKey && item?.seriesName) {
-    return {
-      seriesKey: item.seriesKey,
-      seriesName: item.seriesName,
-      season: item.season ?? null,
-      episode: item.episode ?? null,
-      genre: item.genre || getGenreName(item.group)
-    };
-  }
-
-  return extractSeriesInfo(item);
-}
-
 async function getAllSeriesItems() {
   if (Array.isArray(state.seriesCatalog) && state.seriesCatalog.length) {
     return state.seriesCatalog;
