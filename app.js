@@ -270,6 +270,16 @@ function loadState() {
       }
     } catch {}
 
+    try {
+      const xtreamSaved = localStorage.getItem("GC_PLAY_PRO_XTREAM_SESSION_V1");
+      if (xtreamSaved) {
+        const session = JSON.parse(xtreamSaved);
+        if (session?.base && session?.username && session?.password) {
+          state.xtreamSession = session;
+        }
+      }
+    } catch {}
+
     const settings = localStorage.getItem(SETTINGS_KEY);
 
     if (settings) {
