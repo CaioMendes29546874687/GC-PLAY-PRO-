@@ -424,9 +424,6 @@
 
       <form
         id="playlistForm"
-        method="post"
-        action="javascript:void(0)"
-        onsubmit="return false;"
         novalidate
       >
 
@@ -489,6 +486,7 @@
         <button
           type="submit"
           class="primary-button"
+          id="savePlaylistButton"
         >
           SALVAR LISTA
         </button>
@@ -643,7 +641,7 @@
 
   <!-- ================= JAVASCRIPT ================= -->
 
-  <script src="app.js?v=20260929-25"></script>
+  <script src="app.js?v=20260929-26"></script>
 
   <script>
     if ("serviceWorker" in navigator) {
