@@ -390,6 +390,7 @@ function resetDatabaseFast() {
 
 let writeQueue = [];
 let writeProcessing = false;
+let writeError = null;
 
 function queueWrite(items, seriesUpdates = []) {
   if (
@@ -426,6 +427,7 @@ async function processWriteQueue() {
       );
     }
   } catch (error) {
+    writeError = error;
     console.error(
       "Erro gravando banco:",
       error
@@ -1353,26 +1355,63 @@ function resolvePlaylistUrl(url) {
    ========================================================= */
 
 async function fetchPlaylist(url, signal) {
-  const finalUrl =
-    resolvePlaylistUrl(url);
+  const finalUrl = resolvePlaylistUrl(url);
 
-  const response = await fetch(
-    finalUrl,
-    {
+  /*
+     O fetch da playlist precisa ter timeout apenas para a fase
+     de conexão/recebimento dos headers. Depois que os headers
+     chegam, o stream pode continuar por quanto tempo for necessário.
+  */
+  const timeoutController = new AbortController();
+  const timeoutId = setTimeout(() => {
+    timeoutController.abort();
+  }, 60000);
+
+  const onAbort = () => timeoutController.abort();
+
+  if (signal) {
+    if (signal.aborted) {
+      clearTimeout(timeoutId);
+      throw new DOMException("Operação cancelada", "AbortError");
+    }
+    signal.addEventListener("abort", onAbort, { once: true });
+  }
+
+  let response;
+
+  try {
+    response = await fetch(finalUrl, {
       method: "GET",
-      signal,
-
+      signal: timeoutController.signal,
       headers: {
         "Accept":
           "application/vnd.apple.mpegurl," +
           "audio/x-mpegurl," +
           "text/plain," +
+          "application/x-mpegURL," +
           "*/*"
       },
-
-      cache: "no-store"
+      cache: "no-store",
+      redirect: "follow"
+    });
+  } catch (error) {
+    if (signal?.aborted) {
+      throw new DOMException("Operação cancelada", "AbortError");
     }
-  );
+
+    if (error?.name === "AbortError") {
+      throw new Error(
+        "Tempo limite excedido ao conectar à playlist/proxy (60s)."
+      );
+    }
+
+    throw new Error(
+      `Falha de conexão com a playlist: ${error?.message || error}`
+    );
+  } finally {
+    clearTimeout(timeoutId);
+    signal?.removeEventListener("abort", onAbort);
+  }
 
   if (!response.ok) {
     let detail = "";
@@ -1386,15 +1425,22 @@ async function fetchPlaylist(url, signal) {
 
         if (data?.error) {
           detail = ` — ${data.error}`;
-
-          if (data?.host) {
-            detail += ` (${data.host})`;
-          }
-
-          if (data?.status) {
-            detail += ` [origem HTTP ${data.status}]`;
-          }
         }
+
+        if (data?.detail) {
+          detail += ` — ${data.detail}`;
+        }
+
+        if (data?.host) {
+          detail += ` (${data.host})`;
+        }
+
+        if (data?.status) {
+          detail += ` [origem HTTP ${data.status}]`;
+        }
+      } else {
+        const text = (await response.clone().text()).slice(0, 300).trim();
+        if (text) detail = ` — ${text}`;
       }
     } catch {}
 
@@ -1406,6 +1452,15 @@ async function fetchPlaylist(url, signal) {
   if (!response.body) {
     throw new Error(
       "O servidor não retornou um fluxo de dados."
+    );
+  }
+
+  const contentType =
+    response.headers.get("content-type") || "";
+
+  if (/text\/html/i.test(contentType)) {
+    throw new Error(
+      "A origem retornou uma página HTML em vez de uma playlist M3U."
     );
   }
 
@@ -4593,6 +4648,8 @@ async function loadM3U(
   state.loading =
     true;
 
+  writeError = null;
+
   state.items =
     [];
 
@@ -4853,6 +4910,18 @@ async function loadM3U(
       writeQueue.length
     ) {
       await sleep(50);
+    }
+
+    if (writeError) {
+      throw new Error(
+        `Falha ao gravar o catálogo no armazenamento local: ${writeError.message || writeError}`
+      );
+    }
+
+    if (processed === 0) {
+      throw new Error(
+        "A resposta foi recebida, mas nenhum item M3U válido foi encontrado."
+      );
     }
 
     /*
