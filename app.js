@@ -27,7 +27,9 @@ const STORE_NAME = "items";
 const SERIES_STORE = "seriesCatalog";
 
 const RAM_LIMIT = 3000;
-const WRITE_BATCH = 1500;
+const WRITE_BATCH = 5000;
+const FIRST_PAINT_BATCH = 500;
+const UI_RENDER_INTERVAL = 1800;
 
 const STATE_KEY = "GC_PLAY_PRO_STATE_V5";
 const SETTINGS_KEY = "GC_PLAY_PRO_SETTINGS_V5";
@@ -1188,23 +1190,31 @@ function normalizeItem(data) {
     language:
       data.language || "",
 
-    ...(() => {
-      const info = extractSeriesInfo({
-        name,
-        group,
-        url,
-        tvgName: data.tvgName || ""
-      });
-
-      return {
-        seriesName: info.seriesName,
-        seriesKey: info.seriesKey,
-        season: info.season,
-        episode: info.episode,
-        seriesSeason: [info.seriesKey, Number(info.season ?? 0)],
-        genre: info.genre
-      };
-    })()
+    ...(type === "series"
+      ? (() => {
+          const info = extractSeriesInfo({
+            name,
+            group,
+            url,
+            tvgName: data.tvgName || ""
+          });
+          return {
+            seriesName: info.seriesName,
+            seriesKey: info.seriesKey,
+            season: info.season,
+            episode: info.episode,
+            seriesSeason: [info.seriesKey, Number(info.season ?? 0)],
+            genre: info.genre
+          };
+        })()
+      : {
+          seriesName: "",
+          seriesKey: "",
+          season: null,
+          episode: null,
+          seriesSeason: ["", 0],
+          genre: ""
+        })
   };
 }
 /* =========================================================
@@ -1609,100 +1619,28 @@ async function* parseM3UStream(
    ========================================================= */
 
 function parseEXTINF(line) {
-  const result = {
-    name: "",
-    group: "",
-    logo: "",
-    tvgId: "",
-    tvgName: "",
-    country: "",
-    language: ""
+  const colonIndex = line.indexOf(":");
+  const content = colonIndex >= 0 ? line.slice(colonIndex + 1) : line;
+  const commaIndex = findNameSeparator(content);
+  const attributes = commaIndex >= 0 ? content.slice(0, commaIndex) : content;
+  const name = commaIndex >= 0 ? content.slice(commaIndex + 1).trim() : "Sem nome";
+
+  const attrs = Object.create(null);
+  const attrRegex = /([A-Za-z0-9_-]+)\s*=\s*("([^"]*)"|'([^']*)'|([^\s]+))/g;
+  let match;
+  while ((match = attrRegex.exec(attributes)) !== null) {
+    attrs[match[1].toLowerCase()] = (match[3] ?? match[4] ?? match[5] ?? "").trim();
+  }
+
+  return {
+    name: name || "Sem nome",
+    group: attrs["group-title"] || attrs.group || "Sem categoria",
+    logo: attrs["tvg-logo"] || attrs.logo || "",
+    tvgId: attrs["tvg-id"] || "",
+    tvgName: attrs["tvg-name"] || "",
+    country: attrs["tvg-country"] || attrs.country || "",
+    language: attrs["tvg-language"] || attrs.language || ""
   };
-
-  const colonIndex =
-    line.indexOf(":");
-
-  const content =
-    colonIndex >= 0
-      ? line.slice(
-          colonIndex + 1
-        )
-      : line;
-
-  const commaIndex =
-    findNameSeparator(content);
-
-  const attributes =
-    commaIndex >= 0
-      ? content.slice(
-          0,
-          commaIndex
-        )
-      : content;
-
-  const name =
-    commaIndex >= 0
-      ? content.slice(
-          commaIndex + 1
-        ).trim()
-      : "Sem nome";
-
-  result.name =
-    name || "Sem nome";
-
-  result.group =
-    getAttribute(
-      attributes,
-      [
-        "group-title",
-        "group"
-      ]
-    ) || "Sem categoria";
-
-  result.logo =
-    getAttribute(
-      attributes,
-      [
-        "tvg-logo",
-        "logo"
-      ]
-    );
-
-  result.tvgId =
-    getAttribute(
-      attributes,
-      [
-        "tvg-id"
-      ]
-    );
-
-  result.tvgName =
-    getAttribute(
-      attributes,
-      [
-        "tvg-name"
-      ]
-    );
-
-  result.country =
-    getAttribute(
-      attributes,
-      [
-        "tvg-country",
-        "country"
-      ]
-    );
-
-  result.language =
-    getAttribute(
-      attributes,
-      [
-        "tvg-language",
-        "language"
-      ]
-    );
-
-  return result;
 }
 
 /* =========================================================
@@ -4815,9 +4753,11 @@ async function loadM3U(
          A CADA 500 ITENS
          ----------------------------------------------- */
 
+      const targetBatchSize = firstPaint ? WRITE_BATCH : FIRST_PAINT_BATCH;
+
       if (
         batch.length >=
-        WRITE_BATCH
+        targetBatchSize
       ) {
         const batchToWrite =
           batch;
@@ -4858,7 +4798,7 @@ async function loadM3U(
         if (
           now -
             lastRender >
-          2500
+          UI_RENDER_INTERVAL
         ) {
           lastRender =
             now;
