@@ -1,214 +1,68 @@
-/* GC PLAY PRO — live startup fix 2026-09-30 */
-(function () {
-  "use strict";
-
-  function loadScriptWithTimeout(src, timeoutMs) {
-    return new Promise((resolve, reject) => {
-      const existing = document.querySelector('script[data-gc-mpegts-src="' + src + '"]');
-      if (existing && window.mpegts) {
-        resolve(window.mpegts);
-        return;
-      }
-
-      const script = document.createElement("script");
-      script.src = src;
-      script.async = true;
-      script.dataset.gcMpegtsSrc = src;
-
-      let finished = false;
-      const finish = (fn, value) => {
-        if (finished) return;
-        finished = true;
-        clearTimeout(timer);
-        fn(value);
-      };
-
-      const timer = setTimeout(() => {
-        try { script.remove(); } catch {}
-        finish(reject, new Error("Tempo esgotado carregando mpegts.js"));
-      }, timeoutMs);
-
-      script.onload = () => {
-        if (window.mpegts) finish(resolve, window.mpegts);
-        else finish(reject, new Error("mpegts.js carregou sem expor window.mpegts"));
-      };
-      script.onerror = () => finish(reject, new Error("Falha CDN mpegts.js"));
-      document.head.appendChild(script);
-    });
+/* GC PLAY PRO — live fix 2026-09-30 */
+(function(){
+"use strict";
+function load(src,ms){return new Promise((ok,no)=>{
+ const s=document.createElement("script");s.src=src;s.async=true;let t=setTimeout(()=>{s.remove();no(Error("mpegts timeout"))},ms);
+ s.onload=()=>{clearTimeout(t);window.mpegts?ok(window.mpegts):no(Error("mpegts indisponível"))};
+ s.onerror=()=>{clearTimeout(t);no(Error("CDN mpegts falhou"))};document.head.appendChild(s);
+})}
+window.loadMpegTS=async function(){
+ if(window.mpegts)return window.mpegts;
+ let e;
+ for(const u of ["https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js","https://unpkg.com/mpegts.js@1.8.2/dist/mpegts.min.js"])
+  try{const m=await load(u,7000);if(m&&m.isSupported())return m;e=Error("MSE não suportado")}catch(x){e=x}
+ throw e||Error("mpegts indisponível")
+};
+async function run(m,v,u,msg,type){
+ return new Promise(async(ok,no)=>{
+  let good=false,done=false;
+  const finish=(fn,x)=>{if(done)return;done=true;clearTimeout(t);v.removeEventListener("error",ve);fn(x)};
+  const ve=()=>finish(no,Error("MEDIA_ERR_"+(v.error?.code||"UNKNOWN")+" código "+(v.error?.code||"")));
+  v.addEventListener("error",ve,{once:true});
+  let p;
+  try{
+   p=m.createPlayer({type,isLive:true,url:u,cors:true,hasAudio:true,hasVideo:true},{
+    enableWorker:false,enableWorkerForMSE:false,enableStashBuffer:true,stashInitialSize:128*1024,
+    lazyLoad:false,deferLoadAfterSourceOpen:false,liveBufferLatencyChasing:false,
+    autoCleanupSourceBuffer:true,autoCleanupMaxBackwardDuration:20,autoCleanupMinBackwardDuration:8
+   });
+   state.mpegts=p;
+   p.on(m.Events.MEDIA_INFO,i=>{good=true;console.log("[GC] MEDIA_INFO",i);if(msg)msg.textContent=""});
+   p.on(m.Events.ERROR,(a,b,c)=>{console.warn("[GC] MPEGTS ERROR",a,b,c);if(/unsupported|format|codec|decode|media/i.test(String(b)))finish(no,Error("MPEGTS "+b))});
+   p.attachMediaElement(v);p.load();try{await p.play()}catch{}
+   var t=setTimeout(()=>{if(good||v.readyState>=2||v.videoWidth>0)finish(ok,p);else finish(no,Error("sem quadro de vídeo"))},4000);
+  }catch(e){finish(no,e)}
+ })
+}
+window.playMpegTS=async function(video,url,message,directFallbackUrl=""){
+ if(!video)return;
+ if(message)message.textContent="Preparando motor de TV ao vivo...";
+ try{
+  if(state.mpegts){try{state.mpegts.destroy()}catch{}state.mpegts=null}
+  const m=await Promise.race([window.loadMpegTS(),new Promise((_,r)=>setTimeout(()=>r(Error("mpegts demorou demais")),9000))]);
+  const f=typeof m.getFeatureList==="function"?m.getFeatureList():{};
+  console.log("[GC] MPEGTS features",f);
+  if(message)message.textContent=f.mseH265Playback?"Motor pronto • H.265 disponível":"Motor pronto • verificando formato...";
+  const src=[url,directFallbackUrl].filter((x,i,a)=>x&&a.indexOf(x)===i);
+  let last;
+  for(const u of src)for(const type of ["mpegts","mse"]){
+   try{
+    if(state.mpegts){try{state.mpegts.destroy()}catch{}state.mpegts=null}
+    if(message)message.textContent="Testando "+type+"...";
+    await run(m,video,u,message,type);
+    if(message)message.textContent="";
+    return;
+   }catch(e){last=e;console.warn("[GC] tentativa",type,u,e);try{if(state.mpegts)state.mpegts.destroy()}catch{}state.mpegts=null;try{video.removeAttribute("src");video.load()}catch{}}
   }
-
-  /* Do not allow the CDN load to leave the UI forever in
-     "Conectando ao conteúdo...". Try two public CDNs. */
-  loadMpegTS = async function () {
-    if (window.mpegts) return window.mpegts;
-
-    const cdns = [
-      "https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js",
-      "https://unpkg.com/mpegts.js@1.8.2/dist/mpegts.min.js"
-    ];
-
-    let lastError = null;
-    for (const src of cdns) {
-      try {
-        const lib = await loadScriptWithTimeout(src, 7000);
-        if (lib && lib.isSupported()) return lib;
-        lastError = new Error("mpegts.js sem suporte MSE");
-      } catch (error) {
-        lastError = error;
-      }
-    }
-    throw lastError || new Error("mpegts.js indisponível");
-  };
-
-  async function startEngine(mpegts, video, source, message, type) {
-    const player = mpegts.createPlayer(
-      {
-        type,
-        isLive: true,
-        url: source,
-        cors: true,
-        hasAudio: true,
-        hasVideo: true
-      },
-      {
-        enableWorker: true,
-        enableWorkerForMSE: true,
-        enableStashBuffer: true,
-        stashInitialSize: 192 * 1024,
-        lazyLoad: false,
-        deferLoadAfterSourceOpen: false,
-        liveBufferLatencyChasing: true,
-        liveBufferLatencyMaxLatency: 3,
-        liveBufferLatencyMinRemain: 0.8,
-        autoCleanupSourceBuffer: true,
-        autoCleanupMaxBackwardDuration: 20,
-        autoCleanupMinBackwardDuration: 8,
-        reuseRedirectedURL: true
-      }
-    );
-
-    state.mpegts = player;
-
-    let gotData = false;
-    const timer = setTimeout(() => {
-      if (!gotData && message) {
-        message.textContent = "O servidor conectou, mas ainda não entregou vídeo...";
-      }
-    }, 5000);
-
-    const cleanup = () => clearTimeout(timer);
-
-    player.on(mpegts.Events.MEDIA_INFO, info => {
-      console.log("[GC PLAY PRO] MPEG-TS MEDIA_INFO", info);
-      gotData = true;
-      cleanup();
-      if (message) message.textContent = "";
-    });
-
-    player.on(mpegts.Events.ERROR, (errorType, errorDetail, errorInfo) => {
-      console.warn("[GC PLAY PRO] MPEG-TS ERROR", type, errorType, errorDetail, errorInfo);
-    });
-
-    video.addEventListener("loadeddata", () => {
-      gotData = true;
-      cleanup();
-      if (message) message.textContent = "";
-    }, { once: true });
-
-    player.attachMediaElement(video);
-    player.load();
-
-    try {
-      await player.play();
-    } catch (error) {
-      console.warn("[GC PLAY PRO] play:", error);
-    }
-
-    return player;
+  throw last||Error("nenhuma rota funcionou");
+ }catch(e){
+  console.error("[GC] live final",e);
+  if(message){
+   message.textContent=/código 4|MEDIA_ERR_4|unsupported|codec|format/i.test(String(e))?
+    "Formato do canal incompatível com o navegador (código 4).":
+    "Não foi possível iniciar este canal.";
   }
-
-  playMpegTS = async function (video, url, message, directFallbackUrl = "") {
-    if (!video) return;
-
-    /* Set this BEFORE any network/CDN await. This is why the old
-       screenshot could remain stuck on the generic message. */
-    if (message) message.textContent = "Preparando motor de TV ao vivo...";
-
-    try {
-      if (state.mpegts) {
-        try { state.mpegts.destroy(); } catch {}
-        state.mpegts = null;
-      }
-
-      const mpegts = await Promise.race([
-        loadMpegTS(),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("mpegts.js demorou demais para iniciar")), 9000)
-        )
-      ]);
-
-      if (!mpegts || !mpegts.isSupported()) {
-        throw new Error("MSE/MPEG-TS não suportado neste navegador");
-      }
-
-      if (message) message.textContent = "Conectando ao canal...";
-
-      const sources = [];
-      const add = value => {
-        if (value && !sources.includes(value)) sources.push(value);
-      };
-      add(url);
-      add(directFallbackUrl);
-
-      let lastError = null;
-
-      /* HTTP MPEG-TS has a dedicated media type in mpegts.js.
-         If that mode fails, retry once using the MSE compatibility mode. */
-      for (const source of sources) {
-        for (const type of ["mpegts", "mse"]) {
-          try {
-            if (state.mpegts) {
-              try { state.mpegts.destroy(); } catch {}
-              state.mpegts = null;
-            }
-
-            if (message) {
-              message.textContent =
-                type === "mpegts"
-                  ? "Conectando ao canal..."
-                  : "Tentando compatibilidade MPEG-TS...";
-            }
-
-            await startEngine(mpegts, video, source, message, type);
-
-            await new Promise(resolve => setTimeout(resolve, 3500));
-
-            if (video.readyState >= 2 || video.videoWidth > 0) {
-              if (message) message.textContent = "";
-              return;
-            }
-
-            lastError = new Error("Fluxo conectado sem dados de vídeo");
-          } catch (error) {
-            lastError = error;
-            console.warn("[GC PLAY PRO] tentativa live falhou:", source, type, error);
-          }
-        }
-      }
-
-      throw lastError || new Error("Nenhuma rota de reprodução funcionou");
-    } catch (error) {
-      console.error("[GC PLAY PRO] live final:", error);
-
-      if (message) {
-        message.textContent =
-          "Não foi possível iniciar este canal. Verifique se a fonte entrega MPEG-TS/H.264.";
-      }
-
-      try {
-        if (state.mpegts) state.mpegts.destroy();
-      } catch {}
-      state.mpegts = null;
-    }
-  };
+  try{if(state.mpegts)state.mpegts.destroy()}catch{}state.mpegts=null;
+ }
+};
 })();
