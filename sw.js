@@ -12,7 +12,7 @@ const APP_SHELL = [
   "./",
   "./index.html",
   "./style.css",
-  "./app.js?v=20260930-34"
+  "./app.js?v=20260930-35"
 ];
 
 self.addEventListener("install", event => {
@@ -29,7 +29,7 @@ self.addEventListener("activate", event => {
       .then(keys =>
         Promise.all(
           keys
-            .filter(key => key.startsWith("gc-play-pro-v35") && key !== CACHE_NAME)
+            .filter(key => key.startsWith("gc-play-pro-") && key !== CACHE_NAME)
             .map(key => caches.delete(key))
         )
       )
