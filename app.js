@@ -2714,7 +2714,89 @@ function setupSeriesBrowserEvents(grid) {
   const back=grid.querySelector("[data-series-back]");
   if(back) back.addEventListener("click",()=>{if(state.seriesView.season!==null) state.seriesView.season=null; else state.seriesView.seriesKey=null;render();});
 }
+async function ensureSeriesCatalogFromM3U() {
+  if (!state.xtreamSeriesFallbackNeeded || !state.playlistMeta.url) return true;
+  if (state.seriesFallbackPromise) return state.seriesFallbackPromise;
+
+  state.seriesFallbackPromise = (async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 120000);
+    const batches = [];
+    let batch = [];
+    let added = 0;
+
+    try {
+      updateLoadMessage("Séries: procurando episódios na M3U...");
+      const response = await fetchPlaylist(state.playlistMeta.url, controller.signal);
+
+      for await (const item of parseM3UStream(response, controller.signal)) {
+        if (!item || item.type !== "series" || !item.url) continue;
+        batch.push(item);
+        added++;
+
+        if (batch.length >= 10000) {
+          batches.push(batch);
+          batch = [];
+        }
+
+        if (added % 5000 === 0) {
+          updateLoadMessage("Séries: " + formatNumber(added) + " episódios encontrados...");
+          await new Promise(resolve => setTimeout(resolve, 0));
+        }
+      }
+
+      if (batch.length) batches.push(batch);
+
+      if (!added) {
+        state.xtreamSeriesFallbackNeeded = false;
+        updateLoadMessage("Nenhuma série foi encontrada na M3U.");
+        return false;
+      }
+
+      for (const part of batches) {
+        await writeBatch(part);
+      }
+
+      state.seriesCatalog = [];
+      state.seriesCatalogMap = new Map();
+      state.seriesKeyAliases = new Map();
+      state.seriesCatalogReady = false;
+      state.seriesItemsCache = null;
+
+      await rebuildSeriesCatalogInBackground(true);
+      await buildGenreCatalog();
+      await loadDatabaseStats();
+      renderGenreFilters();
+
+      state.xtreamSeriesFallbackNeeded = false;
+      toast("Séries encontradas: " + formatNumber(state.seriesCatalog.length), 4500);
+      return true;
+    } catch (error) {
+      console.warn("[GC PLAY PRO] Fallback de séries M3U:", error);
+      toast(error?.name === "AbortError"
+        ? "A busca de séries demorou demais. Tente novamente."
+        : "Não foi possível localizar as séries na M3U.");
+      return false;
+    } finally {
+      clearTimeout(timeout);
+      state.seriesFallbackPromise = null;
+    }
+  })();
+
+  return state.seriesFallbackPromise;
+}
+
 async function renderSeriesBrowser(grid,empty) {
+  if (state.xtreamSeriesFallbackNeeded && !state.seriesCatalog.length) {
+    grid.innerHTML = `
+      <div class="gc-loading">
+        <span class="gc-spinner"></span>
+        Séries não vieram pela API. Procurando episódios na sua M3U...
+      </div>
+    `;
+    await ensureSeriesCatalogFromM3U();
+  }
+
   const items=await getFilteredSeriesItems();
   const key=state.seriesView.seriesKey;
   const season=state.seriesView.season;
