@@ -6556,35 +6556,48 @@ window.GC_PLAY_PRO = {
    ========================================================= */
 
 /* =========================================================
-   BOTÃO SALVAR M3U — FLUXO DIRETO
+   BOTÃO SALVAR M3U — AÇÃO DIRETA
+   O botão usa onclick no próprio elemento. Não há listener de
+   captura no document para este botão, evitando bloquear o
+   clique antes de chegar ao elemento.
    ========================================================= */
 async function gcPlayProSavePlaylist(event) {
-  try {
-    if (event) {
-      event.preventDefault();
-      event.stopPropagation();
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  const button = document.getElementById("savePlaylistButton");
+  const nameInput = document.getElementById("playlistName");
+  const urlInput = document.getElementById("playlistUrl");
+  const message = document.getElementById("playlistMessage");
+
+  const name = nameInput?.value.trim() || "Minha Playlist";
+  const url = urlInput?.value.trim() || "";
+
+  const showMessage = (text, isError = false) => {
+    if (message) {
+      message.textContent = text;
+      message.style.display = "block";
+      message.style.color = isError ? "#ff6b6b" : "var(--green)";
     }
+    console.log("[GC PLAY PRO]", text);
+  };
 
-    const button = document.getElementById("savePlaylistButton");
-    const nameInput = document.getElementById("playlistName");
-    const urlInput = document.getElementById("playlistUrl");
-
-    const name = nameInput?.value.trim() || "Minha Playlist";
-    const url = urlInput?.value.trim() || "";
-
+  try {
     if (state.loading) {
-      toast("A playlist já está sendo carregada.");
+      showMessage("A playlist já está sendo carregada.", true);
       return false;
     }
 
     if (!url) {
-      toast("Informe a URL da playlist.");
+      showMessage("Informe a URL da playlist.", true);
       urlInput?.focus();
       return false;
     }
 
     if (!isHttpUrl(url)) {
-      toast("A URL precisa começar com http:// ou https://.");
+      showMessage("A URL precisa começar com http:// ou https://.", true);
       urlInput?.focus();
       return false;
     }
@@ -6594,32 +6607,28 @@ async function gcPlayProSavePlaylist(event) {
       localStorage.setItem("GC_PLAY_PRO_PLAYLIST_URL", url);
     } catch {}
 
-    const oldText = button?.textContent || "SALVAR LISTA";
+    showMessage("Conectando à playlist...");
+
     if (button) {
       button.disabled = true;
       button.textContent = "CONECTANDO...";
     }
 
-    console.log("[GC PLAY PRO] Iniciando importação M3U pelo botão.");
-
     const loaded = await loadM3U(url);
 
-    console.log("[GC PLAY PRO] Resultado da importação:", loaded);
-
     if (loaded === true) {
-      closeDialog("playlistDialog");
+      showMessage("Playlist carregada com sucesso.");
+      setTimeout(() => closeDialog("playlistDialog"), 250);
     } else {
-      openDialog("playlistDialog");
+      showMessage("Não foi possível carregar a playlist.", true);
     }
 
     return false;
   } catch (error) {
     console.error("[GC PLAY PRO] Falha ao salvar/importar M3U:", error);
-    toast(error?.message || "Erro ao carregar a playlist.", 7000);
-    openDialog("playlistDialog");
+    showMessage(error?.message || "Erro ao carregar a playlist.", true);
     return false;
   } finally {
-    const button = document.getElementById("savePlaylistButton");
     if (button) {
       button.disabled = false;
       button.textContent = "SALVAR LISTA";
@@ -6756,7 +6765,6 @@ async function initApp() {
   ensureCSS();
 
   setupPlaylistButtonFallback();
-  setupSavePlaylistButton();
   setupPlaylistFormFallback();
 
   loadState();
