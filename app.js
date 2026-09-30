@@ -4893,59 +4893,6 @@ async function loadM3U(
        todo o processo de gravação.
     */
 
-    const writesPending =
-      writeProcessing ||
-      writeQueue.length;
-
-    if (writesPending) {
-      updateLoadMessage(
-        `Catálogo recebido: ${formatNumber(processed)} itens. Indexando em segundo plano...`
-      );
-
-      setTimeout(async () => {
-        try {
-          while (writeProcessing || writeQueue.length) {
-            await sleep(100);
-          }
-
-          if (writeError) {
-            console.warn(
-              "[GC PLAY PRO] Erro na gravação em segundo plano:",
-              writeError
-            );
-          }
-
-          try {
-            state.seriesCatalog =
-              await loadSeriesCatalogFromDB();
-
-            state.seriesCatalogMap =
-              new Map(
-                state.seriesCatalog.map(
-                  item => [item.seriesKey, item]
-                )
-              );
-
-            state.seriesCatalogReady =
-              state.seriesCatalog.length > 0;
-
-            renderGenreFilters();
-            render();
-          } catch (catalogError) {
-            console.warn(
-              "[GC PLAY PRO] Catálogo de séries ainda não disponível:",
-              catalogError
-            );
-          }
-        } catch (backgroundError) {
-          console.warn(
-            "[GC PLAY PRO] Indexação em segundo plano falhou:",
-            backgroundError
-          );
-        }
-      }, 0);
-    }
-
     if (processed === 0) {
       throw new Error(
         "A resposta foi recebida, mas nenhum item M3U válido foi encontrado."
@@ -4956,20 +4903,42 @@ async function loadM3U(
        O índice de séries já foi gravado durante a importação.
        Carregamos somente esse índice — nunca os 400k episódios.
     */
-    state.seriesCatalog =
-      await loadSeriesCatalogFromDB();
+    setTimeout(async () => {
+      try {
+        while (writeProcessing || writeQueue.length) {
+          await sleep(100);
+        }
 
-    state.seriesCatalogMap =
-      new Map(
-        state.seriesCatalog.map(
-          item => [item.seriesKey, item]
-        )
-      );
+        if (writeError) {
+          console.warn(
+            "[GC PLAY PRO] Gravação em segundo plano:",
+            writeError
+          );
+          return;
+        }
 
-    state.seriesCatalogReady =
-      state.seriesCatalog.length > 0;
+        state.seriesCatalog =
+          await loadSeriesCatalogFromDB();
 
-    renderGenreFilters();
+        state.seriesCatalogMap =
+          new Map(
+            state.seriesCatalog.map(
+              item => [item.seriesKey, item]
+            )
+          );
+
+        state.seriesCatalogReady =
+          state.seriesCatalog.length > 0;
+
+        renderGenreFilters();
+        render();
+      } catch (catalogError) {
+        console.warn(
+          "[GC PLAY PRO] Catálogo de séries em segundo plano:",
+          catalogError
+        );
+      }
+    }, 0);
 
     /* -----------------------------------------------------
        RESULTADO FINAL
