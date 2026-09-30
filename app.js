@@ -3082,6 +3082,10 @@ function closePlayer() {
     state.mpegts = null;
   }
 
+  if (video && state.currentItem) {
+    saveResumePosition(state.currentItem, video);
+  }
+
   if (video) {
     try {
       video.pause();
