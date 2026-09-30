@@ -847,9 +847,9 @@ function getXtreamPathType(url) {
   try {
     const path = new URL(String(url || "")).pathname.toLowerCase();
 
-    if (/(?:^|\\/)series(?:\\/|$)/.test(path)) return "series";
-    if (/(?:^|\\/)movie(?:s)?(?:\\/|$)/.test(path)) return "movie";
-    if (/(?:^|\\/)live(?:\\/|$)/.test(path)) return "live";
+    if (/(?:^|\/)series(?:\/|$)/.test(path)) return "series";
+    if (/(?:^|\/)movie(?:s)?(?:\/|$)/.test(path)) return "movie";
+    if (/(?:^|\/)live(?:\/|$)/.test(path)) return "live";
   } catch {}
 
   return null;
