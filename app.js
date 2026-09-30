@@ -26,10 +26,10 @@ const DB_VERSION = 5;
 const STORE_NAME = "items";
 const SERIES_STORE = "seriesCatalog";
 
-const RAM_LIMIT = 3000;
-const WRITE_BATCH = 5000;
-const FIRST_PAINT_BATCH = 500;
-const UI_RENDER_INTERVAL = 1800;
+const RAM_LIMIT = 4000;
+const WRITE_BATCH = 20000;
+const FIRST_PAINT_BATCH = 1000;
+const UI_RENDER_INTERVAL = 2500;
 
 const STATE_KEY = "GC_PLAY_PRO_STATE_V5";
 const SETTINGS_KEY = "GC_PLAY_PRO_SETTINGS_V5";
@@ -3220,18 +3220,6 @@ async function playItem(item) {
 
   if (looksLikeLiveStream) {
     await playMpegTS(
-      video,
-      playbackUrl,
-      message
-    );
-
-    return;
-  }
-
-  /* -------------------------------------------------------
-     VÍDEO NORMAL
-     ------------------------------------------------------- */
-    await playHLS(
       video,
       playbackUrl,
       message
