@@ -111,6 +111,9 @@ const state = {
     name: ""
   },
 
+  seriesFallbackPromise: null,
+  xtreamSeriesFallbackNeeded: false,
+
   epgTimer: null
 };
 
