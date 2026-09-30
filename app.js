@@ -5298,6 +5298,9 @@ async function loadM3U(
       state.db = await openDB();
       state.xtreamSession = xtreamFast.session;
       state.xtreamUserInfo = xtreamFast.userInfo || null;
+      state.playlistMeta.url = url;
+      state.playlistMeta.name = document.getElementById("playlistName")?.value?.trim() || "Minha Playlist";
+      state.xtreamSeriesFallbackNeeded = !Array.isArray(xtreamFast.seriesCatalog) || xtreamFast.seriesCatalog.length === 0;
       state.items = xtreamFast.items.slice(0, RAM_LIMIT);
       state.groups = xtreamFast.groups;
       state.groupsReady = true;
