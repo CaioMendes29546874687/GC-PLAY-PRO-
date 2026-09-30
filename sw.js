@@ -6,7 +6,7 @@
 
 "use strict";
 
-const CACHE_NAME = "gc-play-pro-shell-v34";
+const CACHE_NAME = "gc-play-pro-v35";
 
 const APP_SHELL = [
   "./",
@@ -29,7 +29,7 @@ self.addEventListener("activate", event => {
       .then(keys =>
         Promise.all(
           keys
-            .filter(key => key.startsWith("gc-play-pro-shell-") && key !== CACHE_NAME)
+            .filter(key => key.startsWith("gc-play-pro-v35") && key !== CACHE_NAME)
             .map(key => caches.delete(key))
         )
       )
