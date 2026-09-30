@@ -3181,8 +3181,16 @@ async function playItem(item) {
      quando o servidor já permite reprodução no navegador.
      HLS.js e MPEG-TS continuam usando o proxy quando necessário.
   */
+  const looksLikeLiveStream =
+    item.type === "live" ||
+    /\/live\//i.test(originalUrl) ||
+    /\/stream\//i.test(originalUrl) ||
+    /\/channel\//i.test(originalUrl) ||
+    /\/play\//i.test(originalUrl) ||
+    /\/tv\//i.test(originalUrl);
+
   const playbackUrl =
-    isMpegTSLive(item) || isHLS(originalUrl)
+    looksLikeLiveStream || isHLS(originalUrl)
       ? (shouldUseProxy(originalUrl)
           ? buildProxyUrl(originalUrl)
           : originalUrl)
@@ -3192,7 +3200,25 @@ async function playItem(item) {
      MPEG-TS AO VIVO
      ------------------------------------------------------- */
 
-  if (isMpegTSLive(item)) {
+  /* -------------------------------------------------------
+     HLS
+     ------------------------------------------------------- */
+
+  if (isHLS(originalUrl)) {
+    await playHLS(
+      video,
+      playbackUrl,
+      message
+    );
+
+    return;
+  }
+
+  /* -------------------------------------------------------
+     MPEG-TS AO VIVO
+     ------------------------------------------------------- */
+
+  if (looksLikeLiveStream) {
     await playMpegTS(
       video,
       playbackUrl,
@@ -3203,10 +3229,8 @@ async function playItem(item) {
   }
 
   /* -------------------------------------------------------
-     HLS
+     VÍDEO NORMAL
      ------------------------------------------------------- */
-
-  if (isHLS(originalUrl)) {
     await playHLS(
       video,
       playbackUrl,
@@ -4869,17 +4893,57 @@ async function loadM3U(
        todo o processo de gravação.
     */
 
-    while (
+    const writesPending =
       writeProcessing ||
-      writeQueue.length
-    ) {
-      await sleep(50);
-    }
+      writeQueue.length;
 
-    if (writeError) {
-      throw new Error(
-        `Falha ao gravar o catálogo no armazenamento local: ${writeError.message || writeError}`
+    if (writesPending) {
+      updateLoadMessage(
+        `Catálogo recebido: ${formatNumber(processed)} itens. Indexando em segundo plano...`
       );
+
+      setTimeout(async () => {
+        try {
+          while (writeProcessing || writeQueue.length) {
+            await sleep(100);
+          }
+
+          if (writeError) {
+            console.warn(
+              "[GC PLAY PRO] Erro na gravação em segundo plano:",
+              writeError
+            );
+          }
+
+          try {
+            state.seriesCatalog =
+              await loadSeriesCatalogFromDB();
+
+            state.seriesCatalogMap =
+              new Map(
+                state.seriesCatalog.map(
+                  item => [item.seriesKey, item]
+                )
+              );
+
+            state.seriesCatalogReady =
+              state.seriesCatalog.length > 0;
+
+            renderGenreFilters();
+            render();
+          } catch (catalogError) {
+            console.warn(
+              "[GC PLAY PRO] Catálogo de séries ainda não disponível:",
+              catalogError
+            );
+          }
+        } catch (backgroundError) {
+          console.warn(
+            "[GC PLAY PRO] Indexação em segundo plano falhou:",
+            backgroundError
+          );
+        }
+      }, 0);
     }
 
     if (processed === 0) {
