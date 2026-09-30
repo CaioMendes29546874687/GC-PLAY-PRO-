@@ -1599,7 +1599,11 @@ async function tryLoadXtreamFast(url, signal) {
       ? userInfo.allowed_output_formats.map(v => String(v).toLowerCase())
       : [];
 
-    const liveExtension = allowed.includes("ts") ? "ts" : allowed.includes("m3u8") ? "m3u8" : "ts";
+    const liveExtension = allowed.includes("m3u8")
+      ? "m3u8"
+      : allowed.includes("ts")
+        ? "ts"
+        : "ts";
     const items = [];
     const seriesCatalog = [];
     const groups = new Set();
