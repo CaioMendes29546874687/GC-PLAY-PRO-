@@ -6798,6 +6798,8 @@ function needsSeriesCatalogMigration(catalog) {
 async function loadLocalCatalog() {
   try {
     if (!state.db) return;
+    const savedPlaylist = getSavedPlaylist();
+    if (savedPlaylist) state.playlistMeta = savedPlaylist;
     state.items = await loadSample(RAM_LIMIT);
     state.seriesItemsCache = null;
 
