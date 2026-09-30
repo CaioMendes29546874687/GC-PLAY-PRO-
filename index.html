@@ -406,6 +406,23 @@
           preload="metadata"
         ></video>
 
+        <div class="gc-player-toolbar" aria-label="Controles avançados">
+          <label class="gc-player-control">
+            <span>VELOCIDADE</span>
+            <select id="playerSpeed">
+              <option value="0.5">0,5×</option>
+              <option value="0.75">0,75×</option>
+              <option value="1" selected>1×</option>
+              <option value="1.25">1,25×</option>
+              <option value="1.5">1,5×</option>
+              <option value="2">2×</option>
+            </select>
+          </label>
+          <button type="button" class="secondary-button gc-player-resume-clear" id="clearResumeButton">
+            LIMPAR RETOMADA
+          </button>
+        </div>
+
         <div
           id="playerMessage"
           class="player-message"
@@ -618,7 +635,7 @@
           GC PLAY PRO
 
           <span>
-            versão 1.0
+            versão 1.1 PRO
           </span>
 
         </div>
