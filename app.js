@@ -22,7 +22,7 @@ const GC_HEALTH_URL =
 const GC_PROXY_HOSTS = null;
 
 const DB_NAME = "GC_PLAY_PRO_FAST";
-const DB_VERSION = 5;
+const DB_VERSION = 6;
 const STORE_NAME = "items";
 const SERIES_STORE = "seriesCatalog";
 
@@ -30,6 +30,8 @@ const RAM_LIMIT = 4000;
 const WRITE_BATCH = 20000;
 const FIRST_PAINT_BATCH = 1000;
 const UI_RENDER_INTERVAL = 2500;
+const WRITE_QUEUE_LIMIT = 3;
+const RESUME_KEY = "GC_PLAY_PRO_RESUME_V1";
 
 const STATE_KEY = "GC_PLAY_PRO_STATE_V5";
 const SETTINGS_KEY = "GC_PLAY_PRO_SETTINGS_V5";
@@ -98,7 +100,15 @@ const state = {
 
   settings: {
     autoplay: true,
-    compact: false
+    compact: false,
+    playbackRate: 1
+  },
+
+  resume: Object.create(null),
+
+  playlistMeta: {
+    url: "",
+    name: ""
   }
 };
 
@@ -138,6 +148,15 @@ function sleep(ms) {
 
 function formatNumber(number) {
   return Number(number || 0).toLocaleString("pt-BR");
+}
+
+function formatResumeTime(seconds) {
+  const total = Math.max(0, Math.floor(Number(seconds) || 0));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  if (h) return `${h}h ${String(m).padStart(2,"0")}min`;
+  return `${m}min ${String(s).padStart(2,"0")}s`;
 }
 
 function formatType(type) {
@@ -215,6 +234,11 @@ function saveState() {
       SETTINGS_KEY,
       JSON.stringify(state.settings)
     );
+
+    localStorage.setItem(
+      RESUME_KEY,
+      JSON.stringify(state.resume)
+    );
   } catch (error) {
     console.warn("Não foi possível salvar estado:", error);
   }
@@ -236,6 +260,16 @@ function loadState() {
       }
     }
 
+    try {
+      const resume = localStorage.getItem(RESUME_KEY);
+      if (resume) {
+        const data = JSON.parse(resume);
+        if (data && typeof data === "object") {
+          state.resume = data;
+        }
+      }
+    } catch {}
+
     const settings = localStorage.getItem(SETTINGS_KEY);
 
     if (settings) {
@@ -243,7 +277,8 @@ function loadState() {
 
       state.settings = {
         ...state.settings,
-        ...data
+        ...data,
+        playbackRate: Number(data.playbackRate) > 0 ? Number(data.playbackRate) : 1
       };
     }
   } catch (error) {
@@ -285,14 +320,6 @@ function openDB() {
         );
       }
 
-      if (!store.indexNames.contains("group")) {
-        store.createIndex(
-          "group",
-          "group",
-          { unique: false }
-        );
-      }
-
       if (!store.indexNames.contains("nameLower")) {
         store.createIndex(
           "nameLower",
@@ -305,22 +332,6 @@ function openDB() {
         store.createIndex(
           "seriesKey",
           "seriesKey",
-          { unique: false }
-        );
-      }
-
-      if (!store.indexNames.contains("seriesSeason")) {
-        store.createIndex(
-          "seriesSeason",
-          ["seriesKey", "season"],
-          { unique: false }
-        );
-      }
-
-      if (!store.indexNames.contains("typeGroup")) {
-        store.createIndex(
-          "typeGroup",
-          ["type", "group"],
           { unique: false }
         );
       }
@@ -394,6 +405,13 @@ let writeQueue = [];
 let writeProcessing = false;
 let writeError = null;
 
+async function waitForWriteCapacity(limit = WRITE_QUEUE_LIMIT) {
+  while (writeQueue.length >= limit) {
+    if (writeError) throw writeError;
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+}
+
 function queueWrite(items, seriesUpdates = []) {
   if (
     (!items || !items.length) &&
@@ -422,10 +440,6 @@ async function processWriteQueue() {
       await writeBatch(
         payload.items,
         payload.seriesUpdates
-      );
-
-      await new Promise(
-        requestAnimationFrame
       );
     }
   } catch (error) {
@@ -3161,6 +3175,10 @@ async function playItem(item) {
     state.hls = null;
   }
 
+  if (video && state.currentItem) {
+    saveResumePosition(state.currentItem, video);
+  }
+
   try {
     video.pause();
   } catch {}
@@ -3174,6 +3192,13 @@ async function playItem(item) {
 
   const originalUrl =
     item.url;
+
+  video.playbackRate =
+    Number(state.settings.playbackRate) > 0
+      ? Number(state.settings.playbackRate)
+      : 1;
+
+  const resumePosition = getResumePosition(item);
 
   /*
      Para arquivos de vídeo normais, tentamos primeiro a origem
@@ -3243,10 +3268,37 @@ async function playItem(item) {
       "Carregando vídeo...";
   }
 
+  video.onloadedmetadata = () => {
+    if (resumePosition > 5 && Number.isFinite(video.duration) && video.duration > resumePosition + 8) {
+      try {
+        video.currentTime = resumePosition;
+        if (message) {
+          message.textContent = `Continuando de ${formatResumeTime(resumePosition)}...`;
+          setTimeout(() => {
+            if (message) message.textContent = "";
+          }, 1800);
+        }
+      } catch {}
+    }
+  };
+
   video.onloadeddata = () => {
     if (message) {
       message.textContent = "";
     }
+  };
+
+  video.ontimeupdate = () => {
+    if (!state.currentItem || state.currentItem.id !== item.id) return;
+    const now = Date.now();
+    if (!video.__gcLastResumeSave || now - video.__gcLastResumeSave > 10000) {
+      video.__gcLastResumeSave = now;
+      saveResumePosition(item, video);
+    }
+  };
+
+  video.onended = () => {
+    clearResumePosition(item);
   };
 
   video.onplaying = () => {
@@ -3330,6 +3382,13 @@ async function playHLS(
   ) {
     video.src = url;
 
+    video.onloadedmetadata = () => {
+      const position = getResumePosition(state.currentItem);
+      if (position > 5 && Number.isFinite(video.duration) && video.duration > position + 8) {
+        try { video.currentTime = position; } catch {}
+      }
+    };
+
     try {
       await video.play();
 
@@ -3400,10 +3459,9 @@ async function playHLS(
     const hls =
       new Hls({
         enableWorker: true,
+        backBufferLength: 30,
 
         lowLatencyMode: false,
-
-        backBufferLength: 30,
 
         maxBufferLength: 30,
 
@@ -3483,6 +3541,24 @@ async function playHLS(
           data &&
           data.fatal
         ) {
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR && !hls.__gcNetworkRetry) {
+            hls.__gcNetworkRetry = true;
+            if (message) message.textContent = "Reconectando ao fluxo...";
+            try {
+              hls.startLoad();
+              return;
+            } catch {}
+          }
+
+          if (data.type === Hls.ErrorTypes.MEDIA_ERROR && !hls.__gcMediaRetry) {
+            hls.__gcMediaRetry = true;
+            if (message) message.textContent = "Recuperando vídeo...";
+            try {
+              hls.recoverMediaError();
+              return;
+            } catch {}
+          }
+
           if (message) {
             message.textContent =
               "Erro ao reproduzir este conteúdo.";
@@ -3518,6 +3594,39 @@ async function playHLS(
 /* =========================================================
    HISTÓRICO
    ========================================================= */
+
+function saveResumePosition(item, video) {
+  if (!item || !video || item.type === "live") return;
+
+  const duration = Number(video.duration);
+  const current = Number(video.currentTime);
+
+  if (!Number.isFinite(current) || current < 5) return;
+
+  if (Number.isFinite(duration) && duration > 0 && current >= duration - 8) {
+    delete state.resume[item.id];
+  } else {
+    state.resume[item.id] = Math.round(current);
+  }
+
+  try {
+    localStorage.setItem(RESUME_KEY, JSON.stringify(state.resume));
+  } catch {}
+}
+
+function getResumePosition(item) {
+  if (!item || item.type === "live") return 0;
+  const value = Number(state.resume[item.id] || 0);
+  return Number.isFinite(value) && value > 5 ? value : 0;
+}
+
+function clearResumePosition(item) {
+  if (!item) return;
+  delete state.resume[item.id];
+  try {
+    localStorage.setItem(RESUME_KEY, JSON.stringify(state.resume));
+  } catch {}
+}
 
 function addHistory(item) {
   if (!item) {
@@ -4437,6 +4546,32 @@ function syncSettingsUI() {
   }
 }
 
+function setupPlayerControls() {
+  const video = $("#videoPlayer");
+  const speed = $("#playerSpeed");
+  const clearResume = $("#clearResumeButton");
+
+  if (!video) return;
+
+  if (speed) {
+    speed.value = String(state.settings.playbackRate || 1);
+    speed.addEventListener("change", () => {
+      const rate = Number(speed.value);
+      if (!Number.isFinite(rate) || rate <= 0) return;
+      state.settings.playbackRate = rate;
+      video.playbackRate = rate;
+      saveState();
+    });
+  }
+
+  if (clearResume) {
+    clearResume.addEventListener("click", () => {
+      clearResumePosition(state.currentItem);
+      toast("Ponto de retomada removido.");
+    });
+  }
+}
+
 function setupSettings() {
   const changePinButton = $("#changeAdultPinButton");
 
@@ -4771,6 +4906,8 @@ async function loadM3U(
         batch.length >=
         targetBatchSize
       ) {
+        await waitForWriteCapacity();
+
         const batchToWrite =
           batch;
 
@@ -4812,11 +4949,14 @@ async function loadM3U(
             lastRender >
           UI_RENDER_INTERVAL
         ) {
-          lastRender =
-            now;
+          lastRender = now;
 
-          render();
-
+          /*
+             Durante uma importação gigante não reconstruímos
+             centenas de cards repetidamente. Só atualizamos
+             números e progresso; o catálogo visual completo
+             é renderizado no fim.
+          */
           updateLiveCounters();
 
           updateLoadMessage(
@@ -4824,11 +4964,6 @@ async function loadM3U(
               processed
             )} itens`
           );
-
-          /*
-             Entrega o controle ao navegador
-             para não travar a interface.
-          */
 
           await new Promise(
             requestAnimationFrame
@@ -4842,6 +4977,7 @@ async function loadM3U(
        ----------------------------------------------------- */
 
     if (batch.length) {
+      await waitForWriteCapacity();
       queueWrite(
         batch,
         takeSeriesCatalogUpdates()
@@ -6740,6 +6876,8 @@ async function initApp() {
   setupNavigation();
 
   setupDialogs();
+
+  setupPlayerControls();
 
   setupSettings();
 
