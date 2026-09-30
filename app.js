@@ -6558,38 +6558,35 @@ window.GC_PLAY_PRO = {
 /* =========================================================
    BOTÃO SALVAR M3U — FLUXO DIRETO
    ========================================================= */
-function setupSavePlaylistButton() {
-  if (window.__GC_SAVE_PLAYLIST_BUTTON__) return;
-  window.__GC_SAVE_PLAYLIST_BUTTON__ = true;
+async function gcPlayProSavePlaylist(event) {
+  try {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
 
-  document.addEventListener("click", async event => {
-    const button = event.target.closest("#savePlaylistButton");
-    if (!button) return;
+    const button = document.getElementById("savePlaylistButton");
+    const nameInput = document.getElementById("playlistName");
+    const urlInput = document.getElementById("playlistUrl");
 
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
+    const name = nameInput?.value.trim() || "Minha Playlist";
+    const url = urlInput?.value.trim() || "";
 
     if (state.loading) {
       toast("A playlist já está sendo carregada.");
-      return;
+      return false;
     }
-
-    const nameInput = document.getElementById("playlistName");
-    const urlInput = document.getElementById("playlistUrl");
-    const name = nameInput?.value.trim() || "Minha Playlist";
-    const url = urlInput?.value.trim() || "";
 
     if (!url) {
       toast("Informe a URL da playlist.");
       urlInput?.focus();
-      return;
+      return false;
     }
 
     if (!isHttpUrl(url)) {
       toast("A URL precisa começar com http:// ou https://.");
       urlInput?.focus();
-      return;
+      return false;
     }
 
     try {
@@ -6597,27 +6594,40 @@ function setupSavePlaylistButton() {
       localStorage.setItem("GC_PLAY_PRO_PLAYLIST_URL", url);
     } catch {}
 
-    const oldText = button.textContent;
-    button.disabled = true;
-    button.textContent = "CONECTANDO...";
-
-    try {
-      const loaded = await loadM3U(url);
-      if (loaded === true) {
-        closeDialog("playlistDialog");
-      } else {
-        openDialog("playlistDialog");
-      }
-    } catch (error) {
-      console.error("[GC PLAY PRO] Erro no botão salvar:", error);
-      toast(error?.message || "Erro ao carregar a playlist.", 6000);
-      openDialog("playlistDialog");
-    } finally {
-      button.disabled = false;
-      button.textContent = oldText || "SALVAR LISTA";
+    const oldText = button?.textContent || "SALVAR LISTA";
+    if (button) {
+      button.disabled = true;
+      button.textContent = "CONECTANDO...";
     }
-  }, true);
+
+    console.log("[GC PLAY PRO] Iniciando importação M3U pelo botão.");
+
+    const loaded = await loadM3U(url);
+
+    console.log("[GC PLAY PRO] Resultado da importação:", loaded);
+
+    if (loaded === true) {
+      closeDialog("playlistDialog");
+    } else {
+      openDialog("playlistDialog");
+    }
+
+    return false;
+  } catch (error) {
+    console.error("[GC PLAY PRO] Falha ao salvar/importar M3U:", error);
+    toast(error?.message || "Erro ao carregar a playlist.", 7000);
+    openDialog("playlistDialog");
+    return false;
+  } finally {
+    const button = document.getElementById("savePlaylistButton");
+    if (button) {
+      button.disabled = false;
+      button.textContent = "SALVAR LISTA";
+    }
+  }
 }
+
+window.gcPlayProSavePlaylist = gcPlayProSavePlaylist;
 
 /* =========================================================
    FORMULÁRIO M3U — FALLBACK GLOBAL
