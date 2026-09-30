@@ -2432,3 +2432,73 @@ body.gc-compact .content-grid {
     flex:1 1 150px;
   }
 }
+
+
+/* =====================================================
+   EPG — GUIA AO VIVO
+   ===================================================== */
+.gc-player-epg{
+  display:none;
+  margin-top:12px;
+  padding:12px;
+  border:1px solid rgba(57,255,136,.14);
+  border-radius:14px;
+  background:rgba(5,12,8,.84);
+  overflow:auto;
+  scrollbar-width:thin;
+}
+.gc-player-epg.show{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(145px,1fr));
+  gap:8px;
+}
+.gc-epg-item{
+  min-width:0;
+  padding:10px;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:10px;
+  background:rgba(255,255,255,.025);
+}
+.gc-epg-item.active{
+  border-color:rgba(57,255,136,.35);
+  background:rgba(57,255,136,.07);
+}
+.gc-epg-time{
+  color:var(--gc-neon);
+  font-size:9px;
+  font-weight:900;
+}
+.gc-epg-title{
+  margin-top:5px;
+  font-size:11px;
+  font-weight:800;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.gc-epg-desc{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:8px;
+  line-height:1.4;
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.gc-epg-loading,
+.gc-epg-empty{
+  padding:12px;
+  color:var(--muted);
+  font-size:9px;
+}
+@media (max-width:1000px){
+  .gc-player-epg.show{
+    grid-template-columns:repeat(3,minmax(145px,1fr));
+  }
+}
+@media (max-width:700px){
+  .gc-player-epg.show{
+    grid-template-columns:repeat(2,minmax(140px,1fr));
+  }
+}
