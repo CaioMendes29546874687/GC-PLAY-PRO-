@@ -3467,7 +3467,7 @@ async function playMpegTS(
     const player =
       mpegts.createPlayer(
         {
-          type: "mse",
+          type: "mpegts",
           isLive: true,
           url,
           cors: true,
@@ -3475,10 +3475,10 @@ async function playMpegTS(
           hasVideo: true
         },
         {
-          enableWorker: true,
-          enableWorkerForMSE: true,
+          enableWorker: false,
+          enableWorkerForMSE: false,
           enableStashBuffer: true,
-          stashInitialSize: 384 * 1024,
+          stashInitialSize: 256 * 1024,
           lazyLoad: false,
           deferLoadAfterSourceOpen: true,
           liveBufferLatencyChasing: false,
@@ -3634,6 +3634,8 @@ async function playMpegTS(
     }
   }
 }
+
+window.playMpegTS = playMpegTS;
 
 /* =========================================================
    FECHAR PLAYER
