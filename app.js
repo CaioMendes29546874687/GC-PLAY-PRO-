@@ -3221,7 +3221,7 @@ async function loadHLS() {
       document.createElement("script");
 
     script.src =
-      "https://cdn.jsdelivr.net/npm/hls.js@latest";
+      "https://cdn.jsdelivr.net/npm/hls.js@1.7.3";
 
     script.async = true;
 
@@ -3284,7 +3284,7 @@ function loadMpegTS() {
       document.createElement("script");
 
     script.src =
-      "https://cdn.jsdelivr.net/npm/mpegts.js@latest/dist/mpegts.min.js";
+      "https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js";
 
     script.async = true;
     script.dataset.gcMpegts = "1";
