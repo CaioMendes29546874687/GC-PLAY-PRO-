@@ -4272,35 +4272,59 @@ function setupPlaylistDialogDelegation() {
   if (window.__gcPlaylistDialogDelegation) return;
   window.__gcPlaylistDialogDelegation = true;
 
+  /*
+     Este delegado fica ativo antes da inicialização do restante
+     da interface. Assim os botões do modal continuam funcionando
+     mesmo se outra parte do app falhar durante o boot.
+  */
   document.addEventListener("click", event => {
-    const button = event.target.closest(
+    const openButton = event.target.closest(
       "#addPlaylistButton, #emptyAddButton, #quickAddPlaylist"
     );
 
-    if (!button) return;
+    if (openButton) {
+      event.preventDefault();
+      event.stopPropagation();
 
-    event.preventDefault();
-    event.stopPropagation();
+      const dialog = document.getElementById("playlistDialog");
 
-    const dialog = document.getElementById("playlistDialog");
+      if (!dialog) {
+        console.error("[GC PLAY PRO] playlistDialog não encontrado.");
+        return;
+      }
 
-    if (!dialog) {
-      console.error("[GC PLAY PRO] playlistDialog não encontrado.");
-      return;
-    }
+      try {
+        if (typeof dialog.showModal === "function" && !dialog.open) {
+          dialog.showModal();
+        } else {
+          dialog.classList.add("active", "open", "show");
+          dialog.setAttribute("open", "");
+        }
 
-    try {
-      if (typeof dialog.showModal === "function" && !dialog.open) {
-        dialog.showModal();
-      } else {
+        const name = document.getElementById("playlistName");
+        if (name) setTimeout(() => name.focus(), 50);
+      } catch (error) {
+        console.warn("[GC PLAY PRO] Fallback do modal M3U:", error);
         dialog.classList.add("active", "open", "show");
         dialog.setAttribute("open", "");
       }
-    } catch (error) {
-      console.warn("[GC PLAY PRO] Fallback do modal M3U:", error);
-      dialog.classList.add("active", "open", "show");
-      dialog.setAttribute("open", "");
+
+      return;
     }
+
+    const closeButton = event.target.closest("#closePlaylistDialog");
+
+    if (closeButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      closeDialog("playlistDialog");
+    }
+  }, true);
+
+  document.addEventListener("cancel", event => {
+    if (event.target?.id !== "playlistDialog") return;
+    event.preventDefault();
+    closeDialog("playlistDialog");
   }, true);
 }
 
@@ -4615,7 +4639,7 @@ async function loadM3U(
       "Já existe uma playlist sendo carregada."
     );
 
-    return;
+    return false;
   }
 
   if (
@@ -4626,7 +4650,7 @@ async function loadM3U(
       "Informe uma URL M3U válida."
     );
 
-    return;
+    return false;
   }
 
   /* -------------------------------------------------------
@@ -4978,6 +5002,18 @@ async function loadM3U(
     );
 
     /*
+       O formulário também fecha o diálogo imediatamente quando
+       recebe true. Este fechamento atrasado fica apenas como
+       proteção para fluxos que chamem loadM3U diretamente.
+    */
+    setTimeout(
+      () => closeDialog("playlistDialog"),
+      300
+    );
+
+    return true;
+
+    /*
        Fechar diálogo depois de um pequeno
        intervalo para o usuário visualizar
        o resultado.
@@ -5065,6 +5101,8 @@ async function loadM3U(
       "Erro ao carregar a playlist.",
       5000
     );
+
+    return false;
   } finally {
     state.loadAbort =
       null;
@@ -5311,6 +5349,8 @@ function setupPlaylistForm() {
   form.addEventListener(
     "submit",
     async event => {
+      if (event.__gcPlaylistHandled) return;
+      event.__gcPlaylistHandled = true;
       event.preventDefault();
 
       const nameInput =
@@ -5386,9 +5426,11 @@ function setupPlaylistForm() {
       }
 
       try {
-        await loadM3U(
-          url
-        );
+        const loaded = await loadM3U(url);
+
+        if (loaded === true) {
+          closeDialog("playlistDialog");
+        }
       } finally {
         if (submitButton) {
           submitButton.disabled =
@@ -6537,10 +6579,17 @@ function setupPlaylistFormFallback() {
     const form = event.target.closest("#playlistForm");
     if (!form) return;
 
-    if (form.dataset.gcSubmitBound === "1") return;
+    /*
+       Capturamos o submit aqui para impedir qualquer POST para
+       o GitHub Pages. O flag evita que o listener normal execute
+       a mesma importação duas vezes.
+    */
+    if (event.__gcPlaylistHandled) return;
+    event.__gcPlaylistHandled = true;
 
     event.preventDefault();
     event.stopPropagation();
+    event.stopImmediatePropagation();
 
     const nameInput = document.getElementById("playlistName");
     const urlInput = document.getElementById("playlistUrl");
@@ -6572,9 +6621,11 @@ function setupPlaylistFormFallback() {
     }
 
     try {
-      await loadM3U(url);
-      const dialog = document.getElementById("playlistDialog");
-      if (dialog?.open) dialog.close();
+      const loaded = await loadM3U(url);
+
+      if (loaded === true) {
+        closeDialog("playlistDialog");
+      }
     } catch (error) {
       console.error("[GC PLAY PRO] Falha no envio M3U:", error);
       toast(error?.message || "Erro ao carregar a playlist.", 6000);
