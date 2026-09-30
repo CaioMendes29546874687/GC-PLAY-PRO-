@@ -3436,7 +3436,8 @@ function isMpegTSLive(item) {
 async function playMpegTS(
   video,
   url,
-  message
+  message,
+  directFallbackUrl = ""
 ) {
   try {
     const mpegts =
@@ -3489,6 +3490,56 @@ async function playMpegTS(
     state.mpegts =
       player;
 
+    let startupResolved = false;
+    let startupTimer = null;
+
+    const clearStartupTimer = () => {
+      if (startupTimer) {
+        clearTimeout(startupTimer);
+        startupTimer = null;
+      }
+    };
+
+    const tryDirectFallback = () => {
+      if (!directFallbackUrl || video.__gcMpegDirectRetry) return false;
+      video.__gcMpegDirectRetry = "1";
+      clearStartupTimer();
+
+      try {
+        if (state.mpegts === player) {
+          player.destroy();
+          state.mpegts = null;
+        }
+      } catch {}
+
+      video.removeAttribute("src");
+      try { video.load(); } catch {}
+      video.src = directFallbackUrl;
+      video.onloadeddata = () => {
+        startupResolved = true;
+        if (message) message.textContent = "";
+      };
+      video.onerror = () => {
+        if (message) message.textContent = "Canal não respondeu no formato esperado.";
+      };
+      if (message) message.textContent = "Tentando conexão direta com o canal...";
+      if (state.settings.autoplay) video.play().catch(() => {});
+      return true;
+    };
+
+    video.addEventListener("loadeddata", () => {
+      startupResolved = true;
+      clearStartupTimer();
+      if (message) message.textContent = "";
+    }, { once: true });
+
+    startupTimer = setTimeout(() => {
+      if (startupResolved || video.readyState >= 2) return;
+      if (!tryDirectFallback() && message) {
+        message.textContent = "O canal está demorando para responder.";
+      }
+    }, 12000);
+
     player.on(
       mpegts.Events.ERROR,
       (errorType, errorDetail, errorInfo) => {
@@ -3533,8 +3584,9 @@ async function playMpegTS(
               if (message) message.textContent = "";
             } catch (retryError) {
               console.warn("MPEG-TS retry falhou:", retryError);
+              tryDirectFallback();
             }
-          }, 1200);
+          }, 900);
         }
       }
     );
@@ -3576,7 +3628,7 @@ async function playMpegTS(
 
     if (message) {
       message.textContent =
-        "Não foi possível iniciar o MPEG-TS.";
+        "O canal ao vivo não respondeu. O player tentou reconectar e usar a conexão direta.";
     }
   }
 }
@@ -3739,6 +3791,7 @@ async function playItem(item) {
 
   video.removeAttribute("src");
   delete video.dataset.gcProxyRetry;
+  delete video.__gcMpegDirectRetry;
 
   try {
     video.load();
@@ -3801,7 +3854,8 @@ async function playItem(item) {
     await playMpegTS(
       video,
       playbackUrl,
-      message
+      message,
+      originalUrl !== playbackUrl ? originalUrl : ""
     );
 
     return;
