@@ -487,7 +487,8 @@
           type="button"
           class="primary-button"
           id="savePlaylistButton"
-          onclick="return window.gcPlayProSavePlaylist(event)"
+          style="position:relative;z-index:99999;pointer-events:auto;"
+          onclick="event.preventDefault();event.stopPropagation();var b=this,m=document.getElementById('playlistMessage'),n=document.getElementById('playlistName'),u=document.getElementById('playlistUrl'),url=u?u.value.trim():'';if(m){m.style.display='block';m.style.color='var(--green)';m.textContent='CLIQUE RECEBIDO — conectando...';}if(!url){if(m){m.style.color='#ff6b6b';m.textContent='Informe a URL da playlist.';}return false;}if(typeof loadM3U!=='function'){if(m){m.style.color='#ff6b6b';m.textContent='ERRO: motor M3U não carregou.';}return false;}b.disabled=true;b.textContent='CONECTANDO...';loadM3U(url).then(function(ok){if(ok===true){if(m){m.textContent='Playlist carregada com sucesso.';}setTimeout(function(){if(typeof closeDialog==='function')closeDialog('playlistDialog');},300);}else{if(m){m.style.color='#ff6b6b';m.textContent='Não foi possível carregar a playlist.';}}}).catch(function(e){if(m){m.style.color='#ff6b6b';m.textContent=e&&e.message?e.message:'Erro ao carregar a playlist.';}b.disabled=false;b.textContent='SALVAR LISTA';});return false;"
         >
           SALVAR LISTA
         </button>
@@ -642,7 +643,7 @@
 
   <!-- ================= JAVASCRIPT ================= -->
 
-  <script src="app.js?v=20260929-29"></script>
+  <script src="app.js?v=20260930-30"></script>
 
   <script>
     if ("serviceWorker" in navigator) {
