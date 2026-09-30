@@ -4550,29 +4550,34 @@ function syncSectionNavigation(section = null) {
    ========================================================= */
 
 function setupNavigation() {
-  const buttons = $$("[data-section]");
+  if (window.__gcNavigationDelegation) return;
+  window.__gcNavigationDelegation = true;
 
-  buttons.forEach(button => {
-    button.addEventListener("click", async () => {
-      const section = button.dataset.section || "home";
+  document.addEventListener("click", async event => {
+    const button = event.target.closest(".nav-item[data-section]");
+    if (!button) return;
 
-      if (section === "adult") {
-        const unlocked = await unlockAdultArea();
-        if (!unlocked) return;
-        state.adultUnlocked = true;
-      } else {
-        state.adultUnlocked = false;
-      }
+    event.preventDefault();
+    event.stopPropagation();
 
-      state.currentSection = section;
+    const section = button.dataset.section || "home";
 
-      buttons.forEach(item => {
-        item.classList.toggle("active", item === button);
-      });
+    if (section === "adult") {
+      const unlocked = await unlockAdultArea();
+      if (!unlocked) return;
+      state.adultUnlocked = true;
+    } else {
+      state.adultUnlocked = false;
+    }
 
-      await handleSection(section);
+    state.currentSection = section;
+
+    $$(".nav-item[data-section]").forEach(item => {
+      item.classList.toggle("active", item === button);
     });
-  });
+
+    await handleSection(section);
+  }, true);
 }
 
 /* =========================================================
