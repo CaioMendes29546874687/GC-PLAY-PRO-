@@ -3851,7 +3851,7 @@ async function playItem(item) {
      ------------------------------------------------------- */
 
   if (looksLikeLiveStream) {
-    await playMpegTS(
+    await window.playMpegTS(
       video,
       playbackUrl,
       message,
