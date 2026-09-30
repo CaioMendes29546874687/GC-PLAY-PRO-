@@ -2376,3 +2376,59 @@ body.gc-compact .content-grid {
 @media (max-width:1000px){.gc-home-featured{min-height:290px}.gc-home-featured-bg{inset:0;width:100%;opacity:.32;mask-image:none}.gc-home-featured-overlay{background:linear-gradient(90deg,rgba(3,8,5,.98),rgba(3,8,5,.72)),linear-gradient(0deg,rgba(0,0,0,.72),transparent)}}
 @media (max-width:700px){.gc-home-featured{min-height:330px;border-radius:18px}.gc-home-featured-content{padding:24px 21px}.gc-home-featured-content h2{font-size:34px}.gc-home-rail-head{align-items:center}.gc-home-rail-head h2{font-size:20px}.gc-home-see-all{font-size:8px}.gc-home-row{grid-auto-columns:minmax(145px,160px);gap:9px}}
 @media (max-width:400px){.gc-home-featured{min-height:350px}.gc-home-featured-content h2{font-size:30px}.gc-home-row{grid-auto-columns:minmax(135px,150px)}}
+
+
+/* =====================================================
+   PLAYER PRO — CONTROLES AVANÇADOS
+   ===================================================== */
+.gc-player-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  flex-wrap:wrap;
+  padding:10px 2px 0;
+}
+.gc-player-control{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-height:36px;
+  padding:6px 10px;
+  border:1px solid rgba(57,255,136,.16);
+  border-radius:10px;
+  background:rgba(7,15,10,.86);
+}
+.gc-player-control span{
+  color:var(--muted);
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.9px;
+}
+.gc-player-control select{
+  min-width:72px;
+  border:0;
+  outline:0;
+  color:var(--text);
+  background:transparent;
+  font-weight:800;
+}
+.gc-player-control select option{
+  color:#111;
+  background:#fff;
+}
+.gc-player-resume-clear{
+  width:auto;
+  min-height:36px;
+  padding:8px 11px;
+  font-size:8px;
+}
+@media (max-width:700px){
+  .gc-player-toolbar{
+    justify-content:stretch;
+  }
+  .gc-player-control,
+  .gc-player-resume-clear{
+    flex:1 1 150px;
+  }
+}
