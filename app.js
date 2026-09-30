@@ -3465,7 +3465,7 @@ async function playMpegTS(
     const player =
       mpegts.createPlayer(
         {
-          type: "mpegts",
+          type: "mse",
           isLive: true,
           url,
           cors: true,
