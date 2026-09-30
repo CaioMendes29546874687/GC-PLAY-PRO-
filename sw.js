@@ -12,7 +12,7 @@ const APP_SHELL = [
   "./",
   "./index.html",
   "./style.css",
-  "./app.js?v=20260930-43"
+  "./app.js?v=20260930-44"
 ];
 
 self.addEventListener("install", event => {
