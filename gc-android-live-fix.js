@@ -2,28 +2,49 @@
 (function () {
   "use strict";
 
-  const originalPlay = window.playMpegTS;
+  const originalLoad = window.loadMpegTS;
+  if (typeof originalLoad !== "function") return;
 
+  let patched = false;
+
+  window.loadMpegTS = async function () {
+    const lib = await originalLoad();
+
+    if (!patched && lib && typeof lib.createPlayer === "function") {
+      const createPlayer = lib.createPlayer.bind(lib);
+
+      lib.createPlayer = function (mediaDataSource, config) {
+        const safeConfig = {
+          ...(config || {}),
+          enableWorker: false,
+          enableWorkerForMSE: false
+        };
+
+        return createPlayer(mediaDataSource, safeConfig);
+      };
+
+      patched = true;
+      console.log("[GC PLAY PRO] Android compatibility: MSE Worker desativado.");
+    }
+
+    return lib;
+  };
+
+  const originalPlay = window.playMpegTS;
   if (typeof originalPlay !== "function") return;
 
   window.playMpegTS = async function (video, url, message, directFallbackUrl = "") {
     if (message) message.textContent = "Preparando compatibilidade da TV ao vivo...";
 
-    const oldError = video && video.onerror;
-
     if (video) {
-      video.onerror = function () {
+      video.addEventListener("error", function () {
         const code = video.error && video.error.code;
         console.warn("[GC PLAY PRO] live video error:", code, video.error);
 
         if (code === 4 && message) {
-          message.textContent = "Canal incompatível com este formato de vídeo (código 4).";
+          message.textContent = "Formato do canal incompatível (código 4).";
         }
-
-        if (typeof oldError === "function") {
-          try { oldError.call(video); } catch {}
-        }
-      };
+      }, { once: true });
     }
 
     return originalPlay(video, url, message, directFallbackUrl);
