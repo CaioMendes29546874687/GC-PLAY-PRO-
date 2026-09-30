@@ -109,7 +109,9 @@ const state = {
   playlistMeta: {
     url: "",
     name: ""
-  }
+  },
+
+  epgTimer: null
 };
 
 /* =========================================================
@@ -1452,6 +1454,71 @@ async function fetchXtreamJSON(session, action, signal, extraParams = {}) {
   }
 
   return data;
+}
+
+function decodeBase64Text(value) {
+  if (!value) return "";
+  try {
+    const binary = atob(String(value));
+    const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+    return new TextDecoder("utf-8").decode(bytes);
+  } catch {
+    return String(value);
+  }
+}
+
+async function loadLiveEPG(item) {
+  const container = $("#playerEPG");
+  if (!container) return;
+
+  if (!item || item.type !== "live" || !state.xtreamSession || !item.xtreamStreamId) {
+    container.innerHTML = "";
+    container.classList.remove("show");
+    return;
+  }
+
+  container.classList.add("show");
+  container.innerHTML = '<div class="gc-epg-loading">CARREGANDO PROGRAMAÇÃO...</div>';
+
+  try {
+    const data = await fetchXtreamJSON(
+      state.xtreamSession,
+      "get_short_epg",
+      undefined,
+      {
+        stream_id: item.xtreamStreamId,
+        limit: 6
+      }
+    );
+
+    const entries = Array.isArray(data?.epg_listings)
+      ? data.epg_listings
+      : [];
+
+    if (!entries.length) {
+      container.innerHTML = '<div class="gc-epg-empty">EPG não disponível para este canal.</div>';
+      return;
+    }
+
+    container.innerHTML = entries.map((entry, index) => {
+      const title = decodeBase64Text(entry.title) || "Programação";
+      const description = decodeBase64Text(entry.description);
+      const start = entry.start || "";
+      const end = entry.end || "";
+      const now = Number(entry.now_playing) === 1 || index === 0;
+
+      return `
+        <div class="gc-epg-item ${now ? "active" : ""}">
+          <div class="gc-epg-time">${escapeHTML(start.slice(11,16))} — ${escapeHTML(end.slice(11,16))}</div>
+          <div class="gc-epg-title">${escapeHTML(title)}</div>
+          ${description ? `<div class="gc-epg-desc">${escapeHTML(description)}</div>` : ""}
+        </div>
+      `;
+    }).join("");
+  } catch (error) {
+    console.warn("[GC PLAY PRO] EPG:", error);
+    container.innerHTML = '<div class="gc-epg-empty">Não foi possível carregar o EPG.</div>';
+  }
 }
 
 function buildXtreamStreamUrl(session, kind, streamId, extension = "ts") {
@@ -3464,6 +3531,17 @@ function closePlayer() {
     state.mpegts = null;
   }
 
+  if (state.epgTimer) {
+    clearInterval(state.epgTimer);
+    state.epgTimer = null;
+  }
+
+  const epg = $("#playerEPG");
+  if (epg) {
+    epg.innerHTML = "";
+    epg.classList.remove("show");
+  }
+
   if (video && state.currentItem) {
     saveResumePosition(state.currentItem, video);
   }
@@ -3528,6 +3606,21 @@ async function playItem(item) {
 
   state.currentItem =
     item;
+
+  if (state.epgTimer) {
+    clearInterval(state.epgTimer);
+    state.epgTimer = null;
+  }
+
+  loadLiveEPG(item);
+
+  if (item.type === "live" && state.xtreamSession && item.xtreamStreamId) {
+    state.epgTimer = setInterval(() => {
+      if (state.currentItem?.id === item.id) {
+        loadLiveEPG(item);
+      }
+    }, 60000);
+  }
 
   if (title) {
     title.textContent =
