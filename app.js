@@ -5006,11 +5006,6 @@ async function loadM3U(
        recebe true. Este fechamento atrasado fica apenas como
        proteção para fluxos que chamem loadM3U diretamente.
     */
-    setTimeout(
-      () => closeDialog("playlistDialog"),
-      300
-    );
-
     return true;
 
     /*
@@ -5019,14 +5014,7 @@ async function loadM3U(
        o resultado.
     */
 
-    setTimeout(
-      () => {
-        closeDialog(
-          "playlistDialog"
-        );
-      },
-      1800
-    );
+    
 
     /*
        Recriar grupos a partir do banco
@@ -6568,8 +6556,71 @@ window.GC_PLAY_PRO = {
    ========================================================= */
 
 /* =========================================================
+   BOTÃO SALVAR M3U — FLUXO DIRETO
+   ========================================================= */
+function setupSavePlaylistButton() {
+  if (window.__GC_SAVE_PLAYLIST_BUTTON__) return;
+  window.__GC_SAVE_PLAYLIST_BUTTON__ = true;
+
+  document.addEventListener("click", async event => {
+    const button = event.target.closest("#savePlaylistButton");
+    if (!button) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    if (state.loading) {
+      toast("A playlist já está sendo carregada.");
+      return;
+    }
+
+    const nameInput = document.getElementById("playlistName");
+    const urlInput = document.getElementById("playlistUrl");
+    const name = nameInput?.value.trim() || "Minha Playlist";
+    const url = urlInput?.value.trim() || "";
+
+    if (!url) {
+      toast("Informe a URL da playlist.");
+      urlInput?.focus();
+      return;
+    }
+
+    if (!isHttpUrl(url)) {
+      toast("A URL precisa começar com http:// ou https://.");
+      urlInput?.focus();
+      return;
+    }
+
+    try {
+      localStorage.setItem("GC_PLAY_PRO_PLAYLIST_NAME", name);
+      localStorage.setItem("GC_PLAY_PRO_PLAYLIST_URL", url);
+    } catch {}
+
+    const oldText = button.textContent;
+    button.disabled = true;
+    button.textContent = "CONECTANDO...";
+
+    try {
+      const loaded = await loadM3U(url);
+      if (loaded === true) {
+        closeDialog("playlistDialog");
+      } else {
+        openDialog("playlistDialog");
+      }
+    } catch (error) {
+      console.error("[GC PLAY PRO] Erro no botão salvar:", error);
+      toast(error?.message || "Erro ao carregar a playlist.", 6000);
+      openDialog("playlistDialog");
+    } finally {
+      button.disabled = false;
+      button.textContent = oldText || "SALVAR LISTA";
+    }
+  }, true);
+}
+
+/* =========================================================
    FORMULÁRIO M3U — FALLBACK GLOBAL
-   Garante o envio mesmo se a inicialização normal falhar.
    ========================================================= */
 function setupPlaylistFormFallback() {
   if (window.__GC_PLAYLIST_FORM_FALLBACK__) return;
@@ -6695,6 +6746,7 @@ async function initApp() {
   ensureCSS();
 
   setupPlaylistButtonFallback();
+  setupSavePlaylistButton();
   setupPlaylistFormFallback();
 
   loadState();
