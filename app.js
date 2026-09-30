@@ -1375,6 +1375,362 @@ function resolvePlaylistUrl(url) {
 }
 
 /* =========================================================
+   MOTOR XTREAM FAST — CATÁLOGO ESTRUTURADO
+   ========================================================= */
+
+function parseXtreamLogin(url) {
+  try {
+    const parsed = new URL(String(url || ""));
+    const path = parsed.pathname.toLowerCase();
+
+    if (!/(?:^|\/)get\.php$/.test(path) && !/(?:^|\/)player_api\.php$/.test(path)) return null;
+
+    const username = parsed.searchParams.get("username") || "";
+    const password = parsed.searchParams.get("password") || "";
+    if (!username || !password) return null;
+
+    const base = new URL(".", parsed).toString().replace(/\/$/, "");
+    return { base, username, password };
+  } catch {
+    return null;
+  }
+}
+
+function xtreamApiUrl(session, action = "") {
+  const api = new URL(session.base + "/player_api.php");
+  api.searchParams.set("username", session.username);
+  api.searchParams.set("password", session.password);
+  if (action) api.searchParams.set("action", action);
+  return api.toString();
+}
+
+function unwrapXtreamArray(value) {
+  if (Array.isArray(value)) return value;
+  if (!value || typeof value !== "object") return [];
+
+  for (const key of ["data","streams","items","results","series","categories","vods"]) {
+    if (Array.isArray(value[key])) return value[key];
+  }
+
+  return [];
+}
+
+async function fetchXtreamJSON(session, action, signal, extraParams = {}) {
+  const url = new URL(xtreamApiUrl(session, action));
+
+  for (const [key, value] of Object.entries(extraParams || {})) {
+    if (value !== undefined && value !== null && value !== "") {
+      url.searchParams.set(key, String(value));
+    }
+  }
+
+  const response = await fetch(buildProxyUrl(url.toString()), {
+    method: "GET",
+    cache: "no-store",
+    signal,
+    headers: { "Accept": "application/json" }
+  });
+
+  if (!response.ok) {
+    throw new Error("Xtream API HTTP " + response.status);
+  }
+
+  const data = await response.json();
+
+  if (data && typeof data === "object" && data.user_info && data.user_info.auth === 0) {
+    throw new Error("Conta Xtream recusada pelo servidor.");
+  }
+
+  return data;
+}
+
+function buildXtreamStreamUrl(session, kind, streamId, extension = "ts") {
+  const safeId = encodeURIComponent(String(streamId || ""));
+  const safeUser = encodeURIComponent(session.username);
+  const safePass = encodeURIComponent(session.password);
+  const folder = kind === "movie" ? "movie" : kind === "series" ? "series" : "live";
+  const ext = String(extension || "ts").replace(/^\./, "").toLowerCase();
+
+  return session.base + "/" + folder + "/" + safeUser + "/" + safePass + "/" + safeId + "." + ext;
+}
+
+function getXtreamCategoryName(map, id, fallback = "OUTROS") {
+  return map.get(String(id ?? "")) || fallback;
+}
+
+async function tryLoadXtreamFast(url, signal) {
+  const session = parseXtreamLogin(url);
+  if (!session) return null;
+
+  try {
+    updateLoadMessage("Detectando conexão Xtream...");
+
+    const results = await Promise.allSettled([
+      fetchXtreamJSON(session, "", signal),
+      fetchXtreamJSON(session, "get_live_categories", signal),
+      fetchXtreamJSON(session, "get_vod_categories", signal),
+      fetchXtreamJSON(session, "get_series_categories", signal),
+      fetchXtreamJSON(session, "get_live_streams", signal),
+      fetchXtreamJSON(session, "get_vod_streams", signal),
+      fetchXtreamJSON(session, "get_series", signal)
+    ]);
+
+    if (signal?.aborted) throw new DOMException("Operação cancelada", "AbortError");
+
+    const authData = results[0].status === "fulfilled" ? results[0].value : null;
+    const userInfo = authData?.user_info || {};
+
+    if (Object.keys(userInfo).length && String(userInfo.auth ?? "1") === "0") {
+      throw new Error("Usuário ou senha Xtream inválidos.");
+    }
+
+    const live = results[4].status === "fulfilled" ? unwrapXtreamArray(results[4].value) : [];
+    const movies = results[5].status === "fulfilled" ? unwrapXtreamArray(results[5].value) : [];
+    const series = results[6].status === "fulfilled" ? unwrapXtreamArray(results[6].value) : [];
+
+    if (!live.length && !movies.length && !series.length) return null;
+
+    const liveCategories = new Map();
+    const movieCategories = new Map();
+    const seriesCategories = new Map();
+
+    if (results[1].status === "fulfilled") {
+      for (const cat of unwrapXtreamArray(results[1].value)) {
+        if (cat?.category_id != null && cat?.category_name) {
+          liveCategories.set(String(cat.category_id), String(cat.category_name));
+        }
+      }
+    }
+
+    if (results[2].status === "fulfilled") {
+      for (const cat of unwrapXtreamArray(results[2].value)) {
+        if (cat?.category_id != null && cat?.category_name) {
+          movieCategories.set(String(cat.category_id), String(cat.category_name));
+        }
+      }
+    }
+
+    if (results[3].status === "fulfilled") {
+      for (const cat of unwrapXtreamArray(results[3].value)) {
+        if (cat?.category_id != null && cat?.category_name) {
+          seriesCategories.set(String(cat.category_id), String(cat.category_name));
+        }
+      }
+    }
+
+    const allowed = Array.isArray(userInfo.allowed_output_formats)
+      ? userInfo.allowed_output_formats.map(v => String(v).toLowerCase())
+      : [];
+
+    const liveExtension = allowed.includes("ts") ? "ts" : allowed.includes("m3u8") ? "m3u8" : "ts";
+    const items = [];
+    const seriesCatalog = [];
+    const groups = new Set();
+
+    for (const row of live) {
+      const id = row?.stream_id ?? row?.id;
+      if (id == null || !row?.name) continue;
+
+      const group = getXtreamCategoryName(liveCategories, row.category_id, "TV AO VIVO");
+
+      const item = {
+        id: "xt-live-" + id,
+        name: String(row.name).trim(),
+        nameLower: normalizeText(row.name),
+        group,
+        type: "live",
+        url: buildXtreamStreamUrl(session, "live", id, liveExtension),
+        logo: row.stream_icon || "",
+        tvgId: row.epg_channel_id || "",
+        tvgName: row.name || "",
+        country: "",
+        language: "",
+        seriesName: "",
+        seriesKey: "",
+        season: null,
+        episode: null,
+        seriesSeason: ["", 0],
+        genre: getGenreName(group),
+        xtreamKind: "live",
+        xtreamStreamId: String(id),
+        xtreamExtension: liveExtension,
+        epgChannelId: row.epg_channel_id || "",
+        tvArchive: Number(row.tv_archive || 0),
+        tvArchiveDuration: Number(row.tv_archive_duration || 0)
+      };
+
+      items.push(item);
+      groups.add(group);
+    }
+
+    for (const row of movies) {
+      const id = row?.stream_id ?? row?.id;
+      if (id == null || !row?.name) continue;
+
+      const group = getXtreamCategoryName(movieCategories, row.category_id, "FILMES");
+      const extension = String(row.container_extension || "mp4").replace(/^\./, "").toLowerCase();
+
+      const item = {
+        id: "xt-movie-" + id,
+        name: String(row.name).trim(),
+        nameLower: normalizeText(row.name),
+        group,
+        type: "movie",
+        url: buildXtreamStreamUrl(session, "movie", id, extension),
+        logo: row.stream_icon || "",
+        tvgId: "",
+        tvgName: "",
+        country: "",
+        language: "",
+        seriesName: "",
+        seriesKey: "",
+        season: null,
+        episode: null,
+        seriesSeason: ["", 0],
+        genre: getGenreName(group),
+        xtreamKind: "movie",
+        xtreamStreamId: String(id),
+        xtreamExtension: extension,
+        rating: row.rating ?? null
+      };
+
+      items.push(item);
+      groups.add(group);
+    }
+
+    for (const row of series) {
+      const id = row?.series_id ?? row?.id;
+      if (id == null || !row?.name) continue;
+
+      const title = String(row.name).trim();
+      const key = normalizeText(title);
+      const group = getXtreamCategoryName(seriesCategories, row.category_id, row.genre || "SÉRIES");
+
+      const item = {
+        id: "xt-series-" + id,
+        name: title,
+        nameLower: key,
+        group,
+        type: "series",
+        url: "",
+        logo: row.cover || row.stream_icon || "",
+        tvgId: "",
+        tvgName: title,
+        country: "",
+        language: "",
+        seriesName: title,
+        seriesKey: key,
+        season: null,
+        episode: null,
+        seriesSeason: ["", 0],
+        genre: row.genre || getGenreName(group),
+        xtreamKind: "series",
+        xtreamSeriesId: String(id),
+        plot: row.plot || "",
+        cast: row.cast || "",
+        director: row.director || "",
+        rating: row.rating ?? null,
+        releaseDate: row.releaseDate || row.release_date || "",
+        backdrop: Array.isArray(row.backdrop_path) ? (row.backdrop_path[0] || "") : "",
+        youtubeTrailer: row.youtube_trailer || "",
+        episodeRunTime: row.episode_run_time || ""
+      };
+
+      items.push(item);
+      seriesCatalog.push({
+        ...item,
+        episodeCount: 0,
+        seasons: {},
+        xtreamSeriesId: String(id)
+      });
+      groups.add(group);
+    }
+
+    if (!items.length) return null;
+
+    return {
+      session: { ...session, liveExtension },
+      userInfo,
+      items,
+      seriesCatalog,
+      groups: Array.from(groups),
+      counts: {
+        live: live.length,
+        movie: movies.length,
+        series: series.length
+      }
+    };
+  } catch (error) {
+    if (error?.name === "AbortError") throw error;
+    console.warn("[GC PLAY PRO] Xtream Fast indisponível; usando M3U:", error);
+    return null;
+  }
+}
+
+async function fetchXtreamSeriesEpisodes(seriesItem, season, signal) {
+  const session = state.xtreamSession;
+  const seriesId = seriesItem?.xtreamSeriesId;
+  if (!session || !seriesId) return [];
+
+  const data = await fetchXtreamJSON(session, "get_series_info", signal, { series_id: seriesId });
+  const episodesObject = data?.episodes || {};
+  const result = [];
+
+  for (const [seasonKey, list] of Object.entries(episodesObject)) {
+    if (!Array.isArray(list)) continue;
+
+    for (const episode of list) {
+      const seasonNumber = Number(episode.season ?? seasonKey ?? 1);
+      if (season !== null && Number(seasonNumber) !== Number(season)) continue;
+
+      const episodeId = episode?.id;
+      if (episodeId == null) continue;
+
+      const title =
+        episode.title ||
+        episode.info?.name ||
+        (seriesItem.seriesName + " S" + String(seasonNumber).padStart(2,"0") +
+         "E" + String(episode.episode_num || 0).padStart(2,"0"));
+
+      result.push({
+        id: "xt-episode-" + seriesId + "-" + episodeId,
+        name: String(title).trim(),
+        nameLower: normalizeText(title),
+        group: seriesItem.group || "SÉRIES",
+        type: "series",
+        url: buildXtreamStreamUrl(session, "series", episodeId, episode.container_extension || "mp4"),
+        logo: episode.info?.movie_image || seriesItem.logo || "",
+        tvgId: "",
+        tvgName: title,
+        country: "",
+        language: "",
+        seriesName: seriesItem.seriesName,
+        seriesKey: seriesItem.seriesKey,
+        season: seasonNumber,
+        episode: Number(episode.episode_num || 0),
+        seriesSeason: [seriesItem.seriesKey, seasonNumber],
+        genre: seriesItem.genre || getGenreName(seriesItem.group),
+        xtreamKind: "episode",
+        xtreamSeriesId: String(seriesId),
+        xtreamEpisodeId: String(episodeId),
+        xtreamExtension: episode.container_extension || "mp4",
+        plot: episode.info?.plot || "",
+        duration: episode.info?.duration || "",
+        durationSecs: Number(episode.info?.duration_secs || 0),
+        rating: episode.info?.rating ?? null
+      });
+    }
+  }
+
+  result.sort((a,b) =>
+    Number(a.season || 0) - Number(b.season || 0) ||
+    Number(a.episode || 0) - Number(b.episode || 0)
+  );
+
+  return result;
+}
+
+/* =========================================================
    FETCH COM ABORT
    ========================================================= */
 
@@ -2671,6 +3027,22 @@ function querySeriesEpisodesByKey(key, season) {
 }
 
 async function getSeriesEpisodes(seriesKey, season = null) {
+  const selectedSeries =
+    state.seriesCatalogMap.get(seriesKey) ||
+    state.seriesCatalog.find(item => item.seriesKey === seriesKey);
+
+  if (selectedSeries?.xtreamSeriesId && state.xtreamSession) {
+    try {
+      return await fetchXtreamSeriesEpisodes(
+        selectedSeries,
+        season,
+        state.loadAbort?.signal
+      );
+    } catch (error) {
+      console.warn("[GC PLAY PRO] Episódios Xtream:", error);
+    }
+  }
+
   const keys = new Set([seriesKey]);
 
   for (const [oldKey, canonicalKey] of state.seriesKeyAliases) {
@@ -4806,6 +5178,74 @@ async function loadM3U(
     updateLoadMessage(
       "Testando conexão com a playlist..."
     );
+
+    const xtreamFast =
+      await tryLoadXtreamFast(
+        url,
+        controller.signal
+      );
+
+    if (xtreamFast) {
+      updateLoadMessage("Catálogo Xtream recebido. Gravando biblioteca...");
+
+      try {
+        await resetDatabaseFast();
+      } catch (error) {
+        console.warn("Não foi possível limpar banco antigo:", error);
+      }
+
+      state.db = await openDB();
+      state.xtreamSession = xtreamFast.session;
+      state.xtreamUserInfo = xtreamFast.userInfo || null;
+      state.items = xtreamFast.items.slice(0, RAM_LIMIT);
+      state.groups = xtreamFast.groups;
+      state.groupsReady = true;
+      state.counts = { ...xtreamFast.counts };
+      state.total = xtreamFast.items.length;
+      state.seriesCatalog = xtreamFast.seriesCatalog;
+      state.seriesCatalogMap = new Map(
+        xtreamFast.seriesCatalog.map(item => [item.seriesKey, item])
+      );
+      state.seriesCatalogReady = true;
+
+      await writeBatch(
+        xtreamFast.items,
+        xtreamFast.seriesCatalog
+      );
+
+      try {
+        localStorage.setItem("GC_PLAY_PRO_GROUPS_V1", JSON.stringify(state.groups));
+        localStorage.setItem(
+          "GC_PLAY_PRO_XTREAM_SESSION_V1",
+          JSON.stringify({
+            base: xtreamFast.session.base,
+            username: xtreamFast.session.username,
+            password: xtreamFast.session.password,
+            liveExtension: xtreamFast.session.liveExtension
+          })
+        );
+      } catch {}
+
+      await buildGenreCatalog();
+      await loadDatabaseStats();
+      renderGenreFilters();
+      render();
+
+      state.loading = false;
+
+      const elapsed = (performance.now() - startTime) / 1000;
+      updateLoadMessage(
+        "Catálogo rápido: " + formatNumber(xtreamFast.items.length) +
+        " conteúdos em " + elapsed.toFixed(1) + "s"
+      );
+
+      toast(
+        "Xtream Fast: " + formatNumber(xtreamFast.items.length) + " conteúdos carregados.",
+        5000
+      );
+
+      return true;
+    }
 
     const response =
       await fetchPlaylist(
