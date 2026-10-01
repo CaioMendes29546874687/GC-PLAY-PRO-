@@ -133,6 +133,9 @@ function refresh(){
    renderCategories();
  }
  updateCount();
+ $(".gcv4-mobile [data-gcv4-nav]").forEach(btn=>{
+   btn.classList.toggle("active",btn.dataset.gcv4Nav===section || (section==="favorites" && btn.dataset.gcv4Nav==="favorites"));
+ });
 }
 function updateSectionShell(section){
  const shell=$(".gcv4-shell");if(!shell)return;
