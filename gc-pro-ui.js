@@ -66,8 +66,13 @@ function hookNavigation(){
 function sync(){
  const s=stateSafe();
  const text=$("#gcpStatusText");
+ const section=s.currentSection||"home";
  if(text) text.textContent=s.loading?"CARREGANDO CATÁLOGO…":(s.total?"ONLINE • "+Number(s.total).toLocaleString("pt-BR")+" ITENS":"SISTEMA PRONTO");
- $$(".gcp-mobile-nav button").forEach(b=>b.classList.toggle("active",b.dataset.gcpSection===s.currentSection));
+ $(".gcp-mobile-nav button").forEach(b=>b.classList.toggle("active",b.dataset.gcpSection===section));
+ const home=$(".gcp-home-grid"), live=$("#gcpLiveSection"), dashboard=$("#homeDashboard");
+ if(home) home.style.display=section==="home"?"grid":"none";
+ if(live) live.style.display=section==="live"?"block":"none";
+ if(dashboard) dashboard.style.display=section==="home"?"block":"none";
 }
 function buildHomeEnhancements(){
  const dash=$("#homeDashboard");
