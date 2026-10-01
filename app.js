@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-01-79 */
+/* GC BUILD 2026-10-01-80 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -8190,6 +8190,10 @@ function setupPlaylistButtonFallback() {
 }
 
 async function initApp() {
+
+  /* Navegação principal: um único controlador para menu superior e inferior. */
+  setupNavigation();
+
   console.log(
     "%cGC PLAY PRO",
     "font-size:24px;font-weight:900;color:#69ff65;"
