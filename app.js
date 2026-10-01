@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-01-68 */
+/* GC BUILD 2026-10-01-69 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -5116,6 +5116,24 @@ function syncSectionNavigation(section = null) {
 /* =========================================================
    API DE NAVEGAÇÃO PARA A NOVA INTERFACE
    ========================================================= */
+async function navigateSection(section) {
+  const allowed = ["home","live","movies","series","adult","favorites"];
+  if (!allowed.includes(section)) return false;
+  if (section === "adult") {
+    const unlocked = await unlockAdultArea();
+    if (!unlocked) return false;
+    state.adultUnlocked = true;
+  } else {
+    state.adultUnlocked = false;
+  }
+  state.currentSection = section;
+  $(".nav-item[data-section]").forEach(item => {
+    item.classList.toggle("active", item.dataset.section === section);
+  });
+  await handleSection(section);
+  return true;
+}
+
 function setCatalogCategory(type, genre = "all") {
   const map = { live: "live", movie: "movies", series: "series" };
   if (!map[type]) return;
@@ -7773,6 +7791,8 @@ window.GC_PLAY_PRO = {
   ensureXtreamSectionLoaded,
 
   setCatalogCategory,
+
+  navigateSection,
 
   render,
 
