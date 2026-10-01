@@ -3508,61 +3508,60 @@ async function playDASH(video, url, message, directFallbackUrl = "") {
    ========================================================= */
 
 function loadMpegTS() {
-  if (window.mpegts) {
-    return Promise.resolve(window.mpegts);
-  }
+  if (window.mpegts) return Promise.resolve(window.mpegts);
+  if (window.__GC_MPEGTS_LOAD__) return window.__GC_MPEGTS_LOAD__;
 
-  return new Promise((resolve, reject) => {
-    const existing =
-      document.querySelector(
-        'script[data-gc-mpegts="1"]'
-      );
+  const urls = [
+    "https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js",
+    "https://unpkg.com/mpegts.js@1.8.2/dist/mpegts.min.js"
+  ];
 
-    if (existing) {
-      existing.addEventListener(
-        "load",
-        () => resolve(window.mpegts)
-      );
+  window.__GC_MPEGTS_LOAD__ = (async () => {
+    let lastError = null;
 
-      existing.addEventListener(
-        "error",
-        reject
-      );
+    for (const src of urls) {
+      try {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = src;
+          script.async = true;
+          script.dataset.gcMpegts = "1";
 
-      return;
+          const timer = setTimeout(() => {
+            script.remove();
+            reject(new Error("Tempo esgotado ao carregar mpegts.js."));
+          }, 8000);
+
+          script.onload = () => {
+            clearTimeout(timer);
+            if (window.mpegts) resolve();
+            else reject(new Error("mpegts.js carregou sem criar window.mpegts."));
+          };
+
+          script.onerror = () => {
+            clearTimeout(timer);
+            script.remove();
+            reject(new Error("Falha ao carregar " + src));
+          };
+
+          document.head.appendChild(script);
+        });
+
+        console.log("[GC MPEGTS] biblioteca carregada:", src);
+        return window.mpegts;
+      } catch (error) {
+        lastError = error;
+        console.warn("[GC MPEGTS] tentativa falhou:", src, error);
+      }
     }
 
-    const script =
-      document.createElement("script");
-
-    script.src =
-      "https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js";
-
-    script.async = true;
-    script.dataset.gcMpegts = "1";
-
-    script.onload = () => {
-      if (window.mpegts) {
-        resolve(window.mpegts);
-      } else {
-        reject(
-          new Error(
-            "mpegts.js não foi carregado."
-          )
-        );
-      }
-    };
-
-    script.onerror = () => {
-      reject(
-        new Error(
-          "Não foi possível carregar mpegts.js."
-        )
-      );
-    };
-
-    document.head.appendChild(script);
+    throw lastError || new Error("Não foi possível carregar mpegts.js.");
+  })().catch(error => {
+    window.__GC_MPEGTS_LOAD__ = null;
+    throw error;
   });
+
+  return window.__GC_MPEGTS_LOAD__;
 }
 
 function isMpegTSLive(item) {
