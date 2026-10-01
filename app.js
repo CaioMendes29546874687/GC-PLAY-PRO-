@@ -43,7 +43,6 @@ const SETTINGS_KEY = "GC_PLAY_PRO_SETTINGS_V5";
    ========================================================= */
 
 const state = {
-window.__GC_STATE__ = state;
   db: null,
 
   items: [],
@@ -121,6 +120,9 @@ window.__GC_STATE__ = state;
 
   epgTimer: null
 };
+
+/* Exposto apenas para os módulos de reprodução externos. */
+window.__GC_STATE__ = state;
 
 /* =========================================================
    DOM
