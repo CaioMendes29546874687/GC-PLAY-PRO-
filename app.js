@@ -3903,6 +3903,13 @@ async function playItem(item) {
   state.currentItem =
     item;
 
+  const earlyUrl = String(item.url || "");
+  const earlyLive = item.type === "live" || earlyUrl.includes("/live/") || earlyUrl.includes("/stream/") || earlyUrl.includes("/channel/") || earlyUrl.includes("/play/") || earlyUrl.includes("/tv/");
+  const earlyMode = isDASH(earlyUrl) ? "DASH/CMAF" : isHLS(earlyUrl) ? "HLS" : earlyLive ? "MPEG-TS AO VIVO" : "VÍDEO";
+  if (title) title.textContent = item.name;
+  if (message) message.textContent = "Conectando ao " + earlyMode + "...";
+  if (panel) { panel.classList.remove("hidden"); panel.classList.add("active", "open", "show"); }
+
   if (state.epgTimer) {
     clearInterval(state.epgTimer);
     state.epgTimer = null;
