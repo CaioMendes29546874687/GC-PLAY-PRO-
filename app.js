@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-01-60 */
+/* GC BUILD 2026-10-01-61 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -4037,17 +4037,15 @@ async function playItem(item) {
       : originalUrl;
 
   /*
-     Reprodução adaptativa para TV ao vivo Xtream:
-     1) tentamos o manifesto .m3u8 primeiro. Se ele realmente
-        entregar HLS/CMAF com segmentos fMP4, o HLS.js usa esse
-        caminho moderno;
-     2) se o servidor disser que o .m3u8 é na verdade MPEG-TS
-        (caso comum em alguns servidores), playHLS detecta a
-        falha e usa automaticamente o endpoint .ts.
+     TV ao vivo Xtream: este servidor já foi confirmado entregando
+     video/mp2t mesmo quando a URL .m3u8 é usada. Mantemos o .ts
+     como caminho principal para preservar a abertura rápida.
+     HLS/fMP4 continua disponível para fluxos que forem realmente
+     identificados como HLS em URLs não-Xtream.
   */
   const sourceUrl =
     item.xtreamKind === "live"
-      ? liveHlsUrl
+      ? liveTsUrl
       : originalUrl;
 
   video.playbackRate =
