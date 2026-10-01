@@ -14,7 +14,7 @@ const APP_SHELL = [
   "./style.css",
   "./app.js?v=20261001-74",
   "./gc-pro-ui-v3.css?v=20261001-1",
-  "./gc-pro-ui-v3.js?v=20261001-5"
+  "./gc-pro-ui-v3.js?v=20261001-6"
 ];
 
 self.addEventListener("install", event => {
