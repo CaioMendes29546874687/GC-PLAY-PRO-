@@ -3931,8 +3931,7 @@ async function playItem(item) {
   }
 
   if (message) {
-    message.textContent =
-      "Conectando ao conteúdo...";
+    message.textContent = "Iniciando motor...";
   }
 
   if (panel) {
