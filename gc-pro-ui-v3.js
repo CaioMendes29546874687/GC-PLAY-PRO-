@@ -12,6 +12,7 @@ function boot(){
  buildTopbar();
  buildCatalogShell();
  buildMobileNav();
+ setupRemoteNavigation();
  bindCategoryDelegation();
  observeState();
  setTimeout(refresh,250);
@@ -71,6 +72,46 @@ function buildMobileNav(){
 function observeState(){
  if(window.__gcv4Timer)return;window.__gcv4Timer=setInterval(refresh,1500);
 }
+
+/* Navegação por controle remoto/teclado para TV Box, Smart TV e PC. */
+function setupRemoteNavigation(){
+ if(window.__gcv4RemoteReady)return;
+ window.__gcv4RemoteReady=true;
+ document.addEventListener("keydown",event=>{
+   const keys=["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Enter"];
+   if(!keys.includes(event.key))return;
+   const active=document.activeElement;
+   const focusables=Array.from(document.querySelectorAll(
+     "button:not([disabled]),a[href],input:not([disabled]),[tabindex=\\"0\\"]"
+   )).filter(el=>el.offsetParent!==null && !el.closest("dialog:not([open])"));
+   if(!focusables.length)return;
+   if(event.key==="Enter"){
+     if(active && (active.matches("button,[tabindex=\\"0\\"]") || active.closest("button"))){
+       event.preventDefault();
+       active.click();
+     }
+     return;
+   }
+   if(!active || !focusables.includes(active))return;
+   event.preventDefault();
+   const rect=active.getBoundingClientRect();
+   let best=null,bestScore=Infinity;
+   for(const el of focusables){
+     if(el===active)continue;
+     const r=el.getBoundingClientRect();
+     const dx=(r.left+r.width/2)-(rect.left+rect.width/2);
+     const dy=(r.top+r.height/2)-(rect.top+rect.height/2);
+     const horizontal=(event.key==="ArrowLeft"||event.key==="ArrowRight");
+     if(horizontal ? Math.abs(dx)<2 || (event.key==="ArrowRight"?dx<=0:dx>=0) : Math.abs(dy)<2 || (event.key==="ArrowDown"?dy<=0:dy>=0))continue;
+     const primary=horizontal?Math.abs(dx):Math.abs(dy);
+     const secondary=horizontal?Math.abs(dy):Math.abs(dx);
+     const score=primary+secondary*1.8;
+     if(score<bestScore){bestScore=score;best=el;}
+   }
+   if(best){best.focus({preventScroll:false});best.scrollIntoView({block:"nearest",inline:"nearest"});}
+ });
+}
+
 function refresh(){
  const s=window.__GC_STATE__;if(!s)return;
  const section=s.currentSection||"home";
