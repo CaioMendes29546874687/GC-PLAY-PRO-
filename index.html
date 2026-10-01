@@ -506,7 +506,7 @@
           class="primary-button"
           id="savePlaylistButton"
           style="position:relative;z-index:99999;pointer-events:auto;"
-          onclick="event.preventDefault();event.stopPropagation();var b=this,m=document.getElementById('playlistMessage'),n=document.getElementById('playlistName'),u=document.getElementById('playlistUrl'),url=u?u.value.trim():'';if(m){m.style.display='block';m.style.color='var(--green)';m.textContent='CLIQUE RECEBIDO — conectando...';}if(!url){if(m){m.style.color='#ff6b6b';m.textContent='Informe a URL da playlist.';}return false;}if(typeof loadM3U!=='function'){if(m){m.style.color='#ff6b6b';m.textContent='ERRO: motor M3U não carregou.';}return false;}b.disabled=true;b.textContent='CONECTANDO...';loadM3U(url).then(function(ok){if(ok===true){if(m){m.textContent='Playlist carregada com sucesso.';}setTimeout(function(){if(typeof closeDialog==='function')closeDialog('playlistDialog');},300);}else{if(m){m.style.color='#ff6b6b';m.textContent='Não foi possível carregar a playlist.';}}}).catch(function(e){if(m){m.style.color='#ff6b6b';m.textContent=e&&e.message?e.message:'Erro ao carregar a playlist.';}b.disabled=false;b.textContent='SALVAR LISTA';});return false;"
+          onclick="event.preventDefault();event.stopPropagation();var b=this,m=document.getElementById('playlistMessage'),n=document.getElementById('playlistName'),u=document.getElementById('playlistUrl'),url=u?u.value.trim():'';if(m){m.style.display='block';m.style.color='var(--green)';m.textContent='CLIQUE RECEBIDO — conectando...';}if(!url){if(m){m.style.color='#ff6b6b';m.textContent='Informe a URL da playlist.';}return false;}if(typeof loadM3U!=='function'){if(m){m.style.color='#ff6b6b';m.textContent='ERRO: motor M3U não carregou.';}return false;}b.disabled=true;b.textContent='CONECTANDO...';Promise.resolve(window.loadM3U(url)).then(function(ok){if(ok===true){if(m){m.style.color='var(--green)';m.textContent='Playlist carregada com sucesso.';}setTimeout(function(){if(typeof closeDialog==='function')closeDialog('playlistDialog');},300);}else{if(m){m.style.color='#ff6b6b';if(!m.textContent||/CLIQUE RECEBIDO|conectando/i.test(m.textContent))m.textContent='Não foi possível carregar a playlist. Veja o motivo acima.';}}}).catch(function(e){if(m){m.style.color='#ff6b6b';m.textContent=e&&e.message?e.message:'Erro ao carregar a playlist.';}}).finally(function(){b.disabled=false;b.textContent='SALVAR LISTA';});return false;"
         >
           SALVAR LISTA
         </button>
@@ -663,7 +663,7 @@
 
   <!-- MPEG-TS pré-carregado antes do app para evitar atraso no primeiro canal ao vivo -->
   <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
-  <script src="app.js?v=20261001-71"></script>
+  <script src="app.js?v=20261002-71"></script>
   <script src="gc-playback-hotfix.js?v=20261001-2"></script>
   <script src="gc-live-fix.js?v=20261001-6"></script>
   <link rel="stylesheet" href="gc-pro-ui-v3.css?v=20261001-1">
