@@ -82,6 +82,8 @@ const state = {
 
   mpegts: null,
 
+  dash: null,
+
   seriesItemsCache: null,
 
   seriesCatalog: [],
@@ -190,6 +192,11 @@ function isHLS(url) {
     value.includes(".m3u8") ||
     value.includes("m3u8?")
   );
+}
+
+function isDASH(url) {
+  const value = String(url || "").toLowerCase();
+  return /(?:\.mpd)(?:$|[?#])/i.test(value) || value.includes("manifest.mpd");
 }
 
 function isM3U(url) {
@@ -3343,6 +3350,152 @@ async function loadHLS() {
 }
 
 /* =========================================================
+   MPEG-DASH / CMAF PLAYER
+   ========================================================= */
+
+function loadDASH() {
+  if (window.dashjs) return Promise.resolve(window.dashjs);
+
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector('script[data-gc-dash="1"]');
+
+    if (existing) {
+      existing.addEventListener("load", () => resolve(window.dashjs), { once: true });
+      existing.addEventListener("error", () => reject(new Error("dash.js não foi carregado.")), { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://cdn.dashjs.org/v5.2.1/modern/umd/dash.all.min.js";
+    script.async = true;
+    script.dataset.gcDash = "1";
+
+    script.onload = () => {
+      if (window.dashjs) resolve(window.dashjs);
+      else reject(new Error("dash.js não foi carregado."));
+    };
+
+    script.onerror = () => reject(new Error("Não foi possível carregar dash.js."));
+    document.head.appendChild(script);
+  });
+}
+
+async function playDASH(video, url, message, directFallbackUrl = "") {
+  let player = null;
+
+  try {
+    const dashjs = await loadDASH();
+
+    if (!dashjs || !dashjs.MediaPlayer) {
+      throw new Error("dash.js não está disponível neste navegador.");
+    }
+
+    if (state.dash) {
+      try { state.dash.reset(); } catch {}
+      state.dash = null;
+    }
+
+    player = dashjs.MediaPlayer().create();
+    state.dash = player;
+
+    const requestInterceptor = request => {
+      try {
+        if (request && request.url && shouldUseProxy(request.url)) {
+          request.url = buildProxyUrl(request.url);
+        }
+      } catch (error) {
+        console.warn("DASH proxy interceptor:", error);
+      }
+      return Promise.resolve(request);
+    };
+
+    player.addRequestInterceptor(requestInterceptor);
+
+    player.on(dashjs.MediaPlayer.events.ERROR, event => {
+      console.warn("DASH ERROR:", event);
+      if (message) message.textContent = "Erro no fluxo DASH. Tentando reconectar...";
+    });
+
+    player.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, async () => {
+      if (message) message.textContent = "";
+      if (state.settings.autoplay) {
+        try { await video.play(); } catch {}
+      }
+    });
+
+    player.initialize(video, url, false);
+
+    try {
+      player.updateSettings({
+        streaming: {
+          delay: {
+            liveDelay: 3,
+            liveDelayFragmentCount: 3
+          },
+          liveCatchup: {
+            maxDrift: 0.5,
+            playbackRate: {
+              min: -0.25,
+              max: 0.25
+            }
+          }
+        }
+      });
+    } catch (settingsError) {
+      console.warn("DASH low-latency settings:", settingsError);
+    }
+
+    if (message) message.textContent = "Conectando ao DASH/CMAF...";
+
+    const startupTimer = setTimeout(() => {
+      if (video.readyState >= 2 || video.videoWidth > 0) return;
+
+      if (directFallbackUrl && !video.__gcDashDirectRetry) {
+        video.__gcDashDirectRetry = "1";
+        try { player.reset(); } catch {}
+        if (state.dash === player) state.dash = null;
+        video.src = directFallbackUrl;
+        video.load();
+        if (message) message.textContent = "Tentando conexão direta...";
+        if (state.settings.autoplay) video.play().catch(() => {});
+      } else if (message) {
+        message.textContent = "O canal DASH está demorando para responder.";
+      }
+    }, 12000);
+
+    video.addEventListener("loadeddata", () => {
+      clearTimeout(startupTimer);
+      if (message) message.textContent = "";
+    }, { once: true });
+
+    video.addEventListener("playing", () => {
+      clearTimeout(startupTimer);
+      if (message) message.textContent = "";
+    }, { once: true });
+
+    return true;
+  } catch (error) {
+    console.error("Erro DASH:", error);
+    if (player) {
+      try { player.reset(); } catch {}
+    }
+    if (state.dash === player) state.dash = null;
+
+    if (directFallbackUrl && !video.__gcDashDirectRetry) {
+      video.__gcDashDirectRetry = "1";
+      video.src = directFallbackUrl;
+      video.load();
+      if (message) message.textContent = "DASH indisponível — tentando conexão direta...";
+      if (state.settings.autoplay) video.play().catch(() => {});
+      return false;
+    }
+
+    if (message) message.textContent = "Não foi possível iniciar este fluxo DASH/CMAF.";
+    return false;
+  }
+}
+
+/* =========================================================
    MPEG-TS PLAYER
    ========================================================= */
 
@@ -3662,6 +3815,13 @@ function closePlayer() {
     state.mpegts = null;
   }
 
+  if (state.dash) {
+    try {
+      state.dash.reset();
+    } catch {}
+    state.dash = null;
+  }
+
   if (state.epgTimer) {
     clearInterval(state.epgTimer);
     state.epgTimer = null;
@@ -3785,6 +3945,13 @@ async function playItem(item) {
     state.hls = null;
   }
 
+  if (state.dash) {
+    try {
+      state.dash.reset();
+    } catch {}
+    state.dash = null;
+  }
+
   if (video && state.currentItem) {
     saveResumePosition(state.currentItem, video);
   }
@@ -3835,6 +4002,20 @@ async function playItem(item) {
   /* -------------------------------------------------------
      MPEG-TS AO VIVO
      ------------------------------------------------------- */
+
+  /* -------------------------------------------------------
+     MPEG-DASH / CMAF
+     ------------------------------------------------------- */
+
+  if (isDASH(originalUrl)) {
+    await playDASH(
+      video,
+      playbackUrl,
+      message,
+      originalUrl !== playbackUrl ? originalUrl : ""
+    );
+    return;
+  }
 
   /* -------------------------------------------------------
      HLS
