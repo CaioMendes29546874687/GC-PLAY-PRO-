@@ -1,4 +1,4 @@
-/* GC PLAY PRO — live fix 2026-10-01-2 */
+/* GC PLAY PRO — live fix 2026-10-01-3 */
 (function(){
   "use strict";
 
@@ -52,9 +52,9 @@
         throw new Error("Este navegador não oferece reprodução MPEG-TS ao vivo.");
       }
 
-      if (state.mpegts) {
-        try { state.mpegts.destroy(); } catch {}
-        state.mpegts = null;
+      if ((window.__GC_STATE__ ? window.__GC_STATE__.mpegts : null)) {
+        try { (window.__GC_STATE__ ? window.__GC_STATE__.mpegts : null).destroy(); } catch {}
+        window.__GC_STATE__.mpegts = null;
       }
 
       let lastError = null;
@@ -94,7 +94,7 @@
             autoCleanupMinBackwardDuration: 8
           });
 
-          state.mpegts = player;
+          window.__GC_STATE__.mpegts = player;
           let mediaInfo = false;
           let ready = false;
 
@@ -132,8 +132,8 @@
         } catch (error) {
           lastError = error;
           console.error("[GC LIVE] tentativa", i + 1, error);
-          try { if (state.mpegts) state.mpegts.destroy(); } catch {}
-          state.mpegts = null;
+          try { if ((window.__GC_STATE__ ? window.__GC_STATE__.mpegts : null)) (window.__GC_STATE__ ? window.__GC_STATE__.mpegts : null).destroy(); } catch {}
+          window.__GC_STATE__.mpegts = null;
           try { video.removeAttribute("src"); video.load(); } catch {}
         }
       }
@@ -147,8 +147,8 @@
         : text.includes("15 segundos")
           ? "O canal não entregou vídeo. A fonte/proxy precisa ser verificada."
           : text || "Não foi possível iniciar este canal.");
-      try { if (state.mpegts) state.mpegts.destroy(); } catch {}
-      state.mpegts = null;
+      try { if ((window.__GC_STATE__ ? window.__GC_STATE__.mpegts : null)) (window.__GC_STATE__ ? window.__GC_STATE__.mpegts : null).destroy(); } catch {}
+      window.__GC_STATE__.mpegts = null;
     }
   };
 })();
