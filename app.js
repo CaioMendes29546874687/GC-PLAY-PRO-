@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-01-78 */
+/* GC BUILD 2026-10-01-79 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -3811,7 +3811,8 @@ async function playMpegTS(
   video,
   url,
   message,
-  directFallbackUrl = ""
+  directFallbackUrl = "",
+  secondaryFallbackUrl = ""
 ) {
   try {
     const mpegts =
@@ -3874,6 +3875,43 @@ async function playMpegTS(
       if (startupTimer) {
         clearTimeout(startupTimer);
         startupTimer = null;
+      }
+    };
+
+    const trySecondaryHlsFallback = async () => {
+      if (!secondaryFallbackUrl || video.__gcMpegHlsRetry) return false;
+      video.__gcMpegHlsRetry = "1";
+
+      clearStartupTimer();
+
+      try {
+        if (state.mpegts === player) {
+          player.destroy();
+          state.mpegts = null;
+        }
+      } catch {}
+
+      try {
+        video.pause();
+        video.removeAttribute("src");
+        video.load();
+      } catch {}
+
+      if (message) {
+        message.textContent = "Tentando HLS alternativo...";
+      }
+
+      try {
+        await playHLS(
+          video,
+          secondaryFallbackUrl,
+          message,
+          ""
+        );
+        return true;
+      } catch (error) {
+        console.warn("[GC PLAY PRO] fallback HLS falhou:", error);
+        return false;
       }
     };
 
@@ -3952,10 +3990,7 @@ async function playMpegTS(
         */
         if (httpInvalid) {
           if (!tryDirectFallback()) {
-            if (message) {
-              message.textContent =
-                "Servidor recusou esta rota MPEG-TS. Tentando outra rota...";
-            }
+            trySecondaryHlsFallback();
           }
           return;
         }
@@ -4360,11 +4395,17 @@ async function playItem(item) {
           ? window.playMpegTS
           : playMpegTS;
 
+      const hlsFallbackUrl =
+        item.xtreamKind === "live" && liveHlsUrl !== sourceUrl
+          ? (shouldUseProxy(liveHlsUrl) ? buildProxyUrl(liveHlsUrl) : liveHlsUrl)
+          : "";
+
       await livePlayer(
         video,
         playbackUrl,
         message,
-        originalUrl !== playbackUrl ? originalUrl : ""
+        originalUrl !== playbackUrl ? originalUrl : "",
+        hlsFallbackUrl
       );
     } catch (error) {
       console.error("[GC PLAY PRO] erro ao iniciar TV ao vivo:", error);
