@@ -2697,6 +2697,26 @@ async function renderHomeDashboard() {
   renderHomeRail("homeSeries", series, "Nenhuma série disponível.");
 }
 
+function resetToPlaylistHome() {
+  state.currentSection = "home";
+  state.currentFilter = "all";
+  state.currentGenre = "all";
+  state.searchTerm = "";
+  state.seriesView.seriesKey = null;
+  state.seriesView.season = null;
+  state.adultUnlocked = false;
+
+  syncSectionNavigation("home");
+  showHomeOrLibrary(true);
+  renderGenreFilters();
+
+  try {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  } catch {
+    window.scrollTo(0, 0);
+  }
+}
+
 function showHomeOrLibrary(showHome) {
   const dashboard = document.getElementById("homeDashboard");
   const library = document.getElementById("librarySection");
@@ -6012,10 +6032,12 @@ async function loadM3U(
 
       await buildGenreCatalog();
       await loadDatabaseStats();
-      renderGenreFilters();
-      render();
 
       state.loading = false;
+      resetToPlaylistHome();
+      await renderHomeDashboard();
+
+
 
       const elapsed = (performance.now() - startTime) / 1000;
       updateLoadMessage(
@@ -6304,10 +6326,9 @@ async function loadM3U(
 
     updateLiveCounters();
 
-    render();
-
-    state.loading =
-      false;
+    state.loading = false;
+    resetToPlaylistHome();
+    await renderHomeDashboard();
 
     renderStats();
 
