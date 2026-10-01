@@ -3768,10 +3768,29 @@ async function playMpegTS(
     }
 
     try {
+      /*
+         IMPORTANTE:
+         player.play() apenas inicia o pipeline MSE. Em MPEG-TS ao vivo
+         ele pode resolver a Promise antes de existir um frame de vídeo.
+         Portanto NÃO limpamos a mensagem aqui. O status só é removido
+         pelos eventos loadeddata/playing acima, quando há dados reais.
+      */
       await player.play();
 
-      if (message) {
-        message.textContent = "";
+      if (
+        video.readyState >= 2 ||
+        video.videoWidth > 0 ||
+        video.videoHeight > 0
+      ) {
+        startupResolved = true;
+        clearStartupTimer();
+
+        if (message) {
+          message.textContent = "";
+        }
+      } else if (message) {
+        message.textContent =
+          "Motor iniciado — aguardando dados do canal...";
       }
     } catch (error) {
       console.warn(
@@ -3781,7 +3800,7 @@ async function playMpegTS(
 
       if (message) {
         message.textContent =
-          "Toque no botão ▶ para iniciar.";
+          "Motor iniciado — toque em ▶ para iniciar o canal.";
       }
     }
 
