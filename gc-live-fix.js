@@ -1,4 +1,4 @@
-/* GC PLAY PRO — live fix 2026-10-01-3 */
+/* GC PLAY PRO — live fix 2026-10-01-4 */
 (function(){
   "use strict";
 
@@ -69,10 +69,7 @@
         setMessage(i === 0 ? "Conectando ao canal ao vivo..." : "Tentando conexão direta...");
 
         try {
-          setMessage(i === 0 ? "Testando fonte do canal..." : "Testando conexão direta...");
-          const probe = await probeSource(source);
-          console.log("[GC LIVE] fonte respondeu:", source, probe);
-          setMessage("Fonte respondeu. Iniciando MPEG-TS...");
+          setMessage(i === 0 ? "Iniciando MPEG-TS..." : "Tentando conexão direta...");
 
           video.pause();
           video.removeAttribute("src");
