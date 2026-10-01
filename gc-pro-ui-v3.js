@@ -67,13 +67,46 @@ function observeState(){
 async function refresh(){
  const s=window.__GC_STATE__;if(!s)return;
  const section=s.currentSection||"home";
- if(section!==lastSection){lastSection=section;updateSectionShell(section);}
- if(["movies","series"].includes(section)&&s.xtreamSession&&(s.counts?.[section==="movies"?"movie":"series"]||0)===0&&loadingType!==section){
-  loadingType=section;
-  const type=section==="movies"?"movie":"series";
-  try{await window.GC_PLAY_PRO?.ensureXtreamSectionLoaded?.(type);}finally{loadingType=null;}
-  return;
+
+ /* O estado visual e o catálogo precisam sempre usar a mesma seção.
+    O módulo antigo continua sendo a autoridade para renderizar o catálogo. */
+ if(section!==lastSection){
+   lastSection=section;
+   updateSectionShell(section);
+   const nav=window.GC_PLAY_PRO?.navigateSection;
+   if(typeof nav==="function"){
+     await nav(section);
+     return;
+   }
  }
+
+ /* Se alguma ação antiga deixar Home com filtro de filmes/séries,
+    normaliza imediatamente para a Home real. */
+ if(section==="home" && s.currentFilter!=="all"){
+   s.currentFilter="all";
+   s.currentGenre="all";
+   s.seriesView.seriesKey=null;
+   s.seriesView.season=null;
+   if(typeof window.GC_PLAY_PRO?.navigateSection==="function"){
+     await window.GC_PLAY_PRO.navigateSection("home");
+     return;
+   }
+ }
+
+ /* Ao entrar em filmes/séries, primeiro garante o catálogo e depois
+    manda o renderizador oficial desenhar somente aquele tipo. */
+ if(["movies","series"].includes(section)){
+   const type=section==="movies"?"movie":"series";
+   if(s.xtreamSession && (s.counts?.[type]||0)===0 && loadingType!==section){
+     loadingType=section;
+     try{
+       await window.GC_PLAY_PRO?.ensureXtreamSectionLoaded?.(type);
+     }finally{loadingType=null;}
+     if(typeof window.GC_PLAY_PRO?.render==="function") await window.GC_PLAY_PRO.render();
+     return;
+   }
+ }
+
  renderCategories();
  updateCount();
 }
