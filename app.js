@@ -2758,6 +2758,23 @@ async function queryCatalogItems({
   term = "",
   limit = 120
 } = {}) {
+  /* Caminho rápido: a amostra em RAM é usada primeiro para pintar
+     o catálogo imediatamente. O IndexedDB só completa quando necessário. */
+  if (state.items.length) {
+    const wantedType = type === "adult" ? null : type;
+    const wantedGenre = normalizeText(genre);
+    const wantedTerm = normalizeText(term);
+    const fast = state.items.filter(item => {
+      if (!item) return false;
+      if (type === "adult" ? !isAdultContent(item) : isAdultContent(item)) return false;
+      if (wantedType && item.type !== wantedType) return false;
+      if (genre !== "all" && normalizeText(getGenreName(item.group)) !== wantedGenre) return false;
+      if (wantedTerm && !(item.nameLower || normalizeText(item.name || "")).includes(wantedTerm) && !normalizeText(item.group).includes(wantedTerm)) return false;
+      return true;
+    }).slice(0, limit);
+    if (fast.length >= Math.min(limit, 24) || !state.db) return fast;
+  }
+
   if (!state.db) {
     let fallback = state.items.slice();
 
