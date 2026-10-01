@@ -1,4 +1,4 @@
-/* GC PLAY PRO — live fix 2026-10-01 */
+/* GC PLAY PRO — live fix 2026-10-01-2 */
 (function(){
   "use strict";
 
@@ -69,8 +69,12 @@
           video.removeAttribute("poster");
           try { video.load(); } catch {}
 
+          // Alguns provedores IPTV anunciam .ts mas entregam um fluxo que
+          // funciona melhor no modo MSE genérico. Tentamos MPEG-TS primeiro
+          // e MSE como segunda estratégia, sem trocar a URL.
+          const engineType = i === 0 ? "mpegts" : "mse";
           const player = mpegts.createPlayer({
-            type: "mpegts",
+            type: engineType,
             isLive: true,
             url: source,
             cors: true,
