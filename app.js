@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-01-52 */
+/* GC BUILD 2026-10-01-57 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -3985,24 +3985,14 @@ async function playItem(item) {
   const originalUrl =
     item.url;
 
-  /* Xtream ao vivo: usa .ts para o motor MPEG-TS mesmo quando o
-     catálogo antigo guardou a extensão .m3u8. */
-  const liveTsUrl =
-    item.xtreamKind === "live" &&
-    state.xtreamSession &&
-    item.xtreamStreamId
-      ? buildXtreamStreamUrl(
-          state.xtreamSession,
-          "live",
-          item.xtreamStreamId,
-          "ts"
-        )
-      : originalUrl;
-
-  const sourceUrl =
-    item.xtreamKind === "live"
-      ? liveTsUrl
-      : originalUrl;
+  /*
+     Xtream ao vivo: respeita o formato entregue pelo catálogo.
+     Se o provedor autorizou/entregou .m3u8, o fluxo deve passar
+     pelo HLS.js. Forçar .ts aqui fazia canais HLS chegarem ao
+     MPEG-TS com a extensão errada e terminarem no fallback
+     "Canal não respondeu no formato esperado".
+  */
+  const sourceUrl = originalUrl;
 
   video.playbackRate =
     Number(state.settings.playbackRate) > 0
