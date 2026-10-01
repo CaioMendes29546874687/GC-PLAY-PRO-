@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-01-57 */
+/* GC BUILD 2026-10-01-58 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -4036,9 +4036,16 @@ async function playItem(item) {
         )
       : originalUrl;
 
+  /*
+     Alguns servidores Xtream entregam o fluxo MPEG-TS diretamente
+     mesmo quando a URL termina em .m3u8. Nesses casos o endpoint
+     responde video/mp2t e HLS.js não consegue interpretar como
+     manifesto. Para TV ao vivo Xtream, priorizamos o endpoint .ts
+     no motor MPEG-TS e deixamos o HLS como fallback.
+  */
   const sourceUrl =
     item.xtreamKind === "live"
-      ? liveHlsUrl
+      ? liveTsUrl
       : originalUrl;
 
   video.playbackRate =
