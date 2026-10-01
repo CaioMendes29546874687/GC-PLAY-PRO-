@@ -2,9 +2,19 @@
 (function(){
 "use strict";
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
-function navigate(section){
+async function navigate(section){
+ const api=window.GC_PLAY_PRO;
+ if(api && typeof api.navigateSection==="function"){
+   try{
+     const ok=await api.navigateSection(section);
+     if(ok!==false){ sync(); return true; }
+   }catch(error){
+     console.error("[GC] navegação:",error);
+   }
+ }
  const b=$('.nav-item[data-section="'+section+'"]');
- if(b){ b.classList.add("active"); b.click(); }
+ if(b){ b.click(); return true; }
+ return false;
 }
 function sync(){
  const s=window.__GC_STATE__; if(!s)return;
@@ -16,7 +26,11 @@ function sync(){
 }
 function boot(){
  $$(".nav-item[data-section]").forEach(b=>b.addEventListener("click",()=>setTimeout(sync,30),true));
- $$(".gc-bottom-nav button").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();navigate(b.dataset.gcv4Nav)},true));
+ $(".gc-bottom-nav button").forEach(b=>b.addEventListener("click",async e=>{
+   e.preventDefault();
+   e.stopPropagation();
+   await navigate(b.dataset.gcv4Nav);
+ },true));
  document.querySelector(".gc-brand")?.addEventListener("click",()=>navigate("home"));
  document.addEventListener("click",e=>{
    const shortcut=e.target.closest("[data-filter]");
