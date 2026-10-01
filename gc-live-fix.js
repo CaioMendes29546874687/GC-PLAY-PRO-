@@ -35,33 +35,10 @@
     const setMessage = value => { if (message) message.textContent = value; };
     setMessage("Preparando TV ao vivo...");
 
-    // Primeiro confirma que a URL realmente responde. Isso evita deixar o
-    // MPEG-TS esperando indefinidamente sem sequer abrir a conexão.
-    async function probeSource(source) {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 7000);
-      try {
-        const response = await fetch(source, {
-          method: "GET",
-          cache: "no-store",
-          headers: { "Range": "bytes=0-188", "Accept": "*/*" },
-          signal: controller.signal
-        });
-        const contentType = String(response.headers.get("content-type") || "").toLowerCase();
-        const status = response.status;
-        try { await response.body?.cancel(); } catch {}
-        if (!response.ok) throw new Error("Fonte respondeu HTTP " + status + ".");
-        if (/application\\/(?:json|html)|text\\/html/i.test(contentType)) {
-          throw new Error("A fonte retornou " + contentType + " em vez de vídeo.");
-        }
-        return { status, contentType };
-      } catch (error) {
-        if (error?.name === "AbortError") throw new Error("A fonte não respondeu em 7 segundos.");
-        throw error;
-      } finally {
-        clearTimeout(timer);
-      }
-    }
+    // Não fazemos fetch/Range de teste aqui.
+    // O header Range dispara preflight CORS no navegador e pode bloquear
+    // a requisição antes que o MPEG-TS consiga abrir o canal.
+
 
     try {
       const mpegts = await Promise.race([
