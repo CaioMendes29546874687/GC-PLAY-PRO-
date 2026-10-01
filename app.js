@@ -3400,7 +3400,12 @@ async function playDASH(video, url, message, directFallbackUrl = "") {
 
     const requestInterceptor = request => {
       try {
-        if (request && request.url && shouldUseProxy(request.url)) {
+        if (
+          request &&
+          request.url &&
+          request.url.indexOf(GC_M3U_PROXY) !== 0 &&
+          shouldUseProxy(request.url)
+        ) {
           request.url = buildProxyUrl(request.url);
         }
       } catch (error) {
