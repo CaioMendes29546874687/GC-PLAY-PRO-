@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-01-74 */
+/* GC BUILD 2026-10-01-76 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -5290,8 +5290,8 @@ function setupNavigation() {
 
     state.currentSection = section;
 
-    $(".nav-item[data-section]").forEach(item => {
-      item.classList.toggle("active", item === button);
+    $("[data-section]").forEach(item => {
+      item.classList.toggle("active", item.dataset.section === section);
     });
 
     await handleSection(section);
