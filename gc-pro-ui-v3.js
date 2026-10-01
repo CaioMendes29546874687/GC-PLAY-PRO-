@@ -83,9 +83,9 @@ function refresh(){
    lastGenre=genre;
    updateSectionShell(section);
    const grid=$("#contentGrid");
-   if(grid && section!=="home"){
-     grid.innerHTML='<div class="gc-loading"><span class="gc-spinner"></span>Carregando conteúdo...</div>';
-   }
+   // O app.js faz a pintura rápida a partir da RAM/IndexedDB.
+   // Não substituir o catálogo por um spinner aqui: isso causava
+   // a impressão de carregamento infinito durante a troca de seção.
    renderCategories();
  } else if(genre!==lastGenre){
    lastGenre=genre;
