@@ -4,7 +4,7 @@
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-let lastSection="", loadingType=null;
+let lastSection="", lastGenre="", loadingType=null;
 
 function boot(){
  document.body.classList.add("gc-pro-v4");
@@ -68,16 +68,23 @@ function observeState(){
 function refresh(){
  const s=window.__GC_STATE__;if(!s)return;
  const section=s.currentSection||"home";
+ const genre=String(s.currentGenre||"all");
 
- // IMPORTANTE: o app.js é o único responsável por mudar de seção.
- // Este módulo apenas acompanha o estado e atualiza a interface visual.
- // Não chamamos navigateSection/render aqui para evitar loops e travamentos.
+ // Só redesenha o que realmente mudou. O refresh periódico não pode
+ // ficar reconstruindo as categorias a cada 1,5s enquanto o usuário clica.
  if(section!==lastSection){
    lastSection=section;
+   lastGenre=genre;
    updateSectionShell(section);
+   const grid=$("#contentGrid");
+   if(grid && section!=="home"){
+     grid.innerHTML='<div class="gc-loading"><span class="gc-spinner"></span>Carregando conteúdo...</div>';
+   }
+   renderCategories();
+ } else if(genre!==lastGenre){
+   lastGenre=genre;
+   renderCategories();
  }
-
- renderCategories();
  updateCount();
 }
 function updateSectionShell(section){
@@ -125,7 +132,12 @@ function bindCategoryDelegation(){
    const section=s?.currentSection||"home";
    const type=section==="live"?"live":section==="movies"?"movie":section==="series"?"series":null;
    if(!type)return;
-   window.GC_PLAY_PRO?.setCatalogCategory?.(type,b.getAttribute("data-gcv4-cat")||"all");
+   const genre=b.getAttribute("data-gcv4-cat")||"all";
+   // Feedback imediato no botão, antes da consulta ao banco.
+   box.querySelectorAll("[data-gcv4-cat]").forEach(x=>x.classList.remove("active"));
+   b.classList.add("active");
+   lastGenre=genre;
+   Promise.resolve(window.GC_PLAY_PRO?.setCatalogCategory?.(type,genre)).catch(err=>console.warn("[GC] categoria:",err));
  },true);
 }
 function updateCount(){
