@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-01-63 */
+/* GC BUILD 2026-10-01-65 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -3564,88 +3564,6 @@ function loadMpegTS() {
   return window.__GC_MPEGTS_LOAD__;
 }
 
-/* =========================================================
-   DETECTOR AUTOMÁTICO DO FORMATO REAL DO STREAM
-   ========================================================= */
-
-async function detectStreamFormat(url, hint = "") {
-  const value = String(url || "").trim();
-  const lower = value.toLowerCase();
-  const hinted = String(hint || "").toLowerCase();
-
-  if (!value) return "unknown";
-  if (hinted === "mpegts" || /\.(?:ts|m2ts)(?:$|[?#])/i.test(lower)) return "mpegts";
-  if (hinted === "dash" || isDASH(value)) return "dash";
-
-  const fallback = () => {
-    if (isDASH(value)) return "dash";
-    if (isHLS(value)) return "hls";
-    if (/\.(?:mp4|m4v|webm|ogg|ogv|flv)(?:$|[?#])/i.test(lower)) return "video";
-    return "unknown";
-  };
-
-  /*
-     Para URLs HLS/live, tenta ler alguns bytes do fluxo através
-     do mesmo proxy usado pelo player. Assim não dependemos apenas
-     da extensão: um .m3u8 que realmente entrega MPEG-TS será
-     reconhecido como MPEG-TS.
-  */
-  const probeUrl = shouldUseProxy(value) ? buildProxyUrl(value) : value;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 3500);
-
-  try {
-    const response = await fetch(probeUrl, {
-      method: "GET",
-      cache: "no-store",
-      signal: controller.signal,
-      headers: {
-        "Accept": "application/vnd.apple.mpegurl, application/dash+xml, video/mp2t, text/plain, */*",
-        "Range": "bytes=0-8191"
-      }
-    });
-
-    const contentType = String(response.headers.get("content-type") || "").toLowerCase();
-    const buffer = await response.arrayBuffer();
-    const bytes = new Uint8Array(buffer);
-
-    if (contentType.includes("video/mp2t") || contentType.includes("mpegts")) {
-      return "mpegts";
-    }
-
-    const text = new TextDecoder("utf-8", { fatal: false }).decode(bytes.slice(0, 8192));
-    const trimmed = text.replace(/^\uFEFF/, "").trimStart();
-
-    if (/^#EXTM3U/i.test(trimmed)) {
-      /* LL-HLS usa PART/PRELOAD-HINT/RENDITION-REPORT no manifesto. */
-      if (/#EXT-X-PART(?:[:\s]|$)/i.test(trimmed) || /#EXT-X-PRELOAD-HINT/i.test(trimmed) || /#EXT-X-SERVER-CONTROL/i.test(trimmed)) {
-        return "ll-hls";
-      }
-      return "hls";
-    }
-
-    if (/^<\?xml|<MPD[\s>]/i.test(trimmed) || contentType.includes("dash+xml")) {
-      return "dash";
-    }
-
-    /* MPEG-TS costuma começar por 0x47 e repetir o sync byte a cada 188 bytes. */
-    if (bytes.length >= 376 && bytes[0] === 0x47 && bytes[188] === 0x47) {
-      return "mpegts";
-    }
-
-    if (contentType.includes("video/mp4") || contentType.includes("video/webm")) {
-      return "video";
-    }
-
-    return fallback();
-  } catch (error) {
-    console.warn("[GC DETECTOR] sondagem do stream falhou:", error?.message || error);
-    return fallback();
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 function isMpegTSLive(item) {
   if (!item || item.type !== "live") return false;
 
@@ -4163,23 +4081,10 @@ async function playItem(item) {
      ------------------------------------------------------- */
 
   /* -------------------------------------------------------
-     DETECÇÃO AUTOMÁTICA DO FORMATO REAL
-     ------------------------------------------------------- */
-
-  let detectedFormat = "";
-
-  if (looksLikeLiveStream || isHLS(sourceUrl) || isDASH(sourceUrl)) {
-    detectedFormat = await detectStreamFormat(
-      sourceUrl,
-      item.xtreamKind === "live" ? "mpegts" : ""
-    );
-  }
-
-  /* -------------------------------------------------------
      MPEG-DASH / CMAF
      ------------------------------------------------------- */
 
-  if (detectedFormat === "dash" || isDASH(sourceUrl)) {
+  if (isDASH(sourceUrl)) {
     await playDASH(
       video,
       playbackUrl,
@@ -4190,32 +4095,25 @@ async function playItem(item) {
   }
 
   /* -------------------------------------------------------
-     LL-HLS / HLS + fMP4/CMAF
+     HLS
      ------------------------------------------------------- */
 
-  if (detectedFormat === "ll-hls" || detectedFormat === "hls" || isHLS(sourceUrl)) {
+  if (isHLS(sourceUrl)) {
     await playHLS(
       video,
       playbackUrl,
       message,
       item.xtreamKind === "live" && liveTsUrl !== sourceUrl
         ? (shouldUseProxy(liveTsUrl) ? buildProxyUrl(liveTsUrl) : liveTsUrl)
-        : "",
-      detectedFormat === "ll-hls"
+        : ""
     );
 
     return;
   }
 
   /* -------------------------------------------------------
-     MPEG-TS REAL / AO VIVO
-     -------------------------------------------------------
-
-     Se o servidor disser video/mp2t, usamos MPEG-TS mesmo que
-     a URL termine em .m3u8. Isso evita tratar TS como HLS.
-  */
-
-  if (detectedFormat === "mpegts" || looksLikeLiveStream) {
+     MPEG-TS AO VIVO
+     ------------------------------------------------------- */
 
   if (looksLikeLiveStream) {
     if (message) {
@@ -4365,8 +4263,7 @@ async function playHLS(
   video,
   url,
   message,
-  mpegtsFallbackUrl = "",
-  lowLatency = false
+  mpegtsFallbackUrl = ""
 ) {
   let startupTimer = null;
   let fallbackStarted = false;
@@ -4493,24 +4390,15 @@ async function playHLS(
         enableWorker: true,
         backBufferLength: 30,
 
-        /*
-           LL-HLS: quando o manifesto contém PART/PRELOAD-HINT,
-           deixamos o HLS.js trabalhar em modo de baixa latência.
-           Para HLS convencional mantemos o buffer mais estável.
-        */
-        lowLatencyMode: !!lowLatency,
+        lowLatencyMode: false,
 
-        maxBufferLength: lowLatency ? 12 : 30,
+        maxBufferLength: 30,
 
-        maxMaxBufferLength: lowLatency ? 24 : 60,
+        maxMaxBufferLength: 60,
 
-        liveSyncDurationCount: lowLatency ? 2 : 3,
+        liveSyncDurationCount: 3,
 
-        liveMaxLatencyDurationCount: lowLatency ? 5 : 8,
-
-        liveDurationInfinity: true,
-
-        maxLiveSyncPlaybackRate: lowLatency ? 1.05 : 1.0,
+        liveMaxLatencyDurationCount: 8,
 
         fragLoadingTimeOut: 30000,
 
@@ -7760,7 +7648,6 @@ async function clearCatalog() {
    EXPOR FUNÇÕES PARA DEBUG
    ========================================================= */
 
-/* Compatibilidade com o botão inline do modal M3U. */
 window.loadM3U = loadM3U;
 window.closeDialog = closeDialog;
 
