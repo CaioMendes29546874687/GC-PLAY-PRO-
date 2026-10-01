@@ -104,12 +104,12 @@
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-<nav class="gc-bottom-nav" id="gcBottomNav">
- <button type="button" data-gcv4-nav="home" onclick="event.preventDefault();event.stopPropagation();window.GC_PLAY_PRO&&window.GC_PLAY_PRO.navigateSection('home')"><b>⌂</b>INÍCIO</button>
- <button type="button" data-gcv4-nav="live" onclick="event.preventDefault();event.stopPropagation();window.GC_PLAY_PRO&&window.GC_PLAY_PRO.navigateSection('live')"><b>▣</b>TV</button>
- <button type="button" data-gcv4-nav="movies" onclick="event.preventDefault();event.stopPropagation();window.GC_PLAY_PRO&&window.GC_PLAY_PRO.navigateSection('movies')"><b>▶</b>FILMES</button>
- <button type="button" data-gcv4-nav="series" onclick="event.preventDefault();event.stopPropagation();window.GC_PLAY_PRO&&window.GC_PLAY_PRO.navigateSection('series')"><b>▤</b>SÉRIES</button>
- <button type="button" data-gcv4-nav="favorites" onclick="event.preventDefault();event.stopPropagation();window.GC_PLAY_PRO&&window.GC_PLAY_PRO.navigateSection('favorites')"><b>★</b>LISTA</button>
+<nav class="gc-bottom-nav" id="gcBottomNav" aria-label="Navegação principal">
+ <button type="button" data-gcv4-nav="home" onclick="event.preventDefault();var x=document.querySelector('.nav-item[data-section=\'home\']');if(x)x.click();return false;"><b>⌂</b>INÍCIO</button>
+ <button type="button" data-gcv4-nav="live" onclick="event.preventDefault();var x=document.querySelector('.nav-item[data-section=\'live\']');if(x)x.click();return false;"><b>▣</b>TV</button>
+ <button type="button" data-gcv4-nav="movies" onclick="event.preventDefault();var x=document.querySelector('.nav-item[data-section=\'movies\']');if(x)x.click();return false;"><b>▶</b>FILMES</button>
+ <button type="button" data-gcv4-nav="series" onclick="event.preventDefault();var x=document.querySelector('.nav-item[data-section=\'series\']');if(x)x.click();return false;"><b>▤</b>SÉRIES</button>
+ <button type="button" data-gcv4-nav="favorites" onclick="event.preventDefault();var x=document.querySelector('.nav-item[data-section=\'favorites\']');if(x)x.click();return false;"><b>★</b>LISTA</button>
 </nav>
 </div>
 
