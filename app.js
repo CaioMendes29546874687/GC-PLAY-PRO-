@@ -3903,7 +3903,7 @@ async function playItem(item) {
   state.currentItem =
     item;
 
-  const earlyUrl = String(item.url || "");
+  const earlyUrl = String(item.xtreamKind === "live" ? liveTsUrl : item.url || "");
   const earlyLive = item.type === "live" || earlyUrl.includes("/live/") || earlyUrl.includes("/stream/") || earlyUrl.includes("/channel/") || earlyUrl.includes("/play/") || earlyUrl.includes("/tv/");
   const earlyMode = isDASH(earlyUrl) ? "DASH/CMAF" : isHLS(earlyUrl) ? "HLS" : earlyLive ? "MPEG-TS AO VIVO" : "VÍDEO";
   if (title) title.textContent = item.name;
@@ -3982,6 +3982,25 @@ async function playItem(item) {
   const originalUrl =
     item.url;
 
+  /* Xtream ao vivo: usa .ts para o motor MPEG-TS mesmo quando o
+     catálogo antigo guardou a extensão .m3u8. */
+  const liveTsUrl =
+    item.xtreamKind === "live" &&
+    state.xtreamSession &&
+    item.xtreamStreamId
+      ? buildXtreamStreamUrl(
+          state.xtreamSession,
+          "live",
+          item.xtreamStreamId,
+          "ts"
+        )
+      : originalUrl;
+
+  const sourceUrl =
+    item.xtreamKind === "live"
+      ? liveTsUrl
+      : originalUrl;
+
   video.playbackRate =
     Number(state.settings.playbackRate) > 0
       ? Number(state.settings.playbackRate)
@@ -4001,12 +4020,12 @@ async function playItem(item) {
     /\/stream\//i.test(originalUrl) ||
     /\/channel\//i.test(originalUrl) ||
     /\/play\//i.test(originalUrl) ||
-    /\/tv\//i.test(originalUrl);
+    /\/tv\//i.test(sourceUrl);
 
   const playbackUrl =
-    looksLikeLiveStream || isHLS(originalUrl)
+    looksLikeLiveStream || isHLS(sourceUrl)
       ? (shouldUseProxy(originalUrl)
-          ? buildProxyUrl(originalUrl)
+          ? buildProxyUrl(sourceUrl)
           : originalUrl)
       : originalUrl;
 
@@ -4018,7 +4037,7 @@ async function playItem(item) {
      MPEG-DASH / CMAF
      ------------------------------------------------------- */
 
-  if (isDASH(originalUrl)) {
+  if (isDASH(sourceUrl)) {
     await playDASH(
       video,
       playbackUrl,
@@ -4032,7 +4051,7 @@ async function playItem(item) {
      HLS
      ------------------------------------------------------- */
 
-  if (isHLS(originalUrl)) {
+  if (isHLS(sourceUrl)) {
     await playHLS(
       video,
       playbackUrl,
