@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-01-67 */
+/* GC BUILD 2026-10-01-68 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -5882,7 +5882,9 @@ async function loadM3U(
       state.xtreamUserInfo = xtreamFast.userInfo || null;
       state.playlistMeta.url = url;
       state.playlistMeta.name = document.getElementById("playlistName")?.value?.trim() || "Minha Playlist";
-      state.xtreamSeriesFallbackNeeded = !Array.isArray(xtreamFast.seriesCatalog) || xtreamFast.seriesCatalog.length === 0;
+      /* Xtream agora usa carregamento sob demanda para séries. Não faça
+         uma segunda leitura da M3U inteira ao abrir a tela de séries. */
+      state.xtreamSeriesFallbackNeeded = false;
       state.items = xtreamFast.items.slice(0, RAM_LIMIT);
       state.groups = xtreamFast.groups;
       state.groupsReady = true;
