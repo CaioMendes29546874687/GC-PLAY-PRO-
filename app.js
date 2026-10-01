@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-01-47 */
+/* GC BUILD 2026-10-01-49 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -4041,12 +4041,32 @@ async function playItem(item) {
      ------------------------------------------------------- */
 
   if (looksLikeLiveStream) {
-    await window.playMpegTS(
-      video,
-      playbackUrl,
-      message,
-      originalUrl !== playbackUrl ? originalUrl : ""
-    );
+    if (message) {
+      message.textContent = "Conectando ao MPEG-TS...";
+    }
+
+    try {
+      // Usa o hotfix externo quando carregado; se ele falhar/não carregar,
+      // cai automaticamente no motor integrado ao app.
+      const livePlayer =
+        typeof window.playMpegTS === "function"
+          ? window.playMpegTS
+          : playMpegTS;
+
+      await livePlayer(
+        video,
+        playbackUrl,
+        message,
+        originalUrl !== playbackUrl ? originalUrl : ""
+      );
+    } catch (error) {
+      console.error("[GC PLAY PRO] erro ao iniciar TV ao vivo:", error);
+
+      if (message) {
+        message.textContent =
+          "Falha ao iniciar o motor da TV ao vivo.";
+      }
+    }
 
     return;
   }
