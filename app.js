@@ -1591,11 +1591,25 @@ async function tryLoadXtreamFast(url, signal) {
       throw new Error("Usuário ou senha Xtream inválidos.");
     }
 
+    /*
+       Para não declarar uma playlist "carregada" quando somente a TV
+       respondeu, os três catálogos principais precisam ter retornado.
+       Se um deles falhar, caímos para o parser M3U completo.
+    */
+    if (
+      results[2]?.status !== "fulfilled" ||
+      results[4]?.status !== "fulfilled" ||
+      results[6]?.status !== "fulfilled"
+    ) {
+      console.warn("[GC PLAY PRO] Um dos catálogos Xtream não respondeu; usando importação M3U completa.");
+      return null;
+    }
+
     const live = unwrapXtreamArray(value(2));
     const movies = unwrapXtreamArray(value(4));
     const series = unwrapXtreamArray(value(6));
 
-    /* Pelo menos a TV precisa responder para confirmar que a conta
+    /* Pelo menos um catálogo precisa ter conteúdo para confirmar a conta. para confirmar que a conta
        realmente é Xtream. Se outro catálogo falhar, ainda usamos
        os que responderam, mas registramos o diagnóstico. */
     if (!live.length && !movies.length && !series.length) {
