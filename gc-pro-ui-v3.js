@@ -12,6 +12,7 @@ function boot(){
  buildTopbar();
  buildCatalogShell();
  buildMobileNav();
+ bindDesktopNavigation();
  observeState();
  setTimeout(refresh,250);
  setTimeout(refresh,1000);
@@ -55,7 +56,22 @@ function buildMobileNav(){
  const n=document.createElement("nav");n.className="gcv4-mobile";
  n.innerHTML=[["home","⌂","INÍCIO"],["live","▣","TV"],["movies","▶","FILMES"],["series","▤","SÉRIES"],["favorites","★","LISTA"]].map(x=>`<button data-gcv4-nav="${x[0]}"><b>${x[1]}</b>${x[2]}</button>`).join("");
  document.body.appendChild(n);
- n.onclick=e=>{const b=e.target.closest("[data-gcv4-nav]");if(!b)return;if(b.dataset.gcv4Nav==="favorites"){$(".nav-item[data-section='favorites']")?.click();return}const target={home:"home",live:"live",movies:"movies",series:"series"}[b.dataset.gcv4Nav];$(".nav-item[data-section='"+target+"']")?.click();};
+ n.onclick=async e=>{
+ const b=e.target.closest("[data-gcv4-nav]");if(!b)return;
+ const target={home:"home",live:"live",movies:"movies",series:"series",favorites:"favorites"}[b.dataset.gcv4Nav];
+ if(target) await window.GC_PLAY_PRO?.navigateSection?.(target);
+};
+}
+function bindDesktopNavigation(){
+ $(".nav-item[data-section]").forEach(b=>{
+   if(b.dataset.gcv4Bound==="1")return;
+   b.dataset.gcv4Bound="1";
+   b.addEventListener("click",async e=>{
+     e.preventDefault();e.stopImmediatePropagation();
+     const section=b.dataset.section;
+     await window.GC_PLAY_PRO?.navigateSection?.(section);
+   },true);
+ });
 }
 function observeState(){
  if(window.__gcv4Timer)return;window.__gcv4Timer=setInterval(refresh,700);
