@@ -43,6 +43,7 @@ const SETTINGS_KEY = "GC_PLAY_PRO_SETTINGS_V5";
    ========================================================= */
 
 const state = {
+window.__GC_STATE__ = state;
   db: null,
 
   items: [],
