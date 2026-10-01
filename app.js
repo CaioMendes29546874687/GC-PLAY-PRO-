@@ -4924,7 +4924,7 @@ function setupFilters() {
         item.classList.toggle("active", item === button);
       });
 
-      $(".gc-quick-card[data-filter]").forEach(item => {
+      $$(".gc-quick-card[data-filter]").forEach(item => {
         item.classList.toggle(
           "active",
           item.dataset.filter === state.currentFilter
@@ -5196,15 +5196,15 @@ function syncSectionNavigation(section = null) {
     state.currentSection ||
     "home";
 
-  $("[data-section]").forEach(button => {
+  $$("[data-section]").forEach(button => {
     button.classList.toggle("active", button.dataset.section === targetSection);
   });
 
-  $(".gc-quick-card[data-section]").forEach(button => {
+  $$(".gc-quick-card[data-section]").forEach(button => {
     button.classList.toggle("active", button.dataset.section === targetSection);
   });
 
-  $(".gc-quick-card[data-filter]").forEach(button => {
+  $$(".gc-quick-card[data-filter]").forEach(button => {
     const filter = button.dataset.filter || "";
     const active = (targetSection === "live" && filter === "live") || (targetSection === "movies" && filter === "movie") || (targetSection === "series" && filter === "series");
     button.classList.toggle("active", active);
@@ -5225,7 +5225,7 @@ async function navigateSection(section) {
     state.adultUnlocked = false;
   }
   state.currentSection = section;
-  $(".nav-item[data-section]").forEach(item => {
+  $$(".nav-item[data-section]").forEach(item => {
     item.classList.toggle("active", item.dataset.section === section);
   });
   await handleSection(section);
@@ -5273,7 +5273,7 @@ function setupNavigation() {
 
     state.currentSection = section;
 
-    $$(".nav-item[data-section]").forEach(item => {
+    $$$(".nav-item[data-section]").forEach(item => {
       item.classList.toggle("active", item === button);
     });
 
