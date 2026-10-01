@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-01-76 */
+/* GC BUILD 2026-10-01-78 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -3940,6 +3940,26 @@ async function playMpegTS(
            um TS com pequena interrupção. Tentamos uma única
            reconexão automática antes de informar erro final.
         */
+        const httpInvalid =
+          String(errorDetail || "").toLowerCase().includes("httpstatuscodeinvalid");
+
+        /*
+           Alguns servidores Xtream aceitam o mesmo stream diretamente,
+           mas recusam a requisição feita pelo proxy (ou devolvem 403/404
+           para uma extensão específica). Nesses casos o mpegts.js emite
+           HTTP_STATUS_CODE_INVALID. Antes nós apenas exibíamos o erro.
+           Agora fazemos fallback imediato para a origem direta.
+        */
+        if (httpInvalid) {
+          if (!tryDirectFallback()) {
+            if (message) {
+              message.textContent =
+                "Servidor recusou esta rota MPEG-TS. Tentando outra rota...";
+            }
+          }
+          return;
+        }
+
         if (
           !player.__gcRetried &&
           (
