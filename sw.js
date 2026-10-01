@@ -6,13 +6,13 @@
 
 "use strict";
 
-const CACHE_NAME = "gc-play-pro-v73";
+const CACHE_NAME = "gc-play-pro-v74";
 
 const APP_SHELL = [
   "./",
   "./index.html",
   "./style.css",
-  "./app.js?v=20261001-70",
+  "./app.js?v=20261001-71",
   "./gc-pro-ui-v3.css?v=20261001-1",
   "./gc-pro-ui-v3.js?v=20261001-5"
 ];
