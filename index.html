@@ -104,8 +104,12 @@
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-<nav class="gc-bottom-nav">
- <button data-gcv4-nav="home"><b>⌂</b>INÍCIO</button><button data-gcv4-nav="live"><b>▣</b>TV</button><button data-gcv4-nav="movies"><b>▶</b>FILMES</button><button data-gcv4-nav="series"><b>▤</b>SÉRIES</button><button data-gcv4-nav="favorites"><b>★</b>LISTA</button>
+<nav class="gc-bottom-nav" id="gcBottomNav">
+ <button type="button" data-gcv4-nav="home" onclick="event.preventDefault();event.stopPropagation();window.GC_PLAY_PRO&&window.GC_PLAY_PRO.navigateSection('home')"><b>⌂</b>INÍCIO</button>
+ <button type="button" data-gcv4-nav="live" onclick="event.preventDefault();event.stopPropagation();window.GC_PLAY_PRO&&window.GC_PLAY_PRO.navigateSection('live')"><b>▣</b>TV</button>
+ <button type="button" data-gcv4-nav="movies" onclick="event.preventDefault();event.stopPropagation();window.GC_PLAY_PRO&&window.GC_PLAY_PRO.navigateSection('movies')"><b>▶</b>FILMES</button>
+ <button type="button" data-gcv4-nav="series" onclick="event.preventDefault();event.stopPropagation();window.GC_PLAY_PRO&&window.GC_PLAY_PRO.navigateSection('series')"><b>▤</b>SÉRIES</button>
+ <button type="button" data-gcv4-nav="favorites" onclick="event.preventDefault();event.stopPropagation();window.GC_PLAY_PRO&&window.GC_PLAY_PRO.navigateSection('favorites')"><b>★</b>LISTA</button>
 </nav>
 </div>
 
@@ -115,7 +119,7 @@
 <script src="gc-live-fix.js?v=20261001-7"></script>
 <link rel="stylesheet" href="gc-pro-ui-v3.css?v=20261001-11">
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-<script src="gc-pro-ui-v3.js?v=20261001-12"></script>
+<script src="gc-pro-ui-v3.js?v=20261001-13"></script>
 <script>
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(e=>console.warn("[GC] SW",e)));}
 </script>
