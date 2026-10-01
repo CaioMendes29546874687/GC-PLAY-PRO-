@@ -26,11 +26,7 @@ function sync(){
 }
 function boot(){
  $$(".nav-item[data-section]").forEach(b=>b.addEventListener("click",()=>setTimeout(sync,30),true));
- $(".gc-bottom-nav button").forEach(b=>b.addEventListener("click",async e=>{
-   e.preventDefault();
-   e.stopPropagation();
-   await navigate(b.dataset.gcv4Nav);
- },true));
+ /* Os botões inferiores agora usam o mesmo .nav-item[data-section] do app.js. */
  document.querySelector(".gc-brand")?.addEventListener("click",()=>navigate("home"));
  document.addEventListener("click",e=>{
    const shortcut=e.target.closest("[data-filter]");
