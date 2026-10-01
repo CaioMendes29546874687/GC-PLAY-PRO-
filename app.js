@@ -3640,7 +3640,10 @@ async function playMpegTS(
           enableStashBuffer: true,
           stashInitialSize: 256 * 1024,
           lazyLoad: false,
-          deferLoadAfterSourceOpen: true,
+          /* Evita depender do sourceopen para iniciar o primeiro request. */
+          deferLoadAfterSourceOpen: false,
+          seekType: "range",
+          rangeLoadZeroStart: true,
           liveBufferLatencyChasing: false,
           liveSync: false,
           autoCleanupSourceBuffer: true,
@@ -3986,13 +3989,38 @@ async function playItem(item) {
     item.url;
 
   /*
-     Xtream ao vivo: respeita o formato entregue pelo catálogo.
-     Se o provedor autorizou/entregou .m3u8, o fluxo deve passar
-     pelo HLS.js. Forçar .ts aqui fazia canais HLS chegarem ao
-     MPEG-TS com a extensão errada e terminarem no fallback
-     "Canal não respondeu no formato esperado".
+     Xtream ao vivo: no Chrome/Android priorizamos HLS (.m3u8).
+     O MPEG-TS (.ts) fica reservado como fallback caso o HLS
+     não entregue o manifesto/segmentos.
   */
-  const sourceUrl = originalUrl;
+  const liveHlsUrl =
+    item.xtreamKind === "live" &&
+    state.xtreamSession &&
+    item.xtreamStreamId
+      ? buildXtreamStreamUrl(
+          state.xtreamSession,
+          "live",
+          item.xtreamStreamId,
+          "m3u8"
+        )
+      : originalUrl;
+
+  const liveTsUrl =
+    item.xtreamKind === "live" &&
+    state.xtreamSession &&
+    item.xtreamStreamId
+      ? buildXtreamStreamUrl(
+          state.xtreamSession,
+          "live",
+          item.xtreamStreamId,
+          "ts"
+        )
+      : originalUrl;
+
+  const sourceUrl =
+    item.xtreamKind === "live"
+      ? liveHlsUrl
+      : originalUrl;
 
   video.playbackRate =
     Number(state.settings.playbackRate) > 0
@@ -4048,7 +4076,10 @@ async function playItem(item) {
     await playHLS(
       video,
       playbackUrl,
-      message
+      message,
+      item.xtreamKind === "live" && liveTsUrl !== sourceUrl
+        ? (shouldUseProxy(liveTsUrl) ? buildProxyUrl(liveTsUrl) : liveTsUrl)
+        : ""
     );
 
     return;
@@ -4205,8 +4236,44 @@ async function playItem(item) {
 async function playHLS(
   video,
   url,
-  message
+  message,
+  mpegtsFallbackUrl = ""
 ) {
+  let startupTimer = null;
+  let fallbackStarted = false;
+
+  const clearStartupTimer = () => {
+    if (startupTimer) {
+      clearTimeout(startupTimer);
+      startupTimer = null;
+    }
+  };
+
+  const startMpegTSFallback = async () => {
+    if (!mpegtsFallbackUrl || fallbackStarted) return false;
+    fallbackStarted = true;
+    clearStartupTimer();
+
+    try {
+      if (state.hls) {
+        state.hls.destroy();
+        state.hls = null;
+      }
+    } catch {}
+
+    if (message) message.textContent = "HLS não respondeu. Tentando MPEG-TS...";
+
+    try {
+      const native = window.__GC_NATIVE_PLAY_MPEGTS__;
+      if (typeof native !== "function") throw new Error("Motor MPEG-TS não disponível.");
+      await native(video, mpegtsFallbackUrl, message);
+      return true;
+    } catch (error) {
+      console.warn("[GC PLAY PRO] fallback MPEG-TS:", error);
+      if (message) message.textContent = "O canal ao vivo não respondeu.";
+      return false;
+    }
+  };
   /* -------------------------------------------------------
      Safari / iPhone / alguns Smart TVs
      ------------------------------------------------------- */
@@ -4356,11 +4423,17 @@ async function playHLS(
     hls.on(
       Hls.Events.FRAG_BUFFERED,
       () => {
+        clearStartupTimer();
         if (message) {
           message.textContent = "";
         }
       }
     );
+
+    startupTimer = setTimeout(() => {
+      if (video.readyState >= 2 || video.videoWidth > 0) return;
+      startMpegTSFallback();
+    }, 12000);
 
     hls.on(
       Hls.Events.ERROR,
@@ -4393,6 +4466,11 @@ async function playHLS(
               hls.recoverMediaError();
               return;
             } catch {}
+          }
+
+          if (mpegtsFallbackUrl && !fallbackStarted) {
+            startMpegTSFallback();
+            return;
           }
 
           if (message) {
