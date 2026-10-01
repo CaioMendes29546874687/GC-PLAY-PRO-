@@ -82,11 +82,11 @@ function setupRemoteNavigation(){
    if(!keys.includes(event.key))return;
    const active=document.activeElement;
    const focusables=Array.from(document.querySelectorAll(
-     "button:not([disabled]),a[href],input:not([disabled]),[tabindex=\\"0\\"]"
+     'button:not([disabled]),a[href],input:not([disabled]),[tabindex="0"]'
    )).filter(el=>el.offsetParent!==null && !el.closest("dialog:not([open])"));
    if(!focusables.length)return;
    if(event.key==="Enter"){
-     if(active && (active.matches("button,[tabindex=\\"0\\"]") || active.closest("button"))){
+     if(active && (active.matches('button,[tabindex="0"]') || active.closest("button"))){
        event.preventDefault();
        active.click();
      }
