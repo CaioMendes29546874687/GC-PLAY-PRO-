@@ -3574,13 +3574,13 @@ async function detectStreamFormat(url, hint = "") {
   const hinted = String(hint || "").toLowerCase();
 
   if (!value) return "unknown";
-  if (hinted === "mpegts" || /\\.(?:ts|m2ts)(?:$|[?#])/i.test(lower)) return "mpegts";
+  if (hinted === "mpegts" || /\.(?:ts|m2ts)(?:$|[?#])/i.test(lower)) return "mpegts";
   if (hinted === "dash" || isDASH(value)) return "dash";
 
   const fallback = () => {
     if (isDASH(value)) return "dash";
     if (isHLS(value)) return "hls";
-    if (/\\.(?:mp4|m4v|webm|ogg|ogv|flv)(?:$|[?#])/i.test(lower)) return "video";
+    if (/\.(?:mp4|m4v|webm|ogg|ogv|flv)(?:$|[?#])/i.test(lower)) return "video";
     return "unknown";
   };
 
@@ -3614,17 +3614,17 @@ async function detectStreamFormat(url, hint = "") {
     }
 
     const text = new TextDecoder("utf-8", { fatal: false }).decode(bytes.slice(0, 8192));
-    const trimmed = text.replace(/^\\uFEFF/, "").trimStart();
+    const trimmed = text.replace(/^\uFEFF/, "").trimStart();
 
     if (/^#EXTM3U/i.test(trimmed)) {
       /* LL-HLS usa PART/PRELOAD-HINT/RENDITION-REPORT no manifesto. */
-      if (/#EXT-X-PART(?:[:\\s]|$)/i.test(trimmed) || /#EXT-X-PRELOAD-HINT/i.test(trimmed) || /#EXT-X-SERVER-CONTROL/i.test(trimmed)) {
+      if (/#EXT-X-PART(?:[:\s]|$)/i.test(trimmed) || /#EXT-X-PRELOAD-HINT/i.test(trimmed) || /#EXT-X-SERVER-CONTROL/i.test(trimmed)) {
         return "ll-hls";
       }
       return "hls";
     }
 
-    if (/^<\\?xml|<MPD[\\s>]/i.test(trimmed) || contentType.includes("dash+xml")) {
+    if (/^<\?xml|<MPD[\s>]/i.test(trimmed) || contentType.includes("dash+xml")) {
       return "dash";
     }
 
