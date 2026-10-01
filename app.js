@@ -3795,6 +3795,7 @@ async function playMpegTS(
   }
 }
 
+window.__GC_NATIVE_PLAY_MPEGTS__ = playMpegTS;
 window.playMpegTS = playMpegTS;
 
 /* =========================================================
