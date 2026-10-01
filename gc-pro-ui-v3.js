@@ -12,6 +12,7 @@ function boot(){
  buildTopbar();
  buildCatalogShell();
  buildMobileNav();
+ bindCategoryDelegation();
  observeState();
  setTimeout(refresh,250);
  setTimeout(refresh,1000);
@@ -62,7 +63,7 @@ function buildMobileNav(){
 };
 }
 function observeState(){
- if(window.__gcv4Timer)return;window.__gcv4Timer=setInterval(refresh,700);
+ if(window.__gcv4Timer)return;window.__gcv4Timer=setInterval(refresh,1500);
 }
 async function refresh(){
  const s=window.__GC_STATE__;if(!s)return;
@@ -135,12 +136,28 @@ function categorySource(section){
 function renderCategories(){
  const s=window.__GC_STATE__;if(!s)return;
  const section=s.currentSection||"home";const box=$("#gcv4Categories");if(!box)return;
- if(section==="home"||section==="favorites"||section==="adult"){box.innerHTML=`<button class="gcv4-cat active" data-cat="all"><span>●</span> Todos</button>`;return}
+ if(section==="home"||section==="favorites"||section==="adult"){box.innerHTML=`<button class="gcv4-cat active" data-gcv4-cat="all"><span>●</span> Todos</button>`;return}
  const type=section==="live"?"live":section==="movies"?"movie":"series";
  const list=categorySource(section);
- box.innerHTML=`<button class="gcv4-cat ${s.currentGenre==="all"?"active":""}" data-cat="all"><span>●</span> Todos <em>›</em></button>`+
- list.map(g=>`<button class="gcv4-cat ${String(s.currentGenre).toLowerCase()===String(g).toLowerCase()?"active":""}" data-cat="${esc(g)}"><span>●</span><b>${esc(g)}</b></button>`).join("");
- $$(".gcv4-cat",box).forEach(b=>b.onclick=()=>window.GC_PLAY_PRO?.setCatalogCategory?.(type,b.dataset.cat||"all"));
+ box.innerHTML=`<button class="gcv4-cat ${s.currentGenre==="all"?"active":""}" data-gcv4-cat="all"><span>●</span> Todos <em>›</em></button>`+
+ list.map(g=>`<button class="gcv4-cat ${String(s.currentGenre).toLowerCase()===String(g).toLowerCase()?"active":""}" data-gcv4-cat="${esc(g)}"><span>●</span><b>${esc(g)}</b></button>`).join("");
+}
+function bindCategoryDelegation(){
+ if(window.__gcv4CategoryDelegation)return;
+ window.__gcv4CategoryDelegation=true;
+ document.addEventListener("click",event=>{
+   const b=event.target.closest("[data-gcv4-cat]");
+   if(!b)return;
+   const box=b.closest("#gcv4Categories");
+   if(!box)return;
+   event.preventDefault();
+   event.stopPropagation();
+   const s=window.__GC_STATE__;
+   const section=s?.currentSection||"home";
+   const type=section==="live"?"live":section==="movies"?"movie":section==="series"?"series":null;
+   if(!type)return;
+   window.GC_PLAY_PRO?.setCatalogCategory?.(type,b.getAttribute("data-gcv4-cat")||"all");
+ },true);
 }
 function updateCount(){
  const s=window.__GC_STATE__;const el=$("#gcv4Count");if(!s||!el)return;
