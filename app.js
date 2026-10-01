@@ -5273,7 +5273,7 @@ function setupNavigation() {
 
     state.currentSection = section;
 
-    $$$(".nav-item[data-section]").forEach(item => {
+    $(".nav-item[data-section]").forEach(item => {
       item.classList.toggle("active", item === button);
     });
 
