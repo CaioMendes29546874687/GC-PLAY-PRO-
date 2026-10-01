@@ -59,7 +59,13 @@ function buildMobileNav(){
  n.onclick=e=>{
  const b=e.target.closest("[data-gcv4-nav]");if(!b)return;
  const target={home:"home",live:"live",movies:"movies",series:"series",favorites:"favorites"}[b.dataset.gcv4Nav];
- if(target) $(".nav-item[data-section='"+target+"']")?.click();
+ if(target){
+   if(typeof window.GC_PLAY_PRO?.navigateSection==="function"){
+     window.GC_PLAY_PRO.navigateSection(target).catch(err=>console.warn("[GC] navegação mobile:",err));
+   } else {
+     $(".nav-item[data-section='"+target+"']")?.click();
+   }
+ }
 };
 }
 function observeState(){
