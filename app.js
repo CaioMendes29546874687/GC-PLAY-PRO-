@@ -4024,10 +4024,10 @@ async function playItem(item) {
 
   const playbackUrl =
     looksLikeLiveStream || isHLS(sourceUrl)
-      ? (shouldUseProxy(originalUrl)
+      ? (shouldUseProxy(sourceUrl)
           ? buildProxyUrl(sourceUrl)
-          : originalUrl)
-      : originalUrl;
+          : sourceUrl)
+      : sourceUrl;
 
   /* -------------------------------------------------------
      MPEG-TS AO VIVO
@@ -4042,7 +4042,7 @@ async function playItem(item) {
       video,
       playbackUrl,
       message,
-      originalUrl !== playbackUrl ? originalUrl : ""
+      sourceUrl !== playbackUrl ? sourceUrl : ""
     );
     return;
   }
