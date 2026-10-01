@@ -169,3 +169,6 @@ body.gc-pro-v4 .gc-home-see-all{min-height:38px}
  body.gc-pro-v4 .gc-home-featured{min-height:270px;border-radius:18px}
  body.gc-pro-v4 .gc-home-rail{margin-top:16px}
 }
+
+body.gc-pro-v4 .gcv4-mobile button.active{color:#031007;background:#39ff88;border-radius:11px;box-shadow:0 0 18px rgba(57,255,136,.14)}
+body.gc-pro-v4 .gcv4-mobile button.active b{color:#031007}
