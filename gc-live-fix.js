@@ -1,68 +1,150 @@
-/* GC PLAY PRO — live fix 2026-09-30 */
+/* GC PLAY PRO — live fix 2026-10-01 */
 (function(){
-"use strict";
-function load(src,ms){return new Promise((ok,no)=>{
- const s=document.createElement("script");s.src=src;s.async=true;let t=setTimeout(()=>{s.remove();no(Error("mpegts timeout"))},ms);
- s.onload=()=>{clearTimeout(t);window.mpegts?ok(window.mpegts):no(Error("mpegts indisponível"))};
- s.onerror=()=>{clearTimeout(t);no(Error("CDN mpegts falhou"))};document.head.appendChild(s);
-})}
-window.loadMpegTS=async function(){
- if(window.mpegts)return window.mpegts;
- let e;
- for(const u of ["https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js","https://unpkg.com/mpegts.js@1.8.2/dist/mpegts.min.js"])
-  try{const m=await load(u,7000);if(m&&m.isSupported())return m;e=Error("MSE não suportado")}catch(x){e=x}
- throw e||Error("mpegts indisponível")
-};
-async function run(m,v,u,msg,type){
- return new Promise(async(ok,no)=>{
-  let good=false,done=false;
-  const finish=(fn,x)=>{if(done)return;done=true;clearTimeout(t);v.removeEventListener("error",ve);fn(x)};
-  const ve=()=>finish(no,Error("MEDIA_ERR_"+(v.error?.code||"UNKNOWN")+" código "+(v.error?.code||"")));
-  v.addEventListener("error",ve,{once:true});
-  let p;
-  try{
-   p=m.createPlayer({type,isLive:true,url:u,cors:true,hasAudio:true,hasVideo:true},{
-    enableWorker:false,enableWorkerForMSE:false,enableStashBuffer:true,stashInitialSize:128*1024,
-    lazyLoad:false,deferLoadAfterSourceOpen:false,liveBufferLatencyChasing:false,
-    autoCleanupSourceBuffer:true,autoCleanupMaxBackwardDuration:20,autoCleanupMinBackwardDuration:8
-   });
-   state.mpegts=p;
-   p.on(m.Events.MEDIA_INFO,i=>{good=true;console.log("[GC] MEDIA_INFO",i);if(msg)msg.textContent=""});
-   p.on(m.Events.ERROR,(a,b,c)=>{console.warn("[GC] MPEGTS ERROR",a,b,c);if(/unsupported|format|codec|decode|media/i.test(String(b)))finish(no,Error("MPEGTS "+b))});
-   p.attachMediaElement(v);p.load();try{await p.play()}catch{}
-   var t=setTimeout(()=>{if(good||v.readyState>=2||v.videoWidth>0)finish(ok,p);else finish(no,Error("sem quadro de vídeo"))},4000);
-  }catch(e){finish(no,e)}
- })
-}
-window.playMpegTS=async function(video,url,message,directFallbackUrl=""){
- if(!video)return;
- if(message)message.textContent="Preparando motor de TV ao vivo...";
- try{
-  if(state.mpegts){try{state.mpegts.destroy()}catch{}state.mpegts=null}
-  const m=await Promise.race([window.loadMpegTS(),new Promise((_,r)=>setTimeout(()=>r(Error("mpegts demorou demais")),9000))]);
-  const f=typeof m.getFeatureList==="function"?m.getFeatureList():{};
-  console.log("[GC] MPEGTS features",f);
-  if(message)message.textContent=f.mseH265Playback?"Motor pronto • H.265 disponível":"Motor pronto • verificando formato...";
-  const src=[url,directFallbackUrl].filter((x,i,a)=>x&&a.indexOf(x)===i);
-  let last;
-  for(const u of src)for(const type of ["mpegts","mse"]){
-   try{
-    if(state.mpegts){try{state.mpegts.destroy()}catch{}state.mpegts=null}
-    if(message)message.textContent="Testando "+type+"...";
-    await run(m,video,u,message,type);
-    if(message)message.textContent="";
-    return;
-   }catch(e){last=e;console.warn("[GC] tentativa",type,u,e);try{if(state.mpegts)state.mpegts.destroy()}catch{}state.mpegts=null;try{video.removeAttribute("src");video.load()}catch{}}
+  "use strict";
+
+  let preloadPromise = null;
+
+  function preload(){
+    if (window.mpegts) return Promise.resolve(window.mpegts);
+    if (preloadPromise) return preloadPromise;
+    try {
+      preloadPromise = Promise.race([
+        window.loadMpegTS(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("mpegts timeout")), 10000))
+      ]).catch(error => {
+        console.error("[GC LIVE] preload:", error);
+        preloadPromise = null;
+        throw error;
+      });
+      return preloadPromise;
+    } catch (error) {
+      preloadPromise = null;
+      return Promise.reject(error);
+    }
   }
-  throw last||Error("nenhuma rota funcionou");
- }catch(e){
-  console.error("[GC] live final",e);
-  if(message){
-   message.textContent=/código 4|MEDIA_ERR_4|unsupported|codec|format/i.test(String(e))?
-    "Formato do canal incompatível com o navegador (código 4).":
-    "Não foi possível iniciar este canal.";
-  }
-  try{if(state.mpegts)state.mpegts.destroy()}catch{}state.mpegts=null;
- }
-};
+
+  window.__GC_MPEGTS_PRELOAD__ = preload();
+
+  window.playMpegTS = async function(video, url, message, directFallbackUrl = "") {
+    const sources = [...new Set([url, directFallbackUrl].filter(Boolean))];
+    if (!video || !sources.length) {
+      if (message) message.textContent = "URL do canal inválida.";
+      return;
+    }
+
+    const setMessage = value => { if (message) message.textContent = value; };
+    setMessage("Preparando TV ao vivo...");
+
+    try {
+      const mpegts = await Promise.race([
+        preload(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Motor MPEG-TS demorou para carregar.")), 12000))
+      ]);
+
+      if (!mpegts || !mpegts.isSupported()) {
+        throw new Error("MPEG-TS não é suportado neste navegador.");
+      }
+
+      const features = typeof mpegts.getFeatureList === "function" ? mpegts.getFeatureList() : {};
+      console.log("[GC LIVE] MPEG-TS pronto:", features);
+
+      if (features.mseLivePlayback === false) {
+        throw new Error("Este navegador não oferece reprodução MPEG-TS ao vivo.");
+      }
+
+      if (state.mpegts) {
+        try { state.mpegts.destroy(); } catch {}
+        state.mpegts = null;
+      }
+
+      let lastError = null;
+
+      for (let i = 0; i < sources.length; i++) {
+        const source = sources[i];
+        setMessage(i === 0 ? "Conectando ao canal ao vivo..." : "Tentando conexão direta...");
+
+        try {
+          video.pause();
+          video.removeAttribute("src");
+          video.removeAttribute("poster");
+          try { video.load(); } catch {}
+
+          const player = mpegts.createPlayer({
+            type: "mpegts",
+            isLive: true,
+            url: source,
+            cors: true,
+            hasAudio: true,
+            hasVideo: true
+          }, {
+            enableWorker: false,
+            enableWorkerForMSE: false,
+            enableStashBuffer: true,
+            stashInitialSize: 256 * 1024,
+            lazyLoad: false,
+            deferLoadAfterSourceOpen: false,
+            liveBufferLatencyChasing: false,
+            liveSync: false,
+            autoCleanupSourceBuffer: true,
+            autoCleanupMaxBackwardDuration: 20,
+            autoCleanupMinBackwardDuration: 8
+          });
+
+          state.mpegts = player;
+          let mediaInfo = false;
+          let ready = false;
+
+          player.on(mpegts.Events.MEDIA_INFO, info => {
+            mediaInfo = true;
+            console.log("[GC LIVE] MEDIA_INFO:", info);
+          });
+          player.on(mpegts.Events.ERROR, (type, detail, info) => {
+            lastError = new Error("MPEG-TS " + String(detail || type || "erro desconhecido"));
+            console.error("[GC LIVE] ERROR:", type, detail, info);
+          });
+
+          const onReady = () => { ready = true; setMessage(""); };
+          video.addEventListener("loadedmetadata", onReady, { once: true });
+          video.addEventListener("loadeddata", onReady, { once: true });
+          video.addEventListener("canplay", onReady, { once: true });
+
+          player.attachMediaElement(video);
+          player.load();
+          try { await player.play(); } catch (error) { console.warn("[GC LIVE] autoplay:", error); }
+
+          const deadline = Date.now() + 15000;
+          while (!ready && !mediaInfo && Date.now() < deadline) {
+            await new Promise(resolve => setTimeout(resolve, 250));
+            if (video.readyState >= 2 || video.videoWidth > 0) { ready = true; break; }
+            if (lastError && /unsupported|format|codec|decode/i.test(lastError.message)) break;
+          }
+
+          if (ready || mediaInfo || video.readyState >= 2 || video.videoWidth > 0) {
+            setMessage("");
+            return;
+          }
+
+          throw lastError || new Error("O canal não entregou vídeo em 15 segundos.");
+        } catch (error) {
+          lastError = error;
+          console.error("[GC LIVE] tentativa", i + 1, error);
+          try { if (state.mpegts) state.mpegts.destroy(); } catch {}
+          state.mpegts = null;
+          try { video.removeAttribute("src"); video.load(); } catch {}
+        }
+      }
+
+      throw lastError || new Error("Não foi possível iniciar o canal.");
+    } catch (error) {
+      console.error("[GC LIVE] falha final:", error);
+      const text = String(error?.message || error);
+      setMessage(/codec|format|unsupported|decode|código 4|MEDIA_ERR_4/i.test(text)
+        ? "Formato do canal incompatível com o navegador."
+        : text.includes("15 segundos")
+          ? "O canal não entregou vídeo. A fonte/proxy precisa ser verificada."
+          : text || "Não foi possível iniciar este canal.");
+      try { if (state.mpegts) state.mpegts.destroy(); } catch {}
+      state.mpegts = null;
+    }
+  };
 })();
