@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-01-62 */
+/* GC BUILD 2026-10-01-63 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -7759,6 +7759,10 @@ async function clearCatalog() {
 /* =========================================================
    EXPOR FUNÇÕES PARA DEBUG
    ========================================================= */
+
+/* Compatibilidade com o botão inline do modal M3U. */
+window.loadM3U = loadM3U;
+window.closeDialog = closeDialog;
 
 window.GC_PLAY_PRO = {
   state,
