@@ -1,683 +1,123 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  >
-
-  <meta name="theme-color" content="#050807">
-
-  <title>GC PLAY PRO</title>
-
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#020503">
+<title>GC PLAY PRO</title>
+<link rel="stylesheet" href="style.css?v=20261001-NEWUI1">
 </head>
-
 <body>
-
-  <!-- =====================================================
-       GC PLAY PRO
-       ESTRUTURA PRINCIPAL
-       ===================================================== -->
-
-  <div id="app">
-
-    <!-- ================= HEADER ================= -->
-
-    <header class="topbar">
-
-      <div class="brand">
-
-        <div class="brand-logo">
-          GC
-        </div>
-
-        <div class="brand-text">
-          <strong>PLAY PRO</strong>
-          <span>MEDIA CENTER</span>
-        </div>
-
-      </div>
-
-
-      <nav class="main-nav">
-
-        <button class="nav-item active" data-section="home">
-          INÍCIO
-        </button>
-
-        <button class="nav-item" data-section="live">
-          TV AO VIVO
-        </button>
-
-        <button class="nav-item" data-section="movies">
-          FILMES
-        </button>
-
-        <button class="nav-item" data-section="series">
-          SÉRIES
-        </button>
-
-        <button class="nav-item gc-adult-nav" data-section="adult">
-          🔒 ADULTOS
-        </button>
-
-        <button class="nav-item" data-section="favorites">
-          FAVORITOS
-        </button>
-
-      </nav>
-
-
-      <div class="top-actions">
-
-        <button
-          class="icon-button"
-          id="searchButton"
-          aria-label="Pesquisar"
-        >
-          🔎
-        </button>
-
-        <button
-          class="icon-button"
-          id="settingsButton"
-          aria-label="Configurações"
-        >
-          ⚙
-        </button>
-
-      </div>
-
-    </header>
-
-
-    <!-- ================= CONTEÚDO ================= -->
-
-    <main>
-
-      <!-- ================= HERO ================= -->
-
-      <section class="hero">
-
-        <div class="hero-grid-lines" aria-hidden="true"></div>
-
-        <div class="hero-content">
-
-          <div class="hero-label">
-            <span class="status-dot"></span>
-            GC PLAY PRO
-          </div>
-
-          <h1>
-            Seu conteúdo.
-            <span>Do seu jeito.</span>
-          </h1>
-
-          <p>
-            Uma nova experiência para assistir seus canais,
-            filmes e séries em um único lugar.
-          </p>
-
-
-          <div class="hero-buttons">
-
-            <button
-              class="primary-button"
-              id="addPlaylistButton"
-              type="button"
-              onclick="(function(){const d=document.getElementById('playlistDialog');if(d){if(typeof d.showModal==='function'&&!d.open)d.showModal();else{d.setAttribute('open','');d.classList.add('active','open','show')}}})()"
-            >
-              <span>＋</span>
-              ADICIONAR LISTA M3U
-            </button>
-
-            <button
-              class="secondary-button"
-              id="exploreButton"
-            >
-              EXPLORAR
-            </button>
-
-          </div>
-
-        </div>
-
-
-        <!-- ELEMENTO VISUAL -->
-
-        <div class="hero-visual">
-
-          <div class="visual-ring ring-1"></div>
-
-          <div class="visual-ring ring-2"></div>
-
-          <div class="visual-ring ring-3"></div>
-
-          <div class="visual-core">
-            GC
-          </div>
-
-        </div>
-
-      </section>
-
-      <!-- ================= ACESSO RÁPIDO ================= -->
-      <section class="gc-quick-section" aria-label="Acesso rápido">
-        <button class="gc-quick-card active" data-filter="live">
-          <span class="gc-quick-icon">▣</span>
-          <span><strong>TV AO VIVO</strong><small>Canais e programação</small></span>
-        </button>
-        <button class="gc-quick-card" data-filter="movie">
-          <span class="gc-quick-icon">▶</span>
-          <span><strong>FILMES</strong><small>Catálogo de filmes</small></span>
-        </button>
-        <button class="gc-quick-card" data-filter="series">
-          <span class="gc-quick-icon">▤</span>
-          <span><strong>SÉRIES</strong><small>Temporadas e episódios</small></span>
-        </button>
-        <button class="gc-quick-card" data-section="favorites">
-          <span class="gc-quick-icon">♡</span>
-          <span><strong>FAVORITOS</strong><small>Seu conteúdo salvo</small></span>
-        </button>
-        <button class="gc-quick-card gc-quick-add" id="quickAddPlaylist" type="button" onclick="(function(){const d=document.getElementById('playlistDialog');if(d){if(typeof d.showModal==='function'&&!d.open)d.showModal();else{d.setAttribute('open','');d.classList.add('active','open','show')}}})()">
-          <span class="gc-quick-icon">＋</span>
-          <span><strong>NOVA LISTA</strong><small>Adicionar M3U</small></span>
-        </button>
-      </section>
-
-
-      <!-- ================= ESTATÍSTICAS ================= -->
-
-      <section class="stats-grid">
-
-        <article class="stat-card">
-
-          <div class="stat-icon">
-            📺
-          </div>
-
-          <div>
-            <strong id="channelCount">0</strong>
-            <span>CANAIS</span>
-          </div>
-
-        </article>
-
-
-        <article class="stat-card">
-
-          <div class="stat-icon">
-            🎬
-          </div>
-
-          <div>
-            <strong id="movieCount">0</strong>
-            <span>FILMES</span>
-          </div>
-
-        </article>
-
-
-        <article class="stat-card">
-
-          <div class="stat-icon">
-            📚
-          </div>
-
-          <div>
-            <strong id="seriesCount">0</strong>
-            <span>SÉRIES</span>
-          </div>
-
-        </article>
-
-
-        <article class="stat-card">
-
-          <div class="stat-icon">
-            ●
-          </div>
-
-          <div>
-            <strong id="connectionStatus">
-              OFFLINE
-            </strong>
-
-            <span>STATUS</span>
-          </div>
-
-        </article>
-
-      </section>
-
-      <!-- ================= HOME DINÂMICA ================= -->
-      <section id="homeDashboard" class="gc-home-dashboard" aria-label="Painel inicial">
-        <div class="gc-home-featured" id="homeFeatured"></div>
-        <div class="gc-home-rail" data-home-rail="recent"><div class="gc-home-rail-head"><div><span class="section-label">DESTAQUES</span><h2>Continue e descubra</h2></div><button type="button" class="gc-home-see-all" data-home-action="all">VER CATÁLOGO →</button></div><div class="gc-home-row" id="homeRecent"></div></div>
-        <div class="gc-home-rail" data-home-rail="live"><div class="gc-home-rail-head"><div><span class="section-label">TV AO VIVO</span><h2>Canais em destaque</h2></div><button type="button" class="gc-home-see-all" data-home-action="live">VER TODOS →</button></div><div class="gc-home-row" id="homeLive"></div></div>
-        <div class="gc-home-rail" data-home-rail="movie"><div class="gc-home-rail-head"><div><span class="section-label">FILMES</span><h2>Filmes para assistir</h2></div><button type="button" class="gc-home-see-all" data-home-action="movie">VER TODOS →</button></div><div class="gc-home-row" id="homeMovies"></div></div>
-        <div class="gc-home-rail" data-home-rail="series"><div class="gc-home-rail-head"><div><span class="section-label">SÉRIES</span><h2>Suas séries</h2></div><button type="button" class="gc-home-see-all" data-home-action="series">VER TODAS →</button></div><div class="gc-home-row" id="homeSeries"></div></div>
-      </section>
-
-      <!-- ================= BIBLIOTECA ================= -->
-
-      <section class="library-section" id="librarySection">
-
-        <div class="section-header">
-
-          <div>
-
-            <span class="section-label">
-              BIBLIOTECA
-            </span>
-
-            <h2>
-              Seu conteúdo
-            </h2>
-
-          </div>
-
-
-          <div class="filters">
-
-            <button
-              class="filter-button active"
-              data-filter="all"
-            >
-              TODOS
-            </button>
-
-            <button
-              class="filter-button"
-              data-filter="live"
-            >
-              TV
-            </button>
-
-            <button
-              class="filter-button"
-              data-filter="movie"
-            >
-              FILMES
-            </button>
-
-            <button
-              class="filter-button"
-              data-filter="series"
-            >
-              SÉRIES
-            </button>
-
-          </div>
-
-          <div
-            id="genreFilters"
-            class="filters gc-genre-filters"
-            aria-label="Categorias"
-          ></div>
-
-        </div>
-
-
-        <!-- ================= LISTA DE CONTEÚDO ================= -->
-
-        <div
-          id="contentGrid"
-          class="content-grid"
-        >
-        </div>
-
-
-        <!-- ================= ESTADO VAZIO ================= -->
-
-        <div
-          id="emptyState"
-          class="empty-state"
-        >
-
-          <div class="empty-icon">
-            ▣
-          </div>
-
-          <h3>
-            Sua biblioteca está vazia
-          </h3>
-
-          <p>
-            Adicione uma lista M3U para começar.
-          </p>
-
-          <button
-            class="primary-button"
-            id="emptyAddButton"
-            type="button"
-            onclick="(function(){const d=document.getElementById('playlistDialog');if(d){if(typeof d.showModal==='function'&&!d.open)d.showModal();else{d.setAttribute('open','');d.classList.add('active','open','show')}}})()"
-          >
-            ＋ ADICIONAR LISTA
-          </button>
-
-        </div>
-
-      </section>
-
-    </main>
-
-
-    <!-- ================= PLAYER ================= -->
-
-    <section
-      id="playerPanel"
-      class="player-panel hidden"
-    >
-
-      <div class="player-header">
-
-        <button
-          id="closePlayer"
-          class="icon-button"
-        >
-          ←
-        </button>
-
-        <div>
-
-          <span class="section-label">
-            REPRODUZINDO AGORA
-          </span>
-
-          <h2 id="playerTitle">
-            GC PLAY PRO
-          </h2>
-
-        </div>
-
-      </div>
-
-
-      <div class="video-container">
-
-        <video
-          id="videoPlayer"
-          controls
-          playsinline
-          preload="metadata"
-        ></video>
-
-        <div class="gc-player-toolbar" aria-label="Controles avançados">
-          <label class="gc-player-control">
-            <span>VELOCIDADE</span>
-            <select id="playerSpeed">
-              <option value="0.5">0,5×</option>
-              <option value="0.75">0,75×</option>
-              <option value="1" selected>1×</option>
-              <option value="1.25">1,25×</option>
-              <option value="1.5">1,5×</option>
-              <option value="2">2×</option>
-            </select>
-          </label>
-          <button type="button" class="secondary-button gc-player-resume-clear" id="clearResumeButton">
-            LIMPAR RETOMADA
-          </button>
-        </div>
-        <div id="playerEPG" class="gc-player-epg" aria-label="Programação do canal"></div>
-
-        <div
-          id="playerMessage"
-          class="player-message"
-        >
-          Selecione um conteúdo para reproduzir.
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- ================= MODAL M3U ================= -->
-
-    <dialog id="playlistDialog">
-
-      <form
-        id="playlistForm"
-        novalidate
-      >
-
-        <button
-          type="button"
-          class="modal-close"
-          id="closePlaylistDialog"
-        >
-          ×
-        </button>
-
-
-        <span class="section-label">
-          NOVA FONTE
-        </span>
-
-        <h2>
-          Adicionar lista M3U
-        </h2>
-
-        <p class="modal-description">
-          Informe o nome e o endereço da sua lista.
-        </p>
-
-
-        <label>
-          Nome da lista
-
-          <input
-            id="playlistName"
-            type="text"
-            placeholder="Minha lista"
-            autocomplete="off"
-            required
-          >
-
-        </label>
-
-
-        <label>
-          URL M3U
-
-          <input
-            id="playlistUrl"
-            type="url"
-            placeholder="https://exemplo.com/lista.m3u"
-            autocomplete="off"
-            required
-          >
-
-        </label>
-
-
-        <div
-          id="playlistMessage"
-          class="form-message"
-        ></div>
-
-
-        <button
-          type="button"
-          class="primary-button"
-          id="savePlaylistButton"
-          style="position:relative;z-index:99999;pointer-events:auto;"
-          onclick="event.preventDefault();event.stopPropagation();var b=this,m=document.getElementById('playlistMessage'),n=document.getElementById('playlistName'),u=document.getElementById('playlistUrl'),url=u?u.value.trim():'';if(m){m.style.display='block';m.style.color='var(--green)';m.textContent='CLIQUE RECEBIDO — conectando...';}if(!url){if(m){m.style.color='#ff6b6b';m.textContent='Informe a URL da playlist.';}return false;}if(typeof loadM3U!=='function'){if(m){m.style.color='#ff6b6b';m.textContent='ERRO: motor M3U não carregou.';}return false;}b.disabled=true;b.textContent='CONECTANDO...';Promise.resolve(window.loadM3U(url)).then(function(ok){if(ok===true){if(m){m.style.color='var(--green)';m.textContent='Playlist carregada com sucesso.';}setTimeout(function(){if(typeof closeDialog==='function')closeDialog('playlistDialog');},300);}else{if(m){m.style.color='#ff6b6b';if(!m.textContent||/CLIQUE RECEBIDO|conectando/i.test(m.textContent))m.textContent='Não foi possível carregar a playlist. Veja o motivo acima.';}}}).catch(function(e){if(m){m.style.color='#ff6b6b';m.textContent=e&&e.message?e.message:'Erro ao carregar a playlist.';}}).finally(function(){b.disabled=false;b.textContent='SALVAR LISTA';});return false;"
-        >
-          SALVAR LISTA
-        </button>
-
-      </form>
-
-    </dialog>
-
-
-    <!-- ================= PESQUISA ================= -->
-
-    <dialog id="searchDialog">
-
-      <div class="search-modal">
-
-        <button
-          type="button"
-          class="modal-close"
-          id="closeSearchDialog"
-        >
-          ×
-        </button>
-
-        <span class="section-label">
-          PESQUISA GLOBAL
-        </span>
-
-        <h2>
-          Encontrar conteúdo
-        </h2>
-
-        <input
-          id="globalSearch"
-          type="search"
-          placeholder="Digite canal, filme ou série..."
-          autocomplete="off"
-        >
-
-        <div
-          id="searchResults"
-          class="search-results"
-        ></div>
-
-      </div>
-
-    </dialog>
-
-
-    <!-- ================= CONFIGURAÇÕES ================= -->
-
-    <dialog id="settingsDialog">
-
-      <div class="settings-modal">
-
-        <button
-          type="button"
-          class="modal-close"
-          id="closeSettingsDialog"
-        >
-          ×
-        </button>
-
-        <span class="section-label">
-          SISTEMA
-        </span>
-
-        <h2>
-          Configurações
-        </h2>
-
-
-        <div class="setting-item">
-
-          <div>
-
-            <strong>
-              Reprodução automática
-            </strong>
-
-            <span>
-              Iniciar conteúdo automaticamente
-            </span>
-
-          </div>
-
-          <input
-            type="checkbox"
-            id="autoplaySetting"
-            checked
-          >
-
-        </div>
-
-
-        <div class="setting-item">
-
-          <div>
-            <strong>Interface compacta</strong>
-            <span>Reduzir espaços da biblioteca</span>
-          </div>
-
-          <input
-            type="checkbox"
-            id="compactSetting"
-          >
-
-        </div>
-
-        <div class="setting-item gc-adult-setting">
-          <div>
-            <strong>🔒 Senha da área Adultos</strong>
-            <span>Protege a entrada e permite trocar a senha usando a senha atual.</span>
-          </div>
-
-          <button
-            type="button"
-            class="secondary-button"
-            id="changeAdultPinButton"
-          >
-            ALTERAR SENHA
-          </button>
-        </div>
-
-
-        <div class="settings-version">
-
-          GC PLAY PRO
-
-          <span>
-            versão 2.1 PRO
-          </span>
-
-        </div>
-
-      </div>
-
-    </dialog>
-
-
-    <!-- ================= TOAST ================= -->
-
-    <div
-      id="toast"
-      class="toast"
-      role="status"
-      aria-live="polite"
-    ></div>
-
-
+<div id="app" class="gc-app">
+
+<header class="gc-header">
+  <div class="gc-brand" data-section="home" role="button" tabindex="0">
+    <div class="gc-logo">GC<span>+</span></div>
+    <div class="gc-brand-copy"><strong>PLAY PRO</strong><small>ENTERTAINMENT</small></div>
   </div>
+  <nav class="main-nav" aria-label="Principal">
+    <button class="nav-item active" data-section="home"><span>⌂</span> INÍCIO</button>
+    <button class="nav-item" data-section="live"><span>▣</span> TV AO VIVO</button>
+    <button class="nav-item" data-section="movies"><span>▶</span> FILMES</button>
+    <button class="nav-item" data-section="series"><span>▤</span> SÉRIES</button>
+    <button class="nav-item gc-adult-nav" data-section="adult"><span>🔒</span> ADULTOS</button>
+    <button class="nav-item" data-section="favorites"><span>★</span> FAVORITOS</button>
+  </nav>
+  <div class="gc-header-actions">
+    <button class="icon-button" id="searchButton" aria-label="Pesquisar">⌕</button>
+    <button class="icon-button" id="settingsButton" aria-label="Configurações">⚙</button>
+    <button class="gc-profile" type="button">GC</button>
+  </div>
+</header>
 
+<main>
+<section class="gc-hero" id="gcHero">
+  <div class="gc-hero-bg"></div>
+  <div class="gc-hero-glow"></div>
+  <div class="gc-hero-content">
+    <div class="gc-eyebrow"><i></i> GC PLAY PRO <b>•</b> SUA CENTRAL DE ENTRETENIMENTO</div>
+    <h1>ASSISTA.<br><em>DESCUBRA.</em><br>VIVA.</h1>
+    <p>Canais ao vivo, filmes e séries reunidos em uma experiência única.</p>
+    <div class="gc-hero-actions">
+      <button class="primary-button gc-main-cta" id="addPlaylistButton" type="button">＋ ADICIONAR LISTA M3U</button>
+      <button class="secondary-button" id="exploreButton" type="button">EXPLORAR CATÁLOGO <span>→</span></button>
+    </div>
+    <div class="gc-hero-status"><span class="pulse"></span><strong id="connectionStatus">OFFLINE</strong><small>• SISTEMA PRONTO</small></div>
+  </div>
+  <div class="gc-hero-orbit" aria-hidden="true">
+    <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
+    <div class="orbit-core"><span>GC</span><small>PLAY PRO</small></div>
+  </div>
+</section>
 
-  <!-- ================= JAVASCRIPT ================= -->
+<section class="gc-shortcuts">
+  <button class="gc-shortcut active" data-filter="live"><b>▣</b><span><strong>TV AO VIVO</strong><small>Seus canais</small></span><i>→</i></button>
+  <button class="gc-shortcut" data-filter="movie"><b>▶</b><span><strong>FILMES</strong><small>Grande catálogo</small></span><i>→</i></button>
+  <button class="gc-shortcut" data-filter="series"><b>▤</b><span><strong>SÉRIES</strong><small>Temporadas</small></span><i>→</i></button>
+  <button class="gc-shortcut" data-section="favorites"><b>★</b><span><strong>FAVORITOS</strong><small>Minha lista</small></span><i>→</i></button>
+  <button class="gc-shortcut gc-shortcut-add" id="quickAddPlaylist" type="button"><b>＋</b><span><strong>NOVA LISTA</strong><small>Adicionar M3U</small></span><i>→</i></button>
+</section>
 
-  <!-- MPEG-TS pré-carregado antes do app para evitar atraso no primeiro canal ao vivo -->
-  <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
-  <script src="app.js?v=20261001-76"></script>
-  <script src="gc-playback-hotfix.js?v=20261001-2"></script>
-  <script src="gc-live-fix.js?v=20261001-6"></script>
-  <link rel="stylesheet" href="gc-pro-ui-v3.css?v=20261001-3">
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-  <script src="gc-pro-ui-v3.js?v=20261001-10"></script>
+<section class="gc-stats" aria-label="Resumo">
+  <div><span>◉</span><strong id="channelCount">0</strong><small>CANAIS</small></div>
+  <div><span>●</span><strong id="movieCount">0</strong><small>FILMES</small></div>
+  <div><span>▤</span><strong id="seriesCount">0</strong><small>SÉRIES</small></div>
+  <div><span>★</span><strong id="favoriteCount">0</strong><small>FAVORITOS</small></div>
+</section>
 
-  <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js", { scope: "./" })
-          .catch(error => console.warn("[GC PLAY PRO] Service Worker:", error));
-      });
-    }
-  </script>
+<section id="homeDashboard" class="gc-home-dashboard">
+  <div class="gc-home-featured" id="homeFeatured"></div>
+  <div class="gc-rail" data-home-rail="recent"><header><div><span>EM DESTAQUE</span><h2>Continue e descubra</h2></div><button data-home-action="all">VER CATÁLOGO →</button></header><div class="gc-home-row" id="homeRecent"></div></div>
+  <div class="gc-rail" data-home-rail="live"><header><div><span>TV AO VIVO</span><h2>Canais em destaque</h2></div><button data-home-action="live">VER TODOS →</button></header><div class="gc-home-row" id="homeLive"></div></div>
+  <div class="gc-rail" data-home-rail="movie"><header><div><span>FILMES</span><h2>Filmes para assistir</h2></div><button data-home-action="movie">VER TODOS →</button></header><div class="gc-home-row" id="homeMovies"></div></div>
+  <div class="gc-rail" data-home-rail="series"><header><div><span>SÉRIES</span><h2>Suas séries</h2></div><button data-home-action="series">VER TODAS →</button></header><div class="gc-home-row" id="homeSeries"></div></div>
+</section>
 
+<section id="librarySection" class="gc-library">
+  <div class="gc-library-top">
+    <div><span class="gc-kicker" id="gcv4Label">CATÁLOGO</span><h2 id="gcv4Title">Seu conteúdo</h2><p id="gcv4Count">0 itens</p></div>
+    <div class="filters">
+      <button class="filter-button active" data-filter="all">TODOS</button>
+      <button class="filter-button" data-filter="live">TV AO VIVO</button>
+      <button class="filter-button" data-filter="movie">FILMES</button>
+      <button class="filter-button" data-filter="series">SÉRIES</button>
+    </div>
+  </div>
+  <div id="genreFilters" class="gc-genres"></div>
+  <div class="gc-catalog-layout">
+    <aside id="gcv4Categories" class="gc-category-panel"></aside>
+    <div class="gc-catalog-results"><div id="contentGrid" class="content-grid"></div><div id="emptyState" class="empty-state" style="display:none"><div class="empty-icon">＋</div><h3>Nenhum conteúdo disponível</h3><p>Adicione uma lista M3U para começar.</p><button class="primary-button" id="emptyAddButton" type="button">＋ ADICIONAR LISTA</button></div></div>
+  </div>
+</section>
+</main>
+
+<section id="playerPanel" class="player-panel hidden">
+  <div class="player-header"><button id="closePlayer" class="icon-button">←</button><div><span>REPRODUZINDO AGORA</span><h2 id="playerTitle">GC PLAY PRO</h2></div></div>
+  <div class="video-container"><video id="videoPlayer" controls playsinline preload="metadata"></video><div class="gc-player-toolbar"><label>VELOCIDADE <select id="playerSpeed"><option value=".5">0,5×</option><option value=".75">0,75×</option><option value="1" selected>1×</option><option value="1.25">1,25×</option><option value="1.5">1,5×</option><option value="2">2×</option></select></label><button class="secondary-button gc-player-resume-clear" id="clearResumeButton">LIMPAR RETOMADA</button></div><div id="playerEPG" class="gc-player-epg"></div><div id="playerMessage" class="player-message">Selecione um conteúdo para reproduzir.</div></div>
+</section>
+
+<dialog id="playlistDialog"><form id="playlistForm" novalidate><button type="button" class="modal-close" id="closePlaylistDialog">×</button><span class="gc-kicker">NOVA FONTE</span><h2>Adicionar lista M3U</h2><p>Conecte sua fonte de conteúdo ao GC PLAY PRO.</p><label>Nome da lista<input id="playlistName" type="text" placeholder="Minha lista" autocomplete="off"></label><label>URL M3U<input id="playlistUrl" type="url" placeholder="https://exemplo.com/lista.m3u" autocomplete="off"></label><div id="playlistMessage" class="form-message"></div><button type="button" class="primary-button" id="savePlaylistButton">CONECTAR LISTA</button></form></dialog>
+
+<dialog id="searchDialog"><div class="gc-dialog"><button type="button" class="modal-close" id="closeSearchDialog">×</button><span class="gc-kicker">PESQUISA GLOBAL</span><h2>O que você quer assistir?</h2><input id="globalSearch" type="search" placeholder="Buscar canal, filme ou série..." autocomplete="off"><div id="searchResults" class="search-results"></div></div></dialog>
+
+<dialog id="settingsDialog"><div class="gc-dialog"><button type="button" class="modal-close" id="closeSettingsDialog">×</button><span class="gc-kicker">SISTEMA</span><h2>Configurações</h2><div class="setting-item"><div><strong>Reprodução automática</strong><span>Iniciar conteúdo automaticamente</span></div><input type="checkbox" id="autoplaySetting" checked></div><div class="setting-item"><div><strong>Interface compacta</strong><span>Reduzir espaços do catálogo</span></div><input type="checkbox" id="compactSetting"></div><div class="setting-item gc-adult-setting"><div><strong>🔒 Área Adultos</strong><span>Controle de acesso protegido</span></div><button class="secondary-button" id="changeAdultPinButton" type="button">ALTERAR SENHA</button></div><div class="settings-version">GC PLAY PRO <span>v3.0 • NEW UI</span></div></div></dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<nav class="gc-bottom-nav">
+ <button data-gcv4-nav="home"><b>⌂</b>INÍCIO</button><button data-gcv4-nav="live"><b>▣</b>TV</button><button data-gcv4-nav="movies"><b>▶</b>FILMES</button><button data-gcv4-nav="series"><b>▤</b>SÉRIES</button><button data-gcv4-nav="favorites"><b>★</b>LISTA</button>
+</nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
+<script src="app.js?v=20261001-77"></script>
+<script src="gc-playback-hotfix.js?v=20261001-2"></script>
+<script src="gc-live-fix.js?v=20261001-6"></script>
+<link rel="stylesheet" href="gc-pro-ui-v3.css?v=20261001-11">
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="gc-pro-ui-v3.js?v=20261001-11"></script>
+<script>
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(e=>console.warn("[GC] SW",e)));}
+</script>
 </body>
 </html>
