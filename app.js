@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-01-50 */
+/* GC BUILD 2026-10-01-52 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -3903,7 +3903,7 @@ async function playItem(item) {
   state.currentItem =
     item;
 
-  const earlyUrl = String(item.xtreamKind === "live" ? liveTsUrl : item.url || "");
+  const earlyUrl = String(item.url || "");
   const earlyLive = item.type === "live" || earlyUrl.includes("/live/") || earlyUrl.includes("/stream/") || earlyUrl.includes("/channel/") || earlyUrl.includes("/play/") || earlyUrl.includes("/tv/");
   const earlyMode = isDASH(earlyUrl) ? "DASH/CMAF" : isHLS(earlyUrl) ? "HLS" : earlyLive ? "MPEG-TS AO VIVO" : "VÍDEO";
   if (title) title.textContent = item.name;
