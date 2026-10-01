@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-01-66 */
+/* GC BUILD 2026-10-01-67 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -5114,6 +5114,23 @@ function syncSectionNavigation(section = null) {
 }
 
 /* =========================================================
+   API DE NAVEGAÇÃO PARA A NOVA INTERFACE
+   ========================================================= */
+function setCatalogCategory(type, genre = "all") {
+  const map = { live: "live", movie: "movies", series: "series" };
+  if (!map[type]) return;
+  state.currentSection = map[type];
+  state.currentFilter = type;
+  state.currentGenre = genre || "all";
+  state.seriesView.seriesKey = null;
+  state.seriesView.season = null;
+  showHomeOrLibrary(false);
+  syncSectionNavigation(state.currentSection);
+  renderGenreFilters();
+  return render();
+}
+
+/* =========================================================
    NAVEGAÇÃO
    ========================================================= */
 
@@ -7752,6 +7769,10 @@ window.GC_PLAY_PRO = {
   state,
 
   ensureXtreamSectionLoaded,
+
+  setCatalogCategory,
+
+  render,
 
   loadM3U,
 
