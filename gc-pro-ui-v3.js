@@ -8,6 +8,7 @@ let lastSection="", lastGenre="", loadingType=null;
 
 function boot(){
  document.body.classList.add("gc-pro-v4");
+ bindTopNavigation();
  removeOldExperience();
  buildTopbar();
  buildCatalogShell();
@@ -18,6 +19,22 @@ function boot(){
  setTimeout(refresh,250);
  setTimeout(refresh,1000);
  setTimeout(refresh,2500);
+}
+function bindTopNavigation(){
+ const nav=document.querySelector(".main-nav");
+ if(!nav || nav.dataset.gcBound==="1") return;
+ nav.dataset.gcBound="1";
+ nav.querySelectorAll(".nav-item[data-section]").forEach(btn=>{
+   btn.addEventListener("click", async event=>{
+     event.preventDefault();
+     event.stopImmediatePropagation();
+     const section=btn.dataset.section;
+     if(typeof window.GC_PLAY_PRO?.navigateSection==="function"){
+       try{ await window.GC_PLAY_PRO.navigateSection(section); }
+       catch(err){ console.error("[GC] top navigation:",err); }
+     }
+   }, false);
+ });
 }
 function removeOldExperience(){
  $$(".gcp-topline,.gcp-mobile-nav,.gcp-assistant,.gcp-search-overlay").forEach(x=>x.remove());
