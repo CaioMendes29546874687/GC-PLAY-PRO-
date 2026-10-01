@@ -105,16 +105,16 @@
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <nav class="gc-bottom-nav" id="gcBottomNav" aria-label="Navegação principal">
- <button type="button" data-gcv4-nav="home" onclick="event.preventDefault();var x=document.querySelector('.nav-item[data-section=\'home\']');if(x)x.click();return false;"><b>⌂</b>INÍCIO</button>
- <button type="button" data-gcv4-nav="live" onclick="event.preventDefault();var x=document.querySelector('.nav-item[data-section=\'live\']');if(x)x.click();return false;"><b>▣</b>TV</button>
- <button type="button" data-gcv4-nav="movies" onclick="event.preventDefault();var x=document.querySelector('.nav-item[data-section=\'movies\']');if(x)x.click();return false;"><b>▶</b>FILMES</button>
- <button type="button" data-gcv4-nav="series" onclick="event.preventDefault();var x=document.querySelector('.nav-item[data-section=\'series\']');if(x)x.click();return false;"><b>▤</b>SÉRIES</button>
- <button type="button" data-gcv4-nav="favorites" onclick="event.preventDefault();var x=document.querySelector('.nav-item[data-section=\'favorites\']');if(x)x.click();return false;"><b>★</b>LISTA</button>
+ <button type="button" class="nav-item" data-section="home"><b>⌂</b>INÍCIO</button>
+ <button type="button" class="nav-item" data-section="live"><b>▣</b>TV</button>
+ <button type="button" class="nav-item" data-section="movies"><b>▶</b>FILMES</button>
+ <button type="button" class="nav-item" data-section="series"><b>▤</b>SÉRIES</button>
+ <button type="button" class="nav-item" data-section="favorites"><b>★</b>LISTA</button>
 </nav>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
-<script src="app.js?v=20261001-81"></script>
+<script src="app.js?v=20261001-82"></script>
 <script src="gc-playback-hotfix.js?v=20261001-2"></script>
 <script src="gc-live-fix.js?v=20261001-7"></script>
 <link rel="stylesheet" href="gc-pro-ui-v3.css?v=20261001-11">
