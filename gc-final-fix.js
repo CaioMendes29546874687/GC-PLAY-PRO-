@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const VERSION="20261002-3";
+const VERSION="20261002-4";
 window.__GC_FINAL_FIX_VERSION__=VERSION;
 
 function api(){ return window.GC_PLAY_PRO || null; }
@@ -75,19 +75,72 @@ async function handleUiTarget(target,event){
   const button=target?.closest?.(".gc-bottom-nav button.nav-item[data-section], .main-nav button.nav-item[data-section]");
   if(button){
     const section=button.dataset.section || "home";
-    if(!["home","live","movies","series","favorites"].includes(section)) return false;
+    if(!["home","live","movies","series","favorites","adult"].includes(section)) return false;
     const key="nav:"+section;
     if(shouldSkipDuplicate(key)) return true;
     event?.preventDefault();
     event?.stopImmediatePropagation();
     try{
-      await directSection(section);
+      if(section==="adult" && typeof api()?.navigateSection==="function"){
+        await api().navigateSection("adult");
+      } else {
+        await directSection(section);
+      }
       document.querySelectorAll("[data-section]").forEach(b=>{
         b.classList.toggle("active",b.dataset.section===section);
       });
     }catch(error){
       console.error("[GC FINAL] navigation:",error);
     }
+    return true;
+  }
+
+  const s=state(), a=api();
+
+  /* Shortcuts e filtros usam data-filter em vez de data-section. */
+  const filterButton=target?.closest?.(".gc-shortcut[data-filter], .filter-button[data-filter]");
+  if(filterButton && a?.setCatalogCategory){
+    const filter=String(filterButton.dataset.filter||"").toLowerCase();
+    const type=filter==="movie" ? "movie" : filter==="series" ? "series" : filter==="live" ? "live" : "all";
+    if(type!=="all"){
+      if(shouldSkipDuplicate("filter:"+type)) return true;
+      event?.preventDefault();
+      event?.stopImmediatePropagation();
+      try{ await a.setCatalogCategory(type,"all"); }catch(error){ console.error("[GC FINAL] filter:",error); }
+      return true;
+    }
+  }
+
+  const brand=target?.closest?.(".gc-brand[data-section]");
+  if(brand){
+    if(shouldSkipDuplicate("brand:home")) return true;
+    event?.preventDefault();
+    event?.stopImmediatePropagation();
+    try{ await directSection("home"); }catch(error){ console.error("[GC FINAL] brand:",error); }
+    return true;
+  }
+
+  const homeAction=target?.closest?.("[data-home-action]");
+  if(homeAction && a?.setCatalogCategory){
+    const action=String(homeAction.dataset.homeAction||"");
+    const map={live:"live",movie:"movie",series:"series"};
+    if(map[action]){
+      if(shouldSkipDuplicate("home:"+action)) return true;
+      event?.preventDefault(); event?.stopImmediatePropagation();
+      try{ await a.setCatalogCategory(map[action],"all"); }catch(error){ console.error("[GC FINAL] home action:",error); }
+      return true;
+    }
+  }
+
+  const homePlay=target?.closest?.("[data-home-play]");
+  if(homePlay && a?.playItem){
+    const id=String(homePlay.dataset.homePlay||"");
+    if(shouldSkipDuplicate("homeplay:"+id)) return true;
+    event?.preventDefault(); event?.stopImmediatePropagation();
+    try{
+      const item=typeof window.findItem==="function" ? await window.findItem(id) : null;
+      if(item) await a.playItem(item);
+    }catch(error){ console.error("[GC FINAL] home playback:",error); }
     return true;
   }
 
