@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-02-12 */
+/* GC BUILD 2026-10-02-13 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -3944,12 +3944,14 @@ async function playMpegTS(
       if (message) message.textContent = "";
     }, { once: true });
 
+    /* Não deixe um proxy travado prender o canal por 12s.
+       Se o upstream não responder, tenta a origem direta rapidamente. */
     startupTimer = setTimeout(() => {
       if (startupResolved || video.readyState >= 2) return;
       if (!tryDirectFallback() && message) {
         message.textContent = "O canal está demorando para responder.";
       }
-    }, 12000);
+    }, 6000);
 
     player.on(
       mpegts.Events.ERROR,
@@ -4863,10 +4865,12 @@ async function playHLS(
       }
     );
 
+    /* HLS sem primeiro frame também troca de transporte cedo,
+       evitando a tela de carregamento indefinida. */
     startupTimer = setTimeout(() => {
       if (video.readyState >= 2 || video.videoWidth > 0) return;
       startMpegTSFallback();
-    }, 12000);
+    }, 8000);
 
     hls.on(
       Hls.Events.ERROR,
