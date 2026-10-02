@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-02-14 */
+/* GC BUILD 2026-10-02-15 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -3006,7 +3006,21 @@ async function renderSeriesBrowser(grid,empty) {
     await ensureSeriesCatalogFromM3U();
   }
 
-  const items=await getFilteredSeriesItems();
+  let items=await getFilteredSeriesItems();
+
+  /* Se o índice de séries ainda estiver vazio, reconstrói a partir do
+     IndexedDB antes de declarar que não existem séries. Isso evita a
+     tela vazia quando a lista já foi importada, mas o catálogo derivado
+     ainda não terminou de ser criado. */
+  if(!items.length && state.db){
+    try{
+      await rebuildSeriesCatalogInBackground(true);
+      items=await getFilteredSeriesItems();
+    }catch(error){
+      console.warn("[GC PLAY PRO] reconstrução de séries:",error);
+    }
+  }
+
   const key=state.seriesView.seriesKey;
   const season=state.seriesView.season;
   if(!key){
