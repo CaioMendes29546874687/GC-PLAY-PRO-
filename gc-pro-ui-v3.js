@@ -25,8 +25,19 @@ function sync(){
  if(section==="home"){if(dash)dash.style.display="block";if(lib)lib.style.display="none";}else{if(dash)dash.style.display="none";if(lib)lib.style.display="block";}
 }
 function boot(){
- $$(".nav-item[data-section]").forEach(b=>b.addEventListener("click",()=>setTimeout(sync,30),true));
- /* Os botões inferiores agora usam o mesmo .nav-item[data-section] do app.js. */
+ $(".nav-item[data-section]").forEach(b=>{
+   b.addEventListener("click",async e=>{
+     e.preventDefault();
+     e.stopPropagation();
+     try{
+       await navigate(b.dataset.section || "home");
+       sync();
+     }catch(error){
+       console.error("[GC] botão de navegação:",error);
+     }
+   });
+ });
+ /* A camada de UI é a única dona dos botões de navegação. */
  document.querySelector(".gc-brand")?.addEventListener("click",()=>navigate("home"));
  document.addEventListener("click",e=>{
    const shortcut=e.target.closest("[data-filter]");
