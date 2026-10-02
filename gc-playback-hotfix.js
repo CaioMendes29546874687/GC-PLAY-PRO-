@@ -1,4 +1,4 @@
-/* GC PLAY PRO — playback/catalog hotfix 2026-09-30 */
+/* GC PLAY PRO — playback/catalog hotfix 2026-10-01 */
 (function () {
   "use strict";
 
@@ -62,6 +62,52 @@
      intentionally independent of IndexedDB, so an on-demand Xtream
      episode always reaches playItem(). */
   document.addEventListener("click", async function (event) {
+    /* Série -> temporadas -> episódios: usa captura para que nenhum
+       overlay ou listener antigo consiga engolir o toque. */
+    const seriesCard = event.target.closest("#contentGrid [data-series-key]");
+    if (seriesCard) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      const api = window.GC_PLAY_PRO;
+      const st = api?.state;
+      if (st) {
+        st.seriesView.seriesKey = String(seriesCard.dataset.seriesKey || "");
+        st.seriesView.season = null;
+        await api.render();
+      }
+      return;
+    }
+
+    const seasonCard = event.target.closest("#contentGrid [data-series-season]");
+    if (seasonCard) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      const api = window.GC_PLAY_PRO;
+      const st = api?.state;
+      if (st) {
+        st.seriesView.season = Number(seasonCard.dataset.seriesSeason);
+        await api.render();
+      }
+      return;
+    }
+
+    const back = event.target.closest("#contentGrid [data-series-back]");
+    if (back) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      const api = window.GC_PLAY_PRO;
+      const st = api?.state;
+      if (st) {
+        if (st.seriesView.season !== null) st.seriesView.season = null;
+        else st.seriesView.seriesKey = null;
+        await api.render();
+      }
+      return;
+    }
+
     const card = event.target.closest("#contentGrid [data-item-id]");
     if (!card) return;
 
@@ -73,8 +119,12 @@
     if (!item) return;
 
     event.preventDefault();
-    event.stopPropagation();
+    event.stopImmediatePropagation();
 
-    await window.playItem(item);
+    if (typeof window.playItem === "function") {
+      await window.playItem(item);
+    } else if (window.GC_PLAY_PRO?.playItem) {
+      await window.GC_PLAY_PRO.playItem(item);
+    }
   }, true);
 })();
