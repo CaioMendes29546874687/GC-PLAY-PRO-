@@ -6,19 +6,19 @@
 
 "use strict";
 
-const CACHE_NAME = "gc-play-pro-v98";
+const CACHE_NAME = "gc-play-pro-v99";
 
 const APP_SHELL = [
   "./",
   "./index.html",
   "./style.css",
-  "./app.js?v=20261002-13",
+  "./app.js?v=20261002-14",
   "./gc-pro-ui-v3.css?v=20261001-11",
   "./gc-pro-ui-v3.js?v=20261002-5",
   "./gc-playback-hotfix.js?v=20261001-3",
   "./gc-live-fix.js?v=20261002-8",
   "./gc-android-live-fix.js?v=20261001-1",
-  "./gc-final-fix.js?v=20261002-5"
+  "./gc-final-fix.js?v=20261002-6"
 ];
 
 self.addEventListener("install", event => {
