@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-02-15 */
+/* GC BUILD 2026-10-02-16 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -2873,12 +2873,20 @@ async function render() {
       ? (state.currentFilter === "adult" ? "adult" : null)
       : state.currentFilter;
 
-  const items = await queryCatalogItems({
+  let items = await queryCatalogItems({
     type,
     genre: state.currentGenre,
     term: state.searchTerm,
     limit: 120
   });
+
+  /* TV ao vivo precisa continuar visível mesmo se o índice IndexedDB
+     estiver atrasado/corrompido. A RAM já contém os canais importados. */
+  if (!items.length && type === "live") {
+    items = state.items
+      .filter(item => item && item.type === "live" && !isAdultContent(item))
+      .slice(0, 120);
+  }
 
   if (requestId !== renderRequestId) return;
 
@@ -4408,9 +4416,16 @@ async function playItem(item) {
   const liveExtension =
     String(state.xtreamSession?.liveExtension || "").toLowerCase();
 
+  const gcAndroidLike =
+    /Android|Android TV/i.test(navigator.userAgent || "");
+
   const sourceUrl =
     item.xtreamKind === "live"
-      ? (liveExtension === "ts" ? liveTsUrl : liveHlsUrl)
+      ? (
+          gcAndroidLike
+            ? liveTsUrl
+            : (liveExtension === "ts" ? liveTsUrl : liveHlsUrl)
+        )
       : originalUrl;
 
   video.playbackRate =
@@ -4491,13 +4506,22 @@ async function playItem(item) {
      ------------------------------------------------------- */
 
   if (isHLS(sourceUrl)) {
+    const liveTsProxyFallback =
+      item.xtreamKind === "live" && liveTsUrl !== sourceUrl
+        ? (shouldUseProxy(liveTsUrl) ? buildProxyUrl(liveTsUrl) : liveTsUrl)
+        : "";
+
+    const liveTsDirectFallback =
+      item.xtreamKind === "live" && liveTsUrl !== sourceUrl
+        ? liveTsUrl
+        : "";
+
     await playHLS(
       video,
       playbackUrl,
       message,
-      item.xtreamKind === "live" && liveTsUrl !== sourceUrl
-        ? (shouldUseProxy(liveTsUrl) ? buildProxyUrl(liveTsUrl) : liveTsUrl)
-        : ""
+      liveTsProxyFallback,
+      liveTsDirectFallback
     );
 
     return;
@@ -4686,7 +4710,8 @@ async function playHLS(
   video,
   url,
   message,
-  mpegtsFallbackUrl = ""
+  mpegtsFallbackUrl = "",
+  directMpegtsFallbackUrl = ""
 ) {
   let startupTimer = null;
   let fallbackStarted = false;
@@ -4715,7 +4740,12 @@ async function playHLS(
     try {
       const native = window.__GC_NATIVE_PLAY_MPEGTS__;
       if (typeof native !== "function") throw new Error("Motor MPEG-TS não disponível.");
-      await native(video, mpegtsFallbackUrl, message);
+      await native(
+        video,
+        mpegtsFallbackUrl,
+        message,
+        directMpegtsFallbackUrl
+      );
       return true;
     } catch (error) {
       console.warn("[GC PLAY PRO] fallback MPEG-TS:", error);
