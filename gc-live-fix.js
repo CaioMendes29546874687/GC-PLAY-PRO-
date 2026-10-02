@@ -23,3 +23,24 @@
     }
   };
 })();
+/* HLS Android compatibility: force HLS.js path instead of Chrome native HLS. */
+(function(){
+  const nativeHls = window.playHLS;
+  if (typeof nativeHls !== "function" || window.__GC_HLS_ANDROID_WRAP__) return;
+  window.playHLS = async function(video, url, message, fallbackUrl = "") {
+    if (!video) return nativeHls(video, url, message, fallbackUrl);
+    const originalCanPlayType = video.canPlayType;
+    try {
+      video.canPlayType = function(type) {
+        if (/mpegurl/i.test(String(type || ""))) return "";
+        return originalCanPlayType.call(video, type);
+      };
+    } catch {}
+    try {
+      return await nativeHls(video, url, message, fallbackUrl);
+    } finally {
+      try { video.canPlayType = originalCanPlayType; } catch {}
+    }
+  };
+  window.__GC_HLS_ANDROID_WRAP__ = true;
+})();
