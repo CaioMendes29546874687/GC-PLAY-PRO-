@@ -4316,6 +4316,41 @@ async function playItem(item) {
     video.load();
   } catch {}
 
+  /*
+     Corrige registros Xtream antigos que ficaram no IndexedDB com
+     extensão truncada (ex.: p4/kv). A URL de reprodução deve ser
+     reconstruída a partir do ID Xtream atual, nunca confiar cegamente
+     no URL persistido de uma versão antiga do aplicativo.
+  */
+  if (
+    state.xtreamSession &&
+    item.xtreamKind &&
+    item.xtreamStreamId &&
+    ["movie", "episode", "live"].includes(String(item.xtreamKind))
+  ) {
+    let ext = String(item.xtreamExtension || "").replace(/^\./, "").toLowerCase();
+
+    if (ext === "p4") ext = "mp4";
+    if (ext === "kv") ext = "mkv";
+
+    if (!ext) {
+      ext = item.xtreamKind === "live"
+        ? String(state.xtreamSession.liveExtension || "m3u8").toLowerCase()
+        : "mp4";
+    }
+
+    item = {
+      ...item,
+      url: buildXtreamStreamUrl(
+        state.xtreamSession,
+        item.xtreamKind === "episode" ? "series" : item.xtreamKind,
+        item.xtreamStreamId,
+        ext
+      ),
+      xtreamExtension: ext
+    };
+  }
+
   const originalUrl =
     item.url;
 
