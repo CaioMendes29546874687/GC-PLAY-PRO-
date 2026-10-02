@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const VERSION="20261002-6";
+const VERSION="20261002-7";
 window.__GC_FINAL_FIX_VERSION__=VERSION;
 
 function api(){ return window.GC_PLAY_PRO || null; }
@@ -33,7 +33,7 @@ async function directSection(section){
       const dash=document.getElementById("homeDashboard");
       const lib=document.getElementById("librarySection");
       if(dash) dash.style.display="none";
-      if(lib) lib.style.display="";
+      if(lib) lib.style.display="block";
       return true;
     }
   }
