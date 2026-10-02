@@ -20,7 +20,7 @@ function sync(){
  const s=window.__GC_STATE__; if(!s)return;
  const section=s.currentSection||"home";
  $$(".nav-item[data-section]").forEach(b=>b.classList.toggle("active",b.dataset.section===section));
- $$(".gc-bottom-nav button").forEach(b=>b.classList.toggle("active",b.dataset.gcv4Nav===section));
+ $(".gc-bottom-nav button").forEach(b=>b.classList.toggle("active",b.dataset.section===section));
  const lib=$("#librarySection"), dash=$("#homeDashboard");
  if(section==="home"){if(dash)dash.style.display="block";if(lib)lib.style.display="none";}else{if(dash)dash.style.display="none";if(lib)lib.style.display="block";}
 }
