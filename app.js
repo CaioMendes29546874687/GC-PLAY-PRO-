@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-02-17 */
+/* GC BUILD 2026-10-02-18 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -2724,7 +2724,7 @@ function showHomeOrLibrary(showHome) {
   const library = document.getElementById("librarySection");
   const empty = document.getElementById("emptyState");
   if (dashboard) dashboard.style.display = showHome ? "block" : "none";
-  if (library) library.style.display = showHome ? "none" : "";
+  if (library) library.style.display = showHome ? "none" : "block";
   if (showHome && empty) empty.style.display = "none";
 }
 
@@ -3945,21 +3945,99 @@ async function playMpegTS(
         }
       } catch {}
 
-      video.removeAttribute("src");
-      try { video.load(); } catch {}
-      video.src = directFallbackUrl;
-      video.onloadeddata = () => {
-        startupResolved = true;
-        if (message) message.textContent = "";
-      };
-      video.onerror = () => {
-        if (message) message.textContent = "Canal não respondeu no formato esperado.";
-      };
-      if (message) message.textContent = "Tentando conexão direta com o canal...";
-      if (state.settings.autoplay) video.play().catch(() => {});
-      return true;
-    };
+      try {
+        video.pause();
+        video.removeAttribute("src");
+        video.load();
+      } catch {}
 
+      if (message) {
+        message.textContent = "Tentando conexão direta MPEG-TS...";
+      }
+
+      try {
+        const directPlayer = mpegts.createPlayer(
+          {
+            type: "mpegts",
+            isLive: true,
+            url: directFallbackUrl,
+            cors: true,
+            hasAudio: true,
+            hasVideo: true
+          },
+          {
+            enableWorker: false,
+            enableWorkerForMSE: false,
+            enableStashBuffer: true,
+            stashInitialSize: 256 * 1024,
+            lazyLoad: false,
+            deferLoadAfterSourceOpen: false,
+            seekType: "range",
+            rangeLoadZeroStart: true,
+            liveBufferLatencyChasing: false,
+            liveSync: false,
+            autoCleanupSourceBuffer: true
+          }
+        );
+
+        state.mpegts = directPlayer;
+
+        let directResolved = false;
+        const directTimer = setTimeout(() => {
+          if (!directResolved && video.readyState < 2) {
+            if (!trySecondaryHlsFallback()) {
+              if (message) {
+                message.textContent = "O canal não entregou um fluxo MPEG-TS válido.";
+              }
+            }
+          }
+        }, 7000);
+
+        directPlayer.on(mpegts.Events.ERROR, (type, detail, info) => {
+          console.warn("[GC PLAY PRO] MPEG-TS direto:", type, detail, info);
+          if (directResolved) return;
+
+          clearTimeout(directTimer);
+
+          const textDetail = String(detail || type || "").toLowerCase();
+          const retryable =
+            textDetail.includes("httpstatus") ||
+            textDetail.includes("network") ||
+            textDetail.includes("timeout") ||
+            textDetail.includes("early_eof") ||
+            textDetail.includes("unrecoverable");
+
+          if (retryable || !video.videoWidth) {
+            if (!trySecondaryHlsFallback() && message) {
+              message.textContent = "O canal não entregou um fluxo compatível.";
+            }
+          }
+        });
+
+        directPlayer.attachMediaElement(video);
+        directPlayer.load();
+
+        directPlayer.play().catch(() => {
+          if (message) {
+            message.textContent = "Toque em ▶ para iniciar o canal.";
+          }
+        });
+
+        const markDirectReady = () => {
+          directResolved = true;
+          clearTimeout(directTimer);
+          if (message) message.textContent = "";
+        };
+
+        video.addEventListener("loadeddata", markDirectReady, { once: true });
+        video.addEventListener("playing", markDirectReady, { once: true });
+
+        return true;
+      } catch (error) {
+        console.warn("[GC PLAY PRO] falha MPEG-TS direto:", error);
+        return trySecondaryHlsFallback();
+      }
+    };
     video.addEventListener("loadeddata", () => {
       startupResolved = true;
       clearStartupTimer();
