@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-01-82 */
+/* GC BUILD 2026-10-02-12 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -4438,7 +4438,14 @@ async function playItem(item) {
      reproduzir. Para Xtream isso também evita CORS e mantém Range,
      Content-Type e Content-Range no mesmo caminho.
   */
-  const useGcProxy = shouldUseProxy(sourceUrl);
+  const isVodFile =
+    !looksLikeLiveStream &&
+    !isHLS(sourceUrl) &&
+    !isDASH(sourceUrl);
+
+  /* Filmes/episódios: navegador tenta a origem nativa primeiro.
+     Se falhar, o onerror abaixo troca automaticamente para o proxy GC. */
+  const useGcProxy = !isVodFile && shouldUseProxy(sourceUrl);
 
   const playbackUrl =
     useGcProxy
@@ -4531,21 +4538,28 @@ async function playItem(item) {
   video.style.opacity = "1";
 
   if (message) {
-    message.textContent = "Verificando fonte do vídeo...";
+    message.textContent = isVodFile
+      ? "Abrindo vídeo..."
+      : "Verificando fonte do vídeo...";
   }
 
-  const probe = await probeMediaSource(playbackUrl);
-  if (!probe.ok) {
-    console.error("[GC PLAY PRO] pré-teste de mídia:", probe);
+  /* Não faça fetch/probe antes de filmes e episódios.
+     Esse preflight pode falhar por CORS mesmo quando <video> consegue
+     tocar a mídia cross-origin. O <video> será a autoridade final. */
+  if (!isVodFile) {
+    const probe = await probeMediaSource(playbackUrl);
+    if (!probe.ok) {
+      console.error("[GC PLAY PRO] pré-teste de mídia:", probe);
 
-    if (message) {
-      const ct = probe.contentType ? " • " + probe.contentType : "";
-      const status = probe.status ? "HTTP " + probe.status : "";
-      const detail = probe.detail ? " • " + probe.detail : "";
-      message.textContent =
-        "Fonte recusada" + (status ? " (" + status + ")" : "") + ct + detail;
+      if (message) {
+        const ct = probe.contentType ? " • " + probe.contentType : "";
+        const status = probe.status ? "HTTP " + probe.status : "";
+        const detail = probe.detail ? " • " + probe.detail : "";
+        message.textContent =
+          "Fonte recusada" + (status ? " (" + status + ")" : "") + ct + detail;
+      }
+      return;
     }
-    return;
   }
 
   video.src = playbackUrl;
