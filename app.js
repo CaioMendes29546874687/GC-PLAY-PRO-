@@ -4310,9 +4310,15 @@ async function playItem(item) {
      HLS/fMP4 continua disponível para fluxos que forem realmente
      identificados como HLS em URLs não-Xtream.
   */
+  /*
+     Xtream ao vivo: HLS é o transporte principal no navegador,
+     inclusive em Android/TV. MPEG-TS continua como fallback.
+     Isso evita deixar o player preso no "Conectando ao MPEG-TS..."
+     quando o servidor aceita .m3u8 normalmente.
+  */
   const sourceUrl =
     item.xtreamKind === "live"
-      ? liveTsUrl
+      ? liveHlsUrl
       : originalUrl;
 
   video.playbackRate =
@@ -5412,7 +5418,18 @@ async function handleSection(
       "all";
 
     renderGenreFilters();
-    render();
+
+    /*
+       Se a sessão Xtream estiver ativa mas o catálogo ainda não
+       estiver no IndexedDB, carregamos a seção sob demanda.
+       Isso evita a tela vazia quando a API respondeu inicialmente
+       apenas a TV ao vivo.
+    */
+    if (state.xtreamSession && Number(state.counts?.movie || 0) === 0) {
+      await ensureXtreamSectionLoaded("movie");
+    } else {
+      await render();
+    }
 
     return;
   }
@@ -5432,7 +5449,12 @@ async function handleSection(
     state.seriesView.season = null;
 
     renderGenreFilters();
-    render();
+
+    if (state.xtreamSession && Number(state.counts?.series || 0) === 0) {
+      await ensureXtreamSectionLoaded("series");
+    } else {
+      await render();
+    }
 
     return;
   }
@@ -8216,8 +8238,6 @@ async function initApp() {
   setupFilters();
 
   renderGenreFilters();
-
-  setupNavigation();
 
   setupDialogs();
 
