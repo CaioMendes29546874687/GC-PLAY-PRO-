@@ -1,4 +1,4 @@
-/* GC PLAY PRO — NEW INTERFACE LAYER */
+/* GC PLAY PRO — NEW INTERFACE LAYER v83 */
 (function(){
 "use strict";
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
@@ -12,8 +12,9 @@ async function navigate(section){
      console.error("[GC] navegação:",error);
    }
  }
- const b=$('.nav-item[data-section="'+section+'"]');
- if(b){ b.click(); return true; }
+ console.error("[GC] API de navegação indisponível:", section);
+ const toastEl=$("#toast");
+ if(toastEl){ toastEl.textContent="Sistema ainda inicializando. Tente novamente."; toastEl.classList.add("show"); }
  return false;
 }
 function sync(){
