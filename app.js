@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-02-16 */
+/* GC BUILD 2026-10-02-17 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -4549,11 +4549,16 @@ async function playItem(item) {
           ? (shouldUseProxy(liveHlsUrl) ? buildProxyUrl(liveHlsUrl) : liveHlsUrl)
           : "";
 
+      const liveDirectFallback =
+        item.xtreamKind === "live" && liveTsUrl
+          ? liveTsUrl
+          : (originalUrl !== playbackUrl ? originalUrl : "");
+
       await livePlayer(
         video,
         playbackUrl,
         message,
-        originalUrl !== playbackUrl ? originalUrl : "",
+        liveDirectFallback,
         hlsFallbackUrl
       );
     } catch (error) {
