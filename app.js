@@ -1704,7 +1704,7 @@ async function tryLoadXtreamFast(url, signal) {
 
       const extension = String(
         row.container_extension || "mp4"
-      ).replace(/^./, "").toLowerCase();
+      ).replace(/^\./, "").toLowerCase();
 
       const item = {
         id: "xt-movie-" + id,
