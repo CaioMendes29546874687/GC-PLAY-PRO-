@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const VERSION="20261002-2";
+const VERSION="20261002-3";
 window.__GC_FINAL_FIX_VERSION__=VERSION;
 
 function api(){ return window.GC_PLAY_PRO || null; }
@@ -11,6 +11,10 @@ function state(){ return api()?.state || window.__GC_STATE__ || null; }
 async function directSection(section){
   const a=api(), s=state();
   if(!a || !s) return false;
+
+  if(window.__GC_APP_READY__){
+    try{ await window.__GC_APP_READY__; }catch{}
+  }
 
   if(section==="live" || section==="movies" || section==="series"){
     const type=section==="live" ? "live" : section==="movies" ? "movie" : "series";
@@ -52,85 +56,110 @@ async function directSection(section){
   return false;
 }
 
-/* Bottom/top navigation: use the fast catalog API instead of waiting
-   indefinitely for the original boot promise. */
-document.addEventListener("click",async function(event){
-  const button=event.target.closest(".gc-bottom-nav button.nav-item[data-section], .main-nav button.nav-item[data-section]");
-  if(!button) return;
+/* DETERMINISTIC INPUT ROUTER
+   Touch/remote/keyboard all enter the same path.
+   pointerdown is used first on touch devices; click remains the
+   keyboard/remote fallback. A short dedupe prevents double execution. */
+let lastInputKey="";
+let lastInputAt=0;
 
-  const section=button.dataset.section || "home";
-  if(!["home","live","movies","series","favorites"].includes(section)) return;
+function shouldSkipDuplicate(key){
+  const now=Date.now();
+  if(key===lastInputKey && now-lastInputAt<700) return true;
+  lastInputKey=key;
+  lastInputAt=now;
+  return false;
+}
 
-  event.preventDefault();
-  event.stopImmediatePropagation();
-
-  try{
-    await directSection(section);
-    document.querySelectorAll("[data-section]").forEach(b=>{
-      b.classList.toggle("active",b.dataset.section===section);
-    });
-  }catch(error){
-    console.error("[GC FINAL] navigation:",error);
+async function handleUiTarget(target,event){
+  const button=target?.closest?.(".gc-bottom-nav button.nav-item[data-section], .main-nav button.nav-item[data-section]");
+  if(button){
+    const section=button.dataset.section || "home";
+    if(!["home","live","movies","series","favorites"].includes(section)) return false;
+    const key="nav:"+section;
+    if(shouldSkipDuplicate(key)) return true;
+    event?.preventDefault();
+    event?.stopImmediatePropagation();
+    try{
+      await directSection(section);
+      document.querySelectorAll("[data-section]").forEach(b=>{
+        b.classList.toggle("active",b.dataset.section===section);
+      });
+    }catch(error){
+      console.error("[GC FINAL] navigation:",error);
+    }
+    return true;
   }
-},true);
 
-/* Series browser: the previous hotfix no longer consumes these clicks.
-   Handle series -> season -> episode here, including dynamically fetched
-   Xtream episodes that are not stored in IndexedDB. */
-document.addEventListener("click",async function(event){
-  const target=event.target;
+  const s=state(), a=api();
+  if(!s || !a) return false;
 
-  const back=target.closest("#contentGrid [data-series-back]");
+  const back=target?.closest?.("#contentGrid [data-series-back]");
   if(back){
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    const s=state(), a=api();
-    if(!s || !a) return;
+    if(shouldSkipDuplicate("series:back")) return true;
+    event?.preventDefault();
+    event?.stopImmediatePropagation();
     if(s.seriesView.season!==null) s.seriesView.season=null;
     else s.seriesView.seriesKey=null;
     await a.render();
-    return;
+    return true;
   }
 
-  const series=target.closest("#contentGrid [data-series-key]");
+  const series=target?.closest?.("#contentGrid [data-series-key]");
   if(series){
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    const s=state(), a=api();
-    if(!s || !a) return;
-    s.seriesView.seriesKey=String(series.dataset.seriesKey||"");
+    const key=String(series.dataset.seriesKey||"");
+    if(shouldSkipDuplicate("series:"+key)) return true;
+    event?.preventDefault();
+    event?.stopImmediatePropagation();
+    s.seriesView.seriesKey=key;
     s.seriesView.season=null;
     await a.render();
-    return;
+    return true;
   }
 
-  const season=target.closest("#contentGrid [data-series-season]");
+  const season=target?.closest?.("#contentGrid [data-series-season]");
   if(season){
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    const s=state(), a=api();
-    if(!s || !a) return;
-    s.seriesView.season=Number(season.dataset.seriesSeason);
+    const value=Number(season.dataset.seriesSeason);
+    if(shouldSkipDuplicate("season:"+value)) return true;
+    event?.preventDefault();
+    event?.stopImmediatePropagation();
+    s.seriesView.season=value;
     await a.render();
-    return;
+    return true;
   }
 
-  const card=target.closest("#contentGrid [data-item-id]");
-  if(card && !target.closest("[data-favorite-id]")){
+  const card=target?.closest?.("#contentGrid [data-item-id]");
+  if(card && !target.closest("[data-favorite-id]") && a.playItem){
     const id=String(card.dataset.itemId||"");
-    const a=api();
-    if(a?.playItem){
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      try{
-        const item=typeof window.findItem==="function" ? await window.findItem(id) : null;
-        if(item) await a.playItem(item);
-      }catch(error){
-        console.error("[GC FINAL] item playback:",error);
-      }
+    if(shouldSkipDuplicate("item:"+id)) return true;
+    event?.preventDefault();
+    event?.stopImmediatePropagation();
+    try{
+      const item=typeof window.findItem==="function" ? await window.findItem(id) : null;
+      if(item) await a.playItem(item);
+    }catch(error){
+      console.error("[GC FINAL] item playback:",error);
     }
+    return true;
   }
-},true);
+
+  return false;
+}
+
+async function routeUiEvent(event){
+  try{
+    await handleUiTarget(event.target,event);
+  }catch(error){
+    console.error("[GC FINAL] input router:",error);
+  }
+}
+
+document.addEventListener("pointerdown",routeUiEvent,true);
+document.addEventListener("click",routeUiEvent,true);
+
+/* Expose a manual test hook so the same production path can be invoked
+   without relying on any other event listener. */
+window.__GC_ROUTE_UI__ = target => handleUiTarget(target,{preventDefault(){},stopImmediatePropagation(){}});
 
 /* Movie/episode code 4 fallback.
    If Android rejects the native source with MEDIA_ERR_SRC_NOT_SUPPORTED,
