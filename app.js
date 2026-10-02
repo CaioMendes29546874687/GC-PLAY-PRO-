@@ -5335,36 +5335,44 @@ function setCatalogCategory(type, genre = "all") {
    ========================================================= */
 
 function setupNavigation() {
-  if (window.__gcNavigationDelegation) return;
-  window.__gcNavigationDelegation = true;
+  if (window.__gcNavigationDirect) return;
+  window.__gcNavigationDirect = true;
 
-  document.addEventListener("click", async event => {
-    const button = event.target.closest(".nav-item[data-section]");
-    if (!button) return;
+  const bind = button => {
+    if (!button || button.__gcNavBound) return;
+    button.__gcNavBound = true;
 
-    event.preventDefault();
-    event.stopPropagation();
+    button.addEventListener("click", async event => {
+      event.preventDefault();
+      event.stopPropagation();
 
-    const section = button.dataset.section || "home";
+      const section = button.dataset.section || "home";
 
-    if (section === "adult") {
-      const unlocked = await unlockAdultArea();
-      if (!unlocked) return;
-      state.adultUnlocked = true;
-    } else {
-      state.adultUnlocked = false;
-    }
+      try {
+        if (section === "adult") {
+          const unlocked = await unlockAdultArea();
+          if (!unlocked) return;
+          state.adultUnlocked = true;
+        } else {
+          state.adultUnlocked = false;
+        }
 
-    state.currentSection = section;
+        state.currentSection = section;
 
-    $("[data-section]").forEach(item => {
-      item.classList.toggle("active", item.dataset.section === section);
+        $$(".nav-item[data-section]").forEach(item => {
+          item.classList.toggle("active", item.dataset.section === section);
+        });
+
+        await handleSection(section);
+      } catch (error) {
+        console.error("[GC PLAY PRO] navegação:", error);
+        toast("Não foi possível abrir esta seção.");
+      }
     });
+  };
 
-    await handleSection(section);
-  }, true);
+  $$(".nav-item[data-section]").forEach(bind);
 }
-
 /* =========================================================
    TRATAMENTO DAS SEÇÕES
    ========================================================= */
