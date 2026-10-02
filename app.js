@@ -5290,6 +5290,14 @@ function syncSectionNavigation(section = null) {
    API DE NAVEGAÇÃO PARA A NOVA INTERFACE
    ========================================================= */
 async function navigateSection(section) {
+  /* Aguarda a inicialização do banco/catálogo antes de executar a navegação. */
+  if (window.__GC_APP_READY__) {
+    try { await window.__GC_APP_READY__; } catch {}
+  }
+  if (!state.db) {
+    toast("Catálogo ainda inicializando. Aguarde um instante.");
+    return false;
+  }
   const allowed = ["home","live","movies","series","adult","favorites"];
   if (!allowed.includes(section)) return false;
   if (section === "adult") {
@@ -7983,6 +7991,8 @@ async function clearCatalog() {
 window.loadM3U = loadM3U;
 window.closeDialog = closeDialog;
 
+window.__GC_STATE__ = state;
+
 window.GC_PLAY_PRO = {
   state,
 
@@ -8366,11 +8376,9 @@ if (
 ) {
   document.addEventListener(
     "DOMContentLoaded",
-    initApp,
-    {
-      once: true
-    }
+    () => { window.__GC_APP_READY__ = initApp(); },
+    { once: true }
   );
 } else {
-  initApp();
+  window.__GC_APP_READY__ = initApp();
 }
