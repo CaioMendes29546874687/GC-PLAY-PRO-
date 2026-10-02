@@ -4305,9 +4305,12 @@ async function playItem(item) {
      navegadores Android/TV e evita depender de HLS.js para o primeiro
      pedido do canal.
   */
+  const liveExtension =
+    String(state.xtreamSession?.liveExtension || "").toLowerCase();
+
   const sourceUrl =
     item.xtreamKind === "live"
-      ? liveTsUrl
+      ? (liveExtension === "ts" ? liveTsUrl : liveHlsUrl)
       : originalUrl;
 
   video.playbackRate =
@@ -4344,13 +4347,17 @@ async function playItem(item) {
      TV ao vivo/HLS continua usando o proxy desde o início porque
      seus manifestos/segmentos precisam do mesmo caminho de rede.
   */
-  const useGcProxy =
-    looksLikeLiveStream ||
-    isHLS(sourceUrl) ||
-    isDASH(sourceUrl);
+  /*
+     Todo conteúdo HTTP(S) que sai do servidor da playlist passa pelo
+     proxy HTTPS do GC. Em GitHub Pages, uma origem HTTP pode ser
+     bloqueada como mixed content antes mesmo do <video> conseguir
+     reproduzir. Para Xtream isso também evita CORS e mantém Range,
+     Content-Type e Content-Range no mesmo caminho.
+  */
+  const useGcProxy = shouldUseProxy(sourceUrl);
 
   const playbackUrl =
-    useGcProxy && shouldUseProxy(sourceUrl)
+    useGcProxy
       ? buildProxyUrl(sourceUrl)
       : sourceUrl;
 
