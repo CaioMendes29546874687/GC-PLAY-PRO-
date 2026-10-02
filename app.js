@@ -4342,11 +4342,19 @@ async function playItem(item) {
     /\/play\//i.test(originalUrl) ||
     /\/tv\//i.test(sourceUrl);
 
+  /*
+     Conteúdo Xtream também passa pelo proxy desde o primeiro pedido.
+     Isso evita que o navegador receba o arquivo de vídeo diretamente
+     de um servidor sem CORS e só descubra a falha depois do código 4.
+  */
+  const useGcProxy =
+    looksLikeLiveStream ||
+    isHLS(sourceUrl) ||
+    (state.xtreamSession && !!item.xtreamKind);
+
   const playbackUrl =
-    looksLikeLiveStream || isHLS(sourceUrl)
-      ? (shouldUseProxy(sourceUrl)
-          ? buildProxyUrl(sourceUrl)
-          : sourceUrl)
+    useGcProxy && shouldUseProxy(sourceUrl)
+      ? buildProxyUrl(sourceUrl)
       : sourceUrl;
 
   /* -------------------------------------------------------
