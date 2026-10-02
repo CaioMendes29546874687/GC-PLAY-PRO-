@@ -33,7 +33,7 @@
   const originalPlay = window.playMpegTS;
   if (typeof originalPlay !== "function") return;
 
-  window.playMpegTS = async function (video, url, message, directFallbackUrl = "") {
+  window.playMpegTS = async function (video, url, message, directFallbackUrl = "", secondaryFallbackUrl = "") {
     if (message) message.textContent = "Preparando compatibilidade da TV ao vivo...";
 
     if (video) {
@@ -47,6 +47,6 @@
       }, { once: true });
     }
 
-    return originalPlay(video, url, message, directFallbackUrl);
+    return originalPlay(video, url, message, directFallbackUrl, secondaryFallbackUrl);
   };
 })();
