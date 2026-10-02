@@ -3392,11 +3392,22 @@ async function getSeriesEpisodes(seriesKey, season = null) {
 
   if (selectedSeries?.xtreamSeriesId && state.xtreamSession) {
     try {
-      return await fetchXtreamSeriesEpisodes(
+      const result = await fetchXtreamSeriesEpisodes(
         selectedSeries,
         season,
         state.loadAbort?.signal
       );
+
+      /* Episódios Xtream são carregados sob demanda e não entram no
+         IndexedDB. Guarde-os em memória para o clique do episódio
+         chegar ao player mesmo quando o catálogo tem dezenas de milhares
+         de itens. */
+      const dynamic = window.__GC_DYNAMIC_ITEMS__ || (window.__GC_DYNAMIC_ITEMS__ = new Map());
+      for (const episode of result) {
+        if (episode?.id) dynamic.set(String(episode.id), episode);
+      }
+
+      return result;
     } catch (error) {
       console.warn("[GC PLAY PRO] Episódios Xtream:", error);
     }
@@ -4910,6 +4921,14 @@ function findRAMItem(id) {
    ========================================================= */
 
 async function findItem(id) {
+  const key = String(id || "");
+
+  const dynamic = window.__GC_DYNAMIC_ITEMS__;
+  if (dynamic instanceof Map) {
+    const item = dynamic.get(key);
+    if (item) return item;
+  }
+
   const ram =
     findRAMItem(id);
 
