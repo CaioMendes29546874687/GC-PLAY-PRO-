@@ -2758,53 +2758,56 @@ async function queryCatalogItems({
   term = "",
   limit = 120
 } = {}) {
-  /* Caminho rápido: a amostra em RAM é usada primeiro para pintar
-     o catálogo imediatamente. O IndexedDB só completa quando necessário. */
-  if (state.items.length) {
-    const wantedType = type === "adult" ? null : type;
-    const wantedGenre = normalizeText(genre);
-    const wantedTerm = normalizeText(term);
-    const fast = state.items.filter(item => {
-      if (!item) return false;
-      if (type === "adult" ? !isAdultContent(item) : isAdultContent(item)) return false;
-      if (wantedType && item.type !== wantedType) return false;
-      if (genre !== "all" && normalizeText(getGenreName(item.group)) !== wantedGenre) return false;
-      if (wantedTerm && !(item.nameLower || normalizeText(item.name || "")).includes(wantedTerm) && !normalizeText(item.group).includes(wantedTerm)) return false;
-      return true;
-    }).slice(0, limit);
-    if (fast.length >= Math.min(limit, 24) || !state.db) return fast;
-  }
+  /*
+     A RAM_LIMIT é apenas uma amostra para a primeira pintura.
+     Uma lista Xtream grande normalmente começa com milhares de
+     canais, então filmes/séries podem estar somente no IndexedDB.
+     Nunca podemos tratar "não achei na amostra" como "não existe".
+  */
+  const wantedType = type === "adult" ? null : type;
+  const wantedGenre = normalizeText(genre);
+  const wantedTerm = normalizeText(term);
 
+  const matches = item => {
+    if (!item) return false;
+
+    if (type === "adult" ? !isAdultContent(item) : isAdultContent(item)) {
+      return false;
+    }
+
+    if (wantedType && item.type !== wantedType) return false;
+
+    if (
+      genre !== "all" &&
+      normalizeText(getGenreName(item.group)) !== wantedGenre
+    ) {
+      return false;
+    }
+
+    if (
+      wantedTerm &&
+      !(item.nameLower || normalizeText(item.name || "")).includes(wantedTerm) &&
+      !normalizeText(item.group).includes(wantedTerm)
+    ) {
+      return false;
+    }
+
+    return true;
+  };
+
+  /*
+     Se o catálogo completo não estiver disponível no banco,
+     usamos a amostra local como fallback.
+  */
   if (!state.db) {
-    let fallback = state.items.slice();
-
-    if (type === "adult") {
-      fallback = fallback.filter(isAdultContent);
-    } else {
-      fallback = fallback.filter(item =>
-        !isAdultContent(item) &&
-        (!type || item.type === type)
-      );
-    }
-
-    if (genre !== "all") {
-      const wanted = normalizeText(genre);
-      fallback = fallback.filter(item =>
-        normalizeText(getGenreName(item.group)) === wanted
-      );
-    }
-
-    if (term) {
-      const normalized = normalizeText(term);
-      fallback = fallback.filter(item =>
-        item.nameLower.includes(normalized) ||
-        normalizeText(item.group).includes(normalized)
-      );
-    }
-
-    return fallback.slice(0, limit);
+    return state.items.filter(matches).slice(0, limit);
   }
 
+  /*
+     Para uma seção específica, o índice "type" garante que TV,
+     filmes e séries sejam buscados em TODO o catálogo, e não
+     apenas nos primeiros RAM_LIMIT registros.
+  */
   return new Promise((resolve, reject) => {
     const result = [];
     const transaction = state.db.transaction(STORE_NAME, "readonly");
@@ -2823,28 +2826,8 @@ async function queryCatalogItems({
         return;
       }
 
-      const item = cursor.value;
-      const matchesAdult =
-        type === "adult"
-          ? isAdultContent(item)
-          : !isAdultContent(item);
-
-      const matchesType =
-        type === "adult"
-          ? true
-          : (!type || item.type === type);
-
-      const matchesGenre =
-        genre === "all" ||
-        normalizeText(getGenreName(item.group)) === normalizeText(genre);
-
-      const matchesTerm =
-        !term ||
-        item.nameLower.includes(normalizeText(term)) ||
-        normalizeText(item.group).includes(normalizeText(term));
-
-      if (matchesAdult && matchesType && matchesGenre && matchesTerm) {
-        result.push(item);
+      if (matches(cursor.value)) {
+        result.push(cursor.value);
       }
 
       cursor.continue();
