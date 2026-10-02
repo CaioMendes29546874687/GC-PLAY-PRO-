@@ -144,7 +144,6 @@ async function handleUiTarget(target,event){
     return true;
   }
 
-  const s=state(), a=api();
   if(!s || !a) return false;
 
   const back=target?.closest?.("#contentGrid [data-series-back]");
