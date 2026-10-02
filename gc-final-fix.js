@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const VERSION="20261002-7";
+const VERSION="20261002-8";
 window.__GC_FINAL_FIX_VERSION__=VERSION;
 
 function api(){ return window.GC_PLAY_PRO || null; }
@@ -215,7 +215,15 @@ async function routeUiEvent(event){
   }
 }
 
-document.addEventListener("pointerdown",routeUiEvent,true);
+/* IMPORTANTE: pointerdown não deve acionar cards do catálogo.
+   Em celular, o dedo começa o scroll sobre um card; se tratarmos
+   pointerdown como seleção, o card é aberto sem intenção.
+   Mantemos pointerdown somente para a barra de navegação. */
+document.addEventListener("pointerdown",event=>{
+  const nav=event.target?.closest?.(".gc-bottom-nav button.nav-item[data-section], .main-nav button.nav-item[data-section]");
+  if(nav) routeUiEvent(event);
+},true);
+
 document.addEventListener("click",routeUiEvent,true);
 
 /* Expose a manual test hook so the same production path can be invoked
