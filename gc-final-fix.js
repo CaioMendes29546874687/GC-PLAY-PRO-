@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const VERSION="20261002-4";
+const VERSION="20261002-6";
 window.__GC_FINAL_FIX_VERSION__=VERSION;
 
 function api(){ return window.GC_PLAY_PRO || null; }
@@ -11,6 +11,9 @@ function state(){ return api()?.state || window.__GC_STATE__ || null; }
 async function directSection(section){
   const a=api(), s=state();
   if(!a || !s) return false;
+
+  /* Navegação sempre fecha o player para a biblioteca ficar visível. */
+  try{ if(typeof a.closePlayer==="function") a.closePlayer(); }catch{}
 
   if(window.__GC_APP_READY__){
     try{ await window.__GC_APP_READY__; }catch{}
@@ -25,6 +28,12 @@ async function directSection(section){
     s.seriesView.season=null;
     if(typeof a.setCatalogCategory==="function"){
       await a.setCatalogCategory(type,"all");
+      /* Garante que o painel correto fique visível mesmo se uma camada de UI
+         anterior tiver deixado o dashboard ativo. */
+      const dash=document.getElementById("homeDashboard");
+      const lib=document.getElementById("librarySection");
+      if(dash) dash.style.display="none";
+      if(lib) lib.style.display="";
       return true;
     }
   }
