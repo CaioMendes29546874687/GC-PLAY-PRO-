@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-02-13 */
+/* GC BUILD 2026-10-02-14 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -4713,7 +4713,13 @@ async function playHLS(
      Safari / iPhone / alguns Smart TVs
      ------------------------------------------------------- */
 
+  /* Android/Android TV: use HLS.js first. Chrome can report native
+     HLS support and still fail the stream with MEDIA_ERR_SRC_NOT_SUPPORTED.
+     Keep native HLS for non-Android environments such as Safari/iOS. */
+  const gcAndroidLike = /Android|Android TV/i.test(navigator.userAgent || "");
+
   if (
+    !gcAndroidLike &&
     video.canPlayType(
       "application/vnd.apple.mpegurl"
     )
