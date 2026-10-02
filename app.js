@@ -1370,13 +1370,14 @@ async function migrateCatalogTypes() {
 
 function shouldUseProxy(url) {
   try {
-    const parsed = new URL(url);
+    const parsed = new URL(String(url || ""));
 
-    /*
-       Qualquer URL HTTP/HTTPS pode passar pelo proxy.
-       Isso permite usar playlists de domínios diferentes
-       sem precisar cadastrar cada servidor manualmente.
-    */
+    /* Nunca proxifique novamente o próprio endpoint do GC. */
+    const proxy = new URL(GC_M3U_PROXY);
+    if (parsed.origin === proxy.origin && parsed.pathname === proxy.pathname) {
+      return false;
+    }
+
     return (
       parsed.protocol === "http:" ||
       parsed.protocol === "https:"
@@ -1385,7 +1386,6 @@ function shouldUseProxy(url) {
     return false;
   }
 }
-
 function buildProxyUrl(url) {
   return (
     `${GC_M3U_PROXY}?url=` +
