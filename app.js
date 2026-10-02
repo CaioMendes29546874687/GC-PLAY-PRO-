@@ -1642,9 +1642,11 @@ async function tryLoadXtreamFast(url, signal) {
       ? userInfo.allowed_output_formats.map(v => String(v).toLowerCase())
       : [];
 
-    const liveExtension = allowed.includes("m3u8")
-      ? "m3u8"
-      : "ts";
+    /* Para navegador/Android/TV, TS é o caminho principal quando
+       a conta oferece TS. HLS continua disponível como fallback. */
+    const liveExtension = allowed.includes("ts")
+      ? "ts"
+      : "m3u8";
 
     const items = [];
     const seriesCatalog = [];
@@ -4298,21 +4300,14 @@ async function playItem(item) {
       : originalUrl;
 
   /*
-     TV ao vivo Xtream: este servidor já foi confirmado entregando
-     video/mp2t mesmo quando a URL .m3u8 é usada. Mantemos o .ts
-     como caminho principal para preservar a abertura rápida.
-     HLS/fMP4 continua disponível para fluxos que forem realmente
-     identificados como HLS em URLs não-Xtream.
-  */
-  /*
-     Xtream ao vivo: HLS é o transporte principal no navegador,
-     inclusive em Android/TV. MPEG-TS continua como fallback.
-     Isso evita deixar o player preso no "Conectando ao MPEG-TS..."
-     quando o servidor aceita .m3u8 normalmente.
+     Xtream ao vivo: quando a conta oferece TS, usamos MPEG-TS como
+     transporte principal. HLS fica como fallback. Isso atende melhor
+     navegadores Android/TV e evita depender de HLS.js para o primeiro
+     pedido do canal.
   */
   const sourceUrl =
     item.xtreamKind === "live"
-      ? liveHlsUrl
+      ? liveTsUrl
       : originalUrl;
 
   video.playbackRate =
