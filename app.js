@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-02-18 */
+/* GC BUILD 2026-10-02-19 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -4622,14 +4622,36 @@ async function playItem(item) {
           ? window.playMpegTS
           : playMpegTS;
 
+      /* Alguns canais abertos da própria M3U usam uma URL de stream
+         diferente da rota Xtream reconstruída. Preserve essa origem
+         como fallback final em vez de obrigar todos os canais a usar
+         /live/<user>/<pass>/<id>.ts. */
+      const originalLiveIsHls =
+        item.xtreamKind === "live" && isHLS(originalUrl);
+
       const hlsFallbackUrl =
-        item.xtreamKind === "live" && liveHlsUrl !== sourceUrl
-          ? (shouldUseProxy(liveHlsUrl) ? buildProxyUrl(liveHlsUrl) : liveHlsUrl)
+        item.xtreamKind === "live"
+          ? (
+              originalLiveIsHls
+                ? (shouldUseProxy(originalUrl) ? buildProxyUrl(originalUrl) : originalUrl)
+                : (
+                    liveHlsUrl !== sourceUrl
+                      ? (shouldUseProxy(liveHlsUrl) ? buildProxyUrl(liveHlsUrl) : liveHlsUrl)
+                      : ""
+                  )
+            )
           : "";
 
       const liveDirectFallback =
-        item.xtreamKind === "live" && liveTsUrl
-          ? liveTsUrl
+        item.xtreamKind === "live"
+          ? (
+              !originalLiveIsHls &&
+              originalUrl &&
+              originalUrl !== playbackUrl &&
+              originalUrl !== liveTsUrl
+                ? originalUrl
+                : liveTsUrl
+            )
           : (originalUrl !== playbackUrl ? originalUrl : "");
 
       await livePlayer(
