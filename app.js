@@ -8221,8 +8221,7 @@ function setupPlaylistButtonFallback() {
 
 async function initApp() {
 
-  /* Navegação principal: um único controlador para menu superior e inferior. */
-  setupNavigation();
+  /* A camada de UI é a única responsável pelos botões de navegação. */
 
   console.log(
     "%cGC PLAY PRO",
