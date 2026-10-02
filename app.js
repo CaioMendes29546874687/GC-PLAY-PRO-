@@ -4330,10 +4330,18 @@ async function playItem(item) {
      Isso evita que o navegador receba o arquivo de vídeo diretamente
      de um servidor sem CORS e só descubra a falha depois do código 4.
   */
+  /*
+     Para filmes e episódios Xtream, tente a origem diretamente.
+     O elemento <video> consegue reproduzir mídia cross-origin sem
+     exigir CORS para a simples reprodução. O proxy fica como
+     fallback caso a origem bloqueie ou falhe.
+     TV ao vivo/HLS continua usando o proxy desde o início porque
+     seus manifestos/segmentos precisam do mesmo caminho de rede.
+  */
   const useGcProxy =
     looksLikeLiveStream ||
     isHLS(sourceUrl) ||
-    (state.xtreamSession && !!item.xtreamKind);
+    isDASH(sourceUrl);
 
   const playbackUrl =
     useGcProxy && shouldUseProxy(sourceUrl)
