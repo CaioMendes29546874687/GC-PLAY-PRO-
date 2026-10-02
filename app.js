@@ -4161,6 +4161,55 @@ function closePlayer() {
    ABRIR PLAYER
    ========================================================= */
 
+async function probeMediaSource(url) {
+  const target = String(url || "");
+  if (!shouldUseProxy(target)) return { ok: true };
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 7000);
+
+  try {
+    const response = await fetch(target, {
+      method: "GET",
+      cache: "no-store",
+      headers: { "Range": "bytes=0-1", "Accept": "video/*,audio/*,*/*" },
+      signal: controller.signal
+    });
+
+    const contentType = response.headers.get("content-type") || "";
+    const contentLength = response.headers.get("content-length") || "";
+    let detail = "";
+
+    if (contentType.includes("application/json")) {
+      try {
+        const data = await response.clone().json();
+        detail = [data?.error, data?.detail, data?.status ? "HTTP origem " + data.status : ""]
+          .filter(Boolean).join(" — ");
+      } catch {}
+    }
+
+    try { await response.body?.cancel(); } catch {}
+
+    return {
+      ok: response.ok && !contentType.includes("application/json") && !/text\/html/i.test(contentType),
+      status: response.status,
+      contentType,
+      contentLength,
+      detail
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      contentType: "",
+      contentLength: "",
+      detail: error?.name === "AbortError" ? "tempo limite de 7s" : (error?.message || String(error))
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function playItem(item) {
   if (!item || !item.url) {
     toast(
@@ -4445,11 +4494,29 @@ async function playItem(item) {
   video.playsInline = true;
   video.style.visibility = "visible";
   video.style.opacity = "1";
+
+  if (message) {
+    message.textContent = "Verificando fonte do vídeo...";
+  }
+
+  const probe = await probeMediaSource(playbackUrl);
+  if (!probe.ok) {
+    console.error("[GC PLAY PRO] pré-teste de mídia:", probe);
+
+    if (message) {
+      const ct = probe.contentType ? " • " + probe.contentType : "";
+      const status = probe.status ? "HTTP " + probe.status : "";
+      const detail = probe.detail ? " • " + probe.detail : "";
+      message.textContent =
+        "Fonte recusada" + (status ? " (" + status + ")" : "") + ct + detail;
+    }
+    return;
+  }
+
   video.src = playbackUrl;
 
   if (message) {
-    message.textContent =
-      "Carregando vídeo...";
+    message.textContent = "Carregando vídeo...";
   }
 
   video.onloadedmetadata = () => {
