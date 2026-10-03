@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#010503">
+<title>GC PLAY PRO — Painel de Ativação</title>
+<style>
+:root{--g:#39ff88;--g2:#72ffab;--cyan:#3de9ff;--blue:#28a9ff;--y:#ffd21f;--r:#ff4968;--bg:#010503;--panel:#07110b;--panel2:#0a1710;--line:rgba(57,255,136,.18);--text:#effff5;--muted:#71877a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 75% 0%,rgba(57,255,136,.12),transparent 28%),radial-gradient(circle at 15% 90%,rgba(61,233,255,.06),transparent 30%),#010503;color:var(--text);font:14px Inter,system-ui,Arial,sans-serif;min-height:100vh}button,input{font:inherit}button{cursor:pointer}
+.app{display:flex;min-height:100vh}.side{width:214px;position:fixed;inset:0 auto 0 0;padding:20px 12px;background:rgba(2,8,5,.94);border-right:1px solid var(--line);z-index:5}.brand{display:flex;align-items:center;gap:9px;padding:8px 10px 22px}.brand b{font-size:28px;font-style:italic;letter-spacing:-2px;background:linear-gradient(90deg,var(--g),#fff);-webkit-background-clip:text;color:transparent}.brand span{font-weight:800;color:#dfffee}.crown{color:#ffd21f;font-size:20px}.side small{display:block;color:#607467;font-size:9px;letter-spacing:1.2px;margin:-18px 0 18px 54px}.nav{display:grid;gap:6px}.nav button{border:0;background:transparent;color:#d7e7dc;text-align:left;padding:13px 14px;border-radius:13px;display:flex;gap:12px;align-items:center}.nav button:hover,.nav button.active{background:linear-gradient(90deg,rgba(57,255,136,.25),rgba(57,255,136,.04));box-shadow:inset 3px 0 var(--g);color:#fff}.ico{width:22px;text-align:center;font-size:17px}.ai{position:absolute;left:12px;right:12px;bottom:14px;padding:14px;border:1px solid rgba(57,255,136,.4);border-radius:18px;background:linear-gradient(145deg,rgba(10,32,20,.95),rgba(2,12,7,.98));box-shadow:0 0 30px rgba(57,255,136,.09)}.ai b{color:var(--g);font-size:17px}.ai p{margin:5px 0 10px;color:#9bb0a2;font-size:11px}.ai button{width:100%;margin-top:5px;background:#07140c;color:#dfffea;border:1px solid var(--line);border-radius:9px;padding:8px;text-align:left;font-size:11px}
+.main{margin-left:214px;width:calc(100% - 214px);padding:18px 22px 35px}.top{height:58px;display:flex;align-items:center;justify-content:space-between;gap:15px}.stats{display:flex;gap:8px;flex-wrap:wrap}.stat{min-width:130px;padding:9px 13px;border:1px solid var(--line);background:rgba(5,18,11,.75);border-radius:12px}.stat small{display:block;color:#728a7a;font-size:10px}.stat strong{font-size:18px}.stat.green strong{color:var(--g)}.stat.red strong{color:var(--r)}.stat.yellow strong{color:var(--y)}.user{display:flex;align-items:center;gap:10px}.avatar{width:39px;height:39px;border-radius:50%;display:grid;place-items:center;background:#effff6;color:#0b2214;font-weight:900}.hero{min-height:215px;margin-top:10px;border:1px solid rgba(57,255,136,.35);border-radius:18px;overflow:hidden;position:relative;background:radial-gradient(circle at 75% 50%,rgba(61,233,255,.22),transparent 24%),linear-gradient(115deg,#06130c,#03100c 55%,#06231a)}.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 0 48%,rgba(57,255,136,.08) 49%,transparent 50%),radial-gradient(circle at 80% 25%,rgba(57,255,136,.3),transparent 25%);opacity:.8}.heroText{position:relative;padding:35px}.heroText h1{font-size:48px;margin:0;font-style:italic;letter-spacing:-3px}.heroText h1 span{color:var(--g)}.heroText p{color:#9db5a6;letter-spacing:3px}.heroActions{display:flex;gap:9px}.btn{border:1px solid var(--line);background:#08160e;color:#eafff1;border-radius:9px;padding:10px 14px}.btn.primary{background:linear-gradient(90deg,#10d965,#39ff88);color:#001b0b;font-weight:900;border:0;box-shadow:0 0 25px rgba(57,255,136,.25)}.grid{display:grid;grid-template-columns:1.7fr 1fr;gap:16px;margin-top:16px}.card{border:1px solid var(--line);border-radius:16px;background:linear-gradient(145deg,rgba(8,20,13,.94),rgba(3,10,7,.94));box-shadow:0 20px 55px rgba(0,0,0,.28);overflow:hidden}.cardHead{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border-bottom:1px solid rgba(57,255,136,.1)}.cardHead h2{font-size:16px;margin:0}.search{display:flex;gap:8px}.search input{width:250px;background:#020a06;border:1px solid var(--line);color:white;border-radius:9px;padding:9px 11px;outline:none}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:10px 11px;border-bottom:1px solid rgba(255,255,255,.05);text-align:left;font-size:11px}.table th{color:#6f8778;font-weight:600}.table tr:hover{background:rgba(57,255,136,.045)}.badge{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800}.on{color:#001c0b;background:#39ff88}.warn{color:#241900;background:#ffd21f}.off{color:#fff;background:#ff4968}.actions button{background:#07130c;color:#dfffea;border:1px solid var(--line);border-radius:7px;padding:5px 7px;margin-right:3px}.list{padding:0 15px 15px}.listRow{display:grid;grid-template-columns:1.2fr 1.1fr .8fr .7fr auto;gap:8px;align-items:center;padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.05)}.listRow.head{color:#6f8778;font-size:10px}.deviceGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px}.device{border:1px solid var(--line);border-radius:12px;padding:10px;background:#041009}.device strong{display:block}.device small{color:#779081}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--g);box-shadow:0 0 9px var(--g);margin-right:5px}.sync{display:flex;align-items:center;gap:8px;color:#8fa99a;font-size:11px}.spin{animation:spin 1s linear infinite;display:inline-block}@keyframes spin{to{transform:rotate(360deg)}}.toast{position:fixed;right:22px;bottom:22px;padding:13px 17px;background:#07170e;border:1px solid rgba(57,255,136,.45);border-radius:12px;box-shadow:0 0 35px rgba(57,255,136,.15);display:none;z-index:20}.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(7px);display:none;place-items:center;z-index:15}.modalBox{width:min(620px,calc(100% - 30px));background:#06110a;border:1px solid rgba(57,255,136,.35);border-radius:18px;padding:20px;box-shadow:0 30px 100px #000}.modalBox h2{margin-top:0}.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field label{display:block;color:#799181;font-size:11px;margin-bottom:5px}.field input,.field select{width:100%;padding:10px;border-radius:9px;border:1px solid var(--line);background:#020a06;color:white}.full{grid-column:1/-1}.modalFoot{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+@media(max-width:1050px){.side{width:76px}.brand b,.brand span,.side small,.nav button span,.ai{display:none}.main{margin-left:76px;width:calc(100% - 76px)}.nav button{justify-content:center}.grid{grid-template-columns:1fr}.stats{overflow:auto;flex-wrap:nowrap}.heroText h1{font-size:38px}}
+@media(max-width:700px){.main{padding:10px;margin-left:0;width:100%;padding-bottom:25px}.side{position:fixed;top:auto;bottom:0;left:0;width:100%;height:62px;padding:5px 7px;border-right:0;border-top:1px solid var(--line)}.brand,.ai{display:none}.nav{display:flex;justify-content:space-around}.nav button{padding:8px;display:block;text-align:center}.nav button .ico{display:block;margin:auto}.nav button span{display:block;font-size:8px;margin-top:2px}.top{height:auto}.stats{display:grid;grid-template-columns:repeat(2,1fr);width:100%}.stat{min-width:0}.user{display:none}.hero{min-height:245px}.heroText{padding:25px 20px}.heroText h1{font-size:36px}.search input{width:140px}.tableWrap{overflow:auto}.table{min-width:720px}.deviceGrid{grid-template-columns:1fr 1fr}.form{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side">
+  <div class="brand"><b>GC</b><span>PLAY PRO</span><i class="crown">♛</i></div>
+  <small>PAINEL DE ATIVAÇÃO E GERENCIAMENTO</small>
+  <nav class="nav">
+    <button class="active"><i class="ico">⌂</i><span>Dashboard</span></button>
+    <button><i class="ico">♙</i><span>Clientes</span></button>
+    <button><i class="ico">▣</i><span>Dispositivos</span></button>
+    <button><i class="ico">▤</i><span>Listas M3U</span></button>
+    <button><i class="ico">✓</i><span>Ativações</span></button>
+    <button><i class="ico">▦</i><span>Planos</span></button>
+    <button><i class="ico">◉</i><span>Financeiro</span></button>
+    <button><i class="ico">☷</i><span>Logs</span></button>
+    <button><i class="ico">⚙</i><span>Configurações</span></button>
+  </nav>
+  <div class="ai"><b>✦ GC IA</b><p>Assistente do administrador</p><button>Ver clientes expirando</button><button id="syncAll">Sincronizar todas as listas</button><button>Ver dispositivos online</button></div>
+</aside>
+<main class="main">
+  <header class="top">
+    <div class="stats">
+      <div class="stat"><small>CLIENTES</small><strong>1.284</strong></div>
+      <div class="stat green"><small>ATIVOS</small><strong>1.137</strong></div>
+      <div class="stat yellow"><small>EXPIRANDO</small><strong>63</strong></div>
+      <div class="stat red"><small>BLOQUEADOS</small><strong>84</strong></div>
+      <div class="stat"><small>DISPOSITIVOS</small><strong>1.762</strong></div>
+      <div class="stat"><small>LISTAS</small><strong>8</strong></div>
+    </div>
+    <div class="user"><div class="avatar">CM</div><div><b>Caio Mendes</b><br><small>Administrador</small></div></div>
+  </header>
+
+  <section class="hero">
+    <div class="heroText">
+      <h1>GC <span>PLAY PRO</span> ♛</h1>
+      <p>CONTROLE TOTAL DO SEU APLICATIVO</p>
+      <div class="heroActions">
+        <button class="btn primary" id="newClient">＋ NOVO CLIENTE</button>
+        <button class="btn" id="sync">↻ SINCRONIZAR LISTAS</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <div class="cardHead"><h2>♙ Clientes recentes</h2><div class="search"><input id="filter" placeholder="Buscar cliente, login..."></div></div>
+      <div class="tableWrap">
+      <table class="table"><thead><tr><th>#</th><th>Nome</th><th>Login</th><th>Plano</th><th>Validade</th><th>Status</th><th>Disp.</th><th>Ações</th></tr></thead>
+      <tbody id="clients"></tbody></table></div>
+    </section>
+    <section class="card">
+      <div class="cardHead"><h2>▤ Listas M3U</h2><button class="btn primary" id="newList">＋ Nova lista</button></div>
+      <div class="list">
+        <div class="listRow head"><span>Nome</span><span>URL / servidor</span><span>Validade</span><span>Status</span><span></span></div>
+        <div id="lists"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="grid">
+    <section class="card"><div class="cardHead"><h2>◉ Dispositivos online</h2><span class="sync"><i class="dot"></i>tempo real</span></div><div class="deviceGrid" id="devices"></div></section>
+    <section class="card"><div class="cardHead"><h2>✓ Últimas ativações</h2></div><div class="list"><div id="activations"></div></div></section>
+  </div>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+<div class="modal" id="modal"><div class="modalBox"><h2 id="modalTitle">Novo cliente</h2><div class="form"><div class="field"><label>NOME</label><input id="fName"></div><div class="field"><label>PLANO</label><select id="fPlan"><option>Mensal</option><option>Trimestral</option><option>Semestral</option><option>Anual</option></select></div><div class="field"><label>LOGIN M3U / XTREAM</label><input id="fLogin"></div><div class="field"><label>SENHA M3U / XTREAM</label><input id="fPass" type="password"></div><div class="field full"><label>URL DO SERVIDOR / LISTA</label><input id="fUrl" placeholder="https://servidor/..."></div></div><div class="modalFoot"><button class="btn" id="cancel">Cancelar</button><button class="btn primary" id="save">Salvar cliente</button></div></div></div>
+<script>
+const clientsData=[
+["001","João Silva","951185413","Anual","03/10/2027","on","2/3"],
+["002","Maria Souza","784512963","Mensal","15/11/2026","on","1/2"],
+["003","Carlos Lima","623874159","Trimestral","01/10/2026","warn","1/1"],
+["004","Ana Paula","741852963","Mensal","28/09/2026","off","0/2"],
+["005","Eduardo Alves","369258147","Anual","12/12/2026","on","3/3"],
+["006","Patricia Gomes","159753486","Mensal","20/10/2026","on","1/2"],
+["007","Rodrigo Martins","258369147","Semestral","05/04/2027","on","2/2"],
+["008","Juliana Ferraz","963147258","Mensal","02/10/2026","warn","1/1"]];
+const listsData=[
+["Lista Principal","netuno.live","20/12/2026","on"],["Lista Brasil","server02.com","15/01/2027","on"],["Lista Internacional","server03.com","03/11/2026","on"],["Lista Teste","server04.com","25/09/2026","off"],["Lista Premium","server05.com","10/03/2027","on"],["Lista 4K","server06.com","18/12/2026","on"],["Lista Adultos","server07.com","05/02/2027","on"],["Lista Esportes","server08.com","12/11/2026","on"]];
+const devices=[["LG Smart TV","Sala"],["Samsung TV","Quarto"],["Android TV","Sala"],["Fire TV Stick","Escritório"],["Celular Android","Mobile"],["Smart TV","Sala"]];
+function status(s){return s==="on"?'<span class="badge on">Ativa</span>':s==="warn"?'<span class="badge warn">Expirando</span>':'<span class="badge off">Expirada</span>'}
+function renderClients(q=""){clients.innerHTML=clientsData.filter(x=>x.join(" ").toLowerCase().includes(q.toLowerCase())).map(x=>'<tr><td>'+x[0]+'</td><td><b>'+x[1]+'</b></td><td>'+x[2]+'</td><td>'+x[3]+'</td><td>'+x[4]+' ↻</td><td>'+status(x[5])+'</td><td>'+x[6]+'</td><td class="actions"><button>◉</button><button>✎</button><button>⋮</button></td></tr>').join("")}
+function renderLists(){lists.innerHTML=listsData.map(x=>'<div class="listRow"><span><b>'+x[0]+'</b></span><span>'+x[1]+'</span><span>'+x[2]+' ↻</span><span>'+status(x[3])+'</span><span class="actions"><button>↻</button><button>⋮</button></span></div>').join("")}
+function renderDevices(){devices.innerHTML=devices.map(x=>'<div class="device"><strong>▣ '+x[0]+'</strong><small>⌖ '+x[1]+'</small><br><small><i class="dot"></i>Online agora</small></div>').join("")}
+function renderActivations(){activations.innerHTML=clientsData.slice(0,5).map((x,i)=>'<div class="listRow" style="grid-template-columns:1fr 1fr auto"><span>03/10  '+(14-i)+':3'+i+'</span><span>'+x[1]+'</span><span class="badge on">Ativado</span></div>').join("")}
+function toast(t){const e=document.getElementById("toast");e.textContent=t;e.style.display="block";setTimeout(()=>e.style.display="none",2600)}
+function sync(){toast("Sincronização iniciada — consultando validade das listas...");setTimeout(()=>toast("✓ Listas verificadas. Painel atualizado."),1400)}
+renderClients();renderLists();renderDevices();renderActivations();
+filter.oninput=e=>renderClients(e.target.value);sync.onclick=sync;syncAll.onclick=sync;
+newClient.onclick=()=>modal.style.display="grid";cancel.onclick=()=>modal.style.display="none";newList.onclick=()=>toast("Cadastro de lista será conectado ao Supabase.");
+save.onclick=()=>{modal.style.display="none";toast("✓ Cliente cadastrado. A integração com o Supabase será aplicada nesta etapa.");};
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");toast(b.innerText.trim()+" selecionado");});
+</script>
+</body></html>
