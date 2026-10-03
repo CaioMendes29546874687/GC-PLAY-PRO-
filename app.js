@@ -4885,19 +4885,20 @@ async function playItem(item) {
     item.xtreamKind === "live"
       ? (
           /*
-             Samsung/Tizen: respeita o transporte que a própria conta
-             Xtream informa em allowed_formats. Algumas contas oferecem
-             somente MPEG-TS (.ts); forçar .m3u8 aqui fazia o catálogo
-             abrir normalmente, mas deixava os canais ao vivo presos em
-             "conectando". Se a origem da M3U já informar .m3u8/.ts, ela
-             continua sendo a fonte de verdade.
+             Samsung/Tizen: quando temos sessão Xtream, priorize HLS
+             (.m3u8). O navegador Tizen costuma reproduzir HLS nativamente,
+             enquanto MPEG-TS via MSE/mpegts.js é o ponto mais frágil nas
+             TVs Samsung. Se a própria M3U já trouxe um transporte explícito,
+             ele continua tendo prioridade.
           */
-          (
-            originalLiveTransport ||
-            (gcAndroidLike
-              ? liveTsUrl
-              : (liveExtension === "ts" ? liveTsUrl : liveHlsUrl))
-          )
+          GC_IS_SAMSUNG_TV && state.xtreamSession && !originalLiveTransport
+            ? liveHlsUrl
+            : (
+                originalLiveTransport ||
+                (gcAndroidLike
+                  ? liveTsUrl
+                  : (liveExtension === "ts" ? liveTsUrl : liveHlsUrl))
+              )
         )
       : originalUrl;
 
