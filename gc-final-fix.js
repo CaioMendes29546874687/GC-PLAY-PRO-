@@ -390,103 +390,183 @@ function gcAiController(){
     const s=window.__GC_STATE__||window.GC_PLAY_PRO?.state;
     const items=Array.isArray(s?.items)?s.items:[];
     const catalog=Array.isArray(s?.seriesCatalog)?s.seriesCatalog:[];
-    const wantsSpecific=/\b(abra|abrir|abre|assistir|assista|coloque|coloca|reproduza|reproduzir|toque|mostrar|mostre|pesquise|pesquisar|procure|procurar|buscar|busque)\b/.test(n);
 
-    /* Pesquisa tanto nos itens em RAM quanto no catálogo persistente de séries.
-       Em listas grandes, os episódios podem estar no IndexedDB e state.items
-       pode conter poucos/zero itens enquanto seriesCatalog já está pronto. */
     const stripCommand=(value)=>String(value||"")
       .replace(/\b(quero|abra|abrir|abre|assistir|assista|coloque|coloca|reproduza|reproduzir|toque|mostrar|mostre|pesquise|pesquisar|procure|procurar|buscar|busque|me mostre|por favor)\b/gi," ")
-      .replace(/\b(?:a|o|um|uma)\s+(?=(?:s[eé]rie|filme|canal|temporada|epis[oó]dio)\b)/gi," ")
+      .replace(/\b(?:a|o|um|uma|os|as)\s+(?=(?:s[eé]rie|filme|filmes|canal|temporada|epis[oó]dio)\b)/gi," ")
       .replace(/\b(?:canal|canais|tv|televis[aã]o|ao vivo|filme|filmes|s[eé]rie|s[eé]ries|temporada|temporadas|epis[oó]dio|epis[oó]dios)\b/gi," ")
+      .replace(/\b(?:do|da|dos|das|de)\b/gi," ")
       .replace(/\s+/g," ").trim();
 
     const clean=stripCommand(q);
     const norm=(value)=>String(value||"")
       .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
       .toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+    const compact=(value)=>norm(value).replace(/\s+/g,"");
 
     const queryNorm=norm(clean);
+    const queryCompact=compact(clean);
+
+    /* "Filmes do X", "série X" e "911" também são pesquisas específicas,
+       mesmo sem o verbo "abra". Um comando que seja apenas "Filmes" continua
+       sendo navegação para a seção. */
+    const hasCommandVerb=/\b(abra|abrir|abre|assistir|assista|coloque|coloca|reproduza|reproduzir|toque|mostrar|mostre|pesquise|pesquisar|procure|procurar|buscar|busque)\b/.test(n);
+    const hasContentQualifier=/\b(filmes?|movies?|s[eé]ries?|serie|canais?)\b/.test(n);
+    const wantsSpecific=Boolean(queryNorm && (hasCommandVerb || hasContentQualifier));
+
     const scoreCandidate=(item)=>{
       if(!item || window.isAdultContent?.(item)) return -1;
       const title=norm(item.seriesName||item.name||"");
       const alt=norm(item.name||"");
+      const titleCompact=compact(title);
+      const altCompact=compact(alt);
       if(!queryNorm || !title) return -1;
-      if(title===queryNorm) return 1000;
+
+      /* Trata "911", "9-1-1" e "9 1 1" como o mesmo título. */
+      if(titleCompact===queryCompact) return 1200;
+      if(altCompact===queryCompact) return 1150;
+      if(title===queryNorm) return 1100;
+      if(alt===queryNorm) return 1050;
+      if(titleCompact.startsWith(queryCompact)) return 950;
       if(title.startsWith(queryNorm)) return 900;
+      if(altCompact.startsWith(queryCompact)) return 850;
       if(title.includes(queryNorm)) return 800;
-      if(alt===queryNorm) return 850;
-      if(alt.startsWith(queryNorm)) return 750;
       if(alt.includes(queryNorm)) return 700;
+
       const terms=queryNorm.split(" ").filter(Boolean);
       const hits=terms.filter(t=>title.includes(t)||alt.includes(t)).length;
       return hits===terms.length ? 600+hits : -1;
     };
 
+    async function gcAiFindDatabaseItems(predicate, limit=40){
+      const found=[];
+      if(!s?.db) return found;
+      try{
+        await new Promise(resolve=>{
+          const tx=s.db.transaction("items","readonly");
+          const request=tx.objectStore("items").openCursor();
+          request.onsuccess=e=>{
+            const cursor=e.target.result;
+            if(!cursor || found.length>=limit){ resolve(); return; }
+            try{
+              const item=cursor.value;
+              if(predicate(item)) found.push(item);
+            }catch{}
+            cursor.continue();
+          };
+          request.onerror=()=>resolve();
+        });
+      }catch{}
+      return found;
+    }
+
     if(wantsSpecific && queryNorm){
-      const pool=[
+      /* Primeiro séries, para comandos como "abra a série 911". */
+      const seriesPool=[
         ...catalog,
         ...items.filter(x=>x && (x.type==="series" || x.seriesKey))
       ];
 
-      const unique=new Map();
-      for(const item of pool){
+      const uniqueSeries=new Map();
+      for(const item of seriesPool){
         const key=String(item.seriesKey||item.id||item.name||"");
         if(!key) continue;
-        const prev=unique.get(key);
-        if(!prev || scoreCandidate(item)>scoreCandidate(prev)) unique.set(key,item);
+        const prev=uniqueSeries.get(key);
+        if(!prev || scoreCandidate(item)>scoreCandidate(prev)) uniqueSeries.set(key,item);
       }
 
-      const found=Array.from(unique.values())
+      const seriesFound=Array.from(uniqueSeries.values())
         .map(item=>({item,score:scoreCandidate(item)}))
         .filter(x=>x.score>=0)
         .sort((a,b)=>b.score-a.score)
         .slice(0,10)
         .map(x=>x.item);
 
-      if(found.length){
-        const item=found[0];
+      const explicitlySeries=/\b(s[eé]rie|s[eé]ries|temporada|epis[oó]dio|epis[oó]dios)\b/.test(n);
 
-        /* Série: usa a chave canônica do catálogo para abrir a série,
-           nunca somente a seção Séries. */
-        if(item.type==="series" || item.seriesKey || item.seriesName){
-          let key=String(item.seriesKey||"").trim();
+      if(seriesFound.length && (explicitlySeries || !/\bfilmes?\b/.test(n))){
+        const item=seriesFound[0];
+        let key=String(item.seriesKey||"").trim();
 
-          if(s?.seriesKeyAliases instanceof Map && key){
-            key=s.seriesKeyAliases.get(key)||key;
-          }
+        if(s?.seriesKeyAliases instanceof Map && key){
+          key=s.seriesKeyAliases.get(key)||key;
+        }
 
-          if(!key){
-            const title=String(item.seriesName||item.name||"").trim();
-            const match=catalog.find(x=>norm(x.seriesName||x.name)===norm(title));
-            key=String(match?.seriesKey||"").trim();
-          }
+        if(!key){
+          const title=String(item.seriesName||item.name||"").trim();
+          const match=catalog.find(x=>compact(x.seriesName||x.name)===queryCompact || norm(x.seriesName||x.name)===norm(title));
+          key=String(match?.seriesKey||"").trim();
+        }
 
-          if(s && key){
-            s.currentSection="series";
-            s.currentFilter="series";
-            s.currentGenre="all";
-            s.seriesView.seriesKey=key;
-            s.seriesView.season=null;
-          }
+        if(s && key){
+          s.currentSection="series";
+          s.currentFilter="series";
+          s.currentGenre="all";
+          s.searchTerm="";
+          s.seriesView.seriesKey=key;
+          s.seriesView.season=null;
+        }
 
+        try{
+          if(window.GC_PLAY_PRO?.render) await window.GC_PLAY_PRO.render();
+          const label=String(item.seriesName||item.name||clean||"").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
+          addMessage("Abrindo a série <b>"+label+"</b>.");
+        }catch{
+          addMessage("Encontrei a série, mas não consegui abrir os episódios agora.");
+        }
+        return;
+      }
+
+      /* Filmes/conteúdos: usa RAM + IndexedDB para não depender dos 4 mil
+         itens mantidos em memória em playlists muito grandes. */
+      let contentFound=items
+        .filter(x=>x && x.type!=="series" && !x.seriesKey)
+        .map(item=>({item,score:scoreCandidate(item)}))
+        .filter(x=>x.score>=0)
+        .sort((a,b)=>b.score-a.score)
+        .map(x=>x.item);
+
+      if(!contentFound.length || /\bfilmes?\b/.test(n)){
+        const dbFound=await gcAiFindDatabaseItems(item=>{
+          if(!item || item.type==="series" || item.seriesKey) return false;
+          return scoreCandidate(item)>=0;
+        },60);
+        const seen=new Set(contentFound.map(x=>String(x.id||x.url||x.name||"")));
+        for(const item of dbFound){
+          const key=String(item.id||item.url||item.name||"");
+          if(!seen.has(key)){seen.add(key);contentFound.push(item);}
+        }
+        contentFound.sort((a,b)=>scoreCandidate(b)-scoreCandidate(a));
+      }
+
+      if(contentFound.length){
+        /* Se há vários filmes relacionados, mostra a busca dentro de Filmes.
+           Se houver uma correspondência praticamente exata, abre diretamente. */
+        const exact=contentFound.find(x=>scoreCandidate(x)>=1100);
+        if(exact){
           try{
-            if(window.GC_PLAY_PRO?.render) await window.GC_PLAY_PRO.render();
-            else document.querySelector('[data-section="series"]')?.click();
-
-            const label=String(item.seriesName||item.name||clean||"").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
-            addMessage("Abrindo a série <b>"+label+"</b>.");
+            await window.GC_PLAY_PRO?.playItem?.(exact);
+            addMessage("Abrindo <b>"+String(exact.name||"conteúdo").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]))+"</b>.");
           }catch{
-            addMessage("Encontrei a série, mas não consegui abrir os episódios agora.");
+            addMessage("Encontrei o conteúdo, mas não consegui iniciar a reprodução.");
           }
           return;
         }
 
+        if(s){
+          s.currentSection="movies";
+          s.currentFilter="movie";
+          s.currentGenre="all";
+          s.searchTerm=clean;
+          s.seriesView.seriesKey=null;
+          s.seriesView.season=null;
+        }
+
         try{
-          await window.GC_PLAY_PRO?.playItem?.(item);
-          addMessage("Abrindo <b>"+String(item.name||"conteúdo").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]))+"</b>.");
+          if(window.GC_PLAY_PRO?.render) await window.GC_PLAY_PRO.render();
+          addMessage("Encontrei <b>"+contentFound.length+"</b> resultado(s) para <b>"+String(clean).replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]))+"</b>.");
         }catch{
-          addMessage("Encontrei o conteúdo, mas não consegui iniciar a reprodução.");
+          addMessage("Encontrei os filmes, mas não consegui mostrar os resultados agora.");
         }
         return;
       }
