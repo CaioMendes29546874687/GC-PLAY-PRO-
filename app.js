@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-02-21 */
+/* GC BUILD 2026-10-02-22 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -1067,53 +1067,92 @@ function classifyItem(name, group, url) {
   const groupText = normalizeText(group);
   const lowerUrl = String(url || "").toLowerCase();
 
-  /* 1) Rotas Xtream continuam sendo a fonte mais confiável. */
+  /*
+     Em playlists Xtream/M3U Plus, o caminho da própria URL é
+     a fonte mais confiável: /live/, /movie/ e /series/.
+     Isso tem prioridade sobre nomes e grupos mistos.
+  */
   const pathType = getXtreamPathType(url);
-  if (pathType) return pathType;
 
-  /* 2) Padrões explícitos de temporada/episódio. */
+  if (pathType) {
+    return pathType;
+  }
+
+  /*
+     A classificação precisa ser EXCLUSIVA.
+     Não podemos usar apenas "serie" ou "filme" em qualquer
+     parte do texto, porque grupos como "CANAIS | FILMES & SERIES"
+     são canais, não séries.
+  */
+
   const explicitSeries =
+    /\/series\//i.test(lowerUrl) ||
     /\b(?:s|season|t|temporada)\s*0*\d{1,3}\s*(?:e|ep|episode|episodio)\s*0*\d{1,4}\b/i.test(nameText) ||
     /\b0*\d{1,3}\s*x\s*0*\d{1,4}\b/i.test(nameText) ||
-    /\b(?:s|season|t|temporada)\s*0*\d{1,3}\s*(?:e|ep|episode|episodio)\s*0*\d{1,4}\b/i.test(lowerUrl) ||
-    /[\\/]series[\\/]/i.test(lowerUrl) ||
-    /[\\/]series?[._-]?\d+[\\/]/i.test(lowerUrl);
+    /\b(?:s|season|t|temporada)\s*0*\d{1,3}\s*(?:e|ep|episode|episodio)\s*0*\d{1,4}\b/i.test(lowerUrl);
 
-  if (explicitSeries) return "series";
+  if (explicitSeries) {
+    return "series";
+  }
 
-  /* 3) Categorias no início do grupo. */
-  const groupHead = groupText.split(/[|>:/\\]+/)[0].trim();
+  const groupHead = groupText
+    .split(/[|>:/\\]+/)
+    .trim ? groupText.split(/[|>:/\\]+/)[0].trim() : groupText.split(/[|>:/\\]+/)[0].trim();
 
-  if (/^(?:serie|series|série|séries)\b/i.test(groupHead)) return "series";
-  if (/^(?:filme|filmes|movie|movies|vod|v.o.d)\b/i.test(groupHead)) return "movie";
+  const groupIsSeries =
+    /^(?:serie|series|série|séries)\b/i.test(groupHead);
 
-  /* 4) Grupos contendo categorias claras.
-        Não classificar como VOD se o grupo também identifica TV/live. */
-  const groupHasMovie = /\b(?:filme|filmes|movie|movies|vod|v\.o\.d)\b/i.test(groupText);
-  const groupHasSeries = /\b(?:serie|series|série|séries|season|temporada)\b/i.test(groupText);
-  const groupHasLive = /\b(?:canais?|canal|tv|ao vivo|live|iptv|radio|rádio)\b/i.test(groupText);
+  const groupIsMovie =
+    /^(?:filme|filmes|movie|movies|vod)\b/i.test(groupHead);
 
-  if (groupHasMovie && !groupHasSeries && !groupHasLive) return "movie";
-  if (groupHasSeries && !groupHasMovie && !groupHasLive) return "series";
+  if (groupIsSeries) {
+    return "series";
+  }
 
-  /* 5) Alguns fornecedores usam VOD no caminho sem "movie". */
-  if (/(?:^|[\\/_.-])(?:vod|filmes?|movies?)(?:$|[\\/_.?-])/i.test(lowerUrl) && !/(?:^|[\\/])live(?:[\\/]|$)/i.test(lowerUrl)) {
+  if (
+    /\/movie(?:s)?\//i.test(lowerUrl) ||
+    groupIsMovie
+  ) {
     return "movie";
   }
 
-  /* 6) Filmes com extensão de arquivo + sinais de VOD.
-        Não usamos .ts/.m3u8 porque são muito comuns em TV ao vivo. */
-  const hasVideoFile = /\.(?:mp4|mkv|avi|mov|wmv|m4v|webm)(?:$|[?#])/i.test(lowerUrl);
-  const vodNameHint = /\b(?:filme|movie|cinema|film|vod)\b/i.test(nameText);
-  if (hasVideoFile && vodNameHint) return "movie";
+  /*
+     Alguns provedores usam grupos como:
+     "FILMES | AÇÃO", "MOVIES | NETFLIX" ou
+     "SÉRIES | DRAMA". Aceitamos esses grupos somente
+     quando não são uma categoria mista de canais.
+  */
+  const groupHasMovie =
+    /\b(?:filme|filmes|movie|movies|vod)\b/i.test(groupText);
 
-  /* 7) Marcadores explícitos no próprio nome. */
-  if (/^(?:filme|movie)\s*[:\-]|\[(?:filme|movie)\]/i.test(nameText)) return "movie";
-  if (/^(?:serie|série)\s*[:\-]|\[(?:serie|série)\]/i.test(nameText)) return "series";
+  const groupHasSeries =
+    /\b(?:serie|series|série|séries|season|temporada)\b/i.test(groupText);
 
-  /* 8) Caso contrário, mantém TV ao vivo como comportamento histórico. */
+  const groupHasLive =
+    /\b(?:canais?|canal|tv|ao vivo|live|iptv)\b/i.test(groupText);
+
+  if (groupHasMovie && !groupHasSeries && !groupHasLive) {
+    return "movie";
+  }
+
+  if (groupHasSeries && !groupHasMovie && !groupHasLive) {
+    return "series";
+  }
+
+  /*
+     Alguns provedores usam [FILME], FILME: ou MOVIE:
+     no próprio nome. Só aceitamos esses formatos explícitos,
+     nunca uma palavra "filme" perdida no grupo.
+  */
+  if (
+    /^(?:filme|movie)\s*[:\-]|\[(?:filme|movie)\]/i.test(nameText)
+  ) {
+    return "movie";
+  }
+
   return "live";
 }
+
 
 /* =========================================================
    NORMALIZAÇÃO DO TÍTULO DA SÉRIE
