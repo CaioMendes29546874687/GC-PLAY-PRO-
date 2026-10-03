@@ -6,7 +6,7 @@
 
 "use strict";
 
-const CACHE_NAME = "gc-play-pro-v106";
+const CACHE_NAME = "gc-play-pro-v107";
 
 const APP_SHELL = [
   "./",
@@ -18,7 +18,7 @@ const APP_SHELL = [
   "./gc-playback-hotfix.js?v=20261001-3",
   "./gc-live-fix.js?v=20261002-8",
   "./gc-android-live-fix.js?v=20261001-1",
-  "./gc-final-fix.js?v=20261002-8"
+  "./gc-final-fix.js?v=20261002-14",
   "./gc-vlc.js?v=20261002-1"
 ];
 
