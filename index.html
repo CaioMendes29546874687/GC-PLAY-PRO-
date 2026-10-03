@@ -178,7 +178,7 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 
     $("#gcFutureContinue")?.addEventListener("click",()=>{
       const saved=(()=>{try{return JSON.parse(localStorage.getItem("GC_PLAY_PRO_RESUME_V1")||"null")}catch{return null}})();
-      const cards=$(".gc-card");
+      const cards=$$(".gc-card");
       let target=saved?.itemId?document.querySelector(`.gc-card[data-item-id="${CSS.escape(String(saved.itemId))}"]`):null;
       if(!target && saved?.name) target=cards.find(card=>(card.querySelector("h3,h4,.gc-card-title,strong")?.textContent||"").trim().toLowerCase()===String(saved.name).trim().toLowerCase());
       if(!target) target=cards.find(card=>card.querySelector(".gc-progress-line"));
