@@ -4060,6 +4060,66 @@ async function playMpegTS(
       }
     };
 
+    /*
+       Alguns navegadores bloqueiam o primeiro player.play() do MPEG-TS
+       por política de reprodução automática. Quando isso acontecer,
+       o próximo toque no ▶ nativo do vídeo deve retomar o MESMO motor
+       MPEG-TS, sem trocar URL, proxy ou estratégia dos demais canais.
+    */
+    const installMpegUserGestureResume = (activePlayer) => {
+      try {
+        if (typeof video.__gcMpegResumeCleanup === "function") {
+          video.__gcMpegResumeCleanup();
+        }
+      } catch {}
+
+      let waitingForGesture = false;
+
+      const onVideoPlay = async () => {
+        if (!waitingForGesture) return;
+        if (state.mpegts !== activePlayer) return;
+
+        waitingForGesture = false;
+
+        try {
+          await activePlayer.play();
+
+          if (message) {
+            message.textContent = "";
+          }
+        } catch (error) {
+          waitingForGesture = true;
+          console.warn(
+            "[GC PLAY PRO] toque manual não iniciou MPEG-TS:",
+            error
+          );
+
+          if (message) {
+            message.textContent =
+              "Toque em ▶ para iniciar o canal.";
+          }
+        }
+      };
+
+      video.addEventListener("play", onVideoPlay);
+
+      video.__gcMpegResumeCleanup = () => {
+        video.removeEventListener("play", onVideoPlay);
+        if (video.__gcMpegResumeCleanup === cleanup) {
+          video.__gcMpegResumeCleanup = null;
+        }
+      };
+
+      const cleanup = video.__gcMpegResumeCleanup;
+
+      return {
+        waitForGesture() {
+          waitingForGesture = true;
+        },
+        cleanup
+      };
+    };
+
     const trySecondaryHlsFallback = async () => {
       if (!secondaryFallbackUrl || video.__gcMpegHlsRetry) return false;
       video.__gcMpegHlsRetry = "1";
@@ -4179,9 +4239,14 @@ async function playMpegTS(
         });
 
         directPlayer.attachMediaElement(video);
+
+        const directUserGesture = installMpegUserGestureResume(directPlayer);
+
         directPlayer.load();
 
         directPlayer.play().catch(() => {
+          directUserGesture.waitForGesture();
+
           if (message) {
             message.textContent = "Toque em ▶ para iniciar o canal.";
           }
@@ -4289,6 +4354,8 @@ async function playMpegTS(
       video
     );
 
+    const mpegUserGesture = installMpegUserGestureResume(player);
+
     player.load();
 
     if (message) {
@@ -4326,6 +4393,8 @@ async function playMpegTS(
         "MPEG-TS autoplay:",
         error
       );
+
+      mpegUserGesture.waitForGesture();
 
       if (message) {
         message.textContent =
