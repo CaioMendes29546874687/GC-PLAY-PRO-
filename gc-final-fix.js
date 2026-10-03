@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const VERSION="20261002-12";
+const VERSION="20261002-13";
 window.__GC_FINAL_FIX_VERSION__=VERSION;
 
 function api(){ return window.GC_PLAY_PRO || null; }
@@ -401,6 +401,54 @@ function gcAiController(){
     if(/\b(fechar player|feche o player|fechar v[ií]deo|feche o v[ií]deo|sair do player)\b/.test(n)){
       window.GC_PLAY_PRO?.closePlayer?.();
       addMessage("Player fechado.");
+      return;
+    }
+
+    if(/\b(temporada|season)\s*(\d+)\b/.test(n)){
+      const m=n.match(/\b(?:temporada|season)\s*(\d+)\b/);
+      const s=window.__GC_STATE__||window.GC_PLAY_PRO?.state;
+      if(s?.seriesView?.seriesKey){
+        s.currentSection="series";
+        s.currentFilter="series";
+        s.currentGenre="all";
+        s.seriesView.season=Number(m[1]);
+        try{ await window.GC_PLAY_PRO?.render?.(); addMessage("Abrindo a <b>temporada "+m[1]+"</b>."); }
+        catch{ addMessage("Não consegui abrir essa temporada agora."); }
+      }else{
+        addMessage("Primeiro abra uma série para escolher a temporada.");
+      }
+      return;
+    }
+
+    if(/\b(favoritar|favorito|adicionar aos favoritos|salvar nos favoritos|remover dos favoritos|desfavoritar|tirar dos favoritos)\b/.test(n)){
+      const current=window.GC_PLAY_PRO?.state?.currentItem;
+      if(current?.id){
+        const button=document.querySelector('[data-favorite-id="'+CSS.escape(String(current.id))+'"]');
+        if(button){ button.click(); addMessage("Favoritos atualizados."); }
+        else addMessage("Abra um conteúdo para alterar os favoritos.");
+      }else addMessage("Abra um conteúdo primeiro para alterar os favoritos.");
+      return;
+    }
+
+    if(/\b(pr[oó]ximo epis[oó]dio|pr[oó]ximo cap[ií]tulo|epis[oó]dio seguinte|avançar epis[oó]dio|epis[oó]dio anterior|cap[ií]tulo anterior|voltar epis[oó]dio)\b/.test(n)){
+      const s=window.GC_PLAY_PRO?.state;
+      const current=s?.currentItem;
+      const key=current?.seriesKey;
+      const season=Number(current?.season ?? 0);
+      const episode=Number(current?.episode ?? 0);
+      if(key && typeof window.GC_PLAY_PRO?.getSeriesEpisodes==="function"){
+        try{
+          const eps=await window.GC_PLAY_PRO.getSeriesEpisodes(key, season||null);
+          const ordered=[...eps].sort((a,b)=>Number(a.episode??0)-Number(b.episode??0));
+          const dir=/\b(anterior|voltar)\b/.test(n)?-1:1;
+          const idx=ordered.findIndex(x=>String(x.id)===String(current.id));
+          const target=ordered[idx+dir];
+          if(target){
+            await window.GC_PLAY_PRO.playItem(target);
+            addMessage((dir>0?"Abrindo o próximo":"Voltando ao episódio anterior")+" episódio.");
+          }else addMessage(dir>0?"Você já está no último episódio.":"Você já está no primeiro episódio.");
+        }catch{ addMessage("Não consegui localizar o episódio seguinte agora."); }
+      }else addMessage("Este conteúdo não está identificado como episódio de uma série.");
       return;
     }
 
