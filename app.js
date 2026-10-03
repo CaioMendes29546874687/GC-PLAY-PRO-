@@ -124,6 +124,170 @@ const state = {
 /* Exposto apenas para os módulos de reprodução externos. */
 window.__GC_STATE__ = state;
 
+
+/* =========================================================
+   DIAGNÓSTICO TEMPORÁRIO — GLOBO
+   Não altera reprodução nem banco. Apenas lê o catálogo local.
+   ========================================================= */
+
+function gcRedactUrl(url) {
+  try {
+    const u = new URL(String(url || ""));
+    ["username","password","token","auth","key"].forEach(k => {
+      if (u.searchParams.has(k)) u.searchParams.set(k, "***");
+    });
+    return u.toString();
+  } catch {
+    return String(url || "").replace(/(username|password|token|auth|key)=([^&]+)/gi, "$1=***");
+  }
+}
+
+async function gcCollectGloboItems() {
+  const map = new Map();
+
+  const add = (item) => {
+    if (!item) return;
+    const text = [
+      item.name,
+      item.tvgName,
+      item.tvgId,
+      item.group,
+      item.category,
+      item.url
+    ].filter(Boolean).join(" ");
+    if (!/globo/i.test(text)) return;
+
+    const key = [
+      item.xtreamStreamId || "",
+      item.id || "",
+      item.url || "",
+      item.name || ""
+    ].join("|");
+
+    if (!map.has(key)) map.set(key, item);
+  };
+
+  for (const item of (Array.isArray(state.items) ? state.items : [])) {
+    add(item);
+  }
+
+  const dynamic = window.__GC_DYNAMIC_ITEMS__;
+  if (dynamic instanceof Map) {
+    for (const item of dynamic.values()) add(item);
+  } else if (Array.isArray(dynamic)) {
+    for (const item of dynamic) add(item);
+  }
+
+  if (state.db) {
+    await new Promise(resolve => {
+      try {
+        const tx = state.db.transaction(STORE_NAME, "readonly");
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.openCursor();
+
+        request.onsuccess = event => {
+          const cursor = event.target.result;
+          if (cursor) {
+            add(cursor.value);
+            cursor.continue();
+          } else {
+            resolve();
+          }
+        };
+
+        request.onerror = () => resolve();
+      } catch {
+        resolve();
+      }
+    });
+  }
+
+  return Array.from(map.values()).sort((a,b) =>
+    String(a.name || "").localeCompare(String(b.name || ""), "pt-BR")
+  );
+}
+
+async function gcShowGloboDiagnostic() {
+  let modal = document.getElementById("gc-globo-debug-modal");
+
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "gc-globo-debug-modal";
+    modal.style.cssText = [
+      "position:fixed","inset:0","z-index:2147483647",
+      "background:rgba(0,0,0,.94)","color:#fff",
+      "font-family:Arial,sans-serif","padding:18px",
+      "box-sizing:border-box","overflow:auto"
+    ].join(";");
+
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = "<div style='font-size:20px;font-weight:700;margin-bottom:10px'>🔎 Diagnóstico Globo</div><div>Consultando o catálogo local...</div>";
+
+  try {
+    const items = await gcCollectGloboItems();
+
+    const rows = items.map((item, index) => {
+      const id = item.xtreamStreamId ?? "";
+      const name = escapeHTML(item.name || item.tvgName || "Sem nome");
+      const group = escapeHTML(item.group || item.category || "Sem grupo");
+      const type = escapeHTML(item.type || "");
+      const url = escapeHTML(gcRedactUrl(item.url || ""));
+      return (
+        "<div style='border:1px solid rgba(0,255,120,.35);border-radius:10px;padding:10px;margin:8px 0'>" +
+        "<b>" + (index + 1) + ". " + name + "</b>" +
+        "<div style='margin-top:5px;font-size:13px;opacity:.9'>Grupo: " + group + "</div>" +
+        "<div style='font-size:13px;opacity:.9'>Tipo: " + type + "</div>" +
+        "<div style='font-size:13px;color:#65ff9b'>xtreamStreamId: " + escapeHTML(id || "não informado") + "</div>" +
+        "<div style='font-size:11px;opacity:.65;word-break:break-all;margin-top:4px'>" + url + "</div>" +
+        "</div>"
+      );
+    }).join("");
+
+    modal.innerHTML =
+      "<div style='display:flex;justify-content:space-between;gap:10px;align-items:center'>" +
+      "<div style='font-size:20px;font-weight:700'>🔎 Diagnóstico Globo</div>" +
+      "<button id='gc-globo-debug-close' style='font-size:18px;padding:8px 12px'>✕</button></div>" +
+      "<div style='margin:10px 0;color:#65ff9b'>Encontradas: " + items.length + "</div>" +
+      (rows || "<div>Nenhuma entrada contendo “Globo” foi encontrada no catálogo local.</div>");
+
+    document.getElementById("gc-globo-debug-close").onclick = () => modal.remove();
+  } catch (error) {
+    modal.innerHTML =
+      "<div style='font-size:20px;font-weight:700'>🔎 Diagnóstico Globo</div>" +
+      "<div style='margin-top:12px;color:#ff7777'>Erro ao consultar o catálogo: " +
+      escapeHTML(error?.message || error) + "</div>" +
+      "<button id='gc-globo-debug-close' style='margin-top:15px;padding:10px 14px'>Fechar</button>";
+    document.getElementById("gc-globo-debug-close").onclick = () => modal.remove();
+  }
+}
+
+function gcInstallGloboDiagnosticButton() {
+  if (document.getElementById("gc-globo-debug-button")) return;
+
+  const button = document.createElement("button");
+  button.id = "gc-globo-debug-button";
+  button.type = "button";
+  button.textContent = "🔎 GLOBO";
+  button.title = "Diagnóstico temporário das entradas Globo";
+  button.style.cssText = [
+    "position:fixed","right:12px","bottom:92px","z-index:2147483646",
+    "background:#06140b","color:#65ff9b",
+    "border:1px solid #65ff9b","border-radius:999px",
+    "padding:9px 13px","font-weight:700","font-size:12px",
+    "box-shadow:0 0 12px rgba(0,255,120,.25)"
+  ].join(";");
+  button.onclick = gcShowGloboDiagnostic;
+  document.body.appendChild(button);
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", gcInstallGloboDiagnosticButton, { once:true });
+} else {
+  gcInstallGloboDiagnosticButton();
+}
+
 /* =========================================================
    DOM
    ========================================================= */
