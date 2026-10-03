@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const VERSION="20261002-10";
+const VERSION="20261002-12";
 window.__GC_FINAL_FIX_VERSION__=VERSION;
 
 function api(){ return window.GC_PLAY_PRO || null; }
@@ -384,6 +384,121 @@ function gcAiController(){
       }catch{
         addMessage("O dispositivo não permitiu a tela cheia neste momento.");
       }
+      return;
+    }
+
+    if(/\b(voltar|volte|retornar|retroceder)\b/.test(n)){
+      if(window.GC_PLAY_PRO?.closePlayer) window.GC_PLAY_PRO.closePlayer();
+      if(window.__GC_STATE__){
+        window.__GC_STATE__.seriesView.seriesKey=null;
+        window.__GC_STATE__.seriesView.season=null;
+      }
+      try{ await window.GC_PLAY_PRO?.navigateSection?.("home"); }catch{}
+      addMessage("Voltei para o início.");
+      return;
+    }
+
+    if(/\b(fechar player|feche o player|fechar v[ií]deo|feche o v[ií]deo|sair do player)\b/.test(n)){
+      window.GC_PLAY_PRO?.closePlayer?.();
+      addMessage("Player fechado.");
+      return;
+    }
+
+    const video=document.getElementById("videoPlayer");
+
+    if(/\b(pausar|pause|pausa|pare o v[ií]deo|parar o v[ií]deo|parar)\b/.test(n) && video){
+      video.pause();
+      addMessage("Vídeo pausado.");
+      return;
+    }
+
+    if(/\b(continuar|continue|retomar|retome|despausar|play|reproduzir|continue o v[ií]deo)\b/.test(n) && video){
+      try{ await video.play(); addMessage("Continuando a reprodução."); }
+      catch{ addMessage("Não consegui continuar a reprodução neste momento."); }
+      return;
+    }
+
+    if(/\b(mudo|mutar|mute|silenciar|silencie)\b/.test(n) && video){
+      video.muted=true;
+      addMessage("Som desativado.");
+      return;
+    }
+
+    if(/\b(desmutar|tirar do mudo|ativar som|ligar som|som ligado)\b/.test(n) && video){
+      video.muted=false;
+      addMessage("Som ativado.");
+      return;
+    }
+
+    const volumeMatch=n.match(/\b(?:volume|som)\s*(?:para|em|de)?\s*(\d{1,3})\s*%?/);
+    if(volumeMatch && video){
+      const value=Math.max(0,Math.min(100,Number(volumeMatch[1])));
+      video.volume=value/100;
+      video.muted=value===0;
+      addMessage("Volume ajustado para <b>"+value+"%</b>.");
+      return;
+    }
+
+    if(/\b(aumentar|aumente|mais)\s*(?:o\s*)?(?:volume|som)\b/.test(n) && video){
+      video.muted=false;
+      video.volume=Math.min(1,video.volume+0.1);
+      addMessage("Aumentei o volume para <b>"+Math.round(video.volume*100)+"%</b>.");
+      return;
+    }
+
+    if(/\b(diminuir|diminua|menos)\s*(?:o\s*)?(?:volume|som)\b/.test(n) && video){
+      video.volume=Math.max(0,video.volume-0.1);
+      addMessage("Volume reduzido para <b>"+Math.round(video.volume*100)+"%</b>.");
+      return;
+    }
+
+    const speedMatch=n.match(/\b(?:velocidade|velocidade de reprodu[cç][aã]o)\s*(?:para|em)?\s*(0\.5|0\.75|1|1\.25|1\.5|1\.75|2)\s*x?/);
+    if(speedMatch && video){
+      const rate=Number(speedMatch[1]);
+      video.playbackRate=rate;
+      if(window.__GC_STATE__?.settings) window.__GC_STATE__.settings.playbackRate=rate;
+      addMessage("Velocidade ajustada para <b>"+rate+"x</b>.");
+      return;
+    }
+
+    if(/\b(adicionar aos favoritos|favoritar|favorito|salvar nos favoritos)\b/.test(n)){
+      const current=window.__GC_STATE__?.currentItem;
+      if(current?.id && typeof window.toggleFavorite==="function"){
+        window.toggleFavorite(current.id);
+        addMessage("Conteúdo adicionado aos favoritos.");
+      }else{
+        addMessage("Abra um conteúdo primeiro para adicioná-lo aos favoritos.");
+      }
+      return;
+    }
+
+    if(/\b(remover dos favoritos|desfavoritar|tirar dos favoritos)\b/.test(n)){
+      const current=window.__GC_STATE__?.currentItem;
+      if(current?.id && typeof window.toggleFavorite==="function"){
+        window.toggleFavorite(current.id);
+        addMessage("Conteúdo removido dos favoritos.");
+      }else{
+        addMessage("Abra um conteúdo primeiro para alterar os favoritos.");
+      }
+      return;
+    }
+
+    if(/\b(meus favoritos|favoritos|abrir favoritos)\b/.test(n) && !/\b(adicionar|remover|tirar)\b/.test(n)){
+      try{ await window.GC_PLAY_PRO?.navigateSection?.("favorites"); addMessage("Abrindo seus favoritos."); }
+      catch{ addMessage("Não consegui abrir os favoritos agora."); }
+      return;
+    }
+
+    if(/\b(configura[cç][aã]o|configura[cç][oõ]es|configurar o aplicativo|abrir configura[cç][oõ]es)\b/.test(n)){
+      const settings=document.querySelector('[aria-label*="config" i], [data-settings], #settingsPanel');
+      if(settings){ settings.scrollIntoView({behavior:"smooth",block:"center"}); addMessage("Abri as configurações disponíveis."); }
+      else addMessage("As configurações disponíveis ficam no menu do aplicativo.");
+      return;
+    }
+
+    if(/\b(recarregar|atualizar|recarregue a p[aá]gina)\b/.test(n)){
+      addMessage("Atualizando o aplicativo...");
+      setTimeout(()=>location.reload(),150);
       return;
     }
 
