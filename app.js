@@ -1096,8 +1096,8 @@ function classifyItem(name, group, url) {
   }
 
   const groupHead = groupText
-    .split(/[|>:/\\]+/)
-    .trim ? groupText.split(/[|>:/\\]+/)[0].trim() : groupText.split(/[|>:/\\]+/)[0].trim();
+    .split(/[|>:/\\]+/)[0]
+    .trim();
 
   const groupIsSeries =
     /^(?:serie|series|série|séries)\b/i.test(groupHead);
