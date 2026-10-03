@@ -412,3 +412,676 @@ body.gc-future{
 @media(prefers-reduced-motion:reduce){
   .gc-future .gc-hero-bg{transition:none}
 }
+
+
+/* ================================================================
+   GC PLAY PRO — MASTER DESIGN SYSTEM / 8 SCREENS
+   Visual specification based on the supplied GC PLAY PRO reference.
+   This layer is presentation-only: it does not replace playback,
+   M3U, Xtream, Supabase, search or GC IA logic.
+   ================================================================ */
+
+:root{
+  --gc-green:#39ff88;
+  --gc-green-hi:#72ffab;
+  --gc-green-deep:#08a94e;
+  --gc-cyan:#3de9ff;
+  --gc-blue:#28a9ff;
+  --gc-yellow:#d8ff26;
+  --gc-red:#ff4b68;
+  --gc-bg:#010503;
+  --gc-panel:#07110b;
+  --gc-panel2:#0b1710;
+  --gc-text:#f3fff7;
+  --gc-dim:#71877a;
+  --gc-border:rgba(57,255,136,.18);
+  --gc-border-strong:rgba(57,255,136,.48);
+  --gc-shadow:0 22px 70px rgba(0,0,0,.48);
+  --gc-glow:0 0 34px rgba(57,255,136,.18);
+  --gc-radius:18px;
+}
+
+/* ---------- common geometry / premium glass ---------- */
+.gc-future .gc-header,
+.gc-future .gc-command-bar,
+.gc-future .gc-stats,
+.gc-future .gc-card,
+.gc-future .gc-category-panel,
+.gc-future .gc-library-top,
+.gc-future dialog,
+.gc-future .player-panel{
+  border-color:var(--gc-border);
+  background-color:rgba(4,11,7,.90);
+  box-shadow:var(--gc-shadow);
+}
+
+.gc-future button{font-family:inherit}
+.gc-future button:focus-visible,
+.gc-future input:focus-visible,
+.gc-future select:focus-visible{
+  outline:2px solid var(--gc-green);
+  outline-offset:2px;
+  box-shadow:0 0 24px rgba(57,255,136,.22);
+}
+
+/* ================================================================
+   SCREEN 1 — HOME / INTERFACE PRINCIPAL
+   ================================================================ */
+@media(min-width:1051px){
+  .gc-future .gc-header{
+    width:228px;
+    padding:20px 12px;
+  }
+  .gc-future .gc-brand{
+    min-height:72px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .gc-future .main-nav{gap:3px}
+  .gc-future .main-nav .nav-item{
+    min-height:42px;
+    border-radius:10px;
+    letter-spacing:.5px;
+  }
+  .gc-future .main-nav .nav-item:not(.active):hover{
+    background:rgba(57,255,136,.055);
+    border-color:rgba(57,255,136,.12);
+    color:#d9ffe8;
+  }
+  .gc-future main{
+    padding-left:30px;
+    padding-right:30px;
+  }
+}
+
+.gc-future .gc-hero{
+  isolation:isolate;
+  border:1px solid rgba(57,255,136,.16);
+  box-shadow:0 30px 90px rgba(0,0,0,.48),inset 0 0 80px rgba(57,255,136,.025);
+}
+.gc-future .gc-hero-content{
+  z-index:3;
+}
+.gc-future .gc-eyebrow{
+  letter-spacing:1.6px;
+}
+.gc-future .gc-eyebrow i{
+  box-shadow:0 0 14px var(--gc-green);
+}
+.gc-future .gc-hero h1 em{
+  color:var(--gc-green);
+  text-shadow:0 0 35px rgba(57,255,136,.25);
+}
+.gc-future .gc-hero-actions .primary-button{
+  min-width:170px;
+}
+.gc-future .gc-hero-actions .secondary-button{
+  border-color:rgba(255,255,255,.16);
+  background:rgba(0,0,0,.30);
+}
+.gc-future .gc-hero-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+.gc-future .gc-hero-meta span{
+  padding:6px 9px;
+  border:1px solid rgba(57,255,136,.12);
+  border-radius:7px;
+  background:rgba(3,9,5,.58);
+  color:#8da297;
+  font-size:7px;
+  letter-spacing:1px;
+}
+
+/* destaque rails = referência */
+.gc-future .gc-rail{
+  position:relative;
+}
+.gc-future .gc-rail>header{
+  display:flex;
+  align-items:end;
+  gap:15px;
+}
+.gc-future .gc-rail>header h2{
+  letter-spacing:-.4px;
+}
+.gc-future .gc-rail-line{
+  flex:1;
+  height:1px;
+  margin-bottom:7px;
+  background:linear-gradient(90deg,rgba(57,255,136,.32),transparent);
+}
+.gc-future .gc-home-row{
+  scrollbar-width:thin;
+  scrollbar-color:rgba(57,255,136,.45) transparent;
+}
+.gc-future .gc-home-row .gc-card{
+  min-height:292px;
+  overflow:hidden;
+  border:1px solid rgba(57,255,136,.14)!important;
+  background:linear-gradient(180deg,#09140d,#030705)!important;
+}
+.gc-future .gc-home-row .gc-card-image{
+  position:relative;
+  overflow:hidden;
+}
+.gc-future .gc-home-row .gc-card-image:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,transparent 52%,rgba(0,0,0,.72));
+  pointer-events:none;
+}
+.gc-future .gc-future-badge{
+  position:absolute;
+  left:8px;
+  top:8px;
+  z-index:3;
+  padding:4px 6px;
+  border-radius:5px;
+  background:rgba(57,255,136,.92);
+  color:#021007;
+  font-size:6px;
+  font-weight:1000;
+  letter-spacing:.7px;
+  box-shadow:0 0 15px rgba(57,255,136,.25);
+}
+.gc-future .gc-progress-line{
+  position:absolute;
+  z-index:4;
+  left:7px;
+  right:7px;
+  bottom:6px;
+  height:3px;
+  border-radius:3px;
+  background:linear-gradient(90deg,var(--gc-green) var(--gc-progress,0%),rgba(255,255,255,.18) var(--gc-progress,0%));
+}
+
+/* ================================================================
+   SCREEN 2 — TV AO VIVO
+   Uses the existing library when the LIVE filter is active.
+   ================================================================ */
+.gc-future .gc-library:has(.filter-button[data-filter="live"].active){
+  min-height:calc(100vh - 100px);
+}
+.gc-future .gc-library:has(.filter-button[data-filter="live"].active) .gc-library-top{
+  min-height:62px;
+  border-radius:15px;
+  padding:14px 16px;
+  background:linear-gradient(90deg,rgba(57,255,136,.08),rgba(3,9,5,.82));
+}
+.gc-future .gc-library:has(.filter-button[data-filter="live"].active) #gcv4Title{
+  font-size:28px;
+}
+.gc-future .gc-library:has(.filter-button[data-filter="live"].active) #gcv4Title:before{
+  content:"◉ ";
+  color:var(--gc-green);
+}
+.gc-future .gc-library:has(.filter-button[data-filter="live"].active) .gc-category-panel{
+  border-radius:14px;
+  background:linear-gradient(180deg,#07120b,#030805);
+}
+.gc-future .gc-library:has(.filter-button[data-filter="live"].active) .content-grid{
+  background:rgba(2,7,4,.35);
+  border-radius:16px;
+}
+.gc-future .gc-library:has(.filter-button[data-filter="live"].active) .gc-card{
+  border-radius:10px;
+  min-height:190px;
+}
+.gc-future .gc-library:has(.filter-button[data-filter="live"].active) .gc-card-image{
+  aspect-ratio:16/9!important;
+}
+.gc-future .gc-library:has(.filter-button[data-filter="live"].active) .gc-card:before{
+  content:"● AO VIVO";
+  position:absolute;
+  z-index:5;
+  top:8px;
+  left:8px;
+  padding:4px 6px;
+  border-radius:4px;
+  color:#021007;
+  background:var(--gc-green);
+  font-size:6px;
+  font-weight:1000;
+  box-shadow:0 0 14px rgba(57,255,136,.28);
+}
+.gc-future .gc-library:has(.filter-button[data-filter="live"].active) .gc-card{
+  position:relative;
+}
+
+/* TV cards behave like channel rows on larger screens */
+@media(min-width:1051px){
+  .gc-future .gc-library:has(.filter-button[data-filter="live"].active) .gc-catalog-layout{
+    grid-template-columns:220px minmax(0,1fr);
+    gap:14px;
+  }
+  .gc-future .gc-library:has(.filter-button[data-filter="live"].active) .content-grid{
+    grid-template-columns:repeat(auto-fill,minmax(245px,1fr));
+    gap:9px;
+  }
+}
+
+/* ================================================================
+   SCREEN 3 — FILMES / CARROSSEL 3D
+   ================================================================ */
+.gc-future .gc-library:has(.filter-button[data-filter="movie"].active){
+  min-height:calc(100vh - 100px);
+}
+.gc-future .gc-library:has(.filter-button[data-filter="movie"].active) #gcv4Title:before{
+  content:"FILMES  •  ";
+  color:var(--gc-green);
+}
+.gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .content-grid{
+  grid-template-columns:repeat(auto-fill,minmax(175px,1fr));
+  perspective:1400px;
+  gap:16px;
+}
+.gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .gc-card{
+  border-radius:14px!important;
+  transform-origin:center bottom;
+  transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease;
+}
+.gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .gc-card:nth-child(4n+1){
+  transform:rotateY(5deg) translateY(8px);
+}
+.gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .gc-card:nth-child(4n+2){
+  transform:rotateY(2deg);
+}
+.gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .gc-card:nth-child(4n+3){
+  transform:rotateY(-2deg);
+}
+.gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .gc-card:nth-child(4n){
+  transform:rotateY(-5deg) translateY(8px);
+}
+.gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .gc-card:hover{
+  transform:translateY(-9px) rotateY(0) scale(1.045)!important;
+  z-index:8;
+  border-color:var(--gc-green)!important;
+  box-shadow:0 20px 50px rgba(0,0,0,.55),0 0 28px rgba(57,255,136,.18);
+}
+.gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .gc-card-image{
+  aspect-ratio:2/3!important;
+  background:#020603;
+}
+.gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .gc-card-info{
+  min-height:62px;
+  background:linear-gradient(180deg,rgba(7,15,10,.88),#030705);
+}
+
+/* ================================================================
+   SCREEN 4 — SÉRIES / TEMPORADAS E EPISÓDIOS
+   ================================================================ */
+.gc-future .gc-library:has(.filter-button[data-filter="series"].active){
+  min-height:calc(100vh - 100px);
+}
+.gc-future .gc-library:has(.filter-button[data-filter="series"].active) #gcv4Title:before{
+  content:"SÉRIES  •  ";
+  color:var(--gc-green);
+}
+.gc-future .gc-library:has(.filter-button[data-filter="series"].active) .content-grid{
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+}
+.gc-future .gc-library:has(.filter-button[data-filter="series"].active) .gc-card{
+  border-radius:13px;
+}
+.gc-future .gc-library:has(.filter-button[data-filter="series"].active) .gc-card-image{
+  aspect-ratio:16/10!important;
+}
+.gc-future .gc-library:has(.filter-button[data-filter="series"].active) .gc-card:hover{
+  border-color:rgba(57,255,136,.48)!important;
+}
+
+/* episode / season controls that already exist in the app get a unified visual */
+.gc-future .gc-series-toolbar,
+.gc-future [class*="season"],
+.gc-future [class*="episode"]{
+  border-color:rgba(57,255,136,.14);
+}
+.gc-future .gc-series-toolbar button,
+.gc-future [class*="season"] button,
+.gc-future [class*="episode"] button{
+  border:1px solid rgba(57,255,136,.14);
+  border-radius:8px;
+  background:rgba(57,255,136,.045);
+  color:#a5b7ab;
+}
+.gc-future .gc-series-toolbar button:hover,
+.gc-future [class*="season"] button:hover,
+.gc-future [class*="episode"] button:hover{
+  color:#021007;
+  background:var(--gc-green);
+}
+
+/* ================================================================
+   SCREEN 5 — PLAYER MODERNO
+   ================================================================ */
+.gc-future .player-panel{
+  position:fixed;
+  inset:0;
+  z-index:700;
+  display:flex;
+  flex-direction:column;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:#010302;
+}
+.gc-future .player-panel.hidden{display:none}
+.gc-future .player-header{
+  min-height:64px;
+  padding:10px 20px;
+  border-bottom:1px solid rgba(57,255,136,.14);
+  background:rgba(2,8,4,.94);
+  backdrop-filter:blur(20px);
+}
+.gc-future .player-header h2{
+  font-size:15px;
+  letter-spacing:.4px;
+}
+.gc-future .player-header span{
+  color:var(--gc-green);
+  font-size:7px;
+  letter-spacing:1.5px;
+}
+.gc-future .video-container{
+  position:relative;
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  background:
+    radial-gradient(circle at 50% 45%,rgba(57,255,136,.055),transparent 40%),
+    #000;
+}
+.gc-future #videoPlayer{
+  width:100%;
+  height:min(78vh,calc(100% - 130px));
+  max-height:850px;
+  object-fit:contain;
+  background:#000;
+}
+.gc-future .gc-player-toolbar{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:48px;
+  padding:7px 16px;
+  border-top:1px solid rgba(57,255,136,.10);
+  background:rgba(4,11,7,.94);
+}
+.gc-future .gc-player-toolbar label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#6f8277;
+  font-size:7px;
+  letter-spacing:1px;
+}
+.gc-future .gc-player-toolbar select{
+  border:1px solid rgba(57,255,136,.18);
+  border-radius:7px;
+  background:#07110b;
+  color:#dfffea;
+  padding:7px;
+}
+.gc-future .gc-player-resume-clear{margin-left:auto}
+.gc-future .gc-player-epg{
+  max-height:120px;
+  overflow:auto;
+  border-top:1px solid rgba(57,255,136,.10);
+  background:#030906;
+}
+.gc-future .player-message{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  padding:10px 14px;
+  border:1px solid rgba(57,255,136,.18);
+  border-radius:9px;
+  background:rgba(3,9,5,.82);
+  color:#91a69a;
+  font-size:9px;
+}
+
+/* ================================================================
+   SCREEN 6 — MOBILE
+   Same visual language, not a separate app.
+   ================================================================ */
+@media(max-width:700px){
+  .gc-future main{padding-left:10px;padding-right:10px}
+  .gc-future .gc-header{
+    height:58px;
+    padding:0 10px;
+    border-bottom:1px solid rgba(57,255,136,.14);
+  }
+  .gc-future .gc-logo{
+    font-size:19px;
+    padding:4px 7px;
+    border-radius:8px;
+  }
+  .gc-future .gc-header-actions{gap:5px}
+  .gc-future .gc-header-actions .icon-button{
+    width:37px;height:37px;
+  }
+  .gc-future .gc-hero{
+    min-height:535px;
+    margin:0 -10px;
+    border-radius:0 0 20px 20px;
+  }
+  .gc-future .gc-hero-content{
+    padding:35px 14px 38px;
+  }
+  .gc-future .gc-hero h1{
+    font-size:clamp(44px,14vw,63px);
+    line-height:.90;
+  }
+  .gc-future .gc-hero-actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:7px;
+  }
+  .gc-future .gc-hero-actions button{
+    min-width:0;
+    padding:12px 9px;
+    font-size:8px;
+  }
+  .gc-future .gc-shortcuts{
+    grid-template-columns:repeat(2,1fr);
+    gap:7px;
+  }
+  .gc-future .gc-shortcut{
+    min-height:70px;
+    border-radius:12px;
+  }
+  .gc-future .gc-stats{
+    grid-template-columns:repeat(2,1fr);
+    border-radius:14px;
+  }
+  .gc-future .gc-home-row{
+    grid-auto-columns:148px;
+    gap:9px;
+  }
+  .gc-future .gc-home-row .gc-card{
+    min-height:246px;
+  }
+  .gc-future .gc-library-top{
+    padding:13px;
+    border-radius:14px;
+  }
+  .gc-future .gc-library-top .filters{
+    width:100%;
+    overflow:auto;
+    display:flex;
+    flex-wrap:nowrap;
+  }
+  .gc-future .gc-library-top .filter-button{
+    flex:0 0 auto;
+  }
+  .gc-future .gc-category-panel{
+    border-radius:13px;
+  }
+  .gc-future .content-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+  }
+  .gc-future .gc-card{
+    border-radius:11px!important;
+  }
+}
+
+/* ================================================================
+   SCREEN 7 — BUSCA INTELIGENTE
+   ================================================================ */
+.gc-future #searchDialog{
+  width:min(1180px,94vw);
+  max-width:none;
+  min-height:min(680px,88vh);
+  border:1px solid rgba(57,255,136,.30);
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 80% 0%,rgba(57,255,136,.10),transparent 35%),
+    rgba(2,7,4,.97);
+  box-shadow:0 30px 120px rgba(0,0,0,.72),0 0 50px rgba(57,255,136,.10);
+}
+.gc-future #searchDialog::backdrop,
+.gc-future #settingsDialog::backdrop,
+.gc-future #playlistDialog::backdrop{
+  background:rgba(0,0,0,.78);
+  backdrop-filter:blur(7px);
+}
+.gc-future #searchDialog .gc-dialog{
+  min-height:680px;
+  display:flex;
+  flex-direction:column;
+  padding:25px;
+}
+.gc-future #globalSearch{
+  height:54px;
+  margin-top:15px;
+  border:1px solid rgba(57,255,136,.32);
+  border-radius:12px;
+  background:#050c08;
+  box-shadow:inset 0 0 25px rgba(57,255,136,.025),0 0 25px rgba(57,255,136,.05);
+  font-size:15px;
+}
+.gc-future #globalSearch:focus{
+  border-color:var(--gc-green);
+}
+.gc-future #searchResults{
+  flex:1;
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+  gap:12px;
+  overflow:auto;
+}
+.gc-future #searchResults .gc-card{
+  min-width:0;
+}
+
+/* ================================================================
+   SCREEN 8 — CONFIGURAÇÕES
+   ================================================================ */
+.gc-future #settingsDialog{
+  width:min(860px,94vw);
+  max-width:none;
+  border:1px solid rgba(57,255,136,.28);
+  border-radius:22px;
+  background:
+    linear-gradient(90deg,rgba(57,255,136,.055),transparent 30%),
+    #040b07;
+  box-shadow:0 30px 110px rgba(0,0,0,.72),0 0 45px rgba(57,255,136,.09);
+}
+.gc-future #settingsDialog .gc-dialog{
+  padding:24px;
+}
+.gc-future #settingsDialog h2{
+  font-size:30px;
+  letter-spacing:-1px;
+  margin:6px 0 18px;
+}
+.gc-future #settingsDialog .setting-item{
+  min-height:68px;
+  margin:7px 0;
+  padding:14px 15px;
+  border:1px solid rgba(57,255,136,.10);
+  border-radius:12px;
+  background:rgba(255,255,255,.018);
+}
+.gc-future #settingsDialog .setting-item:hover{
+  border-color:rgba(57,255,136,.28);
+  background:rgba(57,255,136,.035);
+}
+.gc-future #settingsDialog .setting-item strong{
+  font-size:11px;
+}
+.gc-future #settingsDialog .setting-item span{
+  font-size:8px;
+}
+.gc-future #settingsDialog input[type="checkbox"]{
+  accent-color:var(--gc-green);
+  transform:scale(1.15);
+}
+
+/* ---------- Playlist dialog also follows the same screen system ---------- */
+.gc-future #playlistDialog{
+  width:min(620px,94vw);
+  border:1px solid rgba(57,255,136,.28);
+  border-radius:22px;
+  background:#040b07;
+  box-shadow:0 30px 110px rgba(0,0,0,.75),0 0 45px rgba(57,255,136,.10);
+}
+.gc-future #playlistDialog form{
+  padding:25px;
+}
+.gc-future #playlistDialog input{
+  height:47px;
+  border-radius:10px;
+  border-color:rgba(57,255,136,.16);
+  background:#07100b;
+}
+
+/* ---------- GC IA: visually belongs to the product ---------- */
+.gc-future .gc-ai-fab{
+  width:59px;height:59px;
+  border:1px solid var(--gc-green);
+  background:
+    radial-gradient(circle at 30% 25%,rgba(57,255,136,.30),transparent 30%),
+    linear-gradient(145deg,#0d2818,#030a06);
+  box-shadow:0 0 25px rgba(57,255,136,.26),inset 0 0 22px rgba(57,255,136,.08);
+}
+.gc-future .gc-ai-fab:before{
+  content:"";
+  position:absolute;
+  inset:-5px;
+  border:1px solid rgba(57,255,136,.14);
+  border-radius:50%;
+  animation:gcAiRing 2.6s linear infinite;
+}
+@keyframes gcAiRing{to{transform:rotate(360deg)}}
+
+/* ---------- TV 10-foot / projector ---------- */
+@media(min-width:1200px) and (min-height:650px){
+  .gc-future .gc-header{width:238px}
+  .gc-future main{padding-left:34px;padding-right:34px}
+  .gc-future .gc-home-row .gc-card{min-height:330px}
+  .gc-future .gc-home-row{grid-auto-columns:205px;gap:15px}
+  .gc-future .gc-hero h1{font-size:clamp(64px,5vw,96px)}
+  .gc-future .main-nav .nav-item{min-height:47px;font-size:10px}
+}
+
+/* ---------- reduced motion ---------- */
+@media(prefers-reduced-motion:reduce){
+  .gc-future .gc-ai-fab:before,
+  .gc-future .gc-hero:after{animation:none}
+}
+
+/* ---------- accessibility / old TV fallback ---------- */
+@media(max-width:700px){
+  .gc-future .gc-ai-fab{width:52px;height:52px;right:12px;bottom:120px}
+}
