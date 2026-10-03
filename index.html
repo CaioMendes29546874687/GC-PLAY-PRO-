@@ -595,5 +595,65 @@ body.gc-activated-client #playlistDialog{display:none!important}
   body.gc-future .gc-hero{margin-left:-24px!important;margin-right:-24px!important;width:calc(100% + 48px)!important}
 }
 </style>
+
+<style id="gc-samsung-tv-force">
+/* Samsung Smart TV: identificação independente do viewport reportado pelo navegador */
+body.gc-samsung-tv{
+  padding-left:0!important;
+  margin:0!important;
+  min-width:0!important;
+  width:100vw!important;
+  overflow-x:hidden!important;
+}
+body.gc-samsung-tv .gc-header{
+  position:fixed!important;
+  left:0!important;top:0!important;bottom:0!important;
+  width:198px!important;height:100vh!important;
+  margin:0!important;padding:20px 12px!important;
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;
+  gap:18px!important;border-radius:0!important;
+  z-index:1000!important;
+}
+body.gc-samsung-tv .gc-brand{min-width:0!important;width:100%!important}
+body.gc-samsung-tv .main-nav{
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;
+  gap:5px!important;flex:0 0 auto!important;
+}
+body.gc-samsung-tv .main-nav .nav-item{
+  width:100%!important;height:44px!important;min-height:44px!important;
+  display:flex!important;align-items:center!important;
+  justify-content:flex-start!important;padding:0 12px!important;
+}
+body.gc-samsung-tv main{
+  margin-left:198px!important;
+  width:calc(100% - 198px)!important;
+  max-width:none!important;
+  padding:0 24px 60px!important;
+}
+body.gc-samsung-tv .gc-header-actions{
+  position:fixed!important;left:222px!important;right:24px!important;top:12px!important;
+  z-index:1100!important;
+}
+body.gc-samsung-tv .gc-hero{
+  width:calc(100% + 48px)!important;
+  margin-left:-24px!important;margin-right:-24px!important;
+  min-height:430px!important;height:430px!important;
+}
+body.gc-samsung-tv .gc-hero-content{padding:60px 0 35px!important;max-width:650px!important}
+body.gc-samsung-tv .gc-hero h1{font-size:clamp(46px,6vw,82px)!important}
+body.gc-samsung-tv .gc-home-row{grid-auto-columns:165px!important}
+body.gc-samsung-tv .gc-future-hub{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+body.gc-samsung-tv .gc-ai-fab{right:24px!important;bottom:24px!important}
+</style>
+<script>
+(function(){
+  try{
+    const ua=navigator.userAgent||"";
+    const isSamsungTV=/SMART-TV|Tizen|SamsungBrowser.*TV|TV Safari/i.test(ua) ||
+      (/Samsung/i.test(ua) && !/Mobile|Android/i.test(ua));
+    if(isSamsungTV) document.body.classList.add("gc-samsung-tv");
+  }catch(e){}
+})();
+</script>
 </body>
 </html>
