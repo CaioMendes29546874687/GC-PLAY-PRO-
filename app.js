@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-03-SAMSUNG-CATALOG-02 */
+/* GC BUILD 2026-10-03-RENDER-DIAG-01 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -9308,4 +9308,14 @@ if (
     setTimeout(paint,1500);
     setInterval(paint,1500);
   }catch(e){console.error("[GC DIAG]",e)}
+})();
+
+
+/* GC SAMSUNG RENDER DIAGNOSTIC v1 */
+(function(){
+  if(!GC_IS_SAMSUNG_TV) return;
+  window.__GC_RENDER_DIAG__={lastError:"",lastUnhandled:"",lastQuery:"",lastRender:""};
+  const put=(kind,value)=>{window.__GC_RENDER_DIAG__[kind]=String(value||"").slice(0,500);};
+  window.addEventListener("error",e=>put("lastError",e.error?.stack||e.message));
+  window.addEventListener("unhandledrejection",e=>put("lastUnhandled",e.reason?.stack||e.reason?.message||e.reason));
 })();
