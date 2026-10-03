@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const VERSION="20261002-13";
+const VERSION="20261002-14";
 window.__GC_FINAL_FIX_VERSION__=VERSION;
 
 function api(){ return window.GC_PLAY_PRO || null; }
@@ -24,6 +24,10 @@ async function directSection(section){
     s.currentSection=section;
     s.currentFilter=type;
     s.currentGenre="all";
+    /* A IA pode deixar um termo de pesquisa ativo. Ao tocar em
+       Filmes/Séries/TV, a navegação deve voltar ao catálogo completo. */
+    s.searchTerm="";
+    s.searchQuery="";
     s.seriesView.seriesKey=null;
     s.seriesView.season=null;
     if(typeof a.setCatalogCategory==="function"){
@@ -42,6 +46,8 @@ async function directSection(section){
     s.currentSection="home";
     s.currentFilter="all";
     s.currentGenre="all";
+    s.searchTerm="";
+    s.searchQuery="";
     s.seriesView.seriesKey=null;
     s.seriesView.season=null;
     const dash=document.getElementById("homeDashboard");
