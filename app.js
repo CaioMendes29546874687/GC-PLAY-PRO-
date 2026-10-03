@@ -1431,8 +1431,13 @@ function normalizeItem(data) {
 async function migrateCatalogTypes() {
   if (!state.db) return 0;
 
-  const migrationKey =
-    "GC_PLAY_PRO_CATEGORY_TYPES_V4";
+  /*
+     V5: reclassificação completa da biblioteca.
+     Além do type, precisamos reconstruir os campos de série
+     (seriesKey/season/episode). A migração anterior só alterava
+     o tipo e deixava episódios antigos com seriesKey vazio.
+  */
+  const migrationKey = "GC_PLAY_PRO_CATEGORY_TYPES_V5";
 
   try {
     if (localStorage.getItem(migrationKey) === "1") {
@@ -1451,26 +1456,18 @@ async function migrateCatalogTypes() {
     const transaction =
       state.db.transaction(storeNames, "readwrite");
 
-    const store =
-      transaction.objectStore(STORE_NAME);
+    const store = transaction.objectStore(STORE_NAME);
 
     if (storeNames.includes(SERIES_STORE)) {
-      /*
-         O catálogo de séries antigo foi criado com a regra
-         incorreta. Ele será reconstruído usando item.type.
-      */
       transaction.objectStore(SERIES_STORE).clear();
     }
 
-    const request =
-      store.openCursor();
+    const request = store.openCursor();
 
     request.onsuccess = event => {
       const cursor = event.target.result;
 
-      if (!cursor) {
-        return;
-      }
+      if (!cursor) return;
 
       const item = cursor.value;
       const newType = classifyItem(
@@ -1479,9 +1476,52 @@ async function migrateCatalogTypes() {
         item.url
       );
 
-      if (item.type !== newType) {
-        item.type = newType;
-        cursor.update(item);
+      let next = item;
+
+      if (newType === "series") {
+        const info = extractSeriesInfo(item);
+
+        next = {
+          ...item,
+          type: "series",
+          seriesName: info.seriesName || item.name || "Série sem nome",
+          seriesKey: info.seriesKey || normalizeText(info.seriesName || item.name || ""),
+          season: info.season ?? null,
+          episode: info.episode ?? null,
+          seriesSeason: [
+            info.seriesKey || normalizeText(info.seriesName || item.name || ""),
+            Number(info.season ?? 0)
+          ],
+          genre: info.genre || getGenreName(item.group)
+        };
+      } else {
+        next = {
+          ...item,
+          type: newType,
+          seriesName: "",
+          seriesKey: "",
+          season: null,
+          episode: null,
+          seriesSeason: ["", 0],
+          genre: ""
+        };
+      }
+
+      /*
+         Evita writes desnecessários, mas garante que registros
+         antigos recebam todos os campos necessários para os índices.
+      */
+      const fieldsChanged =
+        item.type !== next.type ||
+        item.seriesName !== next.seriesName ||
+        item.seriesKey !== next.seriesKey ||
+        item.season !== next.season ||
+        item.episode !== next.episode ||
+        JSON.stringify(item.seriesSeason || []) !== JSON.stringify(next.seriesSeason || []) ||
+        item.genre !== next.genre;
+
+      if (fieldsChanged) {
+        cursor.update(next);
         changed++;
       }
 
@@ -1496,24 +1536,19 @@ async function migrateCatalogTypes() {
       try {
         localStorage.setItem(migrationKey, "1");
 
-        /*
-           Obriga a reconstrução do catálogo de séries depois
-           da correção dos tipos.
-        */
-        localStorage.removeItem(
-          "GC_PLAY_PRO_SERIES_MIGRATION_V3"
-        );
-        localStorage.removeItem(
-          "GC_PLAY_PRO_SERIES_MIGRATION_V2"
-        );
+        localStorage.removeItem("GC_PLAY_PRO_SERIES_MIGRATION_V3");
+        localStorage.removeItem("GC_PLAY_PRO_SERIES_MIGRATION_V2");
+        localStorage.removeItem("GC_PLAY_PRO_CATEGORY_TYPES_V4");
       } catch {}
 
       state.seriesCatalog = [];
       state.seriesCatalogMap = new Map();
+      state.seriesCatalogChanged = new Set();
       state.seriesCatalogReady = false;
+      state.seriesItemsCache = null;
 
       console.log(
-        "[GC PLAY PRO] Tipos corrigidos:",
+        "[GC PLAY PRO] Reclassificação V5 concluída:",
         changed
       );
 
@@ -1529,6 +1564,7 @@ async function migrateCatalogTypes() {
     };
   });
 }
+
 
 /* =========================================================
    PROXY M3U
