@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-const VERSION="20261002-8";
+const VERSION="20261002-10";
 window.__GC_FINAL_FIX_VERSION__=VERSION;
 
 function api(){ return window.GC_PLAY_PRO || null; }
@@ -389,41 +389,93 @@ function gcAiController(){
 
     const s=window.__GC_STATE__||window.GC_PLAY_PRO?.state;
     const items=Array.isArray(s?.items)?s.items:[];
+    const catalog=Array.isArray(s?.seriesCatalog)?s.seriesCatalog:[];
     const wantsSpecific=/\b(abra|abrir|abre|assistir|assista|coloque|coloca|reproduza|reproduzir|toque|mostrar|mostre|pesquise|pesquisar|procure|procurar|buscar|busque)\b/.test(n);
 
-    /* Primeiro tenta resolver um conteúdo específico.
-       Isso evita que "abra a série X" seja interpretado apenas como
-       "abrir a seção Séries". */
-    const clean=n
-      .replace(/\b(quero|quero assistir|abra|abrir|abre|assistir|assista|coloque|coloca|reproduza|reproduzir|toque|mostrar|mostre|pesquise|pesquisar|procure|procurar|buscar|busque|me mostre|por favor|a|o|um|uma|canal|canais|tv|televis[aã]o|ao vivo|filme|filmes|s[eé]rie|s[eé]ries|temporada|temporadas|epis[oó]dio|epis[oó]dios)\b/g," ")
+    /* Pesquisa tanto nos itens em RAM quanto no catálogo persistente de séries.
+       Em listas grandes, os episódios podem estar no IndexedDB e state.items
+       pode conter poucos/zero itens enquanto seriesCatalog já está pronto. */
+    const stripCommand=(value)=>String(value||"")
+      .replace(/\b(quero|abra|abrir|abre|assistir|assista|coloque|coloca|reproduza|reproduzir|toque|mostrar|mostre|pesquise|pesquisar|procure|procurar|buscar|busque|me mostre|por favor)\b/gi," ")
+      .replace(/\b(?:a|o|um|uma)\s+(?=(?:s[eé]rie|filme|canal|temporada|epis[oó]dio)\b)/gi," ")
+      .replace(/\b(?:canal|canais|tv|televis[aã]o|ao vivo|filme|filmes|s[eé]rie|s[eé]ries|temporada|temporadas|epis[oó]dio|epis[oó]dios)\b/gi," ")
       .replace(/\s+/g," ").trim();
 
-    if(wantsSpecific && clean && items.length){
-      const found=items.filter(x=>!window.isAdultContent?.(x))
-        .filter(x=>(String(x.name||"")+" "+String(x.group||"")+" "+String(x.seriesName||"")).toLowerCase().includes(clean))
-        .sort((x,y)=>{
-          const xn=String(x.seriesName||x.name||"").toLowerCase(), yn=String(y.seriesName||y.name||"").toLowerCase();
-          return (xn===clean?0:xn.startsWith(clean)?1:2)-(yn===clean?0:yn.startsWith(clean)?1:2);
-        }).slice(0,10);
+    const clean=stripCommand(q);
+    const norm=(value)=>String(value||"")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+
+    const queryNorm=norm(clean);
+    const scoreCandidate=(item)=>{
+      if(!item || window.isAdultContent?.(item)) return -1;
+      const title=norm(item.seriesName||item.name||"");
+      const alt=norm(item.name||"");
+      if(!queryNorm || !title) return -1;
+      if(title===queryNorm) return 1000;
+      if(title.startsWith(queryNorm)) return 900;
+      if(title.includes(queryNorm)) return 800;
+      if(alt===queryNorm) return 850;
+      if(alt.startsWith(queryNorm)) return 750;
+      if(alt.includes(queryNorm)) return 700;
+      const terms=queryNorm.split(" ").filter(Boolean);
+      const hits=terms.filter(t=>title.includes(t)||alt.includes(t)).length;
+      return hits===terms.length ? 600+hits : -1;
+    };
+
+    if(wantsSpecific && queryNorm){
+      const pool=[
+        ...catalog,
+        ...items.filter(x=>x && (x.type==="series" || x.seriesKey))
+      ];
+
+      const unique=new Map();
+      for(const item of pool){
+        const key=String(item.seriesKey||item.id||item.name||"");
+        if(!key) continue;
+        const prev=unique.get(key);
+        if(!prev || scoreCandidate(item)>scoreCandidate(prev)) unique.set(key,item);
+      }
+
+      const found=Array.from(unique.values())
+        .map(item=>({item,score:scoreCandidate(item)}))
+        .filter(x=>x.score>=0)
+        .sort((a,b)=>b.score-a.score)
+        .slice(0,10)
+        .map(x=>x.item);
 
       if(found.length){
         const item=found[0];
 
-        /* Séries usam o navegador de temporadas, não playItem().
-           Assim a IA abre a série escolhida e não apenas a seção. */
-        if(item.type==="series" || item.seriesKey){
-          const key=item.seriesKey || item.seriesName || item.name;
-          if(s){
+        /* Série: usa a chave canônica do catálogo para abrir a série,
+           nunca somente a seção Séries. */
+        if(item.type==="series" || item.seriesKey || item.seriesName){
+          let key=String(item.seriesKey||"").trim();
+
+          if(s?.seriesKeyAliases instanceof Map && key){
+            key=s.seriesKeyAliases.get(key)||key;
+          }
+
+          if(!key){
+            const title=String(item.seriesName||item.name||"").trim();
+            const match=catalog.find(x=>norm(x.seriesName||x.name)===norm(title));
+            key=String(match?.seriesKey||"").trim();
+          }
+
+          if(s && key){
             s.currentSection="series";
             s.currentFilter="series";
             s.currentGenre="all";
             s.seriesView.seriesKey=key;
             s.seriesView.season=null;
           }
+
           try{
             if(window.GC_PLAY_PRO?.render) await window.GC_PLAY_PRO.render();
             else document.querySelector('[data-section="series"]')?.click();
-            addMessage("Abrindo a série <b>"+String(item.seriesName||item.name||"").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]))+"</b>.");
+
+            const label=String(item.seriesName||item.name||clean||"").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
+            addMessage("Abrindo a série <b>"+label+"</b>.");
           }catch{
             addMessage("Encontrei a série, mas não consegui abrir os episódios agora.");
           }
