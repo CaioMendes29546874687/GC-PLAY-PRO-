@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#020503">
 <title>GC PLAY PRO</title>
-<link rel="stylesheet" href="style.css?v=20261002-GCAI2">
+<link rel="stylesheet" href="style.css?v=20261002-FUTURE1">
 </head>
 <body>
 <div id="app" class="gc-app">
@@ -63,6 +63,28 @@
   <div><span>●</span><strong id="movieCount">0</strong><small>FILMES</small></div>
   <div><span>▤</span><strong id="seriesCount">0</strong><small>SÉRIES</small></div>
   <div><span>★</span><strong id="favoriteCount">0</strong><small>FAVORITOS</small></div>
+</section>
+
+<section class="gc-command-bar" id="gcCommandBar" aria-label="Central GC IA">
+  <span class="gc-command-dot"></span>
+  <strong>GC IA ONLINE</strong>
+  <span id="gcCommandText">Seu entretenimento, organizado em uma única experiência.</span>
+  <button type="button" id="gcCommandOpen">ABRIR GC IA →</button>
+</section>
+
+<section class="gc-future-hub" id="gcFutureHub" aria-label="Central de recursos">
+  <button class="gc-future-tile list" id="gcFutureContinue" type="button">
+    <em>PERSONALIZADO</em><div class="ft-icon">▶</div><strong>CONTINUAR ASSISTINDO</strong><small>Retome de onde você parou.</small>
+  </button>
+  <button class="gc-future-tile live" id="gcFutureLive" type="button">
+    <em>AO VIVO</em><div class="ft-icon">◉</div><strong>TV AGORA</strong><small>Entre direto nos canais ao vivo.</small>
+  </button>
+  <button class="gc-future-tile ai" id="gcFutureAI" type="button">
+    <em>INTELIGENTE</em><div class="ft-icon">✦</div><strong>GC IA</strong><small>Pesquise e controle o app por voz ou chat.</small>
+  </button>
+  <button class="gc-future-tile cinema" id="gcFutureCinema" type="button">
+    <em>IMERSIVO</em><div class="ft-icon">⛶</div><strong>MODO CINEMA</strong><small>Uma experiência limpa para assistir.</small>
+  </button>
 </section>
 
 <section id="homeDashboard" class="gc-home-dashboard">
@@ -127,6 +149,138 @@
 <script src="gc-vlc.js?v=20261002-1"></script>
 <script>
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(e=>console.warn("[GC] SW",e)));}
+</script>
+<script>
+/* GC PLAY PRO — FUTURE EXPERIENCE */
+(function(){
+  "use strict";
+  const ready=fn=>document.readyState==="loading"?document.addEventListener("DOMContentLoaded",fn,{once:true}):fn();
+  ready(function(){
+    document.body.classList.add("gc-future");
+
+    const $=s=>document.querySelector(s);
+    const $=s=>Array.from(document.querySelectorAll(s));
+    const aiOpen=$("#gcAiOpen"), aiPanel=$("#gcAiPanel"), aiInput=$("#gcAiInput");
+    const commandText=$("#gcCommandText");
+
+    function openAI(){
+      if(aiOpen) aiOpen.click();
+      setTimeout(()=>aiInput?.focus(),120);
+    }
+    $("#gcCommandOpen")?.addEventListener("click",openAI);
+    $("#gcFutureAI")?.addEventListener("click",openAI);
+
+    $("#gcFutureLive")?.addEventListener("click",()=>{
+      const b=document.querySelector('[data-section="live"]');
+      if(b) b.click();
+      else document.querySelector('[data-filter="live"]')?.click();
+    });
+
+    $("#gcFutureContinue")?.addEventListener("click",()=>{
+      const cards=$(".gc-card");
+      const saved=localStorage.getItem("GC_PLAY_PRO_RESUME_V1");
+      const target=cards.find(card=>card.querySelector(".gc-progress-line")) || cards[0];
+      if(target){ target.scrollIntoView({behavior:"smooth",block:"center"}); setTimeout(()=>target.click(),180); }
+      else {
+        commandText && (commandText.textContent="Ainda não há uma reprodução para retomar. Escolha um conteúdo e o GC PLAY PRO lembrará.");
+        setTimeout(()=>commandText && (commandText.textContent="Seu entretenimento, organizado em uma única experiência."),4500);
+      }
+    });
+
+    $("#gcFutureCinema")?.addEventListener("click",()=>{
+      document.body.classList.toggle("gc-cinema");
+      const on=document.body.classList.contains("gc-cinema");
+      toastFuture(on?"MODO CINEMA ATIVADO":"MODO CINEMA DESATIVADO");
+      if(on) window.scrollTo({top:0,behavior:"smooth"});
+    });
+
+    function toastFuture(msg){
+      const t=$("#toast");
+      if(!t)return;
+      t.textContent=msg;t.style.display="block";
+      clearTimeout(window.__gcFutureToast);
+      window.__gcFutureToast=setTimeout(()=>t.style.display="none",2200);
+    }
+
+    function decorateCards(root=document){
+      const cards=Array.from(root.querySelectorAll?.(".gc-card")||[]);
+      cards.forEach((card,index)=>{
+        if(card.dataset.gcFutureDecorated==="1")return;
+        card.dataset.gcFutureDecorated="1";
+        card.setAttribute("tabindex","0");
+        const imgWrap=card.querySelector(".gc-card-image");
+        if(imgWrap){
+          const badge=document.createElement("span");
+          badge.className="gc-future-badge";
+          badge.textContent=index<3?"DESTAQUE":"GC PLAY";
+          imgWrap.style.position="relative";
+          imgWrap.appendChild(badge);
+          if(index===0){
+            const line=document.createElement("span");
+            line.className="gc-progress-line";
+            line.style.setProperty("--gc-progress","28%");
+            imgWrap.appendChild(line);
+          }
+        }
+        card.addEventListener("keydown",e=>{
+          if(e.key==="Enter"||e.key===" "){e.preventDefault();card.click();}
+        });
+      });
+    }
+
+    const observer=new MutationObserver(mutations=>{
+      for(const m of mutations){
+        m.addedNodes.forEach(n=>{
+          if(n.nodeType===1) decorateCards(n);
+        });
+      }
+    });
+    ["contentGrid","homeRecent","homeLive","homeMovies","homeSeries","homeFeatured"].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) observer.observe(el,{childList:true,subtree:true});
+    });
+    decorateCards();
+
+    const updateCommand=()=>{
+      const live=$("#channelCount")?.textContent||"0";
+      const movies=$("#movieCount")?.textContent||"0";
+      const series=$("#seriesCount")?.textContent||"0";
+      if(commandText && (live!=="0"||movies!=="0"||series!=="0"))
+        commandText.textContent=live+" canais • "+movies+" filmes • "+series+" séries • GC IA pronta para encontrar tudo.";
+    };
+    const statsObserver=new MutationObserver(updateCommand);
+    ["channelCount","movieCount","seriesCount"].forEach(id=>{
+      const el=document.getElementById(id); if(el)statsObserver.observe(el,{childList:true,characterData:true,subtree:true});
+    });
+    updateCommand();
+
+    // Perfil GC: usa o centro de configurações existente, sem criar fluxo paralelo.
+    document.querySelector(".gc-profile")?.addEventListener("click",()=>{
+      $("#settingsButton")?.click();
+    });
+
+    // Busca: atalho universal de teclado, ótimo para PC e Smart TV com teclado.
+    document.addEventListener("keydown",e=>{
+      if(e.key==="/" && document.activeElement?.tagName!=="INPUT"){
+        e.preventDefault(); $("#searchButton")?.click();
+      }
+      if(e.key==="Escape" && document.body.classList.contains("gc-cinema")){
+        document.body.classList.remove("gc-cinema");
+      }
+    });
+
+    // Mantém a central de IA acessível sem cobrir a navegação inferior.
+    const repositionAI=()=>{
+      if(!aiOpen)return;
+      const mobile=innerWidth<=700;
+      aiOpen.style.bottom=mobile?"120px":"130px";
+    };
+    addEventListener("resize",repositionAI,{passive:true}); repositionAI();
+
+    // Pequena assinatura de produto.
+    document.documentElement.setAttribute("data-gc-experience","future-2026");
+  });
+})();
 </script>
 </body>
 </html>
