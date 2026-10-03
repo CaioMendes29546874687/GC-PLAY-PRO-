@@ -5666,11 +5666,37 @@ function setupCardEvents() {
       const id =
         card.dataset.itemId;
 
-      const item =
-        await findItem(id);
+      /*
+       * Primeiro usa o item que o próprio card já representa.
+       * No Samsung isso evita uma segunda consulta ao IndexedDB/RAM
+       * que pode retornar vazio enquanto o catálogo ainda está sendo
+       * indexado. A busca por ID fica somente como fallback.
+       */
+      let item = null;
 
-      if (item) {
+      try {
+        const dynamic = window.__GC_DYNAMIC_ITEMS__;
+        if (dynamic instanceof Map) {
+          item = dynamic.get(String(id)) || null;
+        }
+      } catch {}
+
+      if (!item) {
+        try {
+          const raw = card.dataset.item;
+          if (raw) item = JSON.parse(raw);
+        } catch {}
+      }
+
+      if (!item) {
+        item = findRAMItem(id) || await findItem(id);
+      }
+
+      if (item && item.url) {
         await playItem(item);
+      } else {
+        console.warn("[GC PLAY PRO] item do card não encontrado:", id);
+        toast("Não foi possível localizar este conteúdo.");
       }
     }
   );
