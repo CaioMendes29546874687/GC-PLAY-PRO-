@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-03-SAMSUNG-PERF-01 */
+/* GC BUILD 2026-10-03-SAMSUNG-CATALOG-02 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -2931,10 +2931,43 @@ async function queryCatalogItems({
   };
 
   /*
-     Samsung/Tizen: prioriza a amostra em RAM para a primeira
-     navegação. Isso evita depender de cursores IndexedDB em
-     Smart TVs durante a pintura da grade. A biblioteca completa
-     continua armazenada no banco para buscas posteriores.
+     Samsung/Tizen: a RAM é apenas uma amostra de segurança.
+     Quando a importação já terminou, a fonte correta para TV,
+     filmes e demais categorias é o IndexedDB completo. Usar a
+     amostra primeiro podia fazer uma seção parecer vazia mesmo
+     com milhares de itens gravados no banco.
+  */
+  if (GC_IS_SAMSUNG_TV && state.db) {
+    try {
+      const dbResult = await new Promise((resolve, reject) => {
+        const result = [];
+        const transaction = state.db.transaction(STORE_NAME, "readonly");
+        const store = transaction.objectStore(STORE_NAME);
+        const useTypeIndex = !!type && type !== "adult";
+        const source = useTypeIndex ? store.index("type") : store;
+        const request = useTypeIndex
+          ? source.openCursor(IDBKeyRange.only(type))
+          : source.openCursor();
+
+        request.onsuccess = event => {
+          const cursor = event.target.result;
+          if (!cursor || result.length >= limit) {
+            resolve(result);
+            return;
+          }
+          if (matches(cursor.value)) result.push(cursor.value);
+          cursor.continue();
+        };
+        request.onerror = () => reject(request.error);
+      });
+      if (dbResult.length) return dbResult;
+    } catch (error) {
+      console.warn("[GC PLAY PRO] Samsung consulta DB:", error);
+    }
+  }
+
+  /*
+     Se o banco ainda não estiver pronto, usamos a amostra RAM como fallback.
   */
   if (GC_IS_SAMSUNG_TV) {
     const ramResult = state.items.filter(matches).slice(0, limit);
