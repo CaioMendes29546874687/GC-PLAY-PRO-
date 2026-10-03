@@ -152,3 +152,30 @@ body.gc-future{
 @media(prefers-reduced-motion:reduce){
   .gc-future .gc-hero:after,.gc-future .gc-ai-fab:before{animation:none}
 }
+
+/* GC PLAY PRO — NEXT FUTURE LAYER */
+.gc-future .gc-command-bar{position:relative;min-height:38px;overflow:hidden}
+.gc-future .gc-command-bar:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(57,255,136,.09),transparent);transform:translateX(-100%);animation:gcHudSweep 5s linear infinite;pointer-events:none}
+@keyframes gcHudSweep{to{transform:translateX(100%)}}
+.gc-live-clock{margin-left:auto!important;color:var(--gc-neon)!important;font-variant-numeric:tabular-nums;font-weight:1000;letter-spacing:1px!important;flex:none}
+.gc-hero-meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:16px}
+.gc-hero-meta span{padding:7px 9px;border:1px solid rgba(57,255,136,.14);border-radius:999px;background:rgba(255,255,255,.025);color:#7e9487;font-size:7px;font-weight:900;letter-spacing:1px}
+.gc-hero-meta span:first-child{color:var(--gc-neon);border-color:rgba(57,255,136,.3)}
+.gc-rail>header{position:relative}
+.gc-rail-line{position:absolute;left:0;right:0;bottom:-9px;height:1px;background:linear-gradient(90deg,rgba(57,255,136,.42),transparent 65%);opacity:.55}
+.gc-future .gc-hero-status.gc-online .pulse{animation:gcOnlinePulse 1.8s ease-in-out infinite}
+@keyframes gcOnlinePulse{50%{box-shadow:0 0 20px var(--gc-neon),0 0 35px rgba(57,255,136,.25)}}
+.gc-future .gc-future-tile:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 35%,rgba(255,255,255,.035) 50%,transparent 65%);transform:translateX(-120%);transition:transform .6s}
+.gc-future .gc-future-tile:hover:before,.gc-future .gc-future-tile:focus:before{transform:translateX(120%)}
+.gc-future .gc-card{isolation:isolate}
+.gc-future .gc-card:after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(57,255,136,0);transition:.2s}
+.gc-future .gc-card:hover:after,.gc-future .gc-card:focus:after{box-shadow:inset 0 0 0 1px rgba(57,255,136,.16)}
+@media(max-width:700px){
+ .gc-live-clock{display:none!important}
+ .gc-hero-meta{gap:5px;margin-top:12px}
+ .gc-hero-meta span{font-size:6px;padding:6px 7px}
+ .gc-future .gc-command-bar>span:nth-of-type(2){max-width:43vw}
+}
+@media(prefers-reduced-motion:reduce){
+ .gc-future .gc-command-bar:before,.gc-future .gc-future-tile:before{animation:none;transform:none}
+}
