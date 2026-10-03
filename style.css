@@ -179,3 +179,236 @@ body.gc-future{
 @media(prefers-reduced-motion:reduce){
  .gc-future .gc-command-bar:before,.gc-future .gc-future-tile:before{animation:none;transform:none}
 }
+
+
+/* =========================================================
+   GC PLAY PRO — CINEMATIC APP SHELL v2026.10
+   Reconstrução visual estrutural: sidebar + cinematic hero + rails
+   ========================================================= */
+
+.gc-future{
+  --shell-sidebar:238px;
+  --shell-gap:34px;
+  --shell-card:186px;
+}
+body.gc-future{
+  background:
+    radial-gradient(circle at 78% 8%,rgba(57,255,136,.10),transparent 22%),
+    radial-gradient(circle at 40% 100%,rgba(0,255,180,.035),transparent 28%),
+    #020403;
+}
+
+/* DESKTOP: a interface deixa de parecer uma landing page e passa a parecer um app */
+@media(min-width:1051px){
+  body.gc-future{padding-left:var(--shell-sidebar)}
+  .gc-future .gc-header{
+    position:fixed;left:0;top:0;bottom:0;width:var(--shell-sidebar);height:100vh;
+    padding:22px 14px 18px;display:flex;flex-direction:column;align-items:stretch;gap:20px;
+    background:linear-gradient(180deg,rgba(3,10,6,.97),rgba(1,4,2,.985));
+    border-right:1px solid rgba(57,255,136,.15);border-bottom:0;
+    box-shadow:14px 0 60px rgba(0,0,0,.35);backdrop-filter:blur(24px);
+  }
+  .gc-future .gc-brand{
+    width:100%;min-width:0;padding:5px 8px 18px;border-bottom:1px solid rgba(57,255,136,.10);
+  }
+  .gc-future .gc-logo{font-size:25px;padding:5px 9px}
+  .gc-future .gc-brand-copy strong{font-size:13px}
+  .gc-future .main-nav{
+    flex-direction:column;align-items:stretch;gap:5px;flex:0 0 auto;
+  }
+  .gc-future .main-nav .nav-item{
+    width:100%;height:45px;padding:0 14px;display:flex;align-items:center;gap:11px;
+    text-align:left;border:1px solid transparent;border-radius:13px;font-size:9px;
+  }
+  .gc-future .main-nav .nav-item span{
+    width:22px;margin:0;text-align:center;font-size:17px;color:#789287;
+  }
+  .gc-future .main-nav .nav-item.active{
+    color:#031008;background:linear-gradient(90deg,var(--gc-neon),rgba(57,255,136,.58));
+    box-shadow:0 0 25px rgba(57,255,136,.16),inset 0 1px rgba(255,255,255,.35);
+  }
+  .gc-future .main-nav .nav-item.active span{color:#031008}
+  .gc-future .main-nav .gc-adult-nav{margin-top:8px}
+  .gc-future .gc-header-actions{
+    position:fixed;right:28px;top:15px;z-index:160;gap:8px;
+  }
+  .gc-future .gc-header-actions:before{
+    content:"GC PLAY PRO  •  ONLINE";
+    height:38px;padding:0 13px;display:flex;align-items:center;
+    border:1px solid rgba(57,255,136,.14);border-radius:12px;
+    background:rgba(3,10,6,.72);color:#6d8477;font-size:8px;font-weight:900;letter-spacing:1.2px;
+    backdrop-filter:blur(18px);
+  }
+  .gc-future .gc-header-actions .icon-button{
+    background:rgba(4,12,7,.82);box-shadow:0 8px 30px rgba(0,0,0,.25);
+  }
+  .gc-future .gc-profile{box-shadow:0 0 22px rgba(57,255,136,.25)}
+  .gc-future main{
+    max-width:none;margin:0;padding:0 var(--shell-gap) 100px;
+  }
+
+  .gc-future .gc-hero{
+    min-height:610px;height:calc(100vh - 88px);max-height:760px;
+    margin:0 -34px 0;border:0;border-radius:0 0 34px 34px;
+    align-items:flex-end;
+    background:#030705;
+  }
+  .gc-future .gc-hero-bg{
+    background:
+      linear-gradient(90deg,rgba(1,4,2,.98) 0%,rgba(1,4,2,.91) 27%,rgba(1,4,2,.52) 54%,rgba(1,4,2,.12) 100%),
+      linear-gradient(0deg,rgba(1,4,2,.96) 0%,transparent 45%),
+      var(--gc-hero-image,radial-gradient(circle at 72% 38%,rgba(57,255,136,.20),transparent 34%));
+    background-position:center;background-size:cover;
+    transition:background-image .35s ease;
+  }
+  .gc-future .gc-hero-glow{
+    width:70%;height:80%;right:-5%;top:5%;
+    background:radial-gradient(ellipse,rgba(57,255,136,.12),transparent 64%);
+    filter:blur(30px);
+  }
+  .gc-future .gc-hero-content{
+    width:min(720px,58%);max-width:none;padding:0 0 76px 48px;
+  }
+  .gc-future .gc-eyebrow{font-size:9px}
+  .gc-future .gc-hero h1{
+    font-size:clamp(58px,5.4vw,92px);line-height:.86;letter-spacing:-5px;
+    margin:17px 0 20px;max-width:680px;
+  }
+  .gc-future .gc-hero p{font-size:13px;max-width:610px;color:#b1c1b7}
+  .gc-future .gc-hero-actions{margin-top:24px}
+  .gc-future .gc-hero-status{margin-top:17px}
+  .gc-future .gc-hero-orbit{display:none}
+  .gc-future .gc-hero-meta{margin-top:16px}
+
+  .gc-future .gc-shortcuts{display:none}
+  .gc-future .gc-stats{
+    position:relative;z-index:20;margin:-22px 0 30px;padding:0 10px;
+    grid-template-columns:repeat(4,1fr);border:1px solid rgba(57,255,136,.13);
+    border-radius:18px;background:rgba(5,12,8,.78);backdrop-filter:blur(18px);
+    box-shadow:0 20px 55px rgba(0,0,0,.30);
+  }
+  .gc-future .gc-stats div{padding:13px 18px;border-right:1px solid rgba(57,255,136,.10)}
+  .gc-future .gc-stats strong{font-size:17px}
+  .gc-future .gc-stats small{font-size:6px}
+
+  .gc-future .gc-command-bar{
+    margin:0 0 30px;border-radius:14px;background:rgba(5,13,8,.72);
+  }
+  .gc-future .gc-future-hub{display:none}
+  .gc-future .gc-home-featured{display:none}
+
+  .gc-future .gc-home-dashboard{max-width:1800px}
+  .gc-future .gc-rail{margin-bottom:39px}
+  .gc-future .gc-rail>header{margin-bottom:16px}
+  .gc-future .gc-rail header span{font-size:7px}
+  .gc-future .gc-rail h2{font-size:21px}
+  .gc-future .gc-home-row{
+    grid-auto-columns:minmax(var(--shell-card),var(--shell-card));
+    gap:14px;overflow-x:auto;padding:3px 2px 14px;
+  }
+  .gc-future .gc-home-row .gc-card{
+    border-radius:13px!important;
+    box-shadow:0 15px 35px rgba(0,0,0,.28);
+  }
+}
+
+/* top command/search feeling without altering functional buttons */
+.gc-future .gc-command-bar{
+  box-shadow:0 15px 50px rgba(0,0,0,.24);
+  background:
+    linear-gradient(90deg,rgba(57,255,136,.075),rgba(255,255,255,.018) 55%,rgba(57,255,136,.035));
+}
+
+/* Cards: premium poster treatment */
+.gc-future .gc-home-row .gc-card{
+  position:relative;min-height:300px;border-radius:15px!important;
+  border-color:rgba(57,255,136,.18)!important;
+  background:#050b07!important;
+}
+.gc-future .gc-home-row .gc-card-image{
+  aspect-ratio:2/3!important;
+  background:linear-gradient(145deg,#0b1810,#030604);
+}
+.gc-future .gc-home-row .gc-card-image img{filter:saturate(1.05) contrast(1.03)}
+.gc-future .gc-home-row .gc-card:hover{
+  transform:translateY(-7px) scale(1.025)!important;
+}
+
+/* LIVE rail fica visualmente diferente de filmes */
+.gc-future .gc-home-row[data-live] .gc-card,
+.gc-future [data-home-rail="live"] .gc-card{
+  border-color:rgba(103,255,224,.18)!important;
+}
+.gc-future [data-home-rail="live"] .gc-card .gc-card-image{
+  aspect-ratio:16/10!important;
+}
+
+/* Catalog */
+.gc-future .gc-library{padding-top:20px}
+.gc-future .gc-library-top{
+  padding:18px 0 20px;border-bottom-color:rgba(57,255,136,.15)
+}
+.gc-future .content-grid{gap:16px}
+.gc-future .content-grid .gc-card{border-radius:14px!important}
+.gc-future .gc-category-panel{
+  background:rgba(5,12,8,.62);backdrop-filter:blur(15px);
+}
+
+/* IA fica como elemento nativo do produto */
+.gc-future .gc-ai-fab{
+  width:58px;height:58px;border-width:1px;
+  background:radial-gradient(circle at 35% 25%,#173b25,#041008 66%);
+  box-shadow:0 0 28px rgba(57,255,136,.30),inset 0 0 18px rgba(57,255,136,.10);
+}
+
+/* TV/mobile/tablet: mantém a mesma linguagem, apenas comprime */
+@media(max-width:1050px){
+  body.gc-future{background:#020403}
+  .gc-future .gc-header{position:sticky}
+  .gc-future .gc-hero{
+    min-height:590px;border-radius:0 0 25px 25px;
+    background:#030705;
+  }
+  .gc-future .gc-hero-bg{
+    background:
+      linear-gradient(90deg,rgba(1,4,2,.96),rgba(1,4,2,.50)),
+      linear-gradient(0deg,rgba(1,4,2,.94),transparent 65%),
+      var(--gc-hero-image,radial-gradient(circle at 75% 40%,rgba(57,255,136,.18),transparent 40%));
+    background-size:cover;background-position:center;
+  }
+  .gc-future .gc-hero-orbit{display:none}
+  .gc-future .gc-hero-content{max-width:650px;padding:70px 0 55px}
+  .gc-future .gc-hero h1{font-size:clamp(52px,9vw,78px)}
+  .gc-future .gc-home-featured{display:none}
+  .gc-future .gc-future-hub{display:grid}
+}
+
+@media(max-width:700px){
+  body.gc-future{font-size:14px}
+  .gc-future .gc-header{
+    background:rgba(2,6,4,.94);box-shadow:0 10px 40px rgba(0,0,0,.45)
+  }
+  .gc-future .gc-header-actions:before{display:none}
+  .gc-future .gc-hero{
+    min-height:550px;margin:0 -14px;border-radius:0 0 24px 24px;
+  }
+  .gc-future .gc-hero-content{padding:52px 14px 40px}
+  .gc-future .gc-hero h1{
+    font-size:clamp(46px,14vw,64px);letter-spacing:-3.5px;
+  }
+  .gc-future .gc-hero p{font-size:12px;line-height:1.6}
+  .gc-future .gc-hero-actions .primary-button,
+  .gc-future .gc-hero-actions .secondary-button{min-height:46px}
+  .gc-future .gc-stats{margin:-15px 0 22px;border-radius:15px}
+  .gc-future .gc-stats div{padding:11px 12px}
+  .gc-future .gc-command-bar{margin-bottom:18px}
+  .gc-future .gc-future-hub{display:grid;grid-template-columns:1fr 1fr}
+  .gc-future .gc-future-tile{min-height:88px}
+  .gc-future .gc-home-row{grid-auto-columns:145px;gap:10px}
+  .gc-future .gc-home-row .gc-card{min-height:245px}
+  .gc-future [data-home-rail="live"] .gc-card .gc-card-image{aspect-ratio:16/10!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .gc-future .gc-hero-bg{transition:none}
+}
