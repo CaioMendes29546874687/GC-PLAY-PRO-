@@ -539,5 +539,49 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
   setInterval(update,60000);
 })();
 </script>
+<style>
+/* GC PLAY PRO — LISTA GERENCIADA PELO MANAGER */
+body.gc-activated-client #addPlaylistButton,
+body.gc-activated-client #quickAddPlaylist,
+body.gc-activated-client #emptyAddButton,
+body.gc-activated-client .gc-shortcut-add{
+  display:none!important;
+}
+body.gc-activated-client #playlistDialog{display:none!important}
+</style>
+<script>
+/* GC PLAY PRO — CLIENTE ATIVADO: BLOQUEIA CADASTRO MANUAL DE M3U */
+(function(){
+  const K="GC_PLAY_PRO_ACTIVATION_V1";
+  function activated(){
+    try{
+      const s=JSON.parse(localStorage.getItem(K)||"null");
+      return !!(s?.activationCode && s?.expiresAt && new Date(s.expiresAt).getTime()>0);
+    }catch{return false}
+  }
+  function apply(){
+    if(!activated())return;
+    document.body.classList.add("gc-activated-client");
+    const dialog=document.getElementById("playlistDialog");
+    if(dialog?.open){
+      try{dialog.close()}catch{}
+      dialog.classList.remove("active","open","show");
+    }
+  }
+  document.addEventListener("click",function(e){
+    if(!activated())return;
+    const b=e.target.closest("#addPlaylistButton,#quickAddPlaylist,#emptyAddButton,.gc-shortcut-add");
+    if(!b)return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    document.body.classList.add("gc-activated-client");
+    return false;
+  },true);
+  apply();
+  document.addEventListener("DOMContentLoaded",apply,{once:true});
+  window.addEventListener("storage",apply);
+  setInterval(apply,5000);
+})();
+</script>
 </body>
 </html>
