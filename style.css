@@ -1085,3 +1085,411 @@ body.gc-future{
 @media(max-width:700px){
   .gc-future .gc-ai-fab{width:52px;height:52px;right:12px;bottom:120px}
 }
+
+
+/* ================================================================
+   GC PLAY PRO — REFERENCE ULTRA / PIXEL-CLOSE VISUAL PASS
+   Final presentation layer for the supplied 8-screen reference.
+   ================================================================ */
+
+.gc-future{
+  --ref-bg:#010403;
+  --ref-panel:#06100a;
+  --ref-panel2:#09150e;
+  --ref-line:rgba(57,255,136,.22);
+  --ref-neon:#39ff88;
+  --ref-text:#f5fff8;
+  --ref-muted:#789086;
+}
+
+/* Global frame */
+body.gc-future{
+  background:
+    radial-gradient(ellipse at 58% 0%,rgba(57,255,136,.055),transparent 30%),
+    radial-gradient(ellipse at 100% 65%,rgba(0,255,173,.035),transparent 28%),
+    #010403;
+}
+body.gc-future:before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  background:
+    repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0,rgba(255,255,255,.012) 1px,transparent 1px,transparent 4px);
+  opacity:.22;
+}
+.gc-future .gc-header{
+  background:linear-gradient(180deg,rgba(3,10,6,.985),rgba(1,5,3,.985))!important;
+}
+
+/* Desktop shell — compact like the reference */
+@media(min-width:1051px){
+  .gc-future{--shell-sidebar:166px;--shell-gap:20px;--shell-card:156px}
+  body.gc-future{padding-left:166px}
+
+  .gc-future .gc-header{
+    width:166px!important;
+    padding:13px 9px 12px!important;
+    gap:11px!important;
+  }
+  .gc-future .gc-brand{
+    padding:4px 4px 11px!important;
+    gap:6px!important;
+  }
+  .gc-future .gc-logo{
+    font-size:19px!important;
+    letter-spacing:-1.5px!important;
+    padding:4px 6px!important;
+    border-radius:7px!important;
+  }
+  .gc-future .gc-brand-copy strong{font-size:9px!important;letter-spacing:1px!important}
+  .gc-future .gc-brand-copy small{font-size:5px!important;letter-spacing:1px!important}
+
+  .gc-future .main-nav{gap:2px!important}
+  .gc-future .main-nav .nav-item{
+    height:31px!important;
+    min-height:31px!important;
+    padding:0 8px!important;
+    border-radius:7px!important;
+    font-size:7px!important;
+    letter-spacing:.25px!important;
+  }
+  .gc-future .main-nav .nav-item span{
+    width:16px!important;
+    font-size:12px!important;
+  }
+  .gc-future .main-nav .gc-adult-nav{margin-top:4px!important}
+
+  .gc-future .gc-header-actions{
+    right:20px!important;
+    top:12px!important;
+    gap:5px!important;
+  }
+  .gc-future .gc-header-actions:before{
+    height:28px!important;
+    padding:0 9px!important;
+    font-size:6px!important;
+    border-radius:8px!important;
+  }
+  .gc-future .gc-header-actions .icon-button,
+  .gc-future .gc-profile{
+    width:30px!important;height:30px!important;border-radius:8px!important;font-size:13px!important;
+  }
+
+  .gc-future main{
+    padding:0 20px 60px!important;
+  }
+
+  /* Home reference: short cinematic banner, not a giant landing page */
+  .gc-future .gc-hero{
+    height:350px!important;
+    min-height:350px!important;
+    max-height:350px!important;
+    margin:0 -20px!important;
+    border-radius:0 0 18px 18px!important;
+  }
+  .gc-future .gc-hero-content{
+    width:55%!important;
+    padding:0 0 42px 28px!important;
+  }
+  .gc-future .gc-eyebrow{font-size:6px!important;letter-spacing:1.4px!important}
+  .gc-future .gc-hero h1{
+    font-size:clamp(40px,4vw,60px)!important;
+    letter-spacing:-3px!important;
+    margin:10px 0 12px!important;
+    line-height:.9!important;
+  }
+  .gc-future .gc-hero p{
+    font-size:9px!important;
+    max-width:380px!important;
+    line-height:1.5!important;
+  }
+  .gc-future .gc-hero-actions{margin-top:14px!important}
+  .gc-future .gc-hero-actions button{
+    padding:8px 12px!important;
+    border-radius:7px!important;
+    font-size:7px!important;
+  }
+  .gc-future .gc-hero-status{margin-top:10px!important;font-size:6px!important}
+  .gc-future .gc-hero-meta{margin-top:8px!important}
+  .gc-future .gc-hero-meta span{padding:4px 6px!important;font-size:5px!important}
+
+  .gc-future .gc-stats{
+    margin:-12px 0 18px!important;
+    border-radius:11px!important;
+  }
+  .gc-future .gc-stats div{padding:8px 11px!important}
+  .gc-future .gc-stats strong{font-size:13px!important}
+  .gc-future .gc-stats small{font-size:5px!important}
+  .gc-future .gc-stats span{font-size:10px!important}
+
+  .gc-future .gc-command-bar{
+    min-height:30px!important;
+    margin-bottom:16px!important;
+    padding:6px 9px!important;
+    border-radius:8px!important;
+  }
+  .gc-future .gc-command-bar strong,
+  .gc-future .gc-command-bar span,
+  .gc-future .gc-command-bar button{font-size:6px!important}
+
+  /* Home rails */
+  .gc-future .gc-rail{margin-bottom:22px!important}
+  .gc-future .gc-rail>header{margin-bottom:8px!important}
+  .gc-future .gc-rail header span{font-size:5px!important;letter-spacing:1.2px!important}
+  .gc-future .gc-rail h2{font-size:14px!important;margin-top:3px!important}
+  .gc-future .gc-rail header button{font-size:6px!important}
+  .gc-future .gc-home-row{
+    grid-auto-columns:156px!important;
+    gap:8px!important;
+    padding-bottom:6px!important;
+  }
+  .gc-future .gc-home-row .gc-card{
+    min-height:228px!important;
+    border-radius:9px!important;
+  }
+  .gc-future .gc-home-row .gc-card-image{
+    aspect-ratio:2/3!important;
+  }
+
+  /* Reference-style catalog header */
+  .gc-future .gc-library-top{
+    padding:10px 12px!important;
+    border:1px solid rgba(57,255,136,.14)!important;
+    border-radius:10px!important;
+    background:linear-gradient(90deg,rgba(57,255,136,.055),rgba(4,10,7,.82))!important;
+  }
+  .gc-future .gc-library-top h2{font-size:21px!important}
+  .gc-future .gc-library-top p{font-size:6px!important}
+  .gc-future .filters{gap:3px!important}
+  .gc-future .filter-button{
+    padding:6px 8px!important;
+    font-size:6px!important;
+    border-radius:6px!important;
+  }
+  .gc-future .gc-catalog-layout{
+    grid-template-columns:145px minmax(0,1fr)!important;
+    gap:10px!important;
+  }
+  .gc-future .gc-category-panel{
+    padding:6px!important;
+    border-radius:10px!important;
+  }
+  .gc-future .gcv4-cat{
+    padding:7px 6px!important;
+    font-size:6px!important;
+    border-radius:6px!important;
+  }
+  .gc-future .content-grid{
+    grid-template-columns:repeat(auto-fill,minmax(118px,1fr))!important;
+    gap:8px!important;
+  }
+  .gc-future .content-grid .gc-card{
+    border-radius:8px!important;
+  }
+  .gc-future .content-grid .gc-card-image{
+    aspect-ratio:2/3!important;
+  }
+}
+
+/* TV screen: compact channel dashboard */
+@media(min-width:1051px){
+  .gc-future .gc-library:has(.filter-button[data-filter="live"].active) .gc-library-top{
+    min-height:46px!important;
+  }
+  .gc-future .gc-library:has(.filter-button[data-filter="live"].active) #gcv4Title{
+    font-size:20px!important;
+  }
+  .gc-future .gc-library:has(.filter-button[data-filter="live"].active) .gc-catalog-layout{
+    grid-template-columns:150px minmax(0,1fr)!important;
+  }
+  .gc-future .gc-library:has(.filter-button[data-filter="live"].active) .content-grid{
+    grid-template-columns:repeat(auto-fill,minmax(205px,1fr))!important;
+    gap:5px!important;
+  }
+  .gc-future .gc-library:has(.filter-button[data-filter="live"].active) .gc-card{
+    min-height:100px!important;
+    display:grid!important;
+    grid-template-columns:72px 1fr!important;
+    border-radius:7px!important;
+  }
+  .gc-future .gc-library:has(.filter-button[data-filter="live"].active) .gc-card-image{
+    aspect-ratio:1/1!important;
+    height:100%!important;
+  }
+  .gc-future .gc-library:has(.filter-button[data-filter="live"].active) .gc-card-info{
+    min-width:0!important;
+    padding:7px!important;
+  }
+}
+
+/* Movie screen — stronger 3D carousel impression */
+.gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .content-grid{
+  perspective:1800px!important;
+  perspective-origin:50% 45%!important;
+}
+@media(min-width:1051px){
+  .gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .content-grid{
+    grid-template-columns:repeat(auto-fill,minmax(132px,1fr))!important;
+    gap:9px!important;
+  }
+  .gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .gc-card{
+    min-height:238px!important;
+  }
+  .gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .gc-card:nth-child(5n+1){transform:translateY(13px) rotateY(10deg) scale(.96)!important}
+  .gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .gc-card:nth-child(5n+2){transform:translateY(5px) rotateY(5deg)!important}
+  .gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .gc-card:nth-child(5n+3){transform:scale(1.05)!important;z-index:4}
+  .gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .gc-card:nth-child(5n+4){transform:translateY(5px) rotateY(-5deg)!important}
+  .gc-future .gc-library:has(.filter-button[data-filter="movie"].active) .gc-card:nth-child(5n){transform:translateY(13px) rotateY(-10deg) scale(.96)!important}
+}
+
+/* Series screen — visual hierarchy */
+.gc-future .gc-library:has(.filter-button[data-filter="series"].active) .gc-card-image{
+  aspect-ratio:16/10!important;
+}
+@media(min-width:1051px){
+  .gc-future .gc-library:has(.filter-button[data-filter="series"].active) .content-grid{
+    grid-template-columns:repeat(auto-fill,minmax(150px,1fr))!important;
+    gap:9px!important;
+  }
+  .gc-future .gc-library:has(.filter-button[data-filter="series"].active) .gc-card{
+    min-height:190px!important;
+  }
+}
+
+/* Player: reference has a cinematic stage + control strip */
+.gc-future .player-panel{
+  padding:0!important;
+  background:
+    radial-gradient(circle at 50% 42%,rgba(57,255,136,.045),transparent 35%),
+    #010302!important;
+}
+.gc-future .player-header{
+  height:46px!important;
+  min-height:46px!important;
+  padding:7px 14px!important;
+  border-bottom:1px solid rgba(57,255,136,.12)!important;
+}
+.gc-future .player-header h2{font-size:12px!important}
+.gc-future .player-header>div span{font-size:5px!important}
+.gc-future .video-container{
+  max-width:none!important;
+  width:min(1120px,94vw)!important;
+  margin:auto!important;
+  border-radius:10px!important;
+  border-color:rgba(57,255,136,.18)!important;
+  box-shadow:0 25px 90px rgba(0,0,0,.7),0 0 35px rgba(57,255,136,.04);
+}
+.gc-future .video-container video{
+  max-height:calc(100vh - 140px)!important;
+}
+.gc-future .gc-player-toolbar{
+  min-height:36px!important;
+  padding:5px 8px!important;
+}
+.gc-future .gc-player-toolbar label,
+.gc-future .gc-player-toolbar select,
+.gc-future .gc-player-toolbar button{font-size:6px!important}
+.gc-future .gc-player-epg{max-height:75px!important;font-size:7px!important}
+
+/* Search: make it look like the reference search station */
+.gc-future #searchDialog{
+  width:min(760px,94vw)!important;
+  min-height:520px!important;
+  border-radius:16px!important;
+}
+.gc-future #searchDialog .gc-dialog{
+  min-height:520px!important;
+  padding:17px!important;
+}
+.gc-future #searchDialog h2{font-size:22px!important}
+.gc-future #globalSearch{
+  height:43px!important;
+  border-radius:9px!important;
+  font-size:12px!important;
+}
+.gc-future #searchResults{
+  grid-template-columns:repeat(auto-fill,minmax(130px,1fr))!important;
+  gap:8px!important;
+}
+
+/* Settings: two-column dashboard feeling on wide displays */
+@media(min-width:800px){
+  .gc-future #settingsDialog{width:min(720px,92vw)!important}
+  .gc-future #settingsDialog .gc-dialog{
+    padding:18px!important;
+  }
+  .gc-future #settingsDialog h2{font-size:24px!important}
+  .gc-future #settingsDialog .setting-item{
+    min-height:48px!important;
+    padding:10px 11px!important;
+    border-radius:8px!important;
+  }
+}
+
+/* Mobile reference — same DNA, denser and more app-like */
+@media(max-width:700px){
+  .gc-future .gc-header{
+    height:54px!important;
+    padding:0 9px!important;
+  }
+  .gc-future .gc-logo{font-size:18px!important}
+  .gc-future main{padding:0 9px 76px!important}
+  .gc-future .gc-hero{
+    min-height:405px!important;
+    height:405px!important;
+    margin:0 -9px!important;
+    border-radius:0 0 16px 16px!important;
+  }
+  .gc-future .gc-hero-content{
+    padding:35px 14px 26px!important;
+    width:100%!important;
+  }
+  .gc-future .gc-hero h1{
+    font-size:43px!important;
+    letter-spacing:-2.5px!important;
+  }
+  .gc-future .gc-hero p{font-size:10px!important}
+  .gc-future .gc-hero-actions{gap:6px!important}
+  .gc-future .gc-hero-actions button{padding:9px 8px!important;font-size:6px!important}
+  .gc-future .gc-stats div{padding:8px!important}
+  .gc-future .gc-stats strong{font-size:12px!important}
+  .gc-future .gc-home-row{grid-auto-columns:126px!important;gap:7px!important}
+  .gc-future .gc-home-row .gc-card{min-height:198px!important}
+  .gc-future .gc-rail h2{font-size:14px!important}
+  .gc-future .gc-future-hub{gap:6px!important}
+  .gc-future .gc-future-tile{min-height:76px!important;padding:9px!important;border-radius:10px!important}
+  .gc-future .gc-future-tile .ft-icon{font-size:16px!important}
+  .gc-future .gc-future-tile strong{font-size:7px!important}
+  .gc-future .gc-future-tile small{font-size:6px!important}
+  .gc-future .gc-library-top h2{font-size:18px!important}
+  .gc-future .content-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
+}
+
+/* Fine detail: neon rails, separators and premium chrome */
+.gc-future .gc-rail>header:after{
+  content:"";
+  position:absolute;
+  left:0;right:0;bottom:-6px;
+  height:1px;
+  background:linear-gradient(90deg,rgba(57,255,136,.34),transparent 70%);
+}
+.gc-future .gc-card{
+  box-shadow:0 10px 30px rgba(0,0,0,.28),inset 0 0 0 1px rgba(57,255,136,.035)!important;
+}
+.gc-future .gc-card:hover{
+  box-shadow:0 18px 50px rgba(0,0,0,.55),0 0 25px rgba(57,255,136,.13)!important;
+}
+.gc-future .primary-button{
+  box-shadow:0 0 18px rgba(57,255,136,.22),inset 0 1px rgba(255,255,255,.3)!important;
+}
+.gc-future .primary-button:active{transform:translateY(1px)}
+.gc-future .gc-ai-fab{
+  width:50px!important;height:50px!important;
+  right:15px!important;bottom:92px!important;
+  font-size:18px!important;
+}
+@media(max-width:700px){
+  .gc-future .gc-ai-fab{right:10px!important;bottom:83px!important;width:48px!important;height:48px!important}
+}
