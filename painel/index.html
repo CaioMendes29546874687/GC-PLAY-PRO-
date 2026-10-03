@@ -200,8 +200,15 @@ $("saveList").onclick=async()=>{
  closeModal("listModal");toast("✓ Lista cadastrada. Sincronizando validade...");await load();
  const list=rows.lists.find(x=>x.name===name);if(list)await syncOne(list.id);else await syncAll(true);
 };
+async function callSync(body){
+ const r=await fetch(SUPABASE_URL+"/functions/v1/gc-sync",{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY},body:JSON.stringify(body),cache:"no-store"});
+ const raw=await r.text();let data=null;try{data=raw?JSON.parse(raw):null}catch{}
+ if(!r.ok)return {data,error:new Error(data?.error||data?.message||raw||("HTTP "+r.status))};
+ return {data,error:null};
+}
 async function syncOne(id){
- toast("Consultando validade da lista...");const {data,error}=await sb.functions.invoke("gc-sync",{body:{list_id:id}});
+ toast("Consultando validade da lista...");
+ const {data,error}=await callSync({list_id:id});
  if(error){toast("Falha na sincronização: "+error.message);return}
  const r=data?.results?.[0];toast(r?.ok?"✓ Validade atualizada: "+fmtDate(r.new_expiry):"⚠ "+(r?.error||"Falha"));
  await load();
@@ -209,9 +216,9 @@ async function syncOne(id){
 async function syncAll(silent=false){
  if(!silent)toast("Sincronizando todas as listas...");
  if(!rows.lists.length){if(!silent)toast("Nenhuma lista cadastrada.");return}
- const {data,error}=await sb.functions.invoke("gc-sync-v2",{body:{all:true}});
+ const {data,error}=await callSync({all:true});
  if(error){if(!silent)toast("Falha: "+error.message);return}
- await load();if(!silent)toast("✓ "+(data?.count||0)+" lista(s) verificadas.");
+ await load();if(!silent)toast(data?.ok?"✓ "+(data?.count||0)+" lista(s) verificadas.":"⚠ Sincronização concluída com erro: "+(data?.results?.find(x=>!x.ok)?.error||"verifique os logs."));
 }
 $("sync").onclick=()=>syncAll(false);$("syncSide").onclick=()=>syncAll(false);
 $("askExpiring").onclick=()=>{$("clientSearch").value="";render();document.getElementById("listsCard").scrollIntoView({behavior:"smooth"});toast("Mostrando o painel de validade.")};
