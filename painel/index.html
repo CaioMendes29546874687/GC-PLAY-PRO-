@@ -4,106 +4,227 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#010503">
-<title>GC PLAY PRO — Painel de Ativação</title>
+<title>GC PLAY PRO — Manager</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--g:#39ff88;--g2:#72ffab;--cyan:#3de9ff;--blue:#28a9ff;--y:#ffd21f;--r:#ff4968;--bg:#010503;--panel:#07110b;--panel2:#0a1710;--line:rgba(57,255,136,.18);--text:#effff5;--muted:#71877a}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 75% 0%,rgba(57,255,136,.12),transparent 28%),radial-gradient(circle at 15% 90%,rgba(61,233,255,.06),transparent 30%),#010503;color:var(--text);font:14px Inter,system-ui,Arial,sans-serif;min-height:100vh}button,input{font:inherit}button{cursor:pointer}
-.app{display:flex;min-height:100vh}.side{width:214px;position:fixed;inset:0 auto 0 0;padding:20px 12px;background:rgba(2,8,5,.94);border-right:1px solid var(--line);z-index:5}.brand{display:flex;align-items:center;gap:9px;padding:8px 10px 22px}.brand b{font-size:28px;font-style:italic;letter-spacing:-2px;background:linear-gradient(90deg,var(--g),#fff);-webkit-background-clip:text;color:transparent}.brand span{font-weight:800;color:#dfffee}.crown{color:#ffd21f;font-size:20px}.side small{display:block;color:#607467;font-size:9px;letter-spacing:1.2px;margin:-18px 0 18px 54px}.nav{display:grid;gap:6px}.nav button{border:0;background:transparent;color:#d7e7dc;text-align:left;padding:13px 14px;border-radius:13px;display:flex;gap:12px;align-items:center}.nav button:hover,.nav button.active{background:linear-gradient(90deg,rgba(57,255,136,.25),rgba(57,255,136,.04));box-shadow:inset 3px 0 var(--g);color:#fff}.ico{width:22px;text-align:center;font-size:17px}.ai{position:absolute;left:12px;right:12px;bottom:14px;padding:14px;border:1px solid rgba(57,255,136,.4);border-radius:18px;background:linear-gradient(145deg,rgba(10,32,20,.95),rgba(2,12,7,.98));box-shadow:0 0 30px rgba(57,255,136,.09)}.ai b{color:var(--g);font-size:17px}.ai p{margin:5px 0 10px;color:#9bb0a2;font-size:11px}.ai button{width:100%;margin-top:5px;background:#07140c;color:#dfffea;border:1px solid var(--line);border-radius:9px;padding:8px;text-align:left;font-size:11px}
-.main{margin-left:214px;width:calc(100% - 214px);padding:18px 22px 35px}.top{height:58px;display:flex;align-items:center;justify-content:space-between;gap:15px}.stats{display:flex;gap:8px;flex-wrap:wrap}.stat{min-width:130px;padding:9px 13px;border:1px solid var(--line);background:rgba(5,18,11,.75);border-radius:12px}.stat small{display:block;color:#728a7a;font-size:10px}.stat strong{font-size:18px}.stat.green strong{color:var(--g)}.stat.red strong{color:var(--r)}.stat.yellow strong{color:var(--y)}.user{display:flex;align-items:center;gap:10px}.avatar{width:39px;height:39px;border-radius:50%;display:grid;place-items:center;background:#effff6;color:#0b2214;font-weight:900}.hero{min-height:215px;margin-top:10px;border:1px solid rgba(57,255,136,.35);border-radius:18px;overflow:hidden;position:relative;background:radial-gradient(circle at 75% 50%,rgba(61,233,255,.22),transparent 24%),linear-gradient(115deg,#06130c,#03100c 55%,#06231a)}.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 0 48%,rgba(57,255,136,.08) 49%,transparent 50%),radial-gradient(circle at 80% 25%,rgba(57,255,136,.3),transparent 25%);opacity:.8}.heroText{position:relative;padding:35px}.heroText h1{font-size:48px;margin:0;font-style:italic;letter-spacing:-3px}.heroText h1 span{color:var(--g)}.heroText p{color:#9db5a6;letter-spacing:3px}.heroActions{display:flex;gap:9px}.btn{border:1px solid var(--line);background:#08160e;color:#eafff1;border-radius:9px;padding:10px 14px}.btn.primary{background:linear-gradient(90deg,#10d965,#39ff88);color:#001b0b;font-weight:900;border:0;box-shadow:0 0 25px rgba(57,255,136,.25)}.grid{display:grid;grid-template-columns:1.7fr 1fr;gap:16px;margin-top:16px}.card{border:1px solid var(--line);border-radius:16px;background:linear-gradient(145deg,rgba(8,20,13,.94),rgba(3,10,7,.94));box-shadow:0 20px 55px rgba(0,0,0,.28);overflow:hidden}.cardHead{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border-bottom:1px solid rgba(57,255,136,.1)}.cardHead h2{font-size:16px;margin:0}.search{display:flex;gap:8px}.search input{width:250px;background:#020a06;border:1px solid var(--line);color:white;border-radius:9px;padding:9px 11px;outline:none}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:10px 11px;border-bottom:1px solid rgba(255,255,255,.05);text-align:left;font-size:11px}.table th{color:#6f8778;font-weight:600}.table tr:hover{background:rgba(57,255,136,.045)}.badge{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800}.on{color:#001c0b;background:#39ff88}.warn{color:#241900;background:#ffd21f}.off{color:#fff;background:#ff4968}.actions button{background:#07130c;color:#dfffea;border:1px solid var(--line);border-radius:7px;padding:5px 7px;margin-right:3px}.list{padding:0 15px 15px}.listRow{display:grid;grid-template-columns:1.2fr 1.1fr .8fr .7fr auto;gap:8px;align-items:center;padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.05)}.listRow.head{color:#6f8778;font-size:10px}.deviceGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px}.device{border:1px solid var(--line);border-radius:12px;padding:10px;background:#041009}.device strong{display:block}.device small{color:#779081}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--g);box-shadow:0 0 9px var(--g);margin-right:5px}.sync{display:flex;align-items:center;gap:8px;color:#8fa99a;font-size:11px}.spin{animation:spin 1s linear infinite;display:inline-block}@keyframes spin{to{transform:rotate(360deg)}}.toast{position:fixed;right:22px;bottom:22px;padding:13px 17px;background:#07170e;border:1px solid rgba(57,255,136,.45);border-radius:12px;box-shadow:0 0 35px rgba(57,255,136,.15);display:none;z-index:20}.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(7px);display:none;place-items:center;z-index:15}.modalBox{width:min(620px,calc(100% - 30px));background:#06110a;border:1px solid rgba(57,255,136,.35);border-radius:18px;padding:20px;box-shadow:0 30px 100px #000}.modalBox h2{margin-top:0}.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field label{display:block;color:#799181;font-size:11px;margin-bottom:5px}.field input,.field select{width:100%;padding:10px;border-radius:9px;border:1px solid var(--line);background:#020a06;color:white}.full{grid-column:1/-1}.modalFoot{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
-@media(max-width:1050px){.side{width:76px}.brand b,.brand span,.side small,.nav button span,.ai{display:none}.main{margin-left:76px;width:calc(100% - 76px)}.nav button{justify-content:center}.grid{grid-template-columns:1fr}.stats{overflow:auto;flex-wrap:nowrap}.heroText h1{font-size:38px}}
-@media(max-width:700px){.main{padding:10px;margin-left:0;width:100%;padding-bottom:25px}.side{position:fixed;top:auto;bottom:0;left:0;width:100%;height:62px;padding:5px 7px;border-right:0;border-top:1px solid var(--line)}.brand,.ai{display:none}.nav{display:flex;justify-content:space-around}.nav button{padding:8px;display:block;text-align:center}.nav button .ico{display:block;margin:auto}.nav button span{display:block;font-size:8px;margin-top:2px}.top{height:auto}.stats{display:grid;grid-template-columns:repeat(2,1fr);width:100%}.stat{min-width:0}.user{display:none}.hero{min-height:245px}.heroText{padding:25px 20px}.heroText h1{font-size:36px}.search input{width:140px}.tableWrap{overflow:auto}.table{min-width:720px}.deviceGrid{grid-template-columns:1fr 1fr}.form{grid-template-columns:1fr}}
+:root{--g:#39ff88;--gh:#72ffab;--c:#3de9ff;--y:#ffd21f;--r:#ff4968;--bg:#010503;--p:#06110a;--p2:#0a1710;--line:rgba(57,255,136,.18);--text:#effff5;--muted:#72877a;--shadow:0 25px 80px #0008}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 75% 0%,#39ff881a,transparent 28%),radial-gradient(circle at 10% 90%,#3de9ff0d,transparent 30%),var(--bg);color:var(--text);font:14px Inter,system-ui,Arial,sans-serif;min-height:100vh}button,input,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}
+.auth{min-height:100vh;display:grid;place-items:center;padding:20px}.authbox{width:min(440px,100%);background:linear-gradient(145deg,#07170d,#020906);border:1px solid #39ff8850;border-radius:24px;padding:28px;box-shadow:var(--shadow),0 0 70px #39ff8812}.logo{font-size:44px;font-weight:950;font-style:italic;letter-spacing:-4px;background:linear-gradient(90deg,var(--g),#fff);-webkit-background-clip:text;color:transparent}.logo small{display:block;color:#9eb4a6;font-size:10px;letter-spacing:2px;font-style:normal;font-weight:700}.authbox h1{margin:18px 0 6px;font-size:25px}.authbox p{color:var(--muted)}.field{margin:12px 0}.field label{display:block;color:#799181;font-size:10px;letter-spacing:1px;margin-bottom:6px}.field input,.field select{width:100%;background:#020a06;color:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;outline:none}.field input:focus{border-color:#39ff8870;box-shadow:0 0 20px #39ff8812}.btn{border:1px solid var(--line);background:#07140c;color:#eafff1;border-radius:10px;padding:11px 15px}.btn.primary{background:linear-gradient(90deg,#12d965,var(--g));color:#001b0b;border:0;font-weight:900;box-shadow:0 0 26px #39ff8830}.btn.danger{border-color:#ff496855;color:#ff9aab}.authActions{display:flex;gap:9px;margin-top:16px}.authMsg{min-height:20px;color:#ff9aab;font-size:12px;margin-top:10px}
+.app{display:none;min-height:100vh}.side{width:214px;position:fixed;inset:0 auto 0 0;padding:18px 12px;background:#020805f2;border-right:1px solid var(--line);z-index:5}.brand{display:flex;align-items:center;gap:8px;padding:8px 10px 4px}.brand b{font-size:29px;font-style:italic;letter-spacing:-3px;color:var(--g)}.brand span{font-weight:900}.crown{color:#ffd21f}.tag{font-size:8px;color:#62766a;letter-spacing:1.1px;margin:0 0 18px 54px}.nav{display:grid;gap:5px}.nav button{border:0;background:transparent;color:#d7e7dc;text-align:left;padding:12px 13px;border-radius:12px;display:flex;gap:11px;align-items:center}.nav button:hover,.nav button.active{background:linear-gradient(90deg,#39ff8833,#39ff8806);box-shadow:inset 3px 0 var(--g);color:#fff}.ico{width:20px;text-align:center}.sideBottom{position:absolute;left:12px;right:12px;bottom:15px;border:1px solid #39ff8840;border-radius:16px;padding:13px;background:linear-gradient(145deg,#0a2114,#020b06)}.sideBottom b{color:var(--g)}.sideBottom p{font-size:10px;color:#82988a;margin:5px 0}.sideBottom button{width:100%;margin-top:5px;background:#06130b;color:#dfffea;border:1px solid var(--line);border-radius:8px;padding:8px;font-size:10px}
+.main{margin-left:214px;width:calc(100% - 214px);padding:18px 22px 35px}.top{display:flex;justify-content:space-between;gap:15px;align-items:center}.stats{display:flex;gap:8px;flex-wrap:wrap}.stat{min-width:112px;padding:9px 12px;border:1px solid var(--line);background:#05120bcc;border-radius:12px}.stat small{display:block;color:#728a7a;font-size:9px}.stat strong{font-size:18px}.green{color:var(--g)}.yellow{color:var(--y)}.red{color:var(--r)}.user{display:flex;align-items:center;gap:10px}.avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#effff6;color:#092012;font-weight:950}
+.hero{min-height:190px;margin-top:14px;border:1px solid #39ff8855;border-radius:19px;overflow:hidden;position:relative;background:radial-gradient(circle at 78% 50%,#3de9ff2a,transparent 22%),linear-gradient(115deg,#06130c,#03100c 55%,#06231a);box-shadow:0 20px 70px #0006}.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 0 47%,#39ff8810 48%,transparent 49%),radial-gradient(circle at 80% 20%,#39ff8830,transparent 25%)}.heroText{position:relative;z-index:1;padding:30px}.hero h1{font-size:45px;margin:0;font-style:italic;letter-spacing:-3px}.hero h1 span{color:var(--g)}.hero p{color:#9db5a6;letter-spacing:3px}.heroActions{display:flex;gap:8px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:1.7fr 1fr;gap:15px;margin-top:15px}.card{border:1px solid var(--line);border-radius:16px;background:linear-gradient(145deg,#08140df2,#030a06f2);overflow:hidden;box-shadow:0 18px 55px #0005}.head{display:flex;align-items:center;justify-content:space-between;padding:14px 15px;border-bottom:1px solid #39ff8812;gap:10px}.head h2{font-size:15px;margin:0}.tools{display:flex;gap:7px;align-items:center}.search{background:#020a06;border:1px solid var(--line);color:#fff;border-radius:9px;padding:9px 10px;width:220px}.tableWrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:760px}.table th,.table td{padding:10px 10px;border-bottom:1px solid #ffffff08;text-align:left;font-size:11px}.table th{color:#6f8778;font-weight:600}.table tr:hover{background:#39ff8807}.badge{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:9px;font-weight:900}.on{background:var(--g);color:#001b0b}.warn{background:var(--y);color:#261d00}.off{background:var(--r);color:#fff}.err{background:#7e2537;color:#fff}.act button{background:#07130c;color:#dfffea;border:1px solid var(--line);border-radius:7px;padding:5px 7px;margin-right:3px}.list{padding:0 14px 14px}.listrow{display:grid;grid-template-columns:1.15fr 1fr .75fr .7fr auto;gap:8px;align-items:center;padding:11px 3px;border-bottom:1px solid #ffffff08;font-size:11px}.listrow.head{color:#6f8778;font-size:9px}.muted{color:var(--muted)}.syncDot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--g);box-shadow:0 0 10px var(--g);margin-right:5px}.devices{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:13px}.device{border:1px solid var(--line);border-radius:12px;padding:11px;background:#041009}.device strong{display:block}.device small{color:#799181}.empty{padding:25px;text-align:center;color:#71877a}.modal{position:fixed;inset:0;background:#000b;backdrop-filter:blur(8px);display:none;place-items:center;z-index:20}.modalbox{width:min(650px,calc(100% - 24px));max-height:90vh;overflow:auto;background:#06110a;border:1px solid #39ff8850;border-radius:19px;padding:20px;box-shadow:0 30px 100px #000}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.full{grid-column:1/-1}.modalfoot{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}.toast{position:fixed;right:20px;bottom:20px;z-index:30;background:#07170e;border:1px solid #39ff8860;border-radius:12px;padding:12px 16px;box-shadow:0 0 35px #39ff8820;display:none}.syncState{font-size:10px;color:#86a294}.pill{border:1px solid var(--line);border-radius:999px;padding:5px 9px;font-size:9px;color:#9ab1a1}
+@media(max-width:1050px){.side{width:76px}.brand span,.tag,.sideBottom,.nav span{display:none}.main{margin-left:76px;width:calc(100% - 76px)}.nav button{justify-content:center}.grid{grid-template-columns:1fr}.stats{overflow:auto;flex-wrap:nowrap}.user{display:none}}
+@media(max-width:700px){.main{margin-left:0;width:100%;padding:10px 10px 78px}.side{top:auto;bottom:0;width:100%;height:62px;padding:5px;border-right:0;border-top:1px solid var(--line)}.brand,.sideBottom,.tag{display:none}.nav{display:flex;justify-content:space-around}.nav button{display:block;padding:7px 5px;text-align:center}.nav span{display:block!important;font-size:7px;margin-top:2px}.ico{display:block;margin:auto}.stats{display:grid;grid-template-columns:repeat(2,1fr);width:100%;overflow:visible}.stat{min-width:0}.hero{min-height:235px}.heroText{padding:24px 18px}.hero h1{font-size:34px}.search{width:145px}.formgrid{grid-template-columns:1fr}.full{grid-column:auto}.grid{margin-top:10px}.devices{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
-<div class="app">
+<section class="auth" id="authScreen">
+  <div class="authbox">
+    <div class="logo">GC PLAY PRO<small>PAINEL DE ATIVAÇÃO • MANAGER</small></div>
+    <h1 id="authTitle">Entrar no painel</h1>
+    <p id="authSub">Área administrativa protegida pelo Supabase Auth.</p>
+    <div class="field" id="nameField" style="display:none"><label>NOME</label><input id="authName" autocomplete="name" placeholder="Seu nome"></div>
+    <div class="field"><label>E-MAIL</label><input id="authEmail" type="email" autocomplete="email" placeholder="admin@exemplo.com"></div>
+    <div class="field"><label>SENHA</label><input id="authPass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    <div class="authActions"><button class="btn primary" id="authSubmit">ENTRAR</button><button class="btn" id="authToggle">Criar acesso</button></div>
+    <div class="authMsg" id="authMsg"></div>
+  </div>
+</section>
+
+<div class="app" id="app">
 <aside class="side">
   <div class="brand"><b>GC</b><span>PLAY PRO</span><i class="crown">♛</i></div>
-  <small>PAINEL DE ATIVAÇÃO E GERENCIAMENTO</small>
+  <div class="tag">PAINEL DE ATIVAÇÃO E GERENCIAMENTO</div>
   <nav class="nav">
-    <button class="active"><i class="ico">⌂</i><span>Dashboard</span></button>
-    <button><i class="ico">♙</i><span>Clientes</span></button>
-    <button><i class="ico">▣</i><span>Dispositivos</span></button>
-    <button><i class="ico">▤</i><span>Listas M3U</span></button>
-    <button><i class="ico">✓</i><span>Ativações</span></button>
-    <button><i class="ico">▦</i><span>Planos</span></button>
-    <button><i class="ico">◉</i><span>Financeiro</span></button>
-    <button><i class="ico">☷</i><span>Logs</span></button>
-    <button><i class="ico">⚙</i><span>Configurações</span></button>
+    <button class="active" data-view="dashboard"><i class="ico">⌂</i><span>Dashboard</span></button>
+    <button data-view="clients"><i class="ico">♙</i><span>Clientes</span></button>
+    <button data-view="devices"><i class="ico">▣</i><span>Dispositivos</span></button>
+    <button data-view="lists"><i class="ico">▤</i><span>Listas M3U</span></button>
+    <button data-view="activations"><i class="ico">✓</i><span>Ativações</span></button>
+    <button data-view="plans"><i class="ico">▦</i><span>Planos</span></button>
+    <button data-view="logs"><i class="ico">☷</i><span>Logs</span></button>
+    <button data-view="settings"><i class="ico">⚙</i><span>Configurações</span></button>
   </nav>
-  <div class="ai"><b>✦ GC IA</b><p>Assistente do administrador</p><button>Ver clientes expirando</button><button id="syncAll">Sincronizar todas as listas</button><button>Ver dispositivos online</button></div>
+  <div class="sideBottom"><b>✦ GC IA</b><p>Assistente do administrador</p><button id="askExpiring">Ver expirando</button><button id="syncSide">Sincronizar listas</button><button id="logout">Sair</button></div>
 </aside>
+
 <main class="main">
-  <header class="top">
-    <div class="stats">
-      <div class="stat"><small>CLIENTES</small><strong>1.284</strong></div>
-      <div class="stat green"><small>ATIVOS</small><strong>1.137</strong></div>
-      <div class="stat yellow"><small>EXPIRANDO</small><strong>63</strong></div>
-      <div class="stat red"><small>BLOQUEADOS</small><strong>84</strong></div>
-      <div class="stat"><small>DISPOSITIVOS</small><strong>1.762</strong></div>
-      <div class="stat"><small>LISTAS</small><strong>8</strong></div>
-    </div>
-    <div class="user"><div class="avatar">CM</div><div><b>Caio Mendes</b><br><small>Administrador</small></div></div>
-  </header>
-
-  <section class="hero">
-    <div class="heroText">
-      <h1>GC <span>PLAY PRO</span> ♛</h1>
-      <p>CONTROLE TOTAL DO SEU APLICATIVO</p>
-      <div class="heroActions">
-        <button class="btn primary" id="newClient">＋ NOVO CLIENTE</button>
-        <button class="btn" id="sync">↻ SINCRONIZAR LISTAS</button>
-      </div>
-    </div>
-  </section>
-
-  <div class="grid">
-    <section class="card">
-      <div class="cardHead"><h2>♙ Clientes recentes</h2><div class="search"><input id="filter" placeholder="Buscar cliente, login..."></div></div>
-      <div class="tableWrap">
-      <table class="table"><thead><tr><th>#</th><th>Nome</th><th>Login</th><th>Plano</th><th>Validade</th><th>Status</th><th>Disp.</th><th>Ações</th></tr></thead>
-      <tbody id="clients"></tbody></table></div>
-    </section>
-    <section class="card">
-      <div class="cardHead"><h2>▤ Listas M3U</h2><button class="btn primary" id="newList">＋ Nova lista</button></div>
-      <div class="list">
-        <div class="listRow head"><span>Nome</span><span>URL / servidor</span><span>Validade</span><span>Status</span><span></span></div>
-        <div id="lists"></div>
-      </div>
-    </section>
+<header class="top">
+  <div class="stats">
+    <div class="stat"><small>CLIENTES</small><strong id="sClients">0</strong></div>
+    <div class="stat green"><small>ATIVOS</small><strong id="sActive">0</strong></div>
+    <div class="stat yellow"><small>EXPIRANDO</small><strong id="sExpiring">0</strong></div>
+    <div class="stat red"><small>EXPIRADOS</small><strong id="sExpired">0</strong></div>
+    <div class="stat"><small>DISPOSITIVOS</small><strong id="sDevices">0</strong></div>
+    <div class="stat"><small>LISTAS</small><strong id="sLists">0</strong></div>
   </div>
+  <div class="user"><div class="avatar" id="avatar">CM</div><div><b id="adminName">Administrador</b><br><small class="muted" id="adminEmail"></small></div></div>
+</header>
 
-  <div class="grid">
-    <section class="card"><div class="cardHead"><h2>◉ Dispositivos online</h2><span class="sync"><i class="dot"></i>tempo real</span></div><div class="deviceGrid" id="devices"></div></section>
-    <section class="card"><div class="cardHead"><h2>✓ Últimas ativações</h2></div><div class="list"><div id="activations"></div></div></section>
+<section class="hero">
+  <div class="heroText"><h1>GC <span>PLAY PRO</span> ♛</h1><p>CONTROLE TOTAL • VALIDADE SINCRONIZADA PELA LISTA</p>
+    <div class="heroActions"><button class="btn primary" id="newClient">＋ NOVO CLIENTE</button><button class="btn" id="newList">＋ NOVA LISTA</button><button class="btn" id="sync">↻ SINCRONIZAR AGORA</button><span class="pill" id="autoState">AUTO-SYNC: ATIVO AO ABRIR O PAINEL</span></div>
   </div>
-</main>
+</section>
+
+<div class="grid">
+<section class="card" id="clientsCard">
+ <div class="head"><h2>♙ Clientes</h2><div class="tools"><input class="search" id="clientSearch" placeholder="Buscar nome/login..."></div></div>
+ <div class="tableWrap"><table class="table"><thead><tr><th>Nome</th><th>Plano</th><th>Lista</th><th>Validade</th><th>Status</th><th>Dispositivos</th><th>Código</th><th>Ações</th></tr></thead><tbody id="clientsBody"></tbody></table></div>
+</section>
+<section class="card" id="listsCard">
+ <div class="head"><h2>▤ Listas M3U / Xtream</h2><span class="syncState" id="lastSync">—</span></div>
+ <div class="list"><div class="listrow head"><span>Lista</span><span>Servidor</span><span>Validade</span><span>Status</span><span>Ações</span></div><div id="listsBody"></div></div>
+</section>
 </div>
+
+<div class="grid">
+<section class="card" id="devicesCard"><div class="head"><h2>◉ Dispositivos online</h2><span class="syncState"><i class="syncDot"></i>monitoramento</span></div><div class="devices" id="devicesBody"></div></section>
+<section class="card" id="logsCard"><div class="head"><h2>✓ Últimas sincronizações</h2><span class="syncState">histórico</span></div><div class="list" id="logsBody"></div></section>
+</div>
+</main></div>
+
+<div class="modal" id="clientModal"><div class="modalbox"><h2 id="clientModalTitle">Novo cliente</h2><div class="formgrid">
+<div class="field"><label>NOME</label><input id="cName"></div><div class="field"><label>PLANO</label><select id="cPlan"><option>Mensal</option><option>Trimestral</option><option>Semestral</option><option>Anual</option></select></div>
+<div class="field"><label>E-MAIL</label><input id="cEmail" type="email"></div><div class="field"><label>TELEFONE</label><input id="cPhone"></div>
+<div class="field"><label>LISTA / CONTA</label><select id="cList"></select></div><div class="field"><label>LIMITE DE DISPOSITIVOS</label><input id="cLimit" type="number" min="1" max="20" value="1"></div>
+</div><div class="modalfoot"><button class="btn" data-close="clientModal">Cancelar</button><button class="btn primary" id="saveClient">Salvar</button></div></div></div>
+
+<div class="modal" id="listModal"><div class="modalbox"><h2 id="listModalTitle">Nova lista</h2><p class="muted">Cole a URL M3U/Xtream. O painel extrai servidor, usuário e senha e consulta a validade diretamente no endpoint Xtream.</p><div class="formgrid">
+<div class="field full"><label>NOME DA LISTA</label><input id="lName" placeholder="Lista Principal"></div>
+<div class="field full"><label>URL M3U / GET.PHP</label><input id="lUrl" placeholder="http://servidor/get.php?username=...&password=...&type=m3u_plus"></div>
+<div class="field"><label>USUÁRIO XTREAM</label><input id="lUser"></div><div class="field"><label>SENHA XTREAM</label><input id="lPass" type="password"></div>
+<div class="field full"><label>OBSERVAÇÃO</label><input id="lNote" placeholder="Opcional"></div>
+</div><div class="modalfoot"><button class="btn" data-close="listModal">Cancelar</button><button class="btn primary" id="saveList">Salvar e sincronizar</button></div></div></div>
+
+<div class="modal" id="editModal"><div class="modalbox"><h2>Editar cliente</h2><input id="editId" type="hidden"><div class="formgrid"><div class="field"><label>NOME</label><input id="eName"></div><div class="field"><label>PLANO</label><select id="ePlan"><option>Mensal</option><option>Trimestral</option><option>Semestral</option><option>Anual</option></select></div><div class="field"><label>LISTA</label><select id="eList"></select></div><div class="field"><label>LIMITE DISPOSITIVOS</label><input id="eLimit" type="number" min="1" max="20"></div></div><div class="modalfoot"><button class="btn" data-close="editModal">Cancelar</button><button class="btn primary" id="updateClient">Atualizar</button></div></div></div>
+
 <div class="toast" id="toast"></div>
-<div class="modal" id="modal"><div class="modalBox"><h2 id="modalTitle">Novo cliente</h2><div class="form"><div class="field"><label>NOME</label><input id="fName"></div><div class="field"><label>PLANO</label><select id="fPlan"><option>Mensal</option><option>Trimestral</option><option>Semestral</option><option>Anual</option></select></div><div class="field"><label>LOGIN M3U / XTREAM</label><input id="fLogin"></div><div class="field"><label>SENHA M3U / XTREAM</label><input id="fPass" type="password"></div><div class="field full"><label>URL DO SERVIDOR / LISTA</label><input id="fUrl" placeholder="https://servidor/..."></div></div><div class="modalFoot"><button class="btn" id="cancel">Cancelar</button><button class="btn primary" id="save">Salvar cliente</button></div></div></div>
 <script>
-const clientsData=[
-["001","João Silva","951185413","Anual","03/10/2027","on","2/3"],
-["002","Maria Souza","784512963","Mensal","15/11/2026","on","1/2"],
-["003","Carlos Lima","623874159","Trimestral","01/10/2026","warn","1/1"],
-["004","Ana Paula","741852963","Mensal","28/09/2026","off","0/2"],
-["005","Eduardo Alves","369258147","Anual","12/12/2026","on","3/3"],
-["006","Patricia Gomes","159753486","Mensal","20/10/2026","on","1/2"],
-["007","Rodrigo Martins","258369147","Semestral","05/04/2027","on","2/2"],
-["008","Juliana Ferraz","963147258","Mensal","02/10/2026","warn","1/1"]];
-const listsData=[
-["Lista Principal","netuno.live","20/12/2026","on"],["Lista Brasil","server02.com","15/01/2027","on"],["Lista Internacional","server03.com","03/11/2026","on"],["Lista Teste","server04.com","25/09/2026","off"],["Lista Premium","server05.com","10/03/2027","on"],["Lista 4K","server06.com","18/12/2026","on"],["Lista Adultos","server07.com","05/02/2027","on"],["Lista Esportes","server08.com","12/11/2026","on"]];
-const devices=[["LG Smart TV","Sala"],["Samsung TV","Quarto"],["Android TV","Sala"],["Fire TV Stick","Escritório"],["Celular Android","Mobile"],["Smart TV","Sala"]];
-function status(s){return s==="on"?'<span class="badge on">Ativa</span>':s==="warn"?'<span class="badge warn">Expirando</span>':'<span class="badge off">Expirada</span>'}
-function renderClients(q=""){clients.innerHTML=clientsData.filter(x=>x.join(" ").toLowerCase().includes(q.toLowerCase())).map(x=>'<tr><td>'+x[0]+'</td><td><b>'+x[1]+'</b></td><td>'+x[2]+'</td><td>'+x[3]+'</td><td>'+x[4]+' ↻</td><td>'+status(x[5])+'</td><td>'+x[6]+'</td><td class="actions"><button>◉</button><button>✎</button><button>⋮</button></td></tr>').join("")}
-function renderLists(){lists.innerHTML=listsData.map(x=>'<div class="listRow"><span><b>'+x[0]+'</b></span><span>'+x[1]+'</span><span>'+x[2]+' ↻</span><span>'+status(x[3])+'</span><span class="actions"><button>↻</button><button>⋮</button></span></div>').join("")}
-function renderDevices(){devices.innerHTML=devices.map(x=>'<div class="device"><strong>▣ '+x[0]+'</strong><small>⌖ '+x[1]+'</small><br><small><i class="dot"></i>Online agora</small></div>').join("")}
-function renderActivations(){activations.innerHTML=clientsData.slice(0,5).map((x,i)=>'<div class="listRow" style="grid-template-columns:1fr 1fr auto"><span>03/10  '+(14-i)+':3'+i+'</span><span>'+x[1]+'</span><span class="badge on">Ativado</span></div>').join("")}
-function toast(t){const e=document.getElementById("toast");e.textContent=t;e.style.display="block";setTimeout(()=>e.style.display="none",2600)}
-function sync(){toast("Sincronização iniciada — consultando validade das listas...");setTimeout(()=>toast("✓ Listas verificadas. Painel atualizado."),1400)}
-renderClients();renderLists();renderDevices();renderActivations();
-filter.oninput=e=>renderClients(e.target.value);sync.onclick=sync;syncAll.onclick=sync;
-newClient.onclick=()=>modal.style.display="grid";cancel.onclick=()=>modal.style.display="none";newList.onclick=()=>toast("Cadastro de lista será conectado ao Supabase.");
-save.onclick=()=>{modal.style.display="none";toast("✓ Cliente cadastrado. A integração com o Supabase será aplicada nesta etapa.");};
-document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");toast(b.innerText.trim()+" selecionado");});
+const SUPABASE_URL="https://kuzgdvpdqmocklsgyzvt.supabase.co";
+const SUPABASE_KEY="sb_publishable_2qV7Uw-99dQlVcXluSuikw_YZGClN13";
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const $=id=>document.getElementById(id);
+let rows={lists:[],clients:[],devices:[],logs:[]}, editClientId=null, authMode="login", timer=null;
+
+function toast(t){const e=$("toast");e.textContent=t;e.style.display="block";clearTimeout(e._t);e._t=setTimeout(()=>e.style.display="none",3200)}
+function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
+function fmtDate(v){if(!v)return"—";const d=new Date(v);return Number.isNaN(d.getTime())?"—":d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"})}
+function fmtDateTime(v){if(!v)return"—";const d=new Date(v);return Number.isNaN(d.getTime())?"—":d.toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}
+function statusBadge(s){if(s==="active")return'<span class="badge on">ATIVA</span>';if(s==="expiring")return'<span class="badge warn">EXPIRANDO</span>';if(s==="expired")return'<span class="badge off">EXPIRADA</span>';if(s==="error")return'<span class="badge err">ERRO</span>';return'<span class="badge">AGUARDANDO</span>'}
+function code(){return crypto.randomUUID().replaceAll("-","").slice(0,8).toUpperCase()}
+function parseSource(raw){
+ try{const u=new URL(raw.trim());const q=u.searchParams;return{server:u.origin,user:q.get("username")||"",pass:q.get("password")||"",url:raw.trim()}}
+ catch{return{server:"",user:"",pass:"",url:raw.trim()}}
+}
+function openModal(id){$(id).style.display="grid"}function closeModal(id){$(id).style.display="none"}
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
+
+async function showApp(session){
+ $("authScreen").classList.add("hidden");$("app").style.display="flex";
+ const {data:userData}=await sb.auth.getUser();const u=userData.user;
+ $("adminEmail").textContent=u?.email||"";$("adminName").textContent=u?.user_metadata?.full_name||"Administrador";
+ $("avatar").textContent=($("adminName").textContent||"CM").slice(0,2).toUpperCase();
+ await load();
+ clearInterval(timer);timer=setInterval(()=>syncAll(true),30*60*1000);
+}
+async function boot(){
+ const {data:{session}}=await sb.auth.getSession();
+ if(session) await showApp(session);
+ else $("authScreen").classList.remove("hidden");
+}
+boot();
+
+$("authToggle").onclick=()=>{authMode=authMode==="login"?"signup":"login";$("nameField").style.display=authMode==="signup"?"block":"none";$("authTitle").textContent=authMode==="signup"?"Criar acesso administrativo":"Entrar no painel";$("authSubmit").textContent=authMode==="signup"?"CRIAR ACESSO":"ENTRAR";$("authToggle").textContent=authMode==="signup"?"Voltar para login":"Criar acesso";$("authMsg").textContent=""};
+$("authSubmit").onclick=async()=>{
+ const email=$("authEmail").value.trim(),pass=$("authPass").value,name=$("authName").value.trim();
+ $("authMsg").textContent="";
+ if(!email||pass.length<6)return $("authMsg").textContent="Informe e-mail e senha com pelo menos 6 caracteres.";
+ let res;
+ if(authMode==="signup")res=await sb.auth.signUp({email,password:pass,options:{data:{full_name:name}}});
+ else res=await sb.auth.signInWithPassword({email,password:pass});
+ if(res.error)return $("authMsg").textContent=res.error.message;
+ if(authMode==="signup"&&!res.data.session){$("authMsg").style.color="#ffd21f";$("authMsg").textContent="Conta criada. Confirme o e-mail se o projeto exigir confirmação e depois entre.";return}
+ await showApp(res.data.session);
+};
+
+async function load(){
+ const [l,c,d,g]=await Promise.all([
+  sb.from("provider_lists").select("id,name,server_url,username,expires_at,status,provider_status,max_connections,active_connections,last_sync_at,last_error,created_at").order("created_at",{ascending:false}),
+  sb.from("clients").select("id,name,email,phone,plan,list_id,device_limit,status,activation_code,created_at").order("created_at",{ascending:false}),
+  sb.from("devices").select("id,client_id,device_uid,device_name,platform,last_seen_at,status").order("last_seen_at",{ascending:false}),
+  sb.from("sync_logs").select("id,list_id,status,old_expiry,new_expiry,details,created_at").order("created_at",{ascending:false}).limit(12)
+ ]);
+ if(l.error||c.error||d.error||g.error){toast("Erro ao carregar dados. Verifique a sessão.");return}
+ rows={lists:l.data||[],clients:c.data||[],devices:d.data||[],logs:g.data||[]};
+ render();
+}
+function render(){
+ const lists=rows.lists,clients=rows.clients,devices=rows.devices;
+ $("sClients").textContent=clients.length;$("sActive").textContent=clients.filter(x=>x.status==="active").length;
+ $("sExpiring").textContent=lists.filter(x=>x.status==="expiring").length;$("sExpired").textContent=lists.filter(x=>x.status==="expired").length;
+ $("sDevices").textContent=devices.length;$("sLists").textContent=lists.length;
+ $("lastSync").textContent=lists.length?"Última: "+fmtDateTime(lists.reduce((a,b)=>new Date(a.last_sync_at||0)>new Date(b.last_sync_at||0)?a:b).last_sync_at):"Nenhuma sincronização";
+ const byId=Object.fromEntries(lists.map(x=>[x.id,x]));
+ const q=$("clientSearch").value.toLowerCase();
+ $("clientsBody").innerHTML=clients.filter(x=>(x.name+" "+(x.email||"")).toLowerCase().includes(q)).map(x=>{
+  const l=byId[x.list_id],count=devices.filter(d=>d.client_id===x.id).length;
+  return '<tr><td><b>'+esc(x.name)+'</b><br><span class="muted">'+esc(x.email||"")+'</span></td><td>'+esc(x.plan)+'</td><td>'+esc(l?.name||"Sem lista")+'</td><td>'+fmtDate(l?.expires_at)+'</td><td>'+statusBadge(l?.status||"unknown")+'</td><td>'+count+'/'+x.device_limit+'</td><td><span class="pill">'+esc(x.activation_code||"—")+'</span></td><td class="act"><button onclick="editClient(\''+x.id+'\')">✎</button><button onclick="toggleClient(\''+x.id+'\')">⏻</button><button onclick="deleteClient(\''+x.id+'\')">×</button></td></tr>'
+ }).join("")||'<tr><td colspan="8" class="empty">Nenhum cliente cadastrado.</td></tr>';
+ $("listsBody").innerHTML=lists.map(x=>'<div class="listrow"><span><b>'+esc(x.name)+'</b><br><span class="muted">'+esc(x.username||"")+'</span></span><span>'+esc(x.server_url||"—")+'</span><span>'+fmtDate(x.expires_at)+'</span><span>'+statusBadge(x.status)+'</span><span class="act"><button onclick="syncOne(\''+x.id+'\')">↻</button><button onclick="editList(\''+x.id+'\')">✎</button><button onclick="deleteList(\''+x.id+'\')">×</button></span></div>').join("")||'<div class="empty">Nenhuma lista cadastrada.</div>';
+ $("devicesBody").innerHTML=devices.slice(0,9).map(d=>'<div class="device"><strong>▣ '+esc(d.device_name||d.platform||"Dispositivo")+'</strong><small>'+esc(d.platform||"")+'</small><br><small><i class="syncDot"></i>'+esc(d.status||"offline")+' • '+fmtDateTime(d.last_seen_at)+'</small></div>').join("")||'<div class="empty">Os dispositivos aparecerão aqui quando o aplicativo começar a registrar ativações.</div>';
+ $("logsBody").innerHTML=rows.logs.map(x=>{const l=byId[x.list_id];return'<div class="listrow" style="grid-template-columns:1fr 1fr auto"><span>'+fmtDateTime(x.created_at)+'</span><span>'+esc(l?.name||"Lista")+'</span><span>'+statusBadge(x.status==="success"?"active":"error")+' '+(x.new_expiry?fmtDate(x.new_expiry):"")+'</span></div>'}).join("")||'<div class="empty">Nenhuma sincronização registrada.</div>';
+ fillListSelects();
+}
+function fillListSelects(){
+ const opts='<option value="">Sem lista</option>'+rows.lists.map(x=>'<option value="'+x.id+'">'+esc(x.name)+' — '+fmtDate(x.expires_at)+'</option>').join("");
+ $("cList").innerHTML=opts;$("eList").innerHTML=opts;
+}
+$("clientSearch").oninput=render;
+$("newClient").onclick=()=>{ $("clientModalTitle").textContent="Novo cliente";$("cName").value="";$("cEmail").value="";$("cPhone").value="";$("cLimit").value=1;$("cList").value="";openModal("clientModal")};
+$("newList").onclick=()=>{["lName","lUrl","lUser","lPass","lNote"].forEach(id=>$(id).value="");openModal("listModal")};
+$("lUrl").oninput=()=>{const p=parseSource($("lUrl").value);if(p.server&&!$("lUser").value)$("lUser").value=p.user;if(p.pass&&!$("lPass").value)$("lPass").value=p.pass};
+$("saveClient").onclick=async()=>{
+ const name=$("cName").value.trim();if(!name)return toast("Informe o nome do cliente.");
+ const {error}=await sb.from("clients").insert({name,email:$("cEmail").value.trim()||null,phone:$("cPhone").value.trim()||null,plan:$("cPlan").value,device_limit:Number($("cLimit").value)||1,list_id:$("cList").value||null,activation_code:code()});
+ if(error)return toast("Erro: "+error.message);closeModal("clientModal");toast("✓ Cliente cadastrado.");await load();
+};
+$("saveList").onclick=async()=>{
+ const name=$("lName").value.trim(),raw=$("lUrl").value.trim(),parsed=parseSource(raw),user=$("lUser").value.trim()||parsed.user,pass=$("lPass").value||parsed.pass;
+ if(!name||!raw||!user||!pass)return toast("Nome, URL, usuário e senha são obrigatórios.");
+ const secret=await sb.rpc("gc_create_provider_secret",{p_secret:pass});if(secret.error)return toast("Erro ao guardar credencial: "+secret.error.message);
+ const {error}=await sb.from("provider_lists").insert({name,source_url:raw,server_url:parsed.server,username:user,provider_secret_id:secret.data});
+ if(error)return toast("Erro: "+error.message);
+ closeModal("listModal");toast("✓ Lista cadastrada. Sincronizando validade...");await load();
+ const list=rows.lists.find(x=>x.name===name);if(list)await syncOne(list.id);else await syncAll(true);
+};
+async function syncOne(id){
+ toast("Consultando validade da lista...");const {data,error}=await sb.functions.invoke("gc-sync",{body:{list_id:id}});
+ if(error){toast("Falha na sincronização: "+error.message);return}
+ const r=data?.results?.[0];toast(r?.ok?"✓ Validade atualizada: "+fmtDate(r.new_expiry):"⚠ "+(r?.error||"Falha"));
+ await load();
+}
+async function syncAll(silent=false){
+ if(!silent)toast("Sincronizando todas as listas...");
+ if(!rows.lists.length){if(!silent)toast("Nenhuma lista cadastrada.");return}
+ const {data,error}=await sb.functions.invoke("gc-sync",{body:{all:true}});
+ if(error){if(!silent)toast("Falha: "+error.message);return}
+ await load();if(!silent)toast("✓ "+(data?.count||0)+" lista(s) verificadas.");
+}
+$("sync").onclick=()=>syncAll(false);$("syncSide").onclick=()=>syncAll(false);
+$("askExpiring").onclick=()=>{$("clientSearch").value="";render();document.getElementById("listsCard").scrollIntoView({behavior:"smooth"});toast("Mostrando o painel de validade.")};
+async function editClient(id){
+ const c=rows.clients.find(x=>x.id===id);if(!c)return;editClientId=id;$("eName").value=c.name;$("ePlan").value=c.plan;$("eLimit").value=c.device_limit;$("eList").value=c.list_id||"";openModal("editModal");
+}
+$("updateClient").onclick=async()=>{const {error}=await sb.from("clients").update({name:$("eName").value.trim(),plan:$("ePlan").value,device_limit:Number($("eLimit").value)||1,list_id:$("eList").value||null}).eq("id",editClientId);if(error)return toast(error.message);closeModal("editModal");toast("✓ Cliente atualizado.");await load()};
+async function toggleClient(id){const c=rows.clients.find(x=>x.id===id);if(!c)return;const {error}=await sb.from("clients").update({status:c.status==="blocked"?"active":"blocked"}).eq("id",id);if(error)return toast(error.message);await load();toast("Status do cliente atualizado.")};
+async function deleteClient(id){if(!confirm("Excluir este cliente e seus dispositivos?"))return;const {error}=await sb.from("clients").delete().eq("id",id);if(error)return toast(error.message);await load();toast("Cliente excluído.")};
+async function editList(id){const l=rows.lists.find(x=>x.id===id);if(!l)return;const p=prompt("Novo nome da lista:",l.name);if(p&&p.trim()){const {error}=await sb.from("provider_lists").update({name:p.trim()}).eq("id",id);if(error)return toast(error.message);await load()}};
+async function deleteList(id){if(!confirm("Excluir esta lista? Os clientes permanecerão sem lista."))return;const {error}=await sb.from("provider_lists").delete().eq("id",id);if(error)return toast(error.message);await load();toast("Lista excluída.")};
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");const map={dashboard:"clientsCard",clients:"clientsCard",lists:"listsCard",devices:"devicesCard",logs:"logsCard",activations:"clientsCard",plans:"clientsCard",settings:"clientsCard"};$(map[b.dataset.view]||"clientsCard").scrollIntoView({behavior:"smooth"});toast(b.innerText.trim()+" selecionado")});
+$("logout").onclick=async()=>{clearInterval(timer);await sb.auth.signOut();location.reload()};
+window.syncOne=syncOne;window.editClient=editClient;window.toggleClient=toggleClient;window.deleteClient=deleteClient;window.editList=editList;window.deleteList=deleteList;
 </script>
-</body></html>
+</body>
+</html>
