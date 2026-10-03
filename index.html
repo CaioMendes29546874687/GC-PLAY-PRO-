@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#020503">
 <title>GC PLAY PRO</title>
-<link rel="stylesheet" href="style.css?v=20261002-FUTURE2">
+<link rel="stylesheet" href="style.css?v=20261002-CINEMATIC1">
 </head>
 <body class="gc-future">
 <div id="app" class="gc-app">
@@ -343,5 +343,107 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
   });
 })();
 </script>
+
+<script>
+/* GC PLAY PRO — CINEMATIC HOME CONTROLLER v1 */
+(function(){
+  "use strict";
+  const boot=()=>{
+    const hero=document.getElementById("gcHero");
+    const bg=document.querySelector("#gcHero .gc-hero-bg");
+    const title=hero?.querySelector("h1");
+    const desc=hero?.querySelector("p");
+    const eyebrow=hero?.querySelector(".gc-eyebrow");
+    if(!hero || !bg) return;
+
+    let lastId="";
+    const clean=s=>String(s||"").replace(/[<>]/g,"").trim();
+    const getState=()=>window.__GC_STATE__||window.GC_PLAY_PRO?.state||null;
+
+    function choose(){
+      const s=getState();
+      if(!s) return null;
+      const items=Array.isArray(s.items)?s.items:[];
+      if(!items.length) return null;
+
+      /* Prioriza filmes/séries com poster; TV ao vivo fica para a rail própria. */
+      const candidates=items.filter(x=>x && x.logo && (x.type==="movie"||x.type==="series"));
+      if(!candidates.length) return items.find(x=>x&&x.logo)||items[0];
+
+      const resume=(()=>{try{return JSON.parse(localStorage.getItem("GC_PLAY_PRO_RESUME_V1")||"null")}catch{return null}})();
+      if(resume?.itemId){
+        const resumed=candidates.find(x=>String(x.id)===String(resume.itemId));
+        if(resumed) return resumed;
+      }
+      const fav=s.favorites instanceof Set ? candidates.find(x=>s.favorites.has(x.id)) : null;
+      return fav || candidates[0];
+    }
+
+    function apply(){
+      const item=choose();
+      if(!item || !item.id || String(item.id)===lastId) return;
+      lastId=String(item.id);
+
+      const name=clean(item.name||item.seriesName||"GC PLAY PRO");
+      const group=clean(item.group||"ENTRETENIMENTO");
+      const type=item.type==="series"?"SÉRIE":item.type==="movie"?"FILME":"TV AO VIVO";
+      const logo=clean(item.logo||"");
+
+      if(logo){
+        const safe=logo.replace(/"/g,"%22").replace(/\\/g,"%5C");
+        bg.style.backgroundImage =
+          'linear-gradient(90deg,rgba(1,4,2,.98) 0%,rgba(1,4,2,.88) 28%,rgba(1,4,2,.46) 56%,rgba(1,4,2,.10) 100%),linear-gradient(0deg,rgba(1,4,2,.97),transparent 52%),url("'+safe+'")';
+      }
+
+      if(eyebrow) eyebrow.innerHTML='<i></i> GC PLAY PRO <b>•</b> '+type+' <b>•</b> '+clean(group).toUpperCase();
+      if(title){
+        const words=name.split(/\\s+/).filter(Boolean);
+        if(words.length>3){
+          const mid=Math.ceil(words.length/2);
+          title.innerHTML=clean(words.slice(0,mid).join(" "))+'<br><em>'+clean(words.slice(mid).join(" "))+'</em>';
+        }else{
+          title.innerHTML=clean(name);
+        }
+      }
+      if(desc) desc.textContent=(type==="FILME"?"Assista agora e continue sua experiência no GC PLAY PRO.":type==="SÉRIE"?"Entre na série, escolha a temporada e continue de onde parou.":"Canal selecionado na sua central de entretenimento.");
+      
+      const cta=document.getElementById("addPlaylistButton");
+      if(cta && !cta.dataset.gcCinematic){
+        cta.dataset.gcCinematic="1";
+        cta.textContent="▶ ASSISTIR AGORA";
+        cta.addEventListener("click",async e=>{
+          if(!window.__GC_CINEMATIC_ITEM__) return;
+          e.preventDefault(); e.stopImmediatePropagation();
+          try{
+            const api=window.GC_PLAY_PRO;
+            const item=window.__GC_CINEMATIC_ITEM__;
+            if(api?.playItem) await api.playItem(item);
+          }catch(err){console.warn("[GC CINEMA] play",err)}
+        },true);
+      }
+      window.__GC_CINEMATIC_ITEM__=item;
+
+      const status=document.getElementById("connectionStatus");
+      if(status){
+        status.textContent=navigator.onLine?"ONLINE":"OFFLINE";
+        status.parentElement?.classList.toggle("gc-online",navigator.onLine);
+      }
+    }
+
+    apply();
+    let ticks=0;
+    const timer=setInterval(()=>{
+      apply();
+      if(++ticks>30 && !getState()?.loading) clearInterval(timer);
+    },1200);
+    addEventListener("online",apply);
+    addEventListener("offline",apply);
+  };
+
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",boot,{once:true});
+  else boot();
+})();
+</script>
+
 </body>
 </html>
