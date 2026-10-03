@@ -153,7 +153,7 @@
 <script src="gc-final-fix.js?v=20261002-14"></script>
 <script src="gc-vlc.js?v=20261002-1"></script>
 <script>
-if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(e=>console.warn("[GC] SW",e)));}
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=20261003-SAMSUNG1",{scope:"./"}).catch(e=>console.warn("[GC] SW",e)));}
 </script>
 <script>
 /* GC PLAY PRO — FUTURE EXPERIENCE */
@@ -583,5 +583,17 @@ body.gc-activated-client #playlistDialog{display:none!important}
   setInterval(apply,5000);
 })();
 </script>
+
+<style id="gc-samsung-emergency">
+/* GC PLAY PRO — Samsung TV emergency shell */
+@media (min-width:850px) and (orientation:landscape){
+  html,body{width:100%!important;max-width:none!important;overflow-x:hidden!important}
+  body.gc-future{padding-left:0!important;margin:0!important}
+  body.gc-future .gc-header{position:fixed!important;left:0!important;top:0!important;bottom:0!important;width:198px!important;height:100vh!important;margin:0!important}
+  body.gc-future main{margin-left:198px!important;width:calc(100% - 198px)!important;max-width:none!important;padding-left:24px!important;padding-right:24px!important}
+  body.gc-future .gc-header-actions{position:fixed!important;left:222px!important;right:24px!important;top:14px!important;z-index:9999!important}
+  body.gc-future .gc-hero{margin-left:-24px!important;margin-right:-24px!important;width:calc(100% + 48px)!important}
+}
+</style>
 </body>
 </html>
