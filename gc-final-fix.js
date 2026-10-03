@@ -315,3 +315,173 @@ setTimeout(installVideoFallback,1000);
 setTimeout(installVideoFallback,3000);
 
 })();
+
+/* GC AI CONTROLLER — 2026-10-02 */
+(function(){
+"use strict";
+
+function gcAiController(){
+  const openBtn=document.getElementById("gcAiOpen");
+  const panel=document.getElementById("gcAiPanel");
+  const closeBtn=document.getElementById("gcAiClose");
+  const form=document.getElementById("gcAiForm");
+  const input=document.getElementById("gcAiInput");
+  const messages=document.getElementById("gcAiMessages");
+  const voice=document.getElementById("gcAiVoice");
+  const status=document.getElementById("gcAiStatus");
+
+  if(!openBtn || !panel) return false;
+  if(openBtn.__gcAiBound) return true;
+  openBtn.__gcAiBound=true;
+
+  const setOpen=(value)=>{
+    panel.classList.toggle("open",!!value);
+    openBtn.setAttribute("aria-expanded",value?"true":"false");
+    if(value){
+      setTimeout(()=>input?.focus(),80);
+    }
+  };
+
+  openBtn.addEventListener("click",(e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    setOpen(!panel.classList.contains("open"));
+  },true);
+
+  closeBtn?.addEventListener("click",(e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    setOpen(false);
+  },true);
+
+  function addMessage(text,type="bot"){
+    if(!messages) return;
+    const el=document.createElement("div");
+    el.className="gc-ai-message "+(type==="user"?"gc-ai-user":"gc-ai-bot");
+    el.innerHTML=text;
+    messages.appendChild(el);
+    messages.scrollTop=messages.scrollHeight;
+    return el;
+  }
+
+  async function executeCommand(command){
+    const q=String(command||"").trim();
+    if(!q) return;
+    addMessage(q.replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m])),"user");
+    const n=q.toLowerCase();
+
+    if(/\b(fechar|feche|sair|fecha)\b/.test(n)){
+      setOpen(false);
+      return;
+    }
+
+    const section =
+      /\b(tv|televis[aã]o|canais?|ao vivo)\b/.test(n) ? "live" :
+      /\b(filmes?|movie)\b/.test(n) ? "movies" :
+      /\b(s[eé]ries?|temporadas?|epis[oó]dios?)\b/.test(n) ? "series" :
+      /\b(in[ií]cio|home)\b/.test(n) ? "home" : null;
+
+    if(section){
+      try{
+        if(typeof window.__GC_ROUTE_UI__==="function"){
+          await window.__GC_ROUTE_UI__(document.querySelector('[data-section="'+section+'"]')||{});
+        }else{
+          const b=document.querySelector('[data-section="'+section+'"]');
+          b?.click();
+        }
+        addMessage("Certo. Abri a seção <b>"+({
+          home:"Início",live:"TV ao vivo",movies:"Filmes",series:"Séries"
+        }[section])+"</b>.");
+      }catch{
+        addMessage("Não consegui abrir essa seção agora.");
+      }
+      return;
+    }
+
+    if(/\b(tela cheia|fullscreen|cheia)\b/.test(n)){
+      const v=document.getElementById("videoPlayer");
+      try{
+        if(v?.requestFullscreen) await v.requestFullscreen();
+        else if(document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+        addMessage("Tela cheia ativada.");
+      }catch{
+        addMessage("O dispositivo não permitiu a tela cheia neste momento.");
+      }
+      return;
+    }
+
+    const s=window.__GC_STATE__||window.GC_PLAY_PRO?.state;
+    const items=Array.isArray(s?.items)?s.items:[];
+    const clean=n.replace(/\b(quero|assistir|procure|procurar|buscar|busque|pesquise|pesquisar|me mostre|mostrar|por favor|canal|canais|tv|ao vivo|filme|filmes|s[eé]rie|s[eé]ries)\b/g," ").replace(/\s+/g," ").trim();
+
+    if(clean && items.length){
+      const found=items.filter(x=>!window.isAdultContent?.(x))
+        .filter(x=>(String(x.name||"")+" "+String(x.group||"")).toLowerCase().includes(clean))
+        .slice(0,5);
+      if(found.length){
+        addMessage("Encontrei:<br>"+found.map(x=>'<button type="button" class="gc-ai-quick" data-gc-ai-id="'+String(x.id).replace(/"/g,"&quot;")+'">'+String(x.name||"Conteúdo").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]))+"</button>").join(" "));
+        messages?.querySelectorAll("[data-gc-ai-id]").forEach(b=>b.onclick=async()=>{
+          const id=b.dataset.gcAiId;
+          let item=items.find(x=>String(x.id)===String(id));
+          if(!item && window.findItem) item=await window.findItem(id);
+          if(item) await window.GC_PLAY_PRO?.playItem?.(item);
+        });
+        return;
+      }
+    }
+
+    addMessage("Posso abrir <b>TV ao vivo</b>, <b>Filmes</b>, <b>Séries</b>, pesquisar conteúdos da sua lista e tentar colocar o player em tela cheia.");
+  }
+
+  form?.addEventListener("submit",(e)=>{
+    e.preventDefault();
+    executeCommand(input?.value||"");
+    if(input) input.value="";
+  });
+
+  document.querySelectorAll("[data-gc-ai-quick]").forEach(b=>{
+    b.addEventListener("click",()=>{
+      executeCommand(b.dataset.gcAiQuick||"");
+    });
+  });
+
+  voice?.addEventListener("click",()=>{
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){
+      if(status) status.textContent="● VOZ NÃO SUPORTADA";
+      addMessage("O comando de voz não é suportado neste dispositivo/navegador. Use o chat.");
+      return;
+    }
+    const r=new SR();
+    r.lang="pt-BR";
+    r.interimResults=false;
+    r.maxAlternatives=1;
+    voice.classList.add("listening");
+    if(status) status.textContent="● OUVINDO...";
+    r.onresult=e=>{
+      const text=e.results?.[0]?.[0]?.transcript||"";
+      if(input) input.value=text;
+      executeCommand(text);
+      if(input) input.value="";
+    };
+    r.onerror=()=>{
+      if(status) status.textContent="● ERRO NO MICROFONE";
+    };
+    r.onend=()=>{
+      voice.classList.remove("listening");
+      if(status) status.textContent="● PRONTO";
+    };
+    try{ r.start(); }catch{}
+  });
+
+  return true;
+}
+
+if(document.readyState==="loading"){
+  document.addEventListener("DOMContentLoaded",gcAiController,{once:true});
+}else{
+  gcAiController();
+}
+setTimeout(gcAiController,500);
+setTimeout(gcAiController,1500);
+})();
