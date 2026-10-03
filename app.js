@@ -1794,16 +1794,19 @@ async function tryLoadXtreamFast(url, signal) {
     }
 
     /*
-       Para não declarar uma playlist "carregada" quando somente a TV
-       respondeu, os três catálogos principais precisam ter retornado.
-       Se um deles falhar, caímos para o parser M3U completo.
+       IMPORTANTE:
+       Se a URL é Xtream válida, NÃO podemos voltar para a M3U
+       completa só porque um dos endpoints é lento ou falhou.
+       Os catálogos são independentes. Mantemos a sessão Xtream e
+       carregamos filmes/séries sob demanda em ensureXtreamSectionLoaded().
+       Assim a aplicação nunca precisa baixar a M3U inteira para separar
+       TV, filmes e séries.
     */
-    if (
-      results[2]?.status !== "fulfilled" ||
-      results[4]?.status !== "fulfilled" ||
-      results[6]?.status !== "fulfilled"
-    ) {
-      console.warn("[GC PLAY PRO] Um dos catálogos Xtream não respondeu; usando importação M3U completa.");
+    const endpointOk =
+      results.slice(1).some(result => result?.status === "fulfilled");
+
+    if (!endpointOk) {
+      console.warn("[GC PLAY PRO] Nenhum endpoint de catálogo Xtream respondeu.");
       return null;
     }
 
@@ -1811,11 +1814,12 @@ async function tryLoadXtreamFast(url, signal) {
     const movies = unwrapXtreamArray(value(4));
     const series = unwrapXtreamArray(value(6));
 
-    /* Pelo menos um catálogo precisa ter conteúdo para confirmar a conta. para confirmar que a conta
-       realmente é Xtream. Se outro catálogo falhar, ainda usamos
-       os que responderam, mas registramos o diagnóstico. */
+    /*
+       Catálogo parcial também é válido: o que não veio agora será
+       carregado somente quando o usuário abrir aquela seção.
+    */
     if (!live.length && !movies.length && !series.length) {
-      return null;
+      console.warn("[GC PLAY PRO] Xtream autenticou, mas nenhum stream veio; mantendo sessão para carregamento sob demanda.");
     }
 
     const liveCategories = new Map();
