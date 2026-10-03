@@ -297,7 +297,18 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
       };
       video.addEventListener("timeupdate",()=>{const now=Date.now();if(now-lastSave>5000){lastSave=now;save()}},{passive:true});
       video.addEventListener("pause",save,{passive:true});
+      video.addEventListener("loadedmetadata",()=>{
+        try{
+          const saved=JSON.parse(localStorage.getItem(key)||"null");
+          const item=window.__GC_STATE__?.currentItem;
+          const same=saved && item && String(saved.itemId||"")===String(item.id??item._id??item.xtreamStreamId??"");
+          if(same && saved.time>5 && saved.time<video.duration-5){
+            video.currentTime=Math.min(saved.time,Math.max(0,video.duration-2));
+          }
+        }catch{}
+      });
       video.addEventListener("ended",()=>{try{localStorage.removeItem(key)}catch{}},{passive:true});
+      $("#clearResumeButton")?.addEventListener("click",()=>{try{localStorage.removeItem(key)}catch{}},{passive:true});
       window.addEventListener("beforeunload",save,{once:true});
     })();
 
