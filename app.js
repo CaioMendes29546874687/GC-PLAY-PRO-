@@ -2859,6 +2859,17 @@ async function queryCatalogItems({
   };
 
   /*
+     Samsung/Tizen: prioriza a amostra em RAM para a primeira
+     navegação. Isso evita depender de cursores IndexedDB em
+     Smart TVs durante a pintura da grade. A biblioteca completa
+     continua armazenada no banco para buscas posteriores.
+  */
+  if (GC_IS_SAMSUNG_TV) {
+    const ramResult = state.items.filter(matches).slice(0, limit);
+    if (ramResult.length) return ramResult;
+  }
+
+  /*
      Se o catálogo completo não estiver disponível no banco,
      usamos a amostra local como fallback.
   */
