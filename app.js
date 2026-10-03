@@ -4867,12 +4867,27 @@ async function playItem(item) {
   const gcAndroidLike =
     /Android|Android TV/i.test(navigator.userAgent || "");
 
+  /*
+     TV ao vivo: a URL que veio na própria M3U é a fonte de verdade.
+     Algumas contas Xtream anunciam uma extensão global diferente da
+     extensão real de determinados canais. Reescrever todos os canais
+     para HLS/TS aqui fazia alguns canais da Samsung nunca iniciarem.
+     Só reconstruímos a rota Xtream quando a URL original não informa
+     claramente o transporte.
+  */
+  const originalLiveTransport =
+    item.xtreamKind === "live" &&
+    (isHLS(originalUrl) || /\.ts(?:$|[?&#])/i.test(originalUrl))
+      ? originalUrl
+      : "";
+
   const sourceUrl =
     item.xtreamKind === "live"
       ? (
-          gcAndroidLike
+          originalLiveTransport ||
+          (gcAndroidLike
             ? liveTsUrl
-            : (liveExtension === "ts" ? liveTsUrl : liveHlsUrl)
+            : (liveExtension === "ts" ? liveTsUrl : liveHlsUrl))
         )
       : originalUrl;
 
