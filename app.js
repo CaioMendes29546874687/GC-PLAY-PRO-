@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-03-RESTORE-02 */
+/* GC BUILD 2026-10-03-ACTIVATION-SYNC-01 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -7281,6 +7281,38 @@ async function loadM3U(
     renderStats();
   }
 }
+
+
+/* GC ACTIVATION PLAYLIST BRIDGE v1 */
+/*
+   A ativação do dispositivo recebe a playlist_url do gc-device.
+   O index.html chama esta ponte para entregar essa URL ao motor M3U.
+   Antes desta ponte a chamada era ignorada porque a função não existia,
+   deixando apenas a validade na tela e zero itens no catálogo.
+*/
+window.gcPlayProSavePlaylist = async function(name, url) {
+  const target = String(url || "").trim();
+  if (!target || !isHttpUrl(target)) {
+    throw new Error("URL da playlist ativada inválida.");
+  }
+
+  try {
+    localStorage.setItem("GC_PLAY_PRO_PLAYLIST_NAME", String(name || "GC PLAY PRO — LISTA ATIVADA"));
+    localStorage.setItem("GC_PLAY_PRO_PLAYLIST_URL", target);
+  } catch (e) {
+    console.warn("[GC ACTIVATION] não foi possível persistir a URL:", e);
+  }
+
+  const urlInput = document.getElementById("playlistUrl");
+  const nameInput = document.getElementById("playlistName");
+  if (urlInput) urlInput.value = target;
+  if (nameInput) nameInput.value = String(name || "GC PLAY PRO — LISTA ATIVADA");
+
+  updateLoadMessage("Carregando lista ativada...");
+  const ok = await loadM3U(target);
+  if (!ok) throw new Error("Não foi possível carregar a playlist ativada.");
+  return true;
+};
 
 /* =========================================================
    CARREGAR ARQUIVO M3U LOCAL
