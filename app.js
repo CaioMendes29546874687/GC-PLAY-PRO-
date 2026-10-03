@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-03-RENDER-DIAG-01 */
+/* GC BUILD 2026-10-03-LIVE-TRANSPORT-01 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -4885,20 +4885,19 @@ async function playItem(item) {
     item.xtreamKind === "live"
       ? (
           /*
-             Samsung/Tizen: prioriza HLS quando o servidor oferece a
-             rota Xtream .m3u8. O navegador Samsung possui suporte nativo
-             a HLS e isso evita depender do MSE/mpegts.js para o primeiro
-             frame do canal. Se o HLS não responder, o playHLS() mantém
-             o fallback para MPEG-TS e para a origem direta.
+             Samsung/Tizen: respeita o transporte que a própria conta
+             Xtream informa em allowed_formats. Algumas contas oferecem
+             somente MPEG-TS (.ts); forçar .m3u8 aqui fazia o catálogo
+             abrir normalmente, mas deixava os canais ao vivo presos em
+             "conectando". Se a origem da M3U já informar .m3u8/.ts, ela
+             continua sendo a fonte de verdade.
           */
-          (GC_IS_SAMSUNG_TV && state.xtreamSession && item.xtreamStreamId
-            ? liveHlsUrl
-            : (
-                originalLiveTransport ||
-                (gcAndroidLike
-                  ? liveTsUrl
-                  : (liveExtension === "ts" ? liveTsUrl : liveHlsUrl))
-              ))
+          (
+            originalLiveTransport ||
+            (gcAndroidLike
+              ? liveTsUrl
+              : (liveExtension === "ts" ? liveTsUrl : liveHlsUrl))
+          )
         )
       : originalUrl;
 
