@@ -9299,6 +9299,9 @@ if (
         "session encontrada: "+!!session,
         "chaves session/xtream: "+(keys.join(",")||"nenhuma"),
         "cards DOM: "+cards,
+        "render diag: "+(window.__GC_RENDER_DIAG__?.lastRender||"none"),
+        "JS error: "+(window.__GC_RENDER_DIAG__?.lastError||"none"),
+        "promise error: "+(window.__GC_RENDER_DIAG__?.lastUnhandled||"none"),
         probeText,
         await dbLiveCount()
       ];
