@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-02-19 */
+/* GC BUILD 2026-10-02-20 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -1393,7 +1393,7 @@ async function migrateCatalogTypes() {
   if (!state.db) return 0;
 
   const migrationKey =
-    "GC_PLAY_PRO_CATEGORY_TYPES_V4";
+    "GC_PLAY_PRO_CATEGORY_TYPES_V5";
 
   try {
     if (localStorage.getItem(migrationKey) === "1") {
