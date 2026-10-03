@@ -201,7 +201,7 @@ $("saveList").onclick=async()=>{
  const list=rows.lists.find(x=>x.name===name);if(list)await syncOne(list.id);else await syncAll(true);
 };
 async function callSync(body){
- const r=await fetch(SUPABASE_URL+"/functions/v1/gc-sync",{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY},body:JSON.stringify(body),cache:"no-store"});
+ const r=await fetch(SUPABASE_URL+"/functions/v1/gc-sync",{method:"POST",headers:{"Content-Type":"text/plain;charset=UTF-8","apikey":SUPABASE_KEY},body:JSON.stringify(body),cache:"no-store"});
  const raw=await r.text();let data=null;try{data=raw?JSON.parse(raw):null}catch{}
  if(!r.ok)return {data,error:new Error(data?.error||data?.message||raw||("HTTP "+r.status))};
  return {data,error:null};
