@@ -121,26 +121,11 @@ function parseSource(raw){
 function openModal(id){$(id).style.display="grid"}function closeModal(id){$(id).style.display="none"}
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
 
-async function ensureAdmin(){
- const {data,error}=await sb.functions.invoke("gc-admin-bootstrap",{body:{}});
- if(error)throw new Error(error.message||"Não foi possível verificar o administrador.");
- if(data?.error)throw new Error(data.error);
- if(data?.ok)return data;
- throw new Error("Acesso de administrador necessário.");
-}
 async function showApp(session){
  $("authScreen").classList.add("hidden");$("app").style.display="flex";
  const {data:userData}=await sb.auth.getUser();const u=userData.user;
  $("adminEmail").textContent=u?.email||"";$("adminName").textContent=u?.user_metadata?.full_name||"Administrador";
  $("avatar").textContent=($("adminName").textContent||"CM").slice(0,2).toUpperCase();
- try{
-   const admin=await ensureAdmin();
-   if(admin?.full_name){$("adminName").textContent=admin.full_name;$("avatar").textContent=admin.full_name.slice(0,2).toUpperCase()}
- }catch(e){
-   $("authScreen").classList.remove("hidden");$("app").style.display="none";
-   $("authMsg").textContent=e.message||"Acesso administrativo necessário.";
-   return;
- }
  await load();
  await syncAll(true);
  clearInterval(timer);timer=setInterval(()=>syncAll(true),30*60*1000);
