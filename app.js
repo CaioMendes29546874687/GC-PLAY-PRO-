@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-02-20 */
+/* GC BUILD 2026-10-02-21 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -1393,7 +1393,7 @@ async function migrateCatalogTypes() {
   if (!state.db) return 0;
 
   const migrationKey =
-    "GC_PLAY_PRO_CATEGORY_TYPES_V5";
+    "GC_PLAY_PRO_CATEGORY_TYPES_V4";
 
   try {
     if (localStorage.getItem(migrationKey) === "1") {
@@ -4763,7 +4763,12 @@ async function playItem(item) {
 
   /* Filmes/episódios: navegador tenta a origem nativa primeiro.
      Se falhar, o onerror abaixo troca automaticamente para o proxy GC. */
-  const useGcProxy = !isVodFile && shouldUseProxy(sourceUrl);
+  /* VOD HTTP da nova lista: no GitHub Pages a origem direta pode
+     ficar bloqueada por mixed-content/rede antes de disparar onerror.
+     Para HTTP usamos o proxy desde o primeiro pedido. HTTPS continua
+     tentando direto e mantém o proxy como fallback. */
+  const vodHttp = isVodFile && /^http:/i.test(sourceUrl);
+  const useGcProxy = shouldUseProxy(sourceUrl) && (!isVodFile || vodHttp);
 
   const playbackUrl =
     useGcProxy
@@ -4922,7 +4927,32 @@ async function playItem(item) {
     message.textContent = "Carregando vídeo...";
   }
 
+  /* Evita carregamento infinito em VOD. Se a origem direta HTTPS não
+     entregar metadata, tenta uma vez pelo proxy do GC. */
+  let vodStartupTimer = null;
+  const clearVodStartupTimer = () => {
+    if (vodStartupTimer) {
+      clearTimeout(vodStartupTimer);
+      vodStartupTimer = null;
+    }
+  };
+
+  if (isVodFile && playbackUrl === originalUrl && shouldUseProxy(originalUrl)) {
+    vodStartupTimer = setTimeout(() => {
+      if (video.readyState >= 1 || video.videoWidth > 0) return;
+      if (video.dataset.gcProxyRetry) return;
+
+      video.dataset.gcProxyRetry = "1";
+      clearVodStartupTimer();
+      video.src = buildProxyUrl(originalUrl);
+      video.load();
+      if (message) message.textContent = "Tentando conexão alternativa...";
+      if (state.settings.autoplay) video.play().catch(() => {});
+    }, 9000);
+  }
+
   video.onloadedmetadata = () => {
+    clearVodStartupTimer();
     if (resumePosition > 5 && Number.isFinite(video.duration) && video.duration > resumePosition + 8) {
       try {
         video.currentTime = resumePosition;
@@ -4937,6 +4967,7 @@ async function playItem(item) {
   };
 
   video.onloadeddata = () => {
+    clearVodStartupTimer();
     if (message) {
       message.textContent = "";
     }
@@ -4956,6 +4987,7 @@ async function playItem(item) {
   };
 
   video.onplaying = () => {
+    clearVodStartupTimer();
     if (message) {
       message.textContent = "";
     }
