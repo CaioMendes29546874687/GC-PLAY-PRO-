@@ -8619,11 +8619,23 @@ function setupKeyboardNavigation() {
           const id =
             focused.dataset.itemId;
 
-          findItem(id)
-            .then(item => {
-              if (item) {
-                playItem(item);
+          let item = null;
+          try {
+            const dynamic = window.__GC_DYNAMIC_ITEMS__;
+            if (dynamic instanceof Map) item = dynamic.get(String(id)) || null;
+          } catch {}
+          if (!item) item = findRAMItem(id);
+
+          Promise.resolve(item || findItem(id))
+            .then(found => {
+              if (found && found.url) {
+                return playItem(found);
               }
+              toast("Não foi possível localizar este conteúdo.");
+            })
+            .catch(error => {
+              console.error("[GC PLAY PRO] abertura pelo controle remoto:", error);
+              toast("Erro ao abrir o conteúdo.");
             });
         }
       }
