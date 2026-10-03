@@ -1789,3 +1789,171 @@ body.gc-future:before{
   body.gc-future .gc-rail h2{font-size:23px!important}
   body.gc-future .main-nav .nav-item{min-height:50px!important;height:50px!important;font-size:12px!important}
 }
+
+
+/* ================================================================
+   GC PLAY PRO — SAMSUNG SMART TV BROWSER FIX v1
+   Corrige o deslocamento duplo causado pelas camadas TV anteriores.
+   ================================================================ */
+@media (min-width:1000px) and (min-height:520px){
+  body.gc-future{
+    padding-left:0!important;
+    margin:0!important;
+    width:100%!important;
+    min-width:1000px!important;
+  }
+
+  body.gc-future main{
+    margin-left:198px!important;
+    margin-right:0!important;
+    width:calc(100% - 198px)!important;
+    max-width:none!important;
+    padding-left:24px!important;
+    padding-right:24px!important;
+  }
+
+  body.gc-future .gc-header{
+    left:0!important;
+    margin:0!important;
+  }
+
+  body.gc-future .gc-hero{
+    width:calc(100% + 48px)!important;
+    margin-left:-24px!important;
+    margin-right:-24px!important;
+  }
+
+  body.gc-future .gc-header-actions{
+    left:222px!important;
+    right:24px!important;
+  }
+}
+
+/* Samsung Browser pode apresentar viewport TV abaixo de 1000 CSS px. */
+@media (min-width:850px) and (max-width:999px) and (orientation:landscape){
+  html,body{
+    min-width:850px!important;
+    overflow-x:hidden!important;
+  }
+
+  body.gc-future{
+    padding-left:0!important;
+    margin:0!important;
+  }
+
+  body.gc-future .gc-header{
+    position:fixed!important;
+    left:0!important;
+    top:0!important;
+    bottom:0!important;
+    width:176px!important;
+    height:100vh!important;
+    padding:16px 9px!important;
+    border-radius:0!important;
+  }
+
+  body.gc-future .gc-brand{min-height:58px!important}
+  body.gc-future .gc-logo{font-size:21px!important}
+  body.gc-future .gc-brand-copy strong{font-size:9px!important}
+  body.gc-future .gc-brand-copy small{font-size:5px!important}
+
+  body.gc-future .main-nav{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:3px!important;
+    margin-top:10px!important;
+  }
+
+  body.gc-future .main-nav .nav-item{
+    height:39px!important;
+    min-height:39px!important;
+    padding:0 8px!important;
+    justify-content:flex-start!important;
+    font-size:8px!important;
+  }
+
+  body.gc-future main{
+    margin-left:176px!important;
+    width:calc(100% - 176px)!important;
+    max-width:none!important;
+    padding:0 16px 55px!important;
+  }
+
+  body.gc-future .gc-header-actions{
+    position:fixed!important;
+    left:195px!important;
+    right:16px!important;
+    top:10px!important;
+    z-index:510!important;
+  }
+
+  body.gc-future .gc-header-actions:before{
+    display:flex!important;
+    width:min(360px,42vw)!important;
+    font-size:7px!important;
+  }
+
+  body.gc-future .gc-hero{
+    min-height:410px!important;
+    height:410px!important;
+    margin:0 -16px!important;
+    border-radius:0 0 16px 16px!important;
+  }
+
+  body.gc-future .gc-hero-content{
+    width:62%!important;
+    padding:55px 0 35px 24px!important;
+  }
+
+  body.gc-future .gc-hero h1{
+    font-size:clamp(42px,5vw,64px)!important;
+    letter-spacing:-3px!important;
+  }
+
+  body.gc-future .gc-hero p{
+    font-size:9px!important;
+    max-width:420px!important;
+  }
+
+  body.gc-future .gc-hero-actions button{
+    min-height:36px!important;
+    padding:0 13px!important;
+    font-size:8px!important;
+  }
+
+  body.gc-future .gc-home-row{
+    grid-auto-columns:145px!important;
+    gap:9px!important;
+  }
+
+  body.gc-future .gc-home-row .gc-card{
+    min-height:220px!important;
+  }
+
+  body.gc-future .gc-rail h2{font-size:16px!important}
+
+  body.gc-future .gc-command-bar{
+    min-height:34px!important;
+    margin-bottom:18px!important;
+  }
+
+  body.gc-future .gc-future-hub{
+    grid-template-columns:repeat(4,1fr)!important;
+    gap:7px!important;
+  }
+
+  body.gc-future .gc-future-tile{
+    min-height:70px!important;
+    padding:8px!important;
+  }
+
+  body.gc-future .gc-future-tile strong{font-size:7px!important}
+  body.gc-future .gc-future-tile small{font-size:5px!important}
+
+  body.gc-future .gc-ai-fab{
+    right:16px!important;
+    bottom:16px!important;
+    width:52px!important;
+    height:52px!important;
+  }
+}
