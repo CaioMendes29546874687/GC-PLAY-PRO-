@@ -20,6 +20,16 @@ const GC_M3U_PROXY =
 const GC_HEALTH_URL =
   `${GC_SUPABASE_URL}/functions/v1/gc-health`;
 
+/* Samsung Tizen: mantém o catálogo leve e evita reconstruções pesadas que provocam reflow/piscadas em Smart TVs mais antigas. */
+const GC_IS_SAMSUNG_TV = (() => {
+  try {
+    const ua = navigator.userAgent || "";
+    return /Tizen|SMART-TV|SamsungBrowser.*TV|TV Safari/i.test(ua) ||
+      (/Samsung/i.test(ua) && !/Mobile|Android/i.test(ua));
+  } catch { return false; }
+})();
+window.__GC_SAMSUNG_TV__ = GC_IS_SAMSUNG_TV;
+
 /* O proxy é genérico: cada playlist pode usar um domínio diferente. */
 const GC_PROXY_HOSTS = null;
 
@@ -5634,7 +5644,8 @@ async function buildGenreCatalog() {
     add(item.type, item.group);
   };
 
-  if (!state.db) {
+  /* No Tizen não varremos milhares de registros do IndexedDB durante a primeira pintura. Os canais já importados em RAM são suficientes para montar os filtros iniciais; a biblioteca completa continua no banco. */
+  if (!state.db || GC_IS_SAMSUNG_TV) {
     for (const item of state.items) addItem(item);
   } else {
     await new Promise((resolve, reject) => {
@@ -8079,25 +8090,27 @@ async function loadLocalCatalog() {
     renderGenreFilters();
     render();
 
-    const migrationKey = "GC_PLAY_PRO_SERIES_MIGRATION_V3";
-    let migrated = false;
+    if (!GC_IS_SAMSUNG_TV) {
+      const migrationKey = "GC_PLAY_PRO_SERIES_MIGRATION_V3";
+      let migrated = false;
 
-    try {
-      migrated = localStorage.getItem(migrationKey) === "1";
-    } catch {}
+      try {
+        migrated = localStorage.getItem(migrationKey) === "1";
+      } catch {}
 
-    if (!migrated) {
-      setTimeout(async () => {
-        await rebuildSeriesCatalogInBackground(true);
+      if (!migrated) {
+        setTimeout(async () => {
+          await rebuildSeriesCatalogInBackground(true);
 
-        try {
-          localStorage.setItem(migrationKey, "1");
-        } catch {}
-      }, 50);
-    } else if (needsSeriesCatalogMigration(state.seriesCatalog)) {
-      setTimeout(() => {
-        rebuildSeriesCatalogInBackground(true);
-      }, 50);
+          try {
+            localStorage.setItem(migrationKey, "1");
+          } catch {}
+        }, 50);
+      } else if (needsSeriesCatalogMigration(state.seriesCatalog)) {
+        setTimeout(() => {
+          rebuildSeriesCatalogInBackground(true);
+        }, 50);
+      }
     }
   } catch (error) {
     console.error("Erro carregando catálogo:", error);
@@ -8772,24 +8785,26 @@ async function initApp() {
        A correção de categorias roda em segundo plano para que uma
        biblioteca grande não bloqueie a abertura do aplicativo.
     */
-    migrateCatalogTypes()
-      .then(async changed => {
-        if (changed > 0) {
-          state.seriesCatalog = [];
-          state.seriesCatalogMap = new Map();
-          state.seriesCatalogReady = false;
-          state.seriesItemsCache = null;
+    if (!GC_IS_SAMSUNG_TV) {
+      migrateCatalogTypes()
+        .then(async changed => {
+          if (changed > 0) {
+            state.seriesCatalog = [];
+            state.seriesCatalogMap = new Map();
+            state.seriesCatalogReady = false;
+            state.seriesItemsCache = null;
 
-          await rebuildSeriesCatalogInBackground(true);
-          await buildGenreCatalog();
-          await loadDatabaseStats();
-          renderGenreFilters();
-          await render();
-        }
-      })
-      .catch(error => {
-        console.warn("[GC PLAY PRO] Migração de categorias:", error);
-      });
+            await rebuildSeriesCatalogInBackground(true);
+            await buildGenreCatalog();
+            await loadDatabaseStats();
+            renderGenreFilters();
+            await render();
+          }
+        })
+        .catch(error => {
+          console.warn("[GC PLAY PRO] Migração de categorias:", error);
+        });
+    }
 
     console.log(
       "IndexedDB conectado."
