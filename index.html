@@ -477,5 +477,24 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
 </script>
+<script>
+(function(){
+  function boot(){
+    const p=localStorage.getItem("GC_PLAY_PRO_ACTIVATED_PLAYLIST_V1");
+    if(!p||typeof window.gcPlayProSavePlaylist!=="function")return;
+    const current=localStorage.getItem("GC_PLAY_PRO_PLAYLIST_URL");
+    if(current===p)return;
+    setTimeout(async()=>{
+      if(typeof window.gcPlayProSavePlaylist==="function"){
+        try{
+          const ok=await window.gcPlayProSavePlaylist("GC PLAY PRO — LISTA ATIVADA",p);
+          if(ok!==false) localStorage.setItem("GC_PLAY_PRO_PLAYLIST_URL",p);
+        }catch(e){console.warn("[GC ACTIVATION] carga automática",e)}
+      }
+    },1800);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
+})();
+</script>
 </body>
 </html>
