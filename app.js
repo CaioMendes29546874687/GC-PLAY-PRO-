@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-03-DIAG-01 */
+/* GC BUILD 2026-10-03-RESTORE-01 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -9068,6 +9068,35 @@ async function initApp() {
      ------------------------------------------------------- */
 
   await loadLocalCatalog();
+
+  /*
+     RESTAURAÇÃO REAL DA PLAYLIST:
+     no diagnóstico Samsung, a interface possuía a URL/validade salva,
+     mas IndexedDB estava vazio e não havia sessão Xtream em memória.
+     Isso deixa a tela com "validade" sem catálogo.
+     Se existe uma playlist salva e o banco não contém itens, refazemos
+     UMA importação nesta sessão. Não altera reprodução nem renderização.
+  */
+  if (GC_IS_SAMSUNG_TV && state.items.length === 0 && !state.loading) {
+    const savedPlaylist = getSavedPlaylist();
+    let alreadyTried = false;
+    try {
+      alreadyTried = sessionStorage.getItem("GC_PLAY_PRO_SAMSUNG_RESTORE_TRIED") === "1";
+    } catch {}
+
+    if (savedPlaylist?.url && !alreadyTried) {
+      try {
+        sessionStorage.setItem("GC_PLAY_PRO_SAMSUNG_RESTORE_TRIED", "1");
+      } catch {}
+
+      updateLoadMessage("Restaurando a playlist salva...");
+      setTimeout(() => {
+        loadM3U(savedPlaylist.url).catch(error => {
+          console.error("[GC PLAY PRO] Restauração Samsung falhou:", error);
+        });
+      }, 250);
+    }
+  }
 
   /* -------------------------------------------------------
      ESTATÍSTICAS
