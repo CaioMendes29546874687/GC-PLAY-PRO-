@@ -273,6 +273,32 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
       }
     });
 
+    // GC PLAY PRO — interface premium: relógio, rede, atalhos e HUD vivo.
+    (function setupFutureHUD(){
+      const commandBar=$("#gcCommandBar");
+      if(commandBar && !$("#gcLiveClock")){
+        const clock=document.createElement("span");
+        clock.id="gcLiveClock"; clock.className="gc-live-clock"; clock.setAttribute("aria-label","Relógio do aplicativo");
+        commandBar.appendChild(clock);
+        const tick=()=>{ clock.textContent=new Intl.DateTimeFormat("pt-BR",{hour:"2-digit",minute:"2-digit"}).format(new Date()); };
+        tick(); setInterval(tick,30000);
+      }
+      const hero=$("#gcHero");
+      if(hero && !$("#gcHeroMeta")){
+        const meta=document.createElement("div"); meta.id="gcHeroMeta"; meta.className="gc-hero-meta";
+        meta.innerHTML='<span>✦ EXPERIÊNCIA FUTURE</span><span>⚡ RESPOSTA RÁPIDA</span><span>◉ MULTI-DISPOSITIVO</span>';
+        hero.querySelector(".gc-hero-content")?.appendChild(meta);
+      }
+      document.querySelectorAll(".gc-rail>header").forEach(h=>{ if(!h.querySelector(".gc-rail-line")){const x=document.createElement("i");x.className="gc-rail-line";h.appendChild(x);} });
+      document.addEventListener("keydown",e=>{
+        if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(e.key) && document.activeElement?.classList.contains("gc-card")){
+          const cards=Array.from(document.querySelectorAll(".gc-card")); const i=cards.indexOf(document.activeElement); if(i>=0){e.preventDefault();let n=i+(e.key==="ArrowRight"?1:e.key==="ArrowLeft"?-1:e.key==="ArrowDown"?4:-4);n=Math.max(0,Math.min(cards.length-1,n));cards[n]?.focus({preventScroll:false});}
+        }
+      });
+      const applyStatus=()=>{ const s=$("#connectionStatus"); if(!s)return; const online=navigator.onLine; s.textContent=online?"ONLINE":"OFFLINE"; s.parentElement?.classList.toggle("gc-online",online); };
+      addEventListener("online",applyStatus); addEventListener("offline",applyStatus); applyStatus();
+    })();
+
     // Mantém a central de IA acessível sem cobrir a navegação inferior.
     const repositionAI=()=>{
       if(!aiOpen)return;
