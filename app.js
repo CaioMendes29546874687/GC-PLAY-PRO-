@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-03-ACTIVATION-SYNC-01 */
+/* GC BUILD 2026-10-03-SAMSUNG-PERF-01 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -8288,13 +8288,16 @@ async function loadLocalCatalog() {
     state.items = await loadSample(RAM_LIMIT);
     state.seriesItemsCache = null;
 
-    const storedSeries = await loadSeriesCatalogFromDB();
-
     /*
-       Consolida também catálogos antigos. Assim uma playlist
-       que já foi importada antes da correção não precisa ser
-       baixada novamente só para juntar os episódios.
+       Samsung/Tizen: NÃO faça getAll() do catálogo de séries na abertura.
+       A biblioteca pode ter centenas de milhares de episódios e esse
+       getAll() congela o navegador da TV. Os episódios permanecem no
+       IndexedDB e serão consultados quando a seção Séries for aberta.
     */
+    const storedSeries = GC_IS_SAMSUNG_TV
+      ? []
+      : await loadSeriesCatalogFromDB();
+
     const mergedSeries = new Map();
     const aliases = new Map();
 
@@ -8339,7 +8342,12 @@ async function loadLocalCatalog() {
     state.seriesCatalogMap = new Map(
       state.seriesCatalog.map(item => [item.seriesKey, item])
     );
-    state.seriesCatalogReady = state.seriesCatalog.length > 0;
+    /*
+       No Samsung, a ausência do catálogo agregado NÃO significa
+       ausência de episódios. O contador continua vindo do índice
+       "type" do IndexedDB e a seção Séries será carregada sob demanda.
+    */
+    state.seriesCatalogReady = !GC_IS_SAMSUNG_TV && state.seriesCatalog.length > 0;
 
     try {
       const saved = JSON.parse(localStorage.getItem("GC_PLAY_PRO_GROUPS_V1") || "[]");
