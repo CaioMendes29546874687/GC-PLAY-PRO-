@@ -194,7 +194,7 @@ $("saveList").onclick=async()=>{
  const name=$("lName").value.trim(),raw=$("lUrl").value.trim(),parsed=parseSource(raw),user=$("lUser").value.trim()||parsed.user,pass=$("lPass").value||parsed.pass;
  if(!name||!raw||!user||!pass)return toast("Nome, URL, usuário e senha são obrigatórios.");
  const secret=await sb.rpc("gc_create_provider_secret",{p_secret:pass});if(secret.error)return toast("Erro ao guardar credencial: "+secret.error.message);
- const {error}=await sb.from("provider_lists").insert({name,source_url:raw,server_url:parsed.server,username:user,provider_secret_id:secret.data});
+ let safeUrl=raw; try{const u=new URL(raw); if(u.searchParams.has("password"))u.searchParams.set("password","***"); safeUrl=u.toString()}catch{} const {error}=await sb.from("provider_lists").insert({name,source_url:safeUrl,server_url:parsed.server,username:user,provider_secret_id:secret.data});
  if(error)return toast("Erro: "+error.message);
  closeModal("listModal");toast("✓ Lista cadastrada. Sincronizando validade...");await load();
  const list=rows.lists.find(x=>x.name===name);if(list)await syncOne(list.id);else await syncAll(true);
