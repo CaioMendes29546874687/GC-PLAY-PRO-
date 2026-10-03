@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-02-23 */
+/* GC BUILD 2026-10-03-DIAG-01 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -9119,3 +9119,69 @@ if (
 
 /* GC AI — CHAT + VOZ + AÇÕES */
 (function installGCAI(){const AI_URL="https://kuzgdvpdqmocklsgyzvt.supabase.co/functions/v1/gc-ai";let recognition=null,listening=false;const qs=s=>document.querySelector(s);const messages=()=>qs("#gcAiMessages");function addMessage(text,who="bot"){const box=messages();if(!box)return;const el=document.createElement("div");el.className="gc-ai-message "+(who==="user"?"gc-ai-user":"gc-ai-bot");el.textContent=String(text||"");box.appendChild(el);box.scrollTop=box.scrollHeight}function setStatus(text){const el=qs("#gcAiStatus");if(el)el.textContent="● "+text}function openAI(){qs("#gcAiPanel")?.classList.add("open");qs("#gcAiInput")?.focus()}function closeAI(){qs("#gcAiPanel")?.classList.remove("open")}function clickSection(section){const btn=document.querySelector('.nav-item[data-section="'+section+'"]');if(btn){btn.click();return true}return false}async function localAction(raw){const t=normalizeText(raw),video=qs("#videoPlayer");if(/(abra|abrir|va para|ir para|mostre).*(tv|canais?|ao vivo)/.test(t)){clickSection("live");return"Abri a TV ao vivo."}if(/(abra|abrir|va para|ir para|mostre).*(filme|filmes)/.test(t)){clickSection("movies");return"Abri os filmes."}if(/(abra|abrir|va para|ir para|mostre).*(serie|series)/.test(t)){clickSection("series");return"Abri as séries."}if(/(abra|abrir|va para|ir para|mostre).*(inicio|home)/.test(t)){clickSection("home");return"Voltei para o início."}if(/(pausar|pause|pare|parar)/.test(t)&&video){video.pause();return"Reprodução pausada."}if(/(continuar|continue|reproduzir|play|tocar)/.test(t)&&video){try{await video.play();return"Retomei a reprodução."}catch{}}if(/(tela cheia|fullscreen|full screen)/.test(t)){const target=qs("#playerPanel")||video;try{if(document.fullscreenElement)await document.exitFullscreen();else await target.requestFullscreen?.();return"Alternância de tela cheia executada."}catch{}}if(/(fechar|sair).*(player|video|reproducao|reprodução)/.test(t)){qs("#closePlayer")?.click();return"Fechei o player."}if(/(buscar|pesquisar|procure|procurar|encontre|encontrar)/.test(t)){let term=raw.replace(/^(.*?)(buscar|pesquisar|procure|procurar|encontre|encontrar)\s+/i,"").trim().replace(/^(por|o|a|um|uma)\s+/i,"").trim();qs("#searchButton")?.click();const input=qs("#globalSearch");if(input&&term){input.value=term;input.dispatchEvent(new Event("input",{bubbles:true}))}return term?'Pesquisando por "'+term+'".':"Abri a pesquisa."}return null}async function askAI(raw){const action=await localAction(raw);if(action){addMessage(action);return}setStatus("PENSANDO...");try{const s=window.__GC_STATE__||{},v=qs("#videoPlayer");const context={app:"GC PLAY PRO",section:s.currentSection||null,currentItem:s.currentItem?{name:s.currentItem.name,type:s.currentItem.type,group:s.currentItem.group,xtreamStreamId:s.currentItem.xtreamStreamId||null}:null,catalogCounts:s.counts||null,playback:{paused:!!v?.paused}};const response=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:raw,context})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||"Falha ao consultar a IA.");addMessage(data.reply||"Não consegui gerar uma resposta.");setStatus("PRONTO")}catch(error){addMessage("O cérebro do GC AI ainda não está configurado. "+(error?.message||""));setStatus("IA INDISPONÍVEL")}}function initVoice(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition,button=qs("#gcAiVoice");if(!button)return;if(!SR){button.title="Reconhecimento de voz não disponível neste dispositivo";return}recognition=new SR();recognition.lang="pt-BR";recognition.interimResults=false;recognition.continuous=false;recognition.onstart=()=>{listening=true;button.classList.add("listening");setStatus("OUVINDO...")};recognition.onend=()=>{listening=false;button.classList.remove("listening");if(qs("#gcAiStatus")?.textContent.includes("OUVINDO"))setStatus("PRONTO")};recognition.onerror=()=>{listening=false;button.classList.remove("listening");setStatus("ERRO DE VOZ")};recognition.onresult=async e=>{const text=e.results?.[0]?.[0]?.transcript?.trim();if(!text)return;addMessage(text,"user");await askAI(text)};button.addEventListener("click",()=>{try{if(listening)recognition.stop();else recognition.start()}catch{}})}function init(){const open=qs("#gcAiOpen"),close=qs("#gcAiClose"),form=qs("#gcAiForm"),input=qs("#gcAiInput");open?.addEventListener("click",openAI);close?.addEventListener("click",closeAI);form?.addEventListener("submit",async e=>{e.preventDefault();const text=input?.value?.trim();if(!text)return;input.value="";addMessage(text,"user");await askAI(text)});document.querySelectorAll("[data-gc-ai-quick]").forEach(btn=>btn.addEventListener("click",()=>{const text=btn.dataset.gcAiQuick;addMessage(text,"user");askAI(text)}));initVoice()}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();window.GCAI={open:openAI,close:closeAI,ask:askAI}})();
+
+
+/* GC SAMSUNG DIAGNOSTIC v1 */
+(function installGCSamsungDiagnostic(){
+  try{
+    if(!GC_IS_SAMSUNG_TV) return;
+    if(window.__GC_SAMSUNG_DIAG__) return;
+    window.__GC_SAMSUNG_DIAG__=true;
+    const box=document.createElement("div");
+    box.id="gcSamsungDiag";
+    Object.assign(box.style,{position:"fixed",top:"8px",left:"8px",zIndex:"2147483647",background:"rgba(0,0,0,.94)",color:"#69ff65",font:"12px/1.35 monospace",padding:"10px",border:"1px solid #69ff65",borderRadius:"8px",maxWidth:"92vw",maxHeight:"42vh",overflow:"auto",whiteSpace:"pre-wrap",pointerEvents:"none"});
+    document.body.appendChild(box);
+    let probeDone=false, probeText="aguardando";
+    async function dbLiveCount(){
+      try{
+        if(!state.db) return "DB: ainda não aberto";
+        return await new Promise(resolve=>{
+          const tx=state.db.transaction(STORE_NAME,"readonly");
+          const st=tx.objectStore(STORE_NAME);
+          const idx=st.indexNames.contains("type")?st.index("type"):null;
+          if(!idx){resolve("DB live: índice type ausente");return;}
+          const req=idx.count(IDBKeyRange.only("live"));
+          req.onsuccess=()=>resolve("DB live: "+req.result);
+          req.onerror=()=>resolve("DB live: ERRO "+(req.error?.message||"count"));
+        });
+      }catch(e){return "DB live: EX "+(e?.message||e)}
+    }
+    async function probe(){
+      if(probeDone) return;
+      probeDone=true;
+      try{
+        if(typeof fetchSamsungLiveDirect!=="function"){probeText="Xtream live probe: função não encontrada";return}
+        const rows=await fetchSamsungLiveDirect(20);
+        probeText="Xtream live probe: "+(Array.isArray(rows)?rows.length:"RESPOSTA INVÁLIDA");
+      }catch(e){probeText="Xtream live probe: ERRO "+(e?.message||e)}
+    }
+    async function paint(){
+      const liveRam=Array.isArray(state.items)?state.items.filter(x=>x&&x.type==="live").length:0;
+      const cards=document.querySelectorAll('[data-item-id],.content-card,.channel-card,.media-card').length;
+      const keys=Object.keys(state).filter(k=>/session|xtream/i.test(k));
+      const session=state.xtreamSession||state.xtream?.session||state.session||null;
+      const meta=state.playlistMeta||{};
+      const lines=[
+        "GC DIAGNÓSTICO SAMSUNG",
+        "UA: "+(navigator.userAgent||"").slice(0,120),
+        "Samsung/Tizen: "+GC_IS_SAMSUNG_TV,
+        "section/filter: "+state.currentSection+" / "+state.currentFilter,
+        "playlist URL: "+(meta.url?"SIM":"NÃO"),
+        "state.items: "+(Array.isArray(state.items)?state.items.length:0),
+        "RAM live: "+liveRam,
+        "counts.live: "+(state.counts?.live??"n/a"),
+        "counts.movie/series: "+(state.counts?.movie??"n/a")+" / "+(state.counts?.series??"n/a"),
+        "total: "+(state.total??"n/a"),
+        "session encontrada: "+!!session,
+        "chaves session/xtream: "+(keys.join(",")||"nenhuma"),
+        "cards DOM: "+cards,
+        probeText,
+        await dbLiveCount()
+      ];
+      box.textContent=lines.join("\n");
+      probe();
+    }
+    setTimeout(paint,1500);
+    setInterval(paint,1500);
+  }catch(e){console.error("[GC DIAG]",e)}
+})();
