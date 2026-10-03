@@ -8560,6 +8560,9 @@ window.GC_PLAY_PRO = {
 
   playItem,
 
+  getSeriesEpisodes,
+  toggleFavorite,
+
   closePlayer,
 
   clearCatalog,
