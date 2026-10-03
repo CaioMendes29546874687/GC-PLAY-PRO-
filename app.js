@@ -2911,6 +2911,30 @@ async function queryCatalogItems({
   });
 }
 
+async function querySamsungLiveItems(limit = 120) {
+  if (!GC_IS_SAMSUNG_TV || !state.db) return [];
+
+  return new Promise(resolve => {
+    try {
+      const tx = state.db.transaction(STORE_NAME, "readonly");
+      const store = tx.objectStore(STORE_NAME);
+      const index = store.index("type");
+      const request = index.getAll(IDBKeyRange.only("live"), limit);
+
+      request.onsuccess = () => {
+        const values = Array.isArray(request.result) ? request.result : [];
+        resolve(values.filter(item => item && !isAdultContent(item)).slice(0, limit));
+      };
+
+      request.onerror = () => resolve([]);
+      tx.onerror = () => resolve([]);
+    } catch (error) {
+      console.warn("[GC PLAY PRO] Samsung live query:", error);
+      resolve([]);
+    }
+  });
+}
+
 async function render() {
   if (state.currentSection === "home" && state.currentFilter === "all") {
     await renderHomeDashboard();
@@ -5914,7 +5938,7 @@ async function handleSection(
       "all";
 
     renderGenreFilters();
-    render();
+    await render();
 
     return;
   }
