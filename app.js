@@ -2824,7 +2824,7 @@ async function queryCatalogItems({
 
     if (
       genre !== "all" &&
-      normalizeText(getGenreName(item.group)) !== wantedGenre
+      normalizeText(type === "live" ? getLiveGenre(item) : getGenreName(item.group)) !== wantedGenre
     ) {
       return false;
     }
@@ -5587,6 +5587,18 @@ async function changeAdultPin() {
   }
 }
 
+function getLiveGenre(item) {
+  const group = String(item?.group || "").trim();
+  const name = String(item?.name || "").trim();
+
+  if (/\b(?:jogos?\s+do\s+dia|jogos\s+de\s+hoje)\b/i.test(group) ||
+      /\b(?:jogos?\s+do\s+dia|jogos\s+de\s+hoje)\b/i.test(name)) {
+    return "JOGOS DO DIA";
+  }
+
+  return getGenreName(group);
+}
+
 function getGenreName(group) {
   let value = String(group || "").trim();
 
@@ -5609,7 +5621,7 @@ async function buildGenreCatalog() {
   const add = (type, group) => {
     if (!["live", "movie", "series"].includes(type)) return;
 
-    const genre = getGenreName(group);
+    const genre = type === "live" ? getLiveGenre({group}) : getGenreName(group);
     const key = normalizeText(genre);
     if (!key) return;
 
