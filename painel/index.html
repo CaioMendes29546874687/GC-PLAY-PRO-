@@ -127,6 +127,7 @@ async function showApp(session){
  $("adminEmail").textContent=u?.email||"";$("adminName").textContent=u?.user_metadata?.full_name||"Administrador";
  $("avatar").textContent=($("adminName").textContent||"CM").slice(0,2).toUpperCase();
  await load();
+ await syncAll(true);
  clearInterval(timer);timer=setInterval(()=>syncAll(true),30*60*1000);
 }
 async function boot(){
