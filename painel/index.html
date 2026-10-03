@@ -209,7 +209,7 @@ async function syncOne(id){
 async function syncAll(silent=false){
  if(!silent)toast("Sincronizando todas as listas...");
  if(!rows.lists.length){if(!silent)toast("Nenhuma lista cadastrada.");return}
- const {data,error}=await sb.functions.invoke("gc-sync",{body:{all:true}});
+ const {data,error}=await sb.functions.invoke("gc-sync-v2",{body:{all:true}});
  if(error){if(!silent)toast("Falha: "+error.message);return}
  await load();if(!silent)toast("✓ "+(data?.count||0)+" lista(s) verificadas.");
 }
