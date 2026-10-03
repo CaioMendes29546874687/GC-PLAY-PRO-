@@ -1499,6 +1499,53 @@ function unwrapXtreamArray(value) {
   return [];
 }
 
+function samsungXHRJSON(requestUrl, signal) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    let done = false;
+
+    const finish = (fn, value) => {
+      if (done) return;
+      done = true;
+      fn(value);
+    };
+
+    xhr.open("GET", requestUrl, true);
+    xhr.setRequestHeader("Accept", "application/json");
+    xhr.timeout = 20000;
+
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState !== 4) return;
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          finish(resolve, JSON.parse(xhr.responseText || "null"));
+        } catch (error) {
+          finish(reject, error);
+        }
+      } else {
+        finish(reject, new Error("HTTP " + xhr.status));
+      }
+    };
+
+    xhr.onerror = () => finish(reject, new Error("XHR network error"));
+    xhr.ontimeout = () => finish(reject, new Error("XHR timeout"));
+
+    if (signal) {
+      if (signal.aborted) {
+        try { xhr.abort(); } catch {}
+        finish(reject, new DOMException("Operação cancelada", "AbortError"));
+        return;
+      }
+      signal.addEventListener("abort", () => {
+        try { xhr.abort(); } catch {}
+        finish(reject, new DOMException("Operação cancelada", "AbortError"));
+      }, { once: true });
+    }
+
+    xhr.send();
+  });
+}
+
 async function fetchXtreamJSON(session, action, signal, extraParams = {}) {
   const url = new URL(xtreamApiUrl(session, action));
 
@@ -1508,18 +1555,43 @@ async function fetchXtreamJSON(session, action, signal, extraParams = {}) {
     }
   }
 
-  const response = await fetch(buildProxyUrl(url.toString()), {
-    method: "GET",
-    cache: "no-store",
-    signal,
-    headers: { "Accept": "application/json" }
-  });
+  const target = url.toString();
+  const proxyTarget = buildProxyUrl(target);
 
-  if (!response.ok) {
-    throw new Error("Xtream API HTTP " + response.status);
+  let data = null;
+  let proxyError = null;
+
+  try {
+    const response = await fetch(proxyTarget, {
+      method: "GET",
+      cache: "no-store",
+      signal,
+      headers: { "Accept": "application/json" }
+    });
+
+    if (!response.ok) throw new Error("Proxy HTTP " + response.status);
+    data = await response.json();
+  } catch (error) {
+    proxyError = error;
+
+    /* Samsung/Tizen: WebKit antigo pode falhar no fetch/JSON do
+       proxy mesmo quando XHR consegue receber a mesma resposta. */
+    if (GC_IS_SAMSUNG_TV) {
+      try {
+        data = await samsungXHRJSON(proxyTarget, signal);
+      } catch (xhrError) {
+        /* Último fallback: tenta o endpoint Xtream diretamente.
+           Se o servidor bloquear CORS, o erro será tratado abaixo. */
+        try {
+          data = await samsungXHRJSON(target, signal);
+        } catch {
+          throw proxyError || xhrError;
+        }
+      }
+    } else {
+      throw error;
+    }
   }
-
-  const data = await response.json();
 
   if (data && typeof data === "object" && data.user_info && data.user_info.auth === 0) {
     throw new Error("Conta Xtream recusada pelo servidor.");
