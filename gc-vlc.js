@@ -145,13 +145,20 @@
       disponível. Não intercepta cliques de cartões, navegação ou
       rolagem e não substitui nenhum player existente.
     */
-    const observer = new MutationObserver(() => ensureButton());
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
+    const ua=navigator.userAgent||"";
+    const samsung=/Tizen|SMART-TV|SamsungBrowser.*TV|TV Safari/i.test(ua) ||
+      (/Samsung/i.test(ua) && !/Mobile|Android/i.test(ua));
 
-    setInterval(ensureButton, 1200);
+    /* No Tizen, evitar observer global + polling. O observer de body
+       pode disparar repetidamente enquanto o próprio botão é criado. */
+    if(!samsung){
+      const observer = new MutationObserver(() => ensureButton());
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true
+      });
+      setInterval(ensureButton, 1200);
+    }
 
     console.log("[GC VLC] módulo aditivo carregado:", VLC_VERSION);
   }
