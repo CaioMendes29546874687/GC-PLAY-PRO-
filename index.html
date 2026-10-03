@@ -473,7 +473,13 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
       }catch(e){msg(e.message||"Falha na ativação.")}
     };
   }
-  function boot(){ui();const s=(()=>{try{return JSON.parse(localStorage.getItem(K)||"null")}catch{return null}})();if(!s&&!localStorage.getItem("GC_PLAY_PRO_XTREAM_SESSION_V1")&&!localStorage.getItem("GC_PLAY_PRO_STATE_V5"))setTimeout(()=>document.getElementById("gcActivationBox").style.display="grid",1000)}
+  function boot(){
+    ui();
+    const s=(()=>{try{return JSON.parse(localStorage.getItem(K)||"null")}catch{return null}})();
+    // A ativação do dispositivo é independente de listas antigas/sessões locais.
+    // Se este aparelho ainda não foi ativado, sempre apresenta a tela de código.
+    if(!s)setTimeout(()=>document.getElementById("gcActivationBox").style.display="grid",900);
+  }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
 </script>
