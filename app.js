@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-02-22 */
+/* GC BUILD 2026-10-02-23 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -3926,7 +3926,7 @@ function loadMpegTS() {
           const timer = setTimeout(() => {
             script.remove();
             reject(new Error("Tempo esgotado ao carregar mpegts.js."));
-          }, 8000);
+          }, 5000);
 
           script.onload = () => {
             clearTimeout(timer);
@@ -4035,7 +4035,7 @@ async function playMpegTS(
           enableWorker: false,
           enableWorkerForMSE: false,
           enableStashBuffer: true,
-          stashInitialSize: 256 * 1024,
+          stashInitialSize: 96 * 1024,
           lazyLoad: false,
           /* Evita depender do sourceopen para iniciar o primeiro request. */
           deferLoadAfterSourceOpen: false,
@@ -4602,7 +4602,10 @@ async function playItem(item) {
     state.epgTimer = null;
   }
 
-  loadLiveEPG(item);
+  /* EPG não deve bloquear o início do vídeo. Carrega em paralelo. */
+  if (item.type === "live") {
+    Promise.resolve().then(() => loadLiveEPG(item)).catch(() => {});
+  }
 
   if (item.type === "live" && state.xtreamSession && item.xtreamStreamId) {
     state.epgTimer = setInterval(() => {
@@ -5232,13 +5235,13 @@ async function playHLS(
     const hls =
       new Hls({
         enableWorker: true,
-        backBufferLength: 30,
+        backBufferLength: 12,
 
         lowLatencyMode: false,
 
-        maxBufferLength: 30,
+        maxBufferLength: 12,
 
-        maxMaxBufferLength: 60,
+        maxMaxBufferLength: 24,
 
         liveSyncDurationCount: 3,
 
