@@ -6,7 +6,12 @@
 <meta name="theme-color" content="#020503">
 <title>GC PLAY PRO</title>
 <link rel="stylesheet" href="style.css?v=20261003-TVMASTER">
-</head>
+<style>
+.gc-validity{display:inline-flex;align-items:center;margin-left:10px;padding:6px 10px;border:1px solid rgba(57,255,136,.28);border-radius:999px;background:rgba(2,12,7,.65);color:#9de9b8;font-size:11px;font-weight:800;letter-spacing:.8px}
+.gc-validity-warn{color:#ffd84a;border-color:rgba(255,216,74,.38)}
+.gc-validity-expired{color:#ff7188;border-color:rgba(255,75,104,.38)}
+@media(max-width:700px){.gc-validity{display:flex;width:max-content;margin:8px 0 0;font-size:9px}}
+</style></head>
 <body class="gc-future">
 <div id="app" class="gc-app">
 
@@ -42,7 +47,7 @@
       <button class="primary-button gc-main-cta" id="addPlaylistButton" type="button">＋ ADICIONAR LISTA M3U</button>
       <button class="secondary-button" id="exploreButton" type="button">EXPLORAR CATÁLOGO <span>→</span></button>
     </div>
-    <div class="gc-hero-status"><span class="pulse"></span><strong id="connectionStatus">OFFLINE</strong><small>• SISTEMA PRONTO</small></div>
+    <div class="gc-hero-status"><span class="pulse"></span><strong id="connectionStatus">OFFLINE</strong><small>• SISTEMA PRONTO</small></div><div id="gcValidity" class="gc-validity" aria-live="polite">VALIDADE: —</div>
   </div>
   <div class="gc-hero-orbit" aria-hidden="true">
     <div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
@@ -500,6 +505,38 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     },1800);
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
+})();
+</script>
+<script>
+/* GC PLAY PRO — STATUS DE ATIVAÇÃO NA HOME */
+(function(){
+  const K="GC_PLAY_PRO_ACTIVATION_V1";
+  function update(){
+    const el=document.getElementById("gcValidity");
+    if(!el)return;
+    let s=null;try{s=JSON.parse(localStorage.getItem(K)||"null")}catch{}
+    if(!s?.expiresAt){
+      el.textContent="VALIDADE: NÃO SINCRONIZADA";
+      el.classList.remove("gc-validity-ok","gc-validity-warn","gc-validity-expired");
+      return;
+    }
+    const d=new Date(s.expiresAt);
+    if(Number.isNaN(d.getTime())){
+      el.textContent="VALIDADE: —";
+      return;
+    }
+    const now=new Date();
+    const diff=d.getTime()-now.getTime();
+    const days=Math.ceil(diff/86400000);
+    const date=d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"});
+    el.textContent=diff<=0?"VALIDADE: EXPIRADA • "+date:"VALIDADE: "+date+" • "+days+" "+(days===1?"DIA":"DIAS");
+    el.classList.toggle("gc-validity-ok",days>7);
+    el.classList.toggle("gc-validity-warn",days>0&&days<=7);
+    el.classList.toggle("gc-validity-expired",days<=0);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",update,{once:true});else update();
+  window.addEventListener("storage",e=>{if(e.key===K)update()});
+  setInterval(update,60000);
 })();
 </script>
 </body>
