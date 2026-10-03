@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#010503">
+<meta name="theme-color" content="#010503"><meta name="gc-manager-version" content="20261003-SYNC5">
 <title>GC PLAY PRO — Manager</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -21,7 +21,7 @@
 <body>
 <section class="auth" id="authScreen">
   <div class="authbox">
-    <div class="logo">GC PLAY PRO<small>PAINEL DE ATIVAÇÃO • MANAGER</small></div>
+    <div class="logo">GC PLAY PRO<small>PAINEL DE ATIVAÇÃO • MANAGER • SYNC 5</small></div>
     <h1 id="authTitle">Entrar no painel</h1>
     <p id="authSub">Área administrativa protegida pelo Supabase Auth.</p>
     <div class="field" id="nameField" style="display:none"><label>NOME</label><input id="authName" autocomplete="name" placeholder="Seu nome"></div>
@@ -200,25 +200,33 @@ $("saveList").onclick=async()=>{
  closeModal("listModal");toast("✓ Lista cadastrada. Sincronizando validade...");await load();
  const list=rows.lists.find(x=>x.name===name);if(list)await syncOne(list.id);else await syncAll(true);
 };
+const GC_MANAGER_SYNC_VERSION="20261003-SYNC5";
 async function callSync(body){
- const r=await fetch(SUPABASE_URL+"/functions/v1/gc-sync",{method:"POST",headers:{"Content-Type":"text/plain;charset=UTF-8","apikey":SUPABASE_KEY},body:JSON.stringify(body),cache:"no-store"});
- const raw=await r.text();let data=null;try{data=raw?JSON.parse(raw):null}catch{}
- if(!r.ok)return {data,error:new Error(data?.error||data?.message||raw||("HTTP "+r.status))};
- return {data,error:null};
+ const url=SUPABASE_URL+"/functions/v1/gc-sync";
+ toast("GC SYNC 5 • conectando...");
+ try{
+  const r=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=UTF-8","apikey":SUPABASE_KEY},body:JSON.stringify(body),cache:"no-store"});
+  const raw=await r.text();let data=null;try{data=raw?JSON.parse(raw):null}catch{}
+  if(!r.ok)throw new Error(data?.error||data?.message||raw||("HTTP "+r.status));
+  if(!data)throw new Error("Resposta vazia do gc-sync.");
+  return {data,error:null};
+ }catch(e){return {data:null,error:e instanceof Error?e:new Error(String(e))}}
 }
 async function syncOne(id){
- toast("Consultando validade da lista...");
+ toast("GC SYNC 5 • consultando validade...");
  const {data,error}=await callSync({list_id:id});
- if(error){toast("Falha na sincronização: "+error.message);return}
- const r=data?.results?.[0];toast(r?.ok?"✓ Validade atualizada: "+fmtDate(r.new_expiry):"⚠ "+(r?.error||"Falha"));
+ if(error){toast("SYNC 5 ERRO: "+error.message);return}
+ const r=data?.results?.[0];
+ toast(r?.ok?"✓ SYNC 5 • validade: "+fmtDate(r.new_expiry):"⚠ SYNC 5 • "+(r?.error||"Falha"));
  await load();
 }
 async function syncAll(silent=false){
- if(!silent)toast("Sincronizando todas as listas...");
+ if(!silent)toast("GC SYNC 5 • sincronizando...");
  if(!rows.lists.length){if(!silent)toast("Nenhuma lista cadastrada.");return}
  const {data,error}=await callSync({all:true});
- if(error){if(!silent)toast("Falha: "+error.message);return}
- await load();if(!silent)toast(data?.ok?"✓ "+(data?.count||0)+" lista(s) verificadas.":"⚠ Sincronização concluída com erro: "+(data?.results?.find(x=>!x.ok)?.error||"verifique os logs."));
+ if(error){if(!silent)toast("SYNC 5 ERRO: "+error.message);return}
+ await load();
+ if(!silent)toast(data?.ok?"✓ SYNC 5 • "+(data?.count||0)+" lista(s) verificadas.":"⚠ SYNC 5 • "+(data?.results?.find(x=>!x.ok)?.error||"verifique os logs."));
 }
 $("sync").onclick=()=>syncAll(false);$("syncSide").onclick=()=>syncAll(false);
 $("askExpiring").onclick=()=>{$("clientSearch").value="";render();document.getElementById("listsCard").scrollIntoView({behavior:"smooth"});toast("Mostrando o painel de validade.")};
