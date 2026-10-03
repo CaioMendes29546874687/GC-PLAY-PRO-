@@ -375,29 +375,6 @@ function gcAiController(){
       return;
     }
 
-    const section =
-      /\b(tv|televis[aã]o|canais?|ao vivo)\b/.test(n) ? "live" :
-      /\b(filmes?|movie)\b/.test(n) ? "movies" :
-      /\b(s[eé]ries?|temporadas?|epis[oó]dios?)\b/.test(n) ? "series" :
-      /\b(in[ií]cio|home)\b/.test(n) ? "home" : null;
-
-    if(section){
-      try{
-        if(typeof window.__GC_ROUTE_UI__==="function"){
-          await window.__GC_ROUTE_UI__(document.querySelector('[data-section="'+section+'"]')||{});
-        }else{
-          const b=document.querySelector('[data-section="'+section+'"]');
-          b?.click();
-        }
-        addMessage("Certo. Abri a seção <b>"+({
-          home:"Início",live:"TV ao vivo",movies:"Filmes",series:"Séries"
-        }[section])+"</b>.");
-      }catch{
-        addMessage("Não consegui abrir essa seção agora.");
-      }
-      return;
-    }
-
     if(/\b(tela cheia|fullscreen|cheia)\b/.test(n)){
       const v=document.getElementById("videoPlayer");
       try{
@@ -412,27 +389,82 @@ function gcAiController(){
 
     const s=window.__GC_STATE__||window.GC_PLAY_PRO?.state;
     const items=Array.isArray(s?.items)?s.items:[];
-    const clean=n.replace(/\b(quero|assistir|procure|procurar|buscar|busque|pesquise|pesquisar|me mostre|mostrar|por favor|canal|canais|tv|ao vivo|filme|filmes|s[eé]rie|s[eé]ries)\b/g," ").replace(/\s+/g," ").trim();
+    const wantsSpecific=/\b(abra|abrir|abre|assistir|assista|coloque|coloca|reproduza|reproduzir|toque|mostrar|mostre|pesquise|pesquisar|procure|procurar|buscar|busque)\b/.test(n);
 
-    if(clean && items.length){
+    /* Primeiro tenta resolver um conteúdo específico.
+       Isso evita que "abra a série X" seja interpretado apenas como
+       "abrir a seção Séries". */
+    const clean=n
+      .replace(/\b(quero|quero assistir|abra|abrir|abre|assistir|assista|coloque|coloca|reproduza|reproduzir|toque|mostrar|mostre|pesquise|pesquisar|procure|procurar|buscar|busque|me mostre|por favor|a|o|um|uma|canal|canais|tv|televis[aã]o|ao vivo|filme|filmes|s[eé]rie|s[eé]ries|temporada|temporadas|epis[oó]dio|epis[oó]dios)\b/g," ")
+      .replace(/\s+/g," ").trim();
+
+    if(wantsSpecific && clean && items.length){
       const found=items.filter(x=>!window.isAdultContent?.(x))
-        .filter(x=>(String(x.name||"")+" "+String(x.group||"")).toLowerCase().includes(clean))
-        .slice(0,5);
+        .filter(x=>(String(x.name||"")+" "+String(x.group||"")+" "+String(x.seriesName||"")).toLowerCase().includes(clean))
+        .sort((x,y)=>{
+          const xn=String(x.seriesName||x.name||"").toLowerCase(), yn=String(y.seriesName||y.name||"").toLowerCase();
+          return (xn===clean?0:xn.startsWith(clean)?1:2)-(yn===clean?0:yn.startsWith(clean)?1:2);
+        }).slice(0,10);
+
       if(found.length){
-        addMessage("Encontrei:<br>"+found.map(x=>'<button type="button" class="gc-ai-quick" data-gc-ai-id="'+String(x.id).replace(/"/g,"&quot;")+'">'+String(x.name||"Conteúdo").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]))+"</button>").join(" "));
-        messages?.querySelectorAll("[data-gc-ai-id]").forEach(b=>b.onclick=async()=>{
-          const id=b.dataset.gcAiId;
-          let item=items.find(x=>String(x.id)===String(id));
-          if(!item && window.findItem) item=await window.findItem(id);
-          if(item) await window.GC_PLAY_PRO?.playItem?.(item);
-        });
+        const item=found[0];
+
+        /* Séries usam o navegador de temporadas, não playItem().
+           Assim a IA abre a série escolhida e não apenas a seção. */
+        if(item.type==="series" || item.seriesKey){
+          const key=item.seriesKey || item.seriesName || item.name;
+          if(s){
+            s.currentSection="series";
+            s.currentFilter="series";
+            s.currentGenre="all";
+            s.seriesView.seriesKey=key;
+            s.seriesView.season=null;
+          }
+          try{
+            if(window.GC_PLAY_PRO?.render) await window.GC_PLAY_PRO.render();
+            else document.querySelector('[data-section="series"]')?.click();
+            addMessage("Abrindo a série <b>"+String(item.seriesName||item.name||"").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]))+"</b>.");
+          }catch{
+            addMessage("Encontrei a série, mas não consegui abrir os episódios agora.");
+          }
+          return;
+        }
+
+        try{
+          await window.GC_PLAY_PRO?.playItem?.(item);
+          addMessage("Abrindo <b>"+String(item.name||"conteúdo").replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]))+"</b>.");
+        }catch{
+          addMessage("Encontrei o conteúdo, mas não consegui iniciar a reprodução.");
+        }
         return;
       }
     }
 
+    /* Só navega para uma seção quando o comando não identifica um título específico. */
+    const section =
+      /\b(tv|televis[aã]o|canais?|ao vivo)\b/.test(n) ? "live" :
+      /\b(filmes?|movie)\b/.test(n) ? "movies" :
+      /\b(s[eé]ries?|temporadas?|epis[oó]dios?)\b/.test(n) ? "series" :
+      /\b(in[ií]cio|home)\b/.test(n) ? "home" : null;
+
+    if(section){
+      try{
+        if(typeof window.__GC_ROUTE_UI__==="function"){
+          await window.__GC_ROUTE_UI__(document.querySelector('[data-section="'+section+'"]')||{});
+        }else{
+          document.querySelector('[data-section="'+section+'"]')?.click();
+        }
+        addMessage("Certo. Abri a seção <b>"+({
+          home:"Início",live:"TV ao vivo",movies:"Filmes",series:"Séries"
+        }[section])+"</b>.");
+      }catch{
+        addMessage("Não consegui abrir essa seção agora.");
+      }
+      return;
+    }
+
     addMessage("Posso abrir <b>TV ao vivo</b>, <b>Filmes</b>, <b>Séries</b>, pesquisar conteúdos da sua lista e tentar colocar o player em tela cheia.");
   }
-
   form?.addEventListener("submit",(e)=>{
     e.preventDefault();
     executeCommand(input?.value||"");
