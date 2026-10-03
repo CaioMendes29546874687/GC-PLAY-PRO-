@@ -2960,6 +2960,7 @@ async function queryCatalogItems({
         };
         request.onerror = () => reject(request.error);
       });
+      if (window.__GC_RENDER_DIAG__) window.__GC_RENDER_DIAG__.lastQuery = "Samsung DB "+dbResult.length+" type="+String(type);
       if (dbResult.length) return dbResult;
     } catch (error) {
       console.warn("[GC PLAY PRO] Samsung consulta DB:", error);
@@ -2971,6 +2972,7 @@ async function queryCatalogItems({
   */
   if (GC_IS_SAMSUNG_TV) {
     const ramResult = state.items.filter(matches).slice(0, limit);
+    if (window.__GC_RENDER_DIAG__) window.__GC_RENDER_DIAG__.lastQuery = "Samsung RAM "+ramResult.length+" type="+String(type);
     if (ramResult.length) return ramResult;
   }
 
@@ -3123,6 +3125,7 @@ async function render() {
   if (!grid) return;
 
   const requestId = ++renderRequestId;
+  if (window.__GC_RENDER_DIAG__) window.__GC_RENDER_DIAG__.lastRender = "start "+state.currentSection+"/"+state.currentFilter;
 
   if (state.currentFilter === "series") {
     grid.innerHTML = `
@@ -3169,6 +3172,8 @@ async function render() {
   }
 
   if (requestId !== renderRequestId) return;
+
+  if (window.__GC_RENDER_DIAG__) window.__GC_RENDER_DIAG__.lastRender = "items="+items.length+" type="+String(type);
 
   if (!items.length) {
     grid.innerHTML = "";
