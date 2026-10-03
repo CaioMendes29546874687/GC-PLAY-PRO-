@@ -4065,6 +4065,8 @@ async function playMpegTS(
        por política de reprodução automática. Quando isso acontecer,
        o próximo toque no ▶ nativo do vídeo deve retomar o MESMO motor
        MPEG-TS, sem trocar URL, proxy ou estratégia dos demais canais.
+       Esta rotina só fica armada quando a primeira tentativa falha,
+       portanto os canais que já funcionam seguem pelo caminho normal.
     */
     const installMpegUserGestureResume = (activePlayer) => {
       try {
@@ -4082,10 +4084,21 @@ async function playMpegTS(
         waitingForGesture = false;
 
         try {
+          /*
+             Quando o primeiro play foi bloqueado, o mpegts.js pode ter
+             ficado apenas com o pipeline criado, sem disparar a busca
+             do .ts. No toque real do usuário, recarregamos o MESMO
+             player e iniciamos novamente dentro da interação.
+          */
+          try {
+            activePlayer.unload();
+          } catch {}
+
+          activePlayer.load();
           await activePlayer.play();
 
           if (message) {
-            message.textContent = "";
+            message.textContent = "Conectando ao canal MPEG-TS...";
           }
         } catch (error) {
           waitingForGesture = true;
