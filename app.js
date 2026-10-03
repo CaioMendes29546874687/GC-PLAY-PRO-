@@ -56,6 +56,14 @@ const state = {
   db: null,
 
   items: [],
+  /* Amostra equilibrada para Smart TVs: evita que um único tipo
+     ocupe os primeiros registros da memória. */
+  ramTypeCounts: {
+    live: 0,
+    movie: 0,
+    series: 0,
+    other: 0
+  },
   groups: [],
 
   counts: {
@@ -6474,7 +6482,19 @@ function processParsedItem(
      terminar.
   */
 
-  if (state.items.length < RAM_LIMIT) {
+  /* Para Samsung/Tizen, manter uma amostra por categoria.
+     Assim uma M3U ordenada por filmes não esconde os canais ao vivo. */
+  const type = item.type === "live" || item.type === "movie" || item.type === "series"
+    ? item.type
+    : "other";
+  const samsungCap = 1200;
+
+  if (GC_IS_SAMSUNG_TV) {
+    if ((state.ramTypeCounts[type] || 0) < samsungCap) {
+      state.items.push(item);
+      state.ramTypeCounts[type] = (state.ramTypeCounts[type] || 0) + 1;
+    }
+  } else if (state.items.length < RAM_LIMIT) {
     state.items.push(item);
   }
 }
@@ -6482,6 +6502,28 @@ function processParsedItem(
 /* =========================================================
    CARREGAR M3U — MOTOR PRINCIPAL
    ========================================================= */
+
+function selectSamsungRAMSample(items) {
+  if (!GC_IS_SAMSUNG_TV || !Array.isArray(items)) {
+    return Array.isArray(items) ? items.slice(0, RAM_LIMIT) : [];
+  }
+
+  const result = [];
+  const counts = { live: 0, movie: 0, series: 0, other: 0 };
+  const cap = 1200;
+
+  for (const item of items) {
+    const type = item?.type === "live" || item?.type === "movie" || item?.type === "series"
+      ? item.type
+      : "other";
+
+    if ((counts[type] || 0) >= cap) continue;
+    result.push(item);
+    counts[type] = (counts[type] || 0) + 1;
+  }
+
+  return result;
+}
 
 async function loadM3U(
   url
@@ -6530,6 +6572,13 @@ async function loadM3U(
 
   state.items =
     [];
+
+  state.ramTypeCounts = {
+    live: 0,
+    movie: 0,
+    series: 0,
+    other: 0
+  };
 
   state.groups =
     [];
@@ -6595,7 +6644,12 @@ async function loadM3U(
       /* Xtream agora usa carregamento sob demanda para séries. Não faça
          uma segunda leitura da M3U inteira ao abrir a tela de séries. */
       state.xtreamSeriesFallbackNeeded = false;
-      state.items = xtreamFast.items.slice(0, RAM_LIMIT);
+      state.items = selectSamsungRAMSample(xtreamFast.items);
+      state.ramTypeCounts = { live: 0, movie: 0, series: 0, other: 0 };
+      for (const item of state.items) {
+        const t = item?.type === "live" || item?.type === "movie" || item?.type === "series" ? item.type : "other";
+        state.ramTypeCounts[t] = (state.ramTypeCounts[t] || 0) + 1;
+      }
       state.groups = xtreamFast.groups;
       state.groupsReady = true;
       state.counts = { ...xtreamFast.counts };
