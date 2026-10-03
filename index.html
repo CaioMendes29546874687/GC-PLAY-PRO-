@@ -445,5 +445,37 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 })();
 </script>
 
+<script>
+(function(){
+  const API="https://kuzgdvpdqmocklsgyzvt.supabase.co/functions/v1/gc-device";
+  const K="GC_PLAY_PRO_ACTIVATION_V1", D="GC_PLAY_PRO_DEVICE_ID_V1";
+  function id(){let x=localStorage.getItem(D);if(!x){x=crypto.randomUUID();localStorage.setItem(D,x)}return x}
+  function ui(){
+    if(document.getElementById("gcActivationBox"))return;
+    const b=document.createElement("div");b.id="gcActivationBox";
+    b.style="position:fixed;inset:0;z-index:99999;display:none;place-items:center;background:#000c;backdrop-filter:blur(10px);padding:18px";
+    b.innerHTML='<div style="width:min(430px,100%);padding:24px;border:1px solid #39ff8866;border-radius:22px;background:#06110a;box-shadow:0 30px 100px #000;color:#effff5"><div style="font-size:28px;font-weight:950;font-style:italic;color:#39ff88">GC PLAY PRO</div><small style="color:#72877a;letter-spacing:2px">ATIVAÇÃO DO DISPOSITIVO</small><h2>Ative este aparelho</h2><p style="color:#849a8c;font-size:12px">Digite o código entregue pelo administrador.</p><input id="gcActCode" maxlength="8" inputmode="text" placeholder="XXXXXXXX" style="width:100%;padding:14px;text-align:center;letter-spacing:5px;font-size:22px;background:#020906;color:#72ffab;border:1px solid #39ff8844;border-radius:10px"><div style="display:flex;gap:8px;margin-top:10px"><button id="gcActCancel" style="flex:1;padding:12px;border-radius:10px;background:#07140c;color:#fff;border:1px solid #39ff8833">CANCELAR</button><button id="gcActGo" style="flex:1;padding:12px;border:0;border-radius:10px;background:#39ff88;color:#001b0b;font-weight:900">ATIVAR</button></div><div id="gcActMsg" style="min-height:20px;margin-top:10px;font-size:11px"></div></div>';
+    document.body.appendChild(b);
+    const msg=x=>document.getElementById("gcActMsg").textContent=x;
+    document.getElementById("gcActCancel").onclick=()=>b.style.display="none";
+    document.getElementById("gcActGo").onclick=async()=>{
+      const code=document.getElementById("gcActCode").value.replace(/[^A-Z0-9]/gi,"").toUpperCase();
+      if(code.length<6)return msg("Digite o código de ativação.");
+      msg("Verificando...");
+      try{
+        const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({activation_code:code,device_uid:id(),device_name:"GC PLAY PRO",platform:navigator.userAgent.slice(0,60)})});
+        const d=await r.json();
+        if(!r.ok||!d.ok)throw new Error(d.error||"Ativação não autorizada.");
+        localStorage.setItem(K,JSON.stringify({activationCode:code,deviceId:d.device_id,expiresAt:d.expires_at,listName:d.list_name,playlistUrl:d.playlist_url,updatedAt:Date.now()}));
+        localStorage.setItem("GC_PLAY_PRO_ACTIVATED_PLAYLIST_V1",d.playlist_url);
+        msg("✓ Ativado até "+new Date(d.expires_at).toLocaleDateString("pt-BR"));
+        setTimeout(()=>location.reload(),700);
+      }catch(e){msg(e.message||"Falha na ativação.")}
+    };
+  }
+  function boot(){ui();const s=(()=>{try{return JSON.parse(localStorage.getItem(K)||"null")}catch{return null}})();if(!s&&!localStorage.getItem("GC_PLAY_PRO_XTREAM_SESSION_V1")&&!localStorage.getItem("GC_PLAY_PRO_STATE_V5"))setTimeout(()=>document.getElementById("gcActivationBox").style.display="grid",1000)}
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
+})();
+</script>
 </body>
 </html>
