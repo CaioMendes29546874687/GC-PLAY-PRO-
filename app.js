@@ -4884,10 +4884,21 @@ async function playItem(item) {
   const sourceUrl =
     item.xtreamKind === "live"
       ? (
-          originalLiveTransport ||
-          (gcAndroidLike
-            ? liveTsUrl
-            : (liveExtension === "ts" ? liveTsUrl : liveHlsUrl))
+          /*
+             Samsung/Tizen: prioriza HLS quando o servidor oferece a
+             rota Xtream .m3u8. O navegador Samsung possui suporte nativo
+             a HLS e isso evita depender do MSE/mpegts.js para o primeiro
+             frame do canal. Se o HLS não responder, o playHLS() mantém
+             o fallback para MPEG-TS e para a origem direta.
+          */
+          (GC_IS_SAMSUNG_TV && state.xtreamSession && item.xtreamStreamId
+            ? liveHlsUrl
+            : (
+                originalLiveTransport ||
+                (gcAndroidLike
+                  ? liveTsUrl
+                  : (liveExtension === "ts" ? liveTsUrl : liveHlsUrl))
+              ))
         )
       : originalUrl;
 
