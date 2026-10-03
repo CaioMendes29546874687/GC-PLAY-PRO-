@@ -2911,6 +2911,75 @@ async function queryCatalogItems({
   });
 }
 
+async function fetchSamsungLiveDirect(limit = 120) {
+  if (!GC_IS_SAMSUNG_TV || !state.xtreamSession) return [];
+
+  try {
+    const [catResult, streamResult] = await Promise.all([
+      fetchXtreamJSON(state.xtreamSession, "get_live_categories", undefined),
+      fetchXtreamJSON(state.xtreamSession, "get_live_streams", undefined)
+    ]);
+
+    const categoryMap = new Map();
+    for (const cat of unwrapXtreamArray(catResult)) {
+      if (cat?.category_id != null && cat?.category_name) {
+        categoryMap.set(String(cat.category_id), String(cat.category_name));
+      }
+    }
+
+    const rows = unwrapXtreamArray(streamResult);
+    const extension = state.xtreamSession.liveExtension || "m3u8";
+    const result = [];
+
+    for (const row of rows) {
+      const id = row?.stream_id ?? row?.id;
+      if (id == null || !row?.name) continue;
+
+      const group = getXtreamCategoryName(
+        categoryMap, row.category_id, "TV AO VIVO"
+      );
+
+      result.push({
+        id: "xt-live-" + id,
+        name: String(row.name).trim(),
+        nameLower: normalizeText(row.name),
+        group,
+        type: "live",
+        url: buildXtreamStreamUrl(state.xtreamSession, "live", id, extension),
+        logo: row.stream_icon || "",
+        tvgId: row.epg_channel_id || "",
+        tvgName: row.name || "",
+        country: "", language: "", seriesName: "", seriesKey: "",
+        season: null, episode: null, seriesSeason: ["", 0],
+        genre: getGenreName(group),
+        xtreamKind: "live",
+        xtreamStreamId: String(id),
+        xtreamExtension: extension,
+        epgChannelId: row.epg_channel_id || "",
+        tvArchive: Number(row.tv_archive || 0),
+        tvArchiveDuration: Number(row.tv_archive_duration || 0)
+      });
+
+      if (result.length >= limit) break;
+    }
+
+    if (result.length) {
+      state.items = [
+        ...state.items.filter(item => item?.type !== "live"),
+        ...result
+      ];
+      state.counts.live = rows.length;
+      state.total = state.counts.live + Number(state.counts.movie || 0) + Number(state.counts.series || 0);
+    }
+
+    console.log("[GC PLAY PRO] Samsung live direto:", rows.length, result.length);
+    return result;
+  } catch (error) {
+    console.warn("[GC PLAY PRO] Samsung live direto falhou:", error);
+    return [];
+  }
+}
+
 async function querySamsungLiveItems(limit = 120) {
   if (!GC_IS_SAMSUNG_TV || !state.db) return [];
 
@@ -2969,12 +3038,22 @@ async function render() {
       ? (state.currentFilter === "adult" ? "adult" : null)
       : state.currentFilter;
 
-  let items = await queryCatalogItems({
-    type,
-    genre: state.currentGenre,
-    term: state.searchTerm,
-    limit: 120
-  });
+  let items;
+
+  /* Samsung/Tizen + Xtream: primeira pintura de TV ao vivo vai
+     diretamente ao endpoint autenticado, sem depender do IndexedDB. */
+  if (GC_IS_SAMSUNG_TV && type === "live" && state.xtreamSession) {
+    items = await fetchSamsungLiveDirect(120);
+  }
+
+  if (!items) {
+    items = await queryCatalogItems({
+      type,
+      genre: state.currentGenre,
+      term: state.searchTerm,
+      limit: 120
+    });
+  }
 
   /* TV ao vivo precisa continuar visível mesmo se o índice IndexedDB
      estiver atrasado/corrompido. A RAM já contém os canais importados. */
