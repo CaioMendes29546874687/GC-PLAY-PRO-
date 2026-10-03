@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-03-RESTORE-01 */
+/* GC BUILD 2026-10-03-RESTORE-02 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -8953,6 +8953,8 @@ function setupPlaylistButtonFallback() {
 }
 
 async function initApp() {
+  /* Restaurar estado persistente antes de abrir banco/formulário. */
+  loadState();
 
   /* A camada de UI é a única responsável pelos botões de navegação. */
 
@@ -9078,7 +9080,27 @@ async function initApp() {
      UMA importação nesta sessão. Não altera reprodução nem renderização.
   */
   if (GC_IS_SAMSUNG_TV && state.items.length === 0 && !state.loading) {
-    const savedPlaylist = getSavedPlaylist();
+    let savedPlaylist = getSavedPlaylist();
+
+    /*
+       Se o navegador preservou a sessão Xtream, mas a URL M3U não foi
+       preservada, reconstruímos a URL padrão get.php a partir da sessão.
+       Isso recupera a biblioteca sem depender do IndexedDB antigo.
+    */
+    if (!savedPlaylist && state.xtreamSession?.base && state.xtreamSession?.username && state.xtreamSession?.password) {
+      try {
+        const u = new URL(state.xtreamSession.base + "/get.php");
+        u.searchParams.set("username", state.xtreamSession.username);
+        u.searchParams.set("password", state.xtreamSession.password);
+        u.searchParams.set("type", "m3u_plus");
+        u.searchParams.set("output", state.xtreamSession.liveExtension === "ts" ? "ts" : "m3u8");
+        savedPlaylist = {
+          url: u.toString(),
+          name: "Minha Playlist"
+        };
+      } catch {}
+    }
+
     let alreadyTried = false;
     try {
       alreadyTried = sessionStorage.getItem("GC_PLAY_PRO_SAMSUNG_RESTORE_TRIED") === "1";
