@@ -30,7 +30,14 @@ function boot(){
   if(window.__GC_UI_SYNC_ONLY__) return;
   window.__GC_UI_SYNC_ONLY__=true;
   sync();
-  setInterval(sync,500);
+
+  /* Samsung Tizen: não fazer polling visual a cada 500 ms.
+     O polling força layout/reflow continuamente e pode provocar
+     piscadas. A navegação já atualiza o estado quando necessário. */
+  const ua=navigator.userAgent||"";
+  const samsung=/Tizen|SMART-TV|SamsungBrowser.*TV|TV Safari/i.test(ua) ||
+    (/Samsung/i.test(ua) && !/Mobile|Android/i.test(ua));
+  if(!samsung) setInterval(sync,500);
 }
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",boot,{once:true});
 else boot();
