@@ -231,9 +231,14 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
             imgWrap.appendChild(line);
           }
         }
-        card.addEventListener("keydown",e=>{
-          if(e.key==="Enter"||e.key===" "){e.preventDefault();card.click();}
-        });
+        // No Samsung/Tizen, o app.js já trata ENTER globalmente.
+        // Ter um segundo handler aqui fazia o card receber dois comandos
+        // (card.click + playItem), podendo abrir o player duas vezes.
+        if(!isSamsungTV){
+          card.addEventListener("keydown",e=>{
+            if(e.key==="Enter"||e.key===" "){e.preventDefault();card.click();}
+          });
+        }
       });
     }
 
@@ -296,6 +301,10 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
       }
       document.querySelectorAll(".gc-rail>header").forEach(h=>{ if(!h.querySelector(".gc-rail-line")){const x=document.createElement("i");x.className="gc-rail-line";h.appendChild(x);} });
       document.addEventListener("keydown",e=>{
+        // No Samsung/Tizen, não substitua a navegação nativa do navegador.
+        // O focus() manual em cada seta provocava repaints/flicker durante
+        // o movimento do cursor/controle remoto.
+        if(isSamsungTV) return;
         if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(e.key) && document.activeElement?.classList.contains("gc-card")){
           const cards=Array.from(document.querySelectorAll(".gc-card")); const i=cards.indexOf(document.activeElement); if(i>=0){e.preventDefault();let n=i+(e.key==="ArrowRight"?1:e.key==="ArrowLeft"?-1:e.key==="ArrowDown"?4:-4);n=Math.max(0,Math.min(cards.length-1,n));cards[n]?.focus({preventScroll:false});}
         }
