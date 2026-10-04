@@ -6798,6 +6798,13 @@ function updateLoadMessage(
    ========================================================= */
 
 function updateLiveCounters() {
+  /* Série = título único agrupado. Nunca use a quantidade de episódios. */
+  if (state.seriesUniqueKeys instanceof Set && state.seriesUniqueKeys.size) {
+    state.counts.series = state.seriesUniqueKeys.size;
+  } else if (Array.isArray(state.seriesCatalog) && state.seriesCatalog.length) {
+    state.counts.series = state.seriesCatalog.length;
+  }
+
   state.total =
     state.counts.live +
     state.counts.movie +
@@ -6830,7 +6837,7 @@ function processParsedItem(
   } else if (item.type === "movie") {
     state.counts.movie++;
   } else if (item.type === "series") {
-    state.counts.series++;
+    /* Episódios não incrementam o contador de séries. */
   }
 
   /*
@@ -7508,6 +7515,7 @@ async function loadFile(
   state.seriesCatalog = [];
   state.seriesCatalogMap = new Map();
   state.seriesCatalogChanged = new Set();
+  state.seriesUniqueKeys = new Set();
   state.seriesCatalogReady = false;
   state.seriesCatalogBuilding = false;
 
@@ -8372,9 +8380,11 @@ async function loadDatabaseStats() {
        o contador bruto apenas como valor transitório.
     */
     state.counts.series =
-      state.seriesCatalogReady
+      state.seriesCatalog.length
         ? state.seriesCatalog.length
-        : series;
+        : (state.seriesUniqueKeys instanceof Set
+            ? state.seriesUniqueKeys.size
+            : 0);
 
     renderStats();
 
