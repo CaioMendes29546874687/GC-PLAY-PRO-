@@ -3294,8 +3294,14 @@ async function rebuildSeriesCatalogInBackground(force = false) {
             seriesKey: normalizeText(canonicalName),
             genre: item.genre || rawInfo.genre || getGenreName(item.group)
           };
+          /*
+             Guardar a chave ORIGINAL do episódio para criar um alias
+             real. Antes usávamos info.seriesKey, que já era a chave
+             canônica reconstruída, então os seriesKey antigos do
+             IndexedDB nunca eram associados à nova série.
+          */
           const storedKey = String(
-            info.seriesKey || item.seriesKey || ""
+            item.seriesKey || ""
           ).trim();
           const canonicalKey = normalizeText(
             canonicalName
@@ -3463,7 +3469,12 @@ function querySeriesEpisodesByKey(key, season) {
           ? result
           : result.filter(item => {
               const info = extractSeriesInfo(item);
-              return Number(info.season ?? 1) === Number(season);
+              const detectedSeason =
+                info.season ??
+                (item.season !== null && item.season !== undefined
+                  ? Number(item.season)
+                  : null);
+              return Number(detectedSeason ?? 1) === Number(season);
             });
 
         resolve(filtered);
