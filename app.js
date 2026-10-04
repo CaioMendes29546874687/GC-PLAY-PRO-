@@ -39,10 +39,10 @@ const STORE_NAME = "items";
 const SERIES_STORE = "seriesCatalog";
 
 const RAM_LIMIT = 4000;
-const WRITE_BATCH = 20000;
-const FIRST_PAINT_BATCH = 1000;
-const UI_RENDER_INTERVAL = 2500;
-const WRITE_QUEUE_LIMIT = 3;
+const WRITE_BATCH = 50000;
+const FIRST_PAINT_BATCH = 50000;
+const UI_RENDER_INTERVAL = 4000;
+const WRITE_QUEUE_LIMIT = 2;
 const RESUME_KEY = "GC_PLAY_PRO_RESUME_V1";
 
 const STATE_KEY = "GC_PLAY_PRO_STATE_V5";
@@ -7173,55 +7173,21 @@ async function loadM3U(
           takeSeriesCatalogUpdates()
         );
 
-        /* ---------------------------------------------
-           PRIMEIRA EXIBIÇÃO
-           --------------------------------------------- */
-
-        if (!firstPaint) {
-          firstPaint =
-            true;
-
-          render();
-
-          updateLiveCounters();
-
-          updateLoadMessage(
-            `Carregando... ${formatNumber(
-              processed
-            )} itens`
-          );
-        }
-
-        /* ---------------------------------------------
-           RENDER THROTTLE
-           --------------------------------------------- */
-
-        const now =
-          performance.now();
+        /*
+           IMPORTAÇÃO GIGANTE:
+           não reconstruir o DOM durante a leitura. Com 300 mil+
+           registros, cada render intermediário compete com o parser
+           e com o IndexedDB. O catálogo completo será exibido uma
+           única vez quando a importação terminar.
+        */
+        const now = performance.now();
 
         if (
-          now -
-            lastRender >
-          UI_RENDER_INTERVAL
+          now - lastRender > UI_RENDER_INTERVAL
         ) {
           lastRender = now;
-
-          /*
-             Durante uma importação gigante não reconstruímos
-             centenas de cards repetidamente. Só atualizamos
-             números e progresso; o catálogo visual completo
-             é renderizado no fim.
-          */
-          updateLiveCounters();
-
           updateLoadMessage(
-            `Carregando... ${formatNumber(
-              processed
-            )} itens`
-          );
-
-          await new Promise(
-            requestAnimationFrame
+            `Carregando... ${formatNumber(processed)} itens`
           );
         }
       }
@@ -7612,18 +7578,10 @@ async function loadFile(
           takeSeriesCatalogUpdates()
         );
 
-        render();
-
-        updateLiveCounters();
-
         updateLoadMessage(
           `Carregando arquivo... ${formatNumber(
             processed
           )} itens`
-        );
-
-        await new Promise(
-          requestAnimationFrame
         );
       }
     }
