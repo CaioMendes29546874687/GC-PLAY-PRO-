@@ -3580,6 +3580,33 @@ async function getAllSeriesItems() {
   return quick;
 }
 
+async function loadSeriesCatalogFromDB() {
+  if (!state.db || !state.db.objectStoreNames.contains(SERIES_STORE)) {
+    return [];
+  }
+
+  return new Promise((resolve, reject) => {
+    try {
+      const transaction = state.db.transaction(SERIES_STORE, "readonly");
+      const store = transaction.objectStore(SERIES_STORE);
+      const request = store.getAll();
+
+      request.onsuccess = () => {
+        const result = Array.isArray(request.result)
+          ? request.result
+          : [];
+        resolve(result);
+      };
+
+      request.onerror = () => reject(request.error);
+      transaction.onerror = () => reject(transaction.error);
+      transaction.onabort = () => reject(transaction.error);
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
 async function rebuildSeriesCatalogInBackground(force = false) {
   if (
     (!force && state.seriesCatalogReady) ||
