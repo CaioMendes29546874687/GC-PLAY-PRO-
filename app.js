@@ -8328,42 +8328,94 @@ function setupLocalFileButton() {
    CARREGAR CONTADORES DO BANCO
    ========================================================= */
 
-async function loadDatabaseStats() {
+async async function loadDatabaseStats() {
   try {
     if (!state.db) return;
 
-    const [total, live, movie] = await Promise.all([
+    const [total, live, movie, episodeCount] = await Promise.all([
       countAllItems(),
       countByType("live"),
-      countByType("movie")
+      countByType("movie"),
+      countByType("series")
     ]);
 
-    /* A contagem de séries NUNCA vem do índice "type":
-       esse índice conta episódios. O número correto é o tamanho
-       do catálogo agrupado, uma entrada por série. */
+    /*
+       SÉRIES = títulos únicos, nunca episódios.
+       Se o índice seriesCatalog estiver vazio (inclusive em bancos
+       antigos), reconstrói diretamente dos episódios já gravados.
+       Assim a tela nunca volta para 0 enquanto existem episódios.
+    */
     let catalog = Array.isArray(state.seriesCatalog)
       ? state.seriesCatalog
       : [];
 
-    if (!catalog.length) {
+    if (!catalog.length && episodeCount > 0) {
       try {
-        catalog = await loadSeriesCatalogFromDB();
-        if (catalog.length) {
-          state.seriesCatalog = catalog;
-          state.seriesCatalogMap = new Map(
-            catalog.map(item => [item.seriesKey, item])
-          );
-          state.seriesCatalogReady = true;
-          state.seriesItemsCache = catalog;
-        }
+        await rebuildSeriesCatalogInBackground(true);
+        catalog = Array.isArray(state.seriesCatalog)
+          ? state.seriesCatalog
+          : [];
       } catch (catalogError) {
-        console.warn("[GC PLAY PRO] Não foi possível ler catálogo de séries:", catalogError);
+        console.warn("[GC PLAY PRO] Reconstrução automática de séries:", catalogError);
+      }
+    }
+
+    if (!catalog.length && episodeCount > 0) {
+      /*
+         Último fallback: conta chaves únicas diretamente no IndexedDB.
+         Não altera os episódios nem depende do catálogo derivado.
+      */
+      try {
+        const unique = new Set();
+
+        await new Promise((resolve, reject) => {
+          const tx = state.db.transaction(STORE_NAME, "readonly");
+          const request = tx.objectStore(STORE_NAME).openCursor();
+
+          request.onsuccess = event => {
+            const cursor = event.target.result;
+            if (!cursor) {
+              resolve();
+              return;
+            }
+
+            const item = cursor.value;
+            if (item?.type === "series") {
+              const info = extractSeriesInfo(item);
+              const title =
+                info?.seriesName ||
+                item.seriesName ||
+                item.name ||
+                "";
+
+              const key = normalizeText(
+                canonicalSeriesTitle(title)
+              );
+
+              if (key) unique.add(key);
+            }
+
+            cursor.continue();
+          };
+
+          request.onerror = () => reject(request.error);
+          tx.onerror = () => reject(tx.error);
+        });
+
+        state.seriesUniqueKeys = unique;
+      } catch (fallbackError) {
+        console.warn("[GC PLAY PRO] Fallback de contagem de séries:", fallbackError);
       }
     }
 
     state.total = total;
     state.counts.live = live;
     state.counts.movie = movie;
+
+    /*
+       O contador exibido é sempre o número de séries únicas.
+       episodeCount continua representando episódios no banco.
+    */
     state.counts.series =
       catalog.length ||
       (state.seriesUniqueKeys instanceof Set
