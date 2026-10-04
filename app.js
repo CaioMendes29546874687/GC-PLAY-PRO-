@@ -3270,13 +3270,25 @@ async function rebuildSeriesCatalogInBackground(force = false) {
         const item = cursor.value;
 
         if (item.type === "series") {
-          const info = extractSeriesInfo(item);
+          /*
+             IMPORTANTE: usar primeiro o seriesKey já gravado no item.
+             O item foi normalizado na importação e já possui a chave
+             da série. Reinterpretar somente o nome aqui fazia muitos
+             episódios perderem o agrupamento e virarem "séries" individuais.
+          */
+          const info = getDerivedSeriesInfo(item);
+          const canonicalName = canonicalSeriesTitle(
+            info.seriesName || item.seriesName || item.name
+          );
+          const storedKey = String(
+            info.seriesKey || item.seriesKey || ""
+          ).trim();
           const canonicalKey = normalizeText(
-            canonicalSeriesTitle(info.seriesName || item.name)
+            canonicalName
           );
 
-          if (item.seriesKey) {
-            aliases.set(String(item.seriesKey), canonicalKey);
+          if (storedKey) {
+            aliases.set(storedKey, canonicalKey);
           }
           aliases.set(canonicalKey, canonicalKey);
 
