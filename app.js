@@ -613,6 +613,27 @@ function updateSeriesCatalogEntry(item) {
   state.seriesCatalogChanged.add(info.seriesKey);
 }
 
+async function persistSeriesCatalogSnapshot() {
+  if (!state.db || !state.db.objectStoreNames.contains(SERIES_STORE)) return;
+  const result = Array.from(state.seriesCatalogMap.values()).map(entry => ({
+    ...entry,
+    seasons: { ...(entry.seasons || {}) }
+  }));
+  state.seriesCatalog = result;
+  state.seriesCatalogReady = result.length > 0;
+  state.seriesItemsCache = result;
+  await new Promise((resolve, reject) => {
+    const transaction = state.db.transaction(SERIES_STORE, "readwrite");
+    const store = transaction.objectStore(SERIES_STORE);
+    store.clear();
+    for (const entry of result) store.put(entry);
+    transaction.oncomplete = resolve;
+    transaction.onerror = () => reject(transaction.error);
+    transaction.onabort = () => reject(transaction.error);
+  });
+  state.counts.series = result.length;
+}
+
 function takeSeriesCatalogUpdates() {
   if (!state.seriesCatalogChanged.size) {
     return [];
@@ -6837,7 +6858,34 @@ function processParsedItem(
   } else if (item.type === "movie") {
     state.counts.movie++;
   } else if (item.type === "series") {
-    /* Episódios não incrementam o contador de séries. */
+    /* Catálogo compacto: uma entrada por série; episódios ficam agregados. */
+    const seriesKey = item.seriesKey || normalizeText(canonicalSeriesTitle(item.seriesName || item.name));
+    if (seriesKey) {
+      let entry = state.seriesCatalogMap.get(seriesKey);
+      if (!entry) {
+        entry = {
+          seriesKey,
+          seriesName: canonicalSeriesTitle(item.seriesName || item.name || "Série sem nome"),
+          nameLower: normalizeText(item.seriesName || item.name || ""),
+          logo: item.logo || "",
+          group: item.group || "",
+          genre: item.genre || getGenreName(item.group),
+          episodeCount: 0,
+          seasons: {}
+        };
+        state.seriesCatalogMap.set(seriesKey, entry);
+      }
+      if (!entry.logo && item.logo) entry.logo = item.logo;
+      if (!entry.group && item.group) entry.group = item.group;
+      if (!entry.genre && item.genre) entry.genre = item.genre;
+      const season = item.season;
+      if (season !== null && season !== undefined && Number.isFinite(Number(season))) {
+        const seasonKey = String(Number(season));
+        entry.seasons[seasonKey] = Number(entry.seasons[seasonKey] || 0) + 1;
+      }
+      entry.episodeCount++;
+      state.seriesUniqueKeys.add(seriesKey);
+    }
   }
 
   /*
@@ -7274,6 +7322,8 @@ async function loadM3U(
           await sleep(100);
         }
 
+        await persistSeriesCatalogSnapshot();
+
         if (writeError) {
           console.warn(
             "[GC PLAY PRO] Gravação em segundo plano:",
@@ -7634,6 +7684,8 @@ async function loadFile(
     ) {
       await sleep(50);
     }
+
+    await persistSeriesCatalogSnapshot();
 
     render();
 
