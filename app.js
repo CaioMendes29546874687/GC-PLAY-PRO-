@@ -8583,6 +8583,38 @@ async function loadLocalCatalog() {
     render();
 
     if (!GC_IS_SAMSUNG_TV) {
+      /*
+         V7: corrige instalações que já tinham a migração antiga marcada
+         como concluída, mas cujo catálogo agrupado ficou vazio.
+         Não conta episódios: reconstrói 1 entrada por série.
+      */
+      const seriesCatalogRepairKey = "GC_PLAY_PRO_SERIES_CATALOG_REPAIR_V7";
+      setTimeout(async () => {
+        try {
+          const rawSeriesCount = await countByType("series");
+          const catalogCount = Array.isArray(state.seriesCatalog)
+            ? state.seriesCatalog.length
+            : 0;
+
+          if (rawSeriesCount > 0 && catalogCount === 0) {
+            console.log("[GC PLAY PRO] V7: reconstruindo catálogo de séries...");
+            await rebuildSeriesCatalogInBackground(true);
+            state.counts.series = Array.isArray(state.seriesCatalog)
+              ? state.seriesCatalog.length
+              : 0;
+            await loadDatabaseStats();
+            renderStats();
+            render();
+          }
+
+          try {
+            localStorage.setItem(seriesCatalogRepairKey, "1");
+          } catch {}
+        } catch (error) {
+          console.warn("[GC PLAY PRO] V7 catálogo de séries:", error);
+        }
+      }, 100);
+
       const migrationKey = "GC_PLAY_PRO_SERIES_MIGRATION_V3";
       let migrated = false;
 
