@@ -6888,6 +6888,14 @@ async function loadM3U(
           return;
         }
 
+        /*
+           IMPORTANTE: o contador bruto de episódios é atualizado
+           durante a importação. Aqui, depois que TODA a gravação
+           terminou, reconstruímos o catálogo por nome para obter
+           a quantidade real de séries únicas.
+        */
+        await rebuildSeriesCatalogInBackground(true);
+
         state.seriesCatalog =
           await loadSeriesCatalogFromDB();
 
@@ -6899,9 +6907,23 @@ async function loadM3U(
           );
 
         state.seriesCatalogReady =
-          state.seriesCatalog.length > 0;
+          true;
+
+        /*
+           Antes daqui, updateLiveCounters() mostrava o número
+           de episódios como se fossem séries. Agora o contador
+           passa a usar exclusivamente o catálogo único.
+        */
+        state.counts.series =
+          state.seriesCatalog.length;
+
+        state.total =
+          state.counts.live +
+          state.counts.movie +
+          state.counts.series;
 
         renderGenreFilters();
+        renderStats();
         render();
       } catch (catalogError) {
         console.warn(
