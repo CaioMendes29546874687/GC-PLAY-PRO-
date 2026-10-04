@@ -3346,11 +3346,14 @@ async function rebuildSeriesCatalogInBackground(force = false) {
 
         scanned++;
 
-        if (scanned % 1500 === 0) {
-          setTimeout(() => cursor.continue(), 0);
-        } else {
-          cursor.continue();
-        }
+        /*
+           IMPORTANTE: não usar setTimeout aqui.
+           O cursor pertence à transação IndexedDB e a transação
+           pode ficar inativa quando o controle volta ao event loop.
+           Nesse caso cursor.continue() falha e o catálogo permanece
+           com a contagem bruta de episódios.
+        */
+        cursor.continue();
       };
 
       request.onerror = () => reject(request.error);
