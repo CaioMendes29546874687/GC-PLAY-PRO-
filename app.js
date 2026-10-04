@@ -39,8 +39,8 @@ const STORE_NAME = "items";
 const SERIES_STORE = "seriesCatalog";
 
 const RAM_LIMIT = 4000;
-const WRITE_BATCH = 50000;
-const FIRST_PAINT_BATCH = 50000;
+const WRITE_BATCH = 100000;
+const FIRST_PAINT_BATCH = 100000;
 const UI_RENDER_INTERVAL = 4000;
 const WRITE_QUEUE_LIMIT = 2;
 const RESUME_KEY = "GC_PLAY_PRO_RESUME_V1";
@@ -107,6 +107,8 @@ const state = {
   seriesCatalog: [],
   seriesCatalogMap: new Map(),
   seriesCatalogChanged: new Set(),
+  /* Chaves únicas de séries durante a importação: episódios e temporadas não contam como séries. */
+  seriesUniqueKeys: new Set(),
   seriesCatalogReady: false,
   seriesCatalogBuilding: false,
   seriesKeyAliases: new Map(),
@@ -6854,6 +6856,12 @@ function processParsedItem(
   } else if (state.items.length < RAM_LIMIT) {
     state.items.push(item);
   }
+
+  /* Uma entrada no contador = uma série única. Episódios/temporadas usam a mesma chave. */
+  if (item.type === "series") {
+    const key = item.seriesKey || normalizeText(canonicalSeriesTitle(item.seriesName || item.name));
+    if (key) state.seriesUniqueKeys.add(key);
+  }
 }
 
 /* =========================================================
@@ -6956,6 +6964,7 @@ async function loadM3U(
   state.seriesCatalog = [];
   state.seriesCatalogMap = new Map();
   state.seriesCatalogChanged = new Set();
+  state.seriesUniqueKeys = new Set();
   state.seriesCatalogReady = false;
 
   renderStats();
@@ -7211,6 +7220,10 @@ async function loadM3U(
 
     state.groups =
       Array.from(groups).sort((a,b)=>a.localeCompare(b,"pt-BR",{sensitivity:"base"}));
+
+    /* O contador de séries mostra títulos únicos já agrupados. */
+    state.counts.series = state.seriesUniqueKeys.size;
+    state.total = processed;
 
     try {
       localStorage.setItem("GC_PLAY_PRO_GROUPS_V1", JSON.stringify(state.groups));
@@ -8863,6 +8876,7 @@ async function clearCatalog() {
     state.seriesCatalog = [];
     state.seriesCatalogMap = new Map();
     state.seriesCatalogChanged = new Set();
+    state.seriesUniqueKeys = new Set();
     state.seriesCatalogReady = false;
     state.seriesCatalogBuilding = false;
 
