@@ -1003,8 +1003,10 @@ function canonicalSeriesTitle(value) {
     .replace(/\s*[-|:_./()\[\]]*\s*0*\d{1,3}\s*x\s*0*\d{1,4}.*$/i, "")
     .replace(/\s*[-|:_./()\[\]]*\s*(?:season|temporada)\s*0*\d{1,3}.*$/i, "")
     .replace(/\s*[-|:_./()\[\]]*\s*(?:s|t)\s*0*\d{1,3}\s*$/i, "")
-    .replace(/\s*[-|:_./()\[\]]*\s*(?:episode|episodio|ep)\s*0*\d{1,4}.*$/i, "")
+    .replace(/\s*[-|:_./()\[\]]*\s*(?:episode|episodio|ep|capitulo|capítulo)\s*0*\d{1,4}.*$/i, "")
     .replace(/\s*[-|:_./()\[\]]*\s*e\s*0*\d{1,4}\s*$/i, "")
+    .replace(/\s*[-|:_./()\[\]]*\s*\[?0*\d{1,4}\]?\s*$/i, "")
+    .replace(/\s*[-|:_./()\[\]]+\s*0*\d{1,4}\s*$/i, "")
     .replace(/\s*[-_.:#|]+\s*$/g, "")
     .trim();
 
@@ -3276,10 +3278,22 @@ async function rebuildSeriesCatalogInBackground(force = false) {
              da série. Reinterpretar somente o nome aqui fazia muitos
              episódios perderem o agrupamento e virarem "séries" individuais.
           */
-          const info = getDerivedSeriesInfo(item);
+          /*
+             Reconstruir a chave a partir do NOME ORIGINAL.
+             Registros antigos podem ter seriesName/seriesKey gravados
+             com o episódio junto; usar esses campos aqui perpetuaria
+             a contagem de episódios como se fossem séries.
+          */
+          const rawInfo = extractSeriesInfo(item);
           const canonicalName = canonicalSeriesTitle(
-            info.seriesName || item.seriesName || item.name
+            rawInfo.seriesName || item.name
           );
+          const info = {
+            ...rawInfo,
+            seriesName: canonicalName,
+            seriesKey: normalizeText(canonicalName),
+            genre: item.genre || rawInfo.genre || getGenreName(item.group)
+          };
           const storedKey = String(
             info.seriesKey || item.seriesKey || ""
           ).trim();
