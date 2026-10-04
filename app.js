@@ -1044,11 +1044,8 @@ function canonicalSeriesTitle(value) {
     .replace(/\s*[-|:_./()\[\]]*\s*0*\d{1,3}\s*x\s*0*\d{1,4}.*$/i, "")
     .replace(/\s*[-|:_./()\[\]]*\s*(?:season|temporada)\s*0*\d{1,3}.*$/i, "")
     .replace(/\s*[-|:_./()\[\]]*\s*(?:s|t)\s*0*\d{1,3}\s*$/i, "")
-    .replace(/\s*[-|:_./()\[\]]*\s*(?:episode|episodio|ep|e)\s*0*\d{1,4}.*$/i, "")
-    .replace(/\s*[-|:_./()\[\]]*\s*0*\d{1,3}\s*(?:ª|º|a|o)?\s*(?:temporada|season).*$/i, "")
-    .replace(/\s*[-|:_./()\[\]]*\s*(?:epis[oó]dio|episode)\s*0*\d{1,4}.*$/i, "")
+    .replace(/\s*[-|:_./()\[\]]*\s*(?:episode|episodio|ep)\s*0*\d{1,4}.*$/i, "")
     .replace(/\s*[-|:_./()\[\]]*\s*e\s*0*\d{1,4}\s*$/i, "")
-    .replace(/\s*[-|:_./()\[\]]+\s*0*\d{1,4}\s*$/i, "")
     .replace(/\s*[-_.:#|]+\s*$/g, "")
     .trim();
 
@@ -1098,85 +1095,6 @@ function extractSeriesInfo(item) {
     }
 
     if (season !== null && episode !== null) break;
-  }
-
-  /*
-     Formatos comuns adicionais encontrados em M3U:
-     "Título - 1ª Temporada - Episódio 03",
-     "Título - Temporada 1 - Ep 03",
-     "Título - T01 - EP03",
-     "Título - S01 - E03",
-     "Título - 01º episódio".
-     Eles precisam ser reconhecidos antes de montar o seriesKey.
-  */
-  if (season === null || episode === null) {
-    const broadSources = [name, tvgName, url];
-
-    for (const source of broadSources) {
-      if (season === null || episode === null) {
-        const m = source.match(
-          /(?:temporada|season|s|t)\s*0*(\d{1,3})[^0-9]{0,24}(?:epis[oó]dio|episode|ep|e)\s*0*(\d{1,4})/i
-        );
-        if (m) {
-          season = Number(m[1]);
-          episode = Number(m[2]);
-        }
-      }
-
-      if (season === null || episode === null) {
-        const m = source.match(
-          /0*(\d{1,3})\s*(?:ª|º|a|o)?\s*(?:temporada|season)[^0-9]{0,24}(?:epis[oó]dio|episode|ep|e)?\s*0*(\d{1,4})/i
-        );
-        if (m) {
-          season = Number(m[1]);
-          episode = Number(m[2]);
-        }
-      }
-
-      if (season === null || episode === null) {
-        const m = source.match(
-          /(?:epis[oó]dio|episode|ep)\s*0*(\d{1,4})\s*(?:da|do)?\s*(?:temporada|season)\s*0*(\d{1,3})/i
-        );
-        if (m) {
-          episode = Number(m[1]);
-          season = Number(m[2]);
-        }
-      }
-
-      if (season !== null && episode !== null) break;
-    }
-  }
-
-  /*
-     Se encontramos apenas a temporada, mas o episódio está marcado
-     como E01/EP01 sem S/T, capturamos esse formato separadamente.
-  */
-  if (episode === null) {
-    for (const source of [name, tvgName, url]) {
-      const m = source.match(
-        /(?:^|[\s._()[\]-])(?:e|ep|episode|epis[oó]dio)\s*0*(\d{1,4})(?=$|[\s._()[\]-])/i
-      );
-      if (m) {
-        episode = Number(m[1]);
-        break;
-      }
-    }
-  }
-
-  /*
-     "Título - 01" é usado por algumas listas para episódios.
-     Só aplicamos esse fallback quando o item já foi classificado como
-     série e existe um título textual claro antes do número, evitando
-     transformar filmes/canais numerados em episódios.
-  */
-  if (episode === null && season === null) {
-    const m = name.match(
-      /^(.+?)\s*(?:[-|:]+)\s*(?:epis[oó]dio\s*)?0*(\d{1,3})\s*$/i
-    );
-    if (m && m[1].trim().length >= 3) {
-      episode = Number(m[2]);
-      season = 1;
-    }
   }
 
   /*
@@ -3580,32 +3498,7 @@ async function getAllSeriesItems() {
   return quick;
 }
 
-async function loadSeriesCatalogFromDB() {
-  if (!state.db || !state.db.objectStoreNames.contains(SERIES_STORE)) {
-    return [];
-  }
 
-  return new Promise((resolve, reject) => {
-    try {
-      const transaction = state.db.transaction(SERIES_STORE, "readonly");
-      const store = transaction.objectStore(SERIES_STORE);
-      const request = store.getAll();
-
-      request.onsuccess = () => {
-        const result = Array.isArray(request.result)
-          ? request.result
-          : [];
-        resolve(result);
-      };
-
-      request.onerror = () => reject(request.error);
-      transaction.onerror = () => reject(transaction.error);
-      transaction.onabort = () => reject(transaction.error);
-    } catch (error) {
-      reject(error);
-    }
-  });
-}
 
 async function rebuildSeriesCatalogInBackground(force = false) {
   if (
