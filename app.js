@@ -8122,30 +8122,35 @@ async function loadLocalCatalog() {
     */
     await buildGenreCatalog();
 
+    /*
+       O catálogo salvo no IndexedDB pode ser antigo e conter
+       episódios agrupados como se fossem séries. Portanto NÃO
+       usamos esse catálogo para o contador inicial.
+       Primeiro reconstruímos diretamente a partir de TODOS os
+       itens da playlist e somente depois calculamos as estatísticas.
+    */
+    await rebuildSeriesCatalogInBackground(true);
+
     await loadDatabaseStats();
     renderGenreFilters();
     render();
 
-    const migrationKey = "GC_PLAY_PRO_SERIES_MIGRATION_V3";
-    let migrated = false;
+    /*
+       A reconstrução acima já atualiza:
+       - state.seriesCatalog
+       - state.seriesCatalogMap
+       - state.seriesKeyAliases
+       - state.counts.series
 
+       Não deixar uma migração em segundo plano sobrescrever o
+       catálogo correto depois que a tela já foi carregada.
+    */
     try {
-      migrated = localStorage.getItem(migrationKey) === "1";
+      localStorage.setItem(
+        "GC_PLAY_PRO_SERIES_MIGRATION_V4",
+        "1"
+      );
     } catch {}
-
-    if (!migrated) {
-      setTimeout(async () => {
-        await rebuildSeriesCatalogInBackground(true);
-
-        try {
-          localStorage.setItem(migrationKey, "1");
-        } catch {}
-      }, 50);
-    } else if (needsSeriesCatalogMigration(state.seriesCatalog)) {
-      setTimeout(() => {
-        rebuildSeriesCatalogInBackground(true);
-      }, 50);
-    }
   } catch (error) {
     console.error("Erro carregando catálogo:", error);
   }
