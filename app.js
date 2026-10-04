@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-03-LIVE-TRANSPORT-01 */
+/* GC BUILD 2026-10-02-23 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -20,16 +20,6 @@ const GC_M3U_PROXY =
 const GC_HEALTH_URL =
   `${GC_SUPABASE_URL}/functions/v1/gc-health`;
 
-/* Samsung Tizen: mantém o catálogo leve e evita reconstruções pesadas que provocam reflow/piscadas em Smart TVs mais antigas. */
-const GC_IS_SAMSUNG_TV = (() => {
-  try {
-    const ua = navigator.userAgent || "";
-    return /Tizen|SMART-TV|SamsungBrowser.*TV|TV Safari/i.test(ua) ||
-      (/Samsung/i.test(ua) && !/Mobile|Android/i.test(ua));
-  } catch { return false; }
-})();
-window.__GC_SAMSUNG_TV__ = GC_IS_SAMSUNG_TV;
-
 /* O proxy é genérico: cada playlist pode usar um domínio diferente. */
 const GC_PROXY_HOSTS = null;
 
@@ -39,10 +29,10 @@ const STORE_NAME = "items";
 const SERIES_STORE = "seriesCatalog";
 
 const RAM_LIMIT = 4000;
-const WRITE_BATCH = 100000;
-const FIRST_PAINT_BATCH = 100000;
-const UI_RENDER_INTERVAL = 4000;
-const WRITE_QUEUE_LIMIT = 2;
+const WRITE_BATCH = 20000;
+const FIRST_PAINT_BATCH = 1000;
+const UI_RENDER_INTERVAL = 2500;
+const WRITE_QUEUE_LIMIT = 3;
 const RESUME_KEY = "GC_PLAY_PRO_RESUME_V1";
 
 const STATE_KEY = "GC_PLAY_PRO_STATE_V5";
@@ -56,14 +46,6 @@ const state = {
   db: null,
 
   items: [],
-  /* Amostra equilibrada para Smart TVs: evita que um único tipo
-     ocupe os primeiros registros da memória. */
-  ramTypeCounts: {
-    live: 0,
-    movie: 0,
-    series: 0,
-    other: 0
-  },
   groups: [],
 
   counts: {
@@ -107,8 +89,6 @@ const state = {
   seriesCatalog: [],
   seriesCatalogMap: new Map(),
   seriesCatalogChanged: new Set(),
-  /* Chaves únicas de séries durante a importação: episódios e temporadas não contam como séries. */
-  seriesUniqueKeys: new Set(),
   seriesCatalogReady: false,
   seriesCatalogBuilding: false,
   seriesKeyAliases: new Map(),
@@ -611,27 +591,6 @@ function updateSeriesCatalogEntry(item) {
   entry.episodeCount++;
 
   state.seriesCatalogChanged.add(info.seriesKey);
-}
-
-async function persistSeriesCatalogSnapshot() {
-  if (!state.db || !state.db.objectStoreNames.contains(SERIES_STORE)) return;
-  const result = Array.from(state.seriesCatalogMap.values()).map(entry => ({
-    ...entry,
-    seasons: { ...(entry.seasons || {}) }
-  }));
-  state.seriesCatalog = result;
-  state.seriesCatalogReady = result.length > 0;
-  state.seriesItemsCache = result;
-  await new Promise((resolve, reject) => {
-    const transaction = state.db.transaction(SERIES_STORE, "readwrite");
-    const store = transaction.objectStore(SERIES_STORE);
-    store.clear();
-    for (const entry of result) store.put(entry);
-    transaction.oncomplete = resolve;
-    transaction.onerror = () => reject(transaction.error);
-    transaction.onabort = () => reject(transaction.error);
-  });
-  state.counts.series = result.length;
 }
 
 function takeSeriesCatalogUpdates() {
@@ -1315,7 +1274,7 @@ async function migrateCatalogTypes() {
      (seriesKey/season/episode). A migração anterior só alterava
      o tipo e deixava episódios antigos com seriesKey vazio.
   */
-  const migrationKey = "GC_PLAY_PRO_CATEGORY_TYPES_V6";
+  const migrationKey = "GC_PLAY_PRO_CATEGORY_TYPES_V5";
 
   try {
     if (localStorage.getItem(migrationKey) === "1") {
@@ -1522,53 +1481,6 @@ function unwrapXtreamArray(value) {
   return [];
 }
 
-function samsungXHRJSON(requestUrl, signal) {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    let done = false;
-
-    const finish = (fn, value) => {
-      if (done) return;
-      done = true;
-      fn(value);
-    };
-
-    xhr.open("GET", requestUrl, true);
-    xhr.setRequestHeader("Accept", "application/json");
-    xhr.timeout = 20000;
-
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState !== 4) return;
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          finish(resolve, JSON.parse(xhr.responseText || "null"));
-        } catch (error) {
-          finish(reject, error);
-        }
-      } else {
-        finish(reject, new Error("HTTP " + xhr.status));
-      }
-    };
-
-    xhr.onerror = () => finish(reject, new Error("XHR network error"));
-    xhr.ontimeout = () => finish(reject, new Error("XHR timeout"));
-
-    if (signal) {
-      if (signal.aborted) {
-        try { xhr.abort(); } catch {}
-        finish(reject, new DOMException("Operação cancelada", "AbortError"));
-        return;
-      }
-      signal.addEventListener("abort", () => {
-        try { xhr.abort(); } catch {}
-        finish(reject, new DOMException("Operação cancelada", "AbortError"));
-      }, { once: true });
-    }
-
-    xhr.send();
-  });
-}
-
 async function fetchXtreamJSON(session, action, signal, extraParams = {}) {
   const url = new URL(xtreamApiUrl(session, action));
 
@@ -1578,43 +1490,18 @@ async function fetchXtreamJSON(session, action, signal, extraParams = {}) {
     }
   }
 
-  const target = url.toString();
-  const proxyTarget = buildProxyUrl(target);
+  const response = await fetch(buildProxyUrl(url.toString()), {
+    method: "GET",
+    cache: "no-store",
+    signal,
+    headers: { "Accept": "application/json" }
+  });
 
-  let data = null;
-  let proxyError = null;
-
-  try {
-    const response = await fetch(proxyTarget, {
-      method: "GET",
-      cache: "no-store",
-      signal,
-      headers: { "Accept": "application/json" }
-    });
-
-    if (!response.ok) throw new Error("Proxy HTTP " + response.status);
-    data = await response.json();
-  } catch (error) {
-    proxyError = error;
-
-    /* Samsung/Tizen: WebKit antigo pode falhar no fetch/JSON do
-       proxy mesmo quando XHR consegue receber a mesma resposta. */
-    if (GC_IS_SAMSUNG_TV) {
-      try {
-        data = await samsungXHRJSON(proxyTarget, signal);
-      } catch (xhrError) {
-        /* Último fallback: tenta o endpoint Xtream diretamente.
-           Se o servidor bloquear CORS, o erro será tratado abaixo. */
-        try {
-          data = await samsungXHRJSON(target, signal);
-        } catch {
-          throw proxyError || xhrError;
-        }
-      }
-    } else {
-      throw error;
-    }
+  if (!response.ok) {
+    throw new Error("Xtream API HTTP " + response.status);
   }
+
+  const data = await response.json();
 
   if (data && typeof data === "object" && data.user_info && data.user_info.auth === 0) {
     throw new Error("Conta Xtream recusada pelo servidor.");
@@ -2937,7 +2824,7 @@ async function queryCatalogItems({
 
     if (
       genre !== "all" &&
-      normalizeText(type === "live" ? getLiveGenre(item) : getGenreName(item.group)) !== wantedGenre
+      normalizeText(getGenreName(item.group)) !== wantedGenre
     ) {
       return false;
     }
@@ -2952,52 +2839,6 @@ async function queryCatalogItems({
 
     return true;
   };
-
-  /*
-     Samsung/Tizen: a RAM é apenas uma amostra de segurança.
-     Quando a importação já terminou, a fonte correta para TV,
-     filmes e demais categorias é o IndexedDB completo. Usar a
-     amostra primeiro podia fazer uma seção parecer vazia mesmo
-     com milhares de itens gravados no banco.
-  */
-  if (GC_IS_SAMSUNG_TV && state.db) {
-    try {
-      const dbResult = await new Promise((resolve, reject) => {
-        const result = [];
-        const transaction = state.db.transaction(STORE_NAME, "readonly");
-        const store = transaction.objectStore(STORE_NAME);
-        const useTypeIndex = !!type && type !== "adult";
-        const source = useTypeIndex ? store.index("type") : store;
-        const request = useTypeIndex
-          ? source.openCursor(IDBKeyRange.only(type))
-          : source.openCursor();
-
-        request.onsuccess = event => {
-          const cursor = event.target.result;
-          if (!cursor || result.length >= limit) {
-            resolve(result);
-            return;
-          }
-          if (matches(cursor.value)) result.push(cursor.value);
-          cursor.continue();
-        };
-        request.onerror = () => reject(request.error);
-      });
-      if (window.__GC_RENDER_DIAG__) window.__GC_RENDER_DIAG__.lastQuery = "Samsung DB "+dbResult.length+" type="+String(type);
-      if (dbResult.length) return dbResult;
-    } catch (error) {
-      console.warn("[GC PLAY PRO] Samsung consulta DB:", error);
-    }
-  }
-
-  /*
-     Se o banco ainda não estiver pronto, usamos a amostra RAM como fallback.
-  */
-  if (GC_IS_SAMSUNG_TV) {
-    const ramResult = state.items.filter(matches).slice(0, limit);
-    if (window.__GC_RENDER_DIAG__) window.__GC_RENDER_DIAG__.lastQuery = "Samsung RAM "+ramResult.length+" type="+String(type);
-    if (ramResult.length) return ramResult;
-  }
 
   /*
      Se o catálogo completo não estiver disponível no banco,
@@ -3041,99 +2882,6 @@ async function queryCatalogItems({
   });
 }
 
-async function fetchSamsungLiveDirect(limit = 120) {
-  if (!GC_IS_SAMSUNG_TV || !state.xtreamSession) return [];
-
-  try {
-    const [catResult, streamResult] = await Promise.all([
-      fetchXtreamJSON(state.xtreamSession, "get_live_categories", undefined),
-      fetchXtreamJSON(state.xtreamSession, "get_live_streams", undefined)
-    ]);
-
-    const categoryMap = new Map();
-    for (const cat of unwrapXtreamArray(catResult)) {
-      if (cat?.category_id != null && cat?.category_name) {
-        categoryMap.set(String(cat.category_id), String(cat.category_name));
-      }
-    }
-
-    const rows = unwrapXtreamArray(streamResult);
-    const extension = state.xtreamSession.liveExtension || "m3u8";
-    const result = [];
-
-    for (const row of rows) {
-      const id = row?.stream_id ?? row?.id;
-      if (id == null || !row?.name) continue;
-
-      const group = getXtreamCategoryName(
-        categoryMap, row.category_id, "TV AO VIVO"
-      );
-
-      result.push({
-        id: "xt-live-" + id,
-        name: String(row.name).trim(),
-        nameLower: normalizeText(row.name),
-        group,
-        type: "live",
-        url: buildXtreamStreamUrl(state.xtreamSession, "live", id, extension),
-        logo: row.stream_icon || "",
-        tvgId: row.epg_channel_id || "",
-        tvgName: row.name || "",
-        country: "", language: "", seriesName: "", seriesKey: "",
-        season: null, episode: null, seriesSeason: ["", 0],
-        genre: getGenreName(group),
-        xtreamKind: "live",
-        xtreamStreamId: String(id),
-        xtreamExtension: extension,
-        epgChannelId: row.epg_channel_id || "",
-        tvArchive: Number(row.tv_archive || 0),
-        tvArchiveDuration: Number(row.tv_archive_duration || 0)
-      });
-
-      if (result.length >= limit) break;
-    }
-
-    if (result.length) {
-      state.items = [
-        ...state.items.filter(item => item?.type !== "live"),
-        ...result
-      ];
-      state.counts.live = rows.length;
-      state.total = state.counts.live + Number(state.counts.movie || 0) + Number(state.counts.series || 0);
-    }
-
-    console.log("[GC PLAY PRO] Samsung live direto:", rows.length, result.length);
-    return result;
-  } catch (error) {
-    console.warn("[GC PLAY PRO] Samsung live direto falhou:", error);
-    return [];
-  }
-}
-
-async function querySamsungLiveItems(limit = 120) {
-  if (!GC_IS_SAMSUNG_TV || !state.db) return [];
-
-  return new Promise(resolve => {
-    try {
-      const tx = state.db.transaction(STORE_NAME, "readonly");
-      const store = tx.objectStore(STORE_NAME);
-      const index = store.index("type");
-      const request = index.getAll(IDBKeyRange.only("live"), limit);
-
-      request.onsuccess = () => {
-        const values = Array.isArray(request.result) ? request.result : [];
-        resolve(values.filter(item => item && !isAdultContent(item)).slice(0, limit));
-      };
-
-      request.onerror = () => resolve([]);
-      tx.onerror = () => resolve([]);
-    } catch (error) {
-      console.warn("[GC PLAY PRO] Samsung live query:", error);
-      resolve([]);
-    }
-  });
-}
-
 async function render() {
   if (state.currentSection === "home" && state.currentFilter === "all") {
     await renderHomeDashboard();
@@ -3148,7 +2896,6 @@ async function render() {
   if (!grid) return;
 
   const requestId = ++renderRequestId;
-  if (window.__GC_RENDER_DIAG__) window.__GC_RENDER_DIAG__.lastRender = "start "+state.currentSection+"/"+state.currentFilter;
 
   if (state.currentFilter === "series") {
     grid.innerHTML = `
@@ -3169,22 +2916,12 @@ async function render() {
       ? (state.currentFilter === "adult" ? "adult" : null)
       : state.currentFilter;
 
-  let items;
-
-  /* Samsung/Tizen + Xtream: primeira pintura de TV ao vivo vai
-     diretamente ao endpoint autenticado, sem depender do IndexedDB. */
-  if (GC_IS_SAMSUNG_TV && type === "live" && state.xtreamSession) {
-    items = await fetchSamsungLiveDirect(120);
-  }
-
-  if (!items) {
-    items = await queryCatalogItems({
-      type,
-      genre: state.currentGenre,
-      term: state.searchTerm,
-      limit: 120
-    });
-  }
+  let items = await queryCatalogItems({
+    type,
+    genre: state.currentGenre,
+    term: state.searchTerm,
+    limit: 120
+  });
 
   /* TV ao vivo precisa continuar visível mesmo se o índice IndexedDB
      estiver atrasado/corrompido. A RAM já contém os canais importados. */
@@ -3195,8 +2932,6 @@ async function render() {
   }
 
   if (requestId !== renderRequestId) return;
-
-  if (window.__GC_RENDER_DIAG__) window.__GC_RENDER_DIAG__.lastRender = "items="+items.length+" type="+String(type);
 
   if (!items.length) {
     grid.innerHTML = "";
@@ -3497,8 +3232,6 @@ async function getAllSeriesItems() {
 
   return quick;
 }
-
-
 
 async function rebuildSeriesCatalogInBackground(force = false) {
   if (
@@ -4892,37 +4625,12 @@ async function playItem(item) {
   const gcAndroidLike =
     /Android|Android TV/i.test(navigator.userAgent || "");
 
-  /*
-     TV ao vivo: a URL que veio na própria M3U é a fonte de verdade.
-     Algumas contas Xtream anunciam uma extensão global diferente da
-     extensão real de determinados canais. Reescrever todos os canais
-     para HLS/TS aqui fazia alguns canais da Samsung nunca iniciarem.
-     Só reconstruímos a rota Xtream quando a URL original não informa
-     claramente o transporte.
-  */
-  const originalLiveTransport =
-    item.xtreamKind === "live" &&
-    (isHLS(originalUrl) || /\.ts(?:$|[?&#])/i.test(originalUrl))
-      ? originalUrl
-      : "";
-
   const sourceUrl =
     item.xtreamKind === "live"
       ? (
-          /*
-             TV ao vivo: a URL que veio na própria M3U é a fonte de verdade.
-             Algumas contas Xtream anunciam uma extensão global diferente da
-             extensão real de determinados canais. Reescrever todos os canais
-             para HLS/TS aqui fazia alguns canais da Samsung nunca iniciarem.
-             Só reconstruímos a rota Xtream quando a URL original não informa
-             claramente o transporte.
-          */
-          (
-            originalLiveTransport ||
-            (gcAndroidLike
-              ? liveTsUrl
-              : (liveExtension === "ts" ? liveTsUrl : liveHlsUrl))
-          )
+          gcAndroidLike
+            ? liveTsUrl
+            : (liveExtension === "ts" ? liveTsUrl : liveHlsUrl)
         )
       : originalUrl;
 
@@ -5716,37 +5424,11 @@ function setupCardEvents() {
       const id =
         card.dataset.itemId;
 
-      /*
-       * Primeiro usa o item que o próprio card já representa.
-       * No Samsung isso evita uma segunda consulta ao IndexedDB/RAM
-       * que pode retornar vazio enquanto o catálogo ainda está sendo
-       * indexado. A busca por ID fica somente como fallback.
-       */
-      let item = null;
+      const item =
+        await findItem(id);
 
-      try {
-        const dynamic = window.__GC_DYNAMIC_ITEMS__;
-        if (dynamic instanceof Map) {
-          item = dynamic.get(String(id)) || null;
-        }
-      } catch {}
-
-      if (!item) {
-        try {
-          const raw = card.dataset.item;
-          if (raw) item = JSON.parse(raw);
-        } catch {}
-      }
-
-      if (!item) {
-        item = findRAMItem(id) || await findItem(id);
-      }
-
-      if (item && item.url) {
+      if (item) {
         await playItem(item);
-      } else {
-        console.warn("[GC PLAY PRO] item do card não encontrado:", id);
-        toast("Não foi possível localizar este conteúdo.");
       }
     }
   );
@@ -5905,18 +5587,6 @@ async function changeAdultPin() {
   }
 }
 
-function getLiveGenre(item) {
-  const group = String(item?.group || "").trim();
-  const name = String(item?.name || "").trim();
-
-  if (/\b(?:jogos?\s+do\s+dia|jogos\s+de\s+hoje)\b/i.test(group) ||
-      /\b(?:jogos?\s+do\s+dia|jogos\s+de\s+hoje)\b/i.test(name)) {
-    return "JOGOS DO DIA";
-  }
-
-  return getGenreName(group);
-}
-
 function getGenreName(group) {
   let value = String(group || "").trim();
 
@@ -5939,7 +5609,7 @@ async function buildGenreCatalog() {
   const add = (type, group) => {
     if (!["live", "movie", "series"].includes(type)) return;
 
-    const genre = type === "live" ? getLiveGenre({group}) : getGenreName(group);
+    const genre = getGenreName(group);
     const key = normalizeText(genre);
     if (!key) return;
 
@@ -5952,8 +5622,7 @@ async function buildGenreCatalog() {
     add(item.type, item.group);
   };
 
-  /* No Tizen não varremos milhares de registros do IndexedDB durante a primeira pintura. Os canais já importados em RAM são suficientes para montar os filtros iniciais; a biblioteca completa continua no banco. */
-  if (!state.db || GC_IS_SAMSUNG_TV) {
+  if (!state.db) {
     for (const item of state.items) addItem(item);
   } else {
     await new Promise((resolve, reject) => {
@@ -6203,7 +5872,7 @@ async function handleSection(
       "all";
 
     renderGenreFilters();
-    await render();
+    render();
 
     return;
   }
@@ -6739,13 +6408,6 @@ function updateLoadMessage(
    ========================================================= */
 
 function updateLiveCounters() {
-  /* Série = título único agrupado. Nunca use a quantidade de episódios. */
-  if (state.seriesUniqueKeys instanceof Set && state.seriesUniqueKeys.size) {
-    state.counts.series = state.seriesUniqueKeys.size;
-  } else if (Array.isArray(state.seriesCatalog) && state.seriesCatalog.length) {
-    state.counts.series = state.seriesCatalog.length;
-  }
-
   state.total =
     state.counts.live +
     state.counts.movie +
@@ -6778,34 +6440,7 @@ function processParsedItem(
   } else if (item.type === "movie") {
     state.counts.movie++;
   } else if (item.type === "series") {
-    /* Catálogo compacto: uma entrada por série; episódios ficam agregados. */
-    const seriesKey = item.seriesKey || normalizeText(canonicalSeriesTitle(item.seriesName || item.name));
-    if (seriesKey) {
-      let entry = state.seriesCatalogMap.get(seriesKey);
-      if (!entry) {
-        entry = {
-          seriesKey,
-          seriesName: canonicalSeriesTitle(item.seriesName || item.name || "Série sem nome"),
-          nameLower: normalizeText(item.seriesName || item.name || ""),
-          logo: item.logo || "",
-          group: item.group || "",
-          genre: item.genre || getGenreName(item.group),
-          episodeCount: 0,
-          seasons: {}
-        };
-        state.seriesCatalogMap.set(seriesKey, entry);
-      }
-      if (!entry.logo && item.logo) entry.logo = item.logo;
-      if (!entry.group && item.group) entry.group = item.group;
-      if (!entry.genre && item.genre) entry.genre = item.genre;
-      const season = item.season;
-      if (season !== null && season !== undefined && Number.isFinite(Number(season))) {
-        const seasonKey = String(Number(season));
-        entry.seasons[seasonKey] = Number(entry.seasons[seasonKey] || 0) + 1;
-      }
-      entry.episodeCount++;
-      state.seriesUniqueKeys.add(seriesKey);
-    }
+    state.counts.series++;
   }
 
   /*
@@ -6816,54 +6451,14 @@ function processParsedItem(
      terminar.
   */
 
-  /* Para Samsung/Tizen, manter uma amostra por categoria.
-     Assim uma M3U ordenada por filmes não esconde os canais ao vivo. */
-  const type = item.type === "live" || item.type === "movie" || item.type === "series"
-    ? item.type
-    : "other";
-  const samsungCap = 1200;
-
-  if (GC_IS_SAMSUNG_TV) {
-    if ((state.ramTypeCounts[type] || 0) < samsungCap) {
-      state.items.push(item);
-      state.ramTypeCounts[type] = (state.ramTypeCounts[type] || 0) + 1;
-    }
-  } else if (state.items.length < RAM_LIMIT) {
+  if (state.items.length < RAM_LIMIT) {
     state.items.push(item);
-  }
-
-  /* Uma entrada no contador = uma série única. Episódios/temporadas usam a mesma chave. */
-  if (item.type === "series") {
-    const key = item.seriesKey || normalizeText(canonicalSeriesTitle(item.seriesName || item.name));
-    if (key) state.seriesUniqueKeys.add(key);
   }
 }
 
 /* =========================================================
    CARREGAR M3U — MOTOR PRINCIPAL
    ========================================================= */
-
-function selectSamsungRAMSample(items) {
-  if (!GC_IS_SAMSUNG_TV || !Array.isArray(items)) {
-    return Array.isArray(items) ? items.slice(0, RAM_LIMIT) : [];
-  }
-
-  const result = [];
-  const counts = { live: 0, movie: 0, series: 0, other: 0 };
-  const cap = 1200;
-
-  for (const item of items) {
-    const type = item?.type === "live" || item?.type === "movie" || item?.type === "series"
-      ? item.type
-      : "other";
-
-    if ((counts[type] || 0) >= cap) continue;
-    result.push(item);
-    counts[type] = (counts[type] || 0) + 1;
-  }
-
-  return result;
-}
 
 async function loadM3U(
   url
@@ -6913,13 +6508,6 @@ async function loadM3U(
   state.items =
     [];
 
-  state.ramTypeCounts = {
-    live: 0,
-    movie: 0,
-    series: 0,
-    other: 0
-  };
-
   state.groups =
     [];
 
@@ -6939,7 +6527,6 @@ async function loadM3U(
   state.seriesCatalog = [];
   state.seriesCatalogMap = new Map();
   state.seriesCatalogChanged = new Set();
-  state.seriesUniqueKeys = new Set();
   state.seriesCatalogReady = false;
 
   renderStats();
@@ -6985,12 +6572,7 @@ async function loadM3U(
       /* Xtream agora usa carregamento sob demanda para séries. Não faça
          uma segunda leitura da M3U inteira ao abrir a tela de séries. */
       state.xtreamSeriesFallbackNeeded = false;
-      state.items = selectSamsungRAMSample(xtreamFast.items);
-      state.ramTypeCounts = { live: 0, movie: 0, series: 0, other: 0 };
-      for (const item of state.items) {
-        const t = item?.type === "live" || item?.type === "movie" || item?.type === "series" ? item.type : "other";
-        state.ramTypeCounts[t] = (state.ramTypeCounts[t] || 0) + 1;
-      }
+      state.items = xtreamFast.items.slice(0, RAM_LIMIT);
       state.groups = xtreamFast.groups;
       state.groupsReady = true;
       state.counts = { ...xtreamFast.counts };
@@ -7157,21 +6739,55 @@ async function loadM3U(
           takeSeriesCatalogUpdates()
         );
 
-        /*
-           IMPORTAÇÃO GIGANTE:
-           não reconstruir o DOM durante a leitura. Com 300 mil+
-           registros, cada render intermediário compete com o parser
-           e com o IndexedDB. O catálogo completo será exibido uma
-           única vez quando a importação terminar.
-        */
-        const now = performance.now();
+        /* ---------------------------------------------
+           PRIMEIRA EXIBIÇÃO
+           --------------------------------------------- */
+
+        if (!firstPaint) {
+          firstPaint =
+            true;
+
+          render();
+
+          updateLiveCounters();
+
+          updateLoadMessage(
+            `Carregando... ${formatNumber(
+              processed
+            )} itens`
+          );
+        }
+
+        /* ---------------------------------------------
+           RENDER THROTTLE
+           --------------------------------------------- */
+
+        const now =
+          performance.now();
 
         if (
-          now - lastRender > UI_RENDER_INTERVAL
+          now -
+            lastRender >
+          UI_RENDER_INTERVAL
         ) {
           lastRender = now;
+
+          /*
+             Durante uma importação gigante não reconstruímos
+             centenas de cards repetidamente. Só atualizamos
+             números e progresso; o catálogo visual completo
+             é renderizado no fim.
+          */
+          updateLiveCounters();
+
           updateLoadMessage(
-            `Carregando... ${formatNumber(processed)} itens`
+            `Carregando... ${formatNumber(
+              processed
+            )} itens`
+          );
+
+          await new Promise(
+            requestAnimationFrame
           );
         }
       }
@@ -7196,10 +6812,6 @@ async function loadM3U(
     state.groups =
       Array.from(groups).sort((a,b)=>a.localeCompare(b,"pt-BR",{sensitivity:"base"}));
 
-    /* O contador de séries mostra títulos únicos já agrupados. */
-    state.counts.series = state.seriesUniqueKeys.size;
-    state.total = processed;
-
     try {
       localStorage.setItem("GC_PLAY_PRO_GROUPS_V1", JSON.stringify(state.groups));
     } catch {}
@@ -7222,18 +6834,9 @@ async function loadM3U(
     );
 
     /*
-       Antes de mostrar o resultado final, garantimos que todas as
-       gravações terminaram e que o catálogo compacto de séries foi
-       persistido. Assim o contador nunca aparece como 0 por uma
-       condição de corrida.
+       Não bloqueamos a interface durante
+       todo o processo de gravação.
     */
-    while (writeProcessing || writeQueue.length) {
-      await sleep(100);
-    }
-
-    await persistSeriesCatalogSnapshot();
-
-    await loadDatabaseStats();
 
     if (processed === 0) {
       throw new Error(
@@ -7250,8 +6853,6 @@ async function loadM3U(
         while (writeProcessing || writeQueue.length) {
           await sleep(100);
         }
-
-        await persistSeriesCatalogSnapshot();
 
         if (writeError) {
           console.warn(
@@ -7418,38 +7019,6 @@ async function loadM3U(
   }
 }
 
-
-/* GC ACTIVATION PLAYLIST BRIDGE v1 */
-/*
-   A ativação do dispositivo recebe a playlist_url do gc-device.
-   O index.html chama esta ponte para entregar essa URL ao motor M3U.
-   Antes desta ponte a chamada era ignorada porque a função não existia,
-   deixando apenas a validade na tela e zero itens no catálogo.
-*/
-window.gcPlayProSavePlaylist = async function(name, url) {
-  const target = String(url || "").trim();
-  if (!target || !isHttpUrl(target)) {
-    throw new Error("URL da playlist ativada inválida.");
-  }
-
-  try {
-    localStorage.setItem("GC_PLAY_PRO_PLAYLIST_NAME", String(name || "GC PLAY PRO — LISTA ATIVADA"));
-    localStorage.setItem("GC_PLAY_PRO_PLAYLIST_URL", target);
-  } catch (e) {
-    console.warn("[GC ACTIVATION] não foi possível persistir a URL:", e);
-  }
-
-  const urlInput = document.getElementById("playlistUrl");
-  const nameInput = document.getElementById("playlistName");
-  if (urlInput) urlInput.value = target;
-  if (nameInput) nameInput.value = String(name || "GC PLAY PRO — LISTA ATIVADA");
-
-  updateLoadMessage("Carregando lista ativada...");
-  const ok = await loadM3U(target);
-  if (!ok) throw new Error("Não foi possível carregar a playlist ativada.");
-  return true;
-};
-
 /* =========================================================
    CARREGAR ARQUIVO M3U LOCAL
    ========================================================= */
@@ -7494,7 +7063,6 @@ async function loadFile(
   state.seriesCatalog = [];
   state.seriesCatalogMap = new Map();
   state.seriesCatalogChanged = new Set();
-  state.seriesUniqueKeys = new Set();
   state.seriesCatalogReady = false;
   state.seriesCatalogBuilding = false;
 
@@ -7578,10 +7146,18 @@ async function loadFile(
           takeSeriesCatalogUpdates()
         );
 
+        render();
+
+        updateLiveCounters();
+
         updateLoadMessage(
           `Carregando arquivo... ${formatNumber(
             processed
           )} itens`
+        );
+
+        await new Promise(
+          requestAnimationFrame
         );
       }
     }
@@ -7613,8 +7189,6 @@ async function loadFile(
     ) {
       await sleep(50);
     }
-
-    await persistSeriesCatalogSnapshot();
 
     render();
 
@@ -8328,103 +7902,50 @@ function setupLocalFileButton() {
    CARREGAR CONTADORES DO BANCO
    ========================================================= */
 
-async async function loadDatabaseStats() {
+async function loadDatabaseStats() {
   try {
-    if (!state.db) return;
+    if (!state.db) {
+      return;
+    }
 
-    const [total, live, movie, episodeCount] = await Promise.all([
+    const [
+      total,
+      live,
+      movie,
+      series
+    ] = await Promise.all([
       countAllItems(),
       countByType("live"),
       countByType("movie"),
       countByType("series")
     ]);
 
-    /*
-       SÉRIES = títulos únicos, nunca episódios.
-       Se o índice seriesCatalog estiver vazio (inclusive em bancos
-       antigos), reconstrói diretamente dos episódios já gravados.
-       Assim a tela nunca volta para 0 enquanto existem episódios.
-    */
-    let catalog = Array.isArray(state.seriesCatalog)
-      ? state.seriesCatalog
-      : [];
+    state.total =
+      total;
 
-    if (!catalog.length && episodeCount > 0) {
-      try {
-        await rebuildSeriesCatalogInBackground(true);
-        catalog = Array.isArray(state.seriesCatalog)
-          ? state.seriesCatalog
-          : [];
-      } catch (catalogError) {
-        console.warn("[GC PLAY PRO] Reconstrução automática de séries:", catalogError);
-      }
-    }
+    state.counts.live =
+      live;
 
-    if (!catalog.length && episodeCount > 0) {
-      /*
-         Último fallback: conta chaves únicas diretamente no IndexedDB.
-         Não altera os episódios nem depende do catálogo derivado.
-      */
-      try {
-        const unique = new Set();
-
-        await new Promise((resolve, reject) => {
-          const tx = state.db.transaction(STORE_NAME, "readonly");
-          const request = tx.objectStore(STORE_NAME).openCursor();
-
-          request.onsuccess = event => {
-            const cursor = event.target.result;
-            if (!cursor) {
-              resolve();
-              return;
-            }
-
-            const item = cursor.value;
-            if (item?.type === "series") {
-              const info = extractSeriesInfo(item);
-              const title =
-                info?.seriesName ||
-                item.seriesName ||
-                item.name ||
-                "";
-
-              const key = normalizeText(
-                canonicalSeriesTitle(title)
-              );
-
-              if (key) unique.add(key);
-            }
-
-            cursor.continue();
-          };
-
-          request.onerror = () => reject(request.error);
-          tx.onerror = () => reject(tx.error);
-        });
-
-        state.seriesUniqueKeys = unique;
-      } catch (fallbackError) {
-        console.warn("[GC PLAY PRO] Fallback de contagem de séries:", fallbackError);
-      }
-    }
-
-    state.total = total;
-    state.counts.live = live;
-    state.counts.movie = movie;
+    state.counts.movie =
+      movie;
 
     /*
-       O contador exibido é sempre o número de séries únicas.
-       episodeCount continua representando episódios no banco.
+       "series" representa séries únicas, não episódios.
+       Enquanto o catálogo ainda está sendo reconstruído, usamos
+       o contador bruto apenas como valor transitório.
     */
     state.counts.series =
-      catalog.length ||
-      (state.seriesUniqueKeys instanceof Set
-        ? state.seriesUniqueKeys.size
-        : 0);
+      state.seriesCatalogReady
+        ? state.seriesCatalog.length
+        : series;
 
     renderStats();
+
   } catch (error) {
-    console.error("Erro carregando estatísticas:", error);
+    console.error(
+      "Erro carregando estatísticas:",
+      error
+    );
   }
 }
 
@@ -8472,16 +7993,13 @@ async function loadLocalCatalog() {
     state.items = await loadSample(RAM_LIMIT);
     state.seriesItemsCache = null;
 
-    /*
-       Samsung/Tizen: NÃO faça getAll() do catálogo de séries na abertura.
-       A biblioteca pode ter centenas de milhares de episódios e esse
-       getAll() congela o navegador da TV. Os episódios permanecem no
-       IndexedDB e serão consultados quando a seção Séries for aberta.
-    */
-    const storedSeries = GC_IS_SAMSUNG_TV
-      ? []
-      : await loadSeriesCatalogFromDB();
+    const storedSeries = await loadSeriesCatalogFromDB();
 
+    /*
+       Consolida também catálogos antigos. Assim uma playlist
+       que já foi importada antes da correção não precisa ser
+       baixada novamente só para juntar os episódios.
+    */
     const mergedSeries = new Map();
     const aliases = new Map();
 
@@ -8526,12 +8044,7 @@ async function loadLocalCatalog() {
     state.seriesCatalogMap = new Map(
       state.seriesCatalog.map(item => [item.seriesKey, item])
     );
-    /*
-       No Samsung, a ausência do catálogo agregado NÃO significa
-       ausência de episódios. O contador continua vindo do índice
-       "type" do IndexedDB e a seção Séries será carregada sob demanda.
-    */
-    state.seriesCatalogReady = !GC_IS_SAMSUNG_TV && state.seriesCatalog.length > 0;
+    state.seriesCatalogReady = state.seriesCatalog.length > 0;
 
     try {
       const saved = JSON.parse(localStorage.getItem("GC_PLAY_PRO_GROUPS_V1") || "[]");
@@ -8554,59 +8067,25 @@ async function loadLocalCatalog() {
     renderGenreFilters();
     render();
 
-    if (!GC_IS_SAMSUNG_TV) {
-      /*
-         V7: corrige instalações que já tinham a migração antiga marcada
-         como concluída, mas cujo catálogo agrupado ficou vazio.
-         Não conta episódios: reconstrói 1 entrada por série.
-      */
-      const seriesCatalogRepairKey = "GC_PLAY_PRO_SERIES_CATALOG_REPAIR_V7";
+    const migrationKey = "GC_PLAY_PRO_SERIES_MIGRATION_V3";
+    let migrated = false;
+
+    try {
+      migrated = localStorage.getItem(migrationKey) === "1";
+    } catch {}
+
+    if (!migrated) {
       setTimeout(async () => {
+        await rebuildSeriesCatalogInBackground(true);
+
         try {
-          const rawSeriesCount = await countByType("series");
-          const catalogCount = Array.isArray(state.seriesCatalog)
-            ? state.seriesCatalog.length
-            : 0;
-
-          if (rawSeriesCount > 0 && catalogCount === 0) {
-            console.log("[GC PLAY PRO] V7: reconstruindo catálogo de séries...");
-            await rebuildSeriesCatalogInBackground(true);
-            state.counts.series = Array.isArray(state.seriesCatalog)
-              ? state.seriesCatalog.length
-              : 0;
-            await loadDatabaseStats();
-            renderStats();
-            render();
-          }
-
-          try {
-            localStorage.setItem(seriesCatalogRepairKey, "1");
-          } catch {}
-        } catch (error) {
-          console.warn("[GC PLAY PRO] V7 catálogo de séries:", error);
-        }
-      }, 100);
-
-      const migrationKey = "GC_PLAY_PRO_SERIES_MIGRATION_V3";
-      let migrated = false;
-
-      try {
-        migrated = localStorage.getItem(migrationKey) === "1";
-      } catch {}
-
-      if (!migrated) {
-        setTimeout(async () => {
-          await rebuildSeriesCatalogInBackground(true);
-
-          try {
-            localStorage.setItem(migrationKey, "1");
-          } catch {}
-        }, 50);
-      } else if (needsSeriesCatalogMigration(state.seriesCatalog)) {
-        setTimeout(() => {
-          rebuildSeriesCatalogInBackground(true);
-        }, 50);
-      }
+          localStorage.setItem(migrationKey, "1");
+        } catch {}
+      }, 50);
+    } else if (needsSeriesCatalogMigration(state.seriesCatalog)) {
+      setTimeout(() => {
+        rebuildSeriesCatalogInBackground(true);
+      }, 50);
     }
   } catch (error) {
     console.error("Erro carregando catálogo:", error);
@@ -8771,23 +8250,11 @@ function setupKeyboardNavigation() {
           const id =
             focused.dataset.itemId;
 
-          let item = null;
-          try {
-            const dynamic = window.__GC_DYNAMIC_ITEMS__;
-            if (dynamic instanceof Map) item = dynamic.get(String(id)) || null;
-          } catch {}
-          if (!item) item = findRAMItem(id);
-
-          Promise.resolve(item || findItem(id))
-            .then(found => {
-              if (found && found.url) {
-                return playItem(found);
+          findItem(id)
+            .then(item => {
+              if (item) {
+                playItem(item);
               }
-              toast("Não foi possível localizar este conteúdo.");
-            })
-            .catch(error => {
-              console.error("[GC PLAY PRO] abertura pelo controle remoto:", error);
-              toast("Erro ao abrir o conteúdo.");
             });
         }
       }
@@ -8950,7 +8417,6 @@ async function clearCatalog() {
     state.seriesCatalog = [];
     state.seriesCatalogMap = new Map();
     state.seriesCatalogChanged = new Set();
-    state.seriesUniqueKeys = new Set();
     state.seriesCatalogReady = false;
     state.seriesCatalogBuilding = false;
 
@@ -9222,8 +8688,6 @@ function setupPlaylistButtonFallback() {
 }
 
 async function initApp() {
-  /* Restaurar estado persistente antes de abrir banco/formulário. */
-  loadState();
 
   /* A camada de UI é a única responsável pelos botões de navegação. */
 
@@ -9296,26 +8760,24 @@ async function initApp() {
        A correção de categorias roda em segundo plano para que uma
        biblioteca grande não bloqueie a abertura do aplicativo.
     */
-    if (!GC_IS_SAMSUNG_TV) {
-      migrateCatalogTypes()
-        .then(async changed => {
-          if (changed > 0) {
-            state.seriesCatalog = [];
-            state.seriesCatalogMap = new Map();
-            state.seriesCatalogReady = false;
-            state.seriesItemsCache = null;
+    migrateCatalogTypes()
+      .then(async changed => {
+        if (changed > 0) {
+          state.seriesCatalog = [];
+          state.seriesCatalogMap = new Map();
+          state.seriesCatalogReady = false;
+          state.seriesItemsCache = null;
 
-            await rebuildSeriesCatalogInBackground(true);
-            await buildGenreCatalog();
-            await loadDatabaseStats();
-            renderGenreFilters();
-            await render();
-          }
-        })
-        .catch(error => {
-          console.warn("[GC PLAY PRO] Migração de categorias:", error);
-        });
-    }
+          await rebuildSeriesCatalogInBackground(true);
+          await buildGenreCatalog();
+          await loadDatabaseStats();
+          renderGenreFilters();
+          await render();
+        }
+      })
+      .catch(error => {
+        console.warn("[GC PLAY PRO] Migração de categorias:", error);
+      });
 
     console.log(
       "IndexedDB conectado."
@@ -9339,55 +8801,6 @@ async function initApp() {
      ------------------------------------------------------- */
 
   await loadLocalCatalog();
-
-  /*
-     RESTAURAÇÃO REAL DA PLAYLIST:
-     no diagnóstico Samsung, a interface possuía a URL/validade salva,
-     mas IndexedDB estava vazio e não havia sessão Xtream em memória.
-     Isso deixa a tela com "validade" sem catálogo.
-     Se existe uma playlist salva e o banco não contém itens, refazemos
-     UMA importação nesta sessão. Não altera reprodução nem renderização.
-  */
-  if (GC_IS_SAMSUNG_TV && state.items.length === 0 && !state.loading) {
-    let savedPlaylist = getSavedPlaylist();
-
-    /*
-       Se o navegador preservou a sessão Xtream, mas a URL M3U não foi
-       preservada, reconstruímos a URL padrão get.php a partir da sessão.
-       Isso recupera a biblioteca sem depender do IndexedDB antigo.
-    */
-    if (!savedPlaylist && state.xtreamSession?.base && state.xtreamSession?.username && state.xtreamSession?.password) {
-      try {
-        const u = new URL(state.xtreamSession.base + "/get.php");
-        u.searchParams.set("username", state.xtreamSession.username);
-        u.searchParams.set("password", state.xtreamSession.password);
-        u.searchParams.set("type", "m3u_plus");
-        u.searchParams.set("output", state.xtreamSession.liveExtension === "ts" ? "ts" : "m3u8");
-        savedPlaylist = {
-          url: u.toString(),
-          name: "Minha Playlist"
-        };
-      } catch {}
-    }
-
-    let alreadyTried = false;
-    try {
-      alreadyTried = sessionStorage.getItem("GC_PLAY_PRO_SAMSUNG_RESTORE_TRIED") === "1";
-    } catch {}
-
-    if (savedPlaylist?.url && !alreadyTried) {
-      try {
-        sessionStorage.setItem("GC_PLAY_PRO_SAMSUNG_RESTORE_TRIED", "1");
-      } catch {}
-
-      updateLoadMessage("Restaurando a playlist salva...");
-      setTimeout(() => {
-        loadM3U(savedPlaylist.url).catch(error => {
-          console.error("[GC PLAY PRO] Restauração Samsung falhou:", error);
-        });
-      }, 250);
-    }
-  }
 
   /* -------------------------------------------------------
      ESTATÍSTICAS
@@ -9439,82 +8852,3 @@ if (
 
 /* GC AI — CHAT + VOZ + AÇÕES */
 (function installGCAI(){const AI_URL="https://kuzgdvpdqmocklsgyzvt.supabase.co/functions/v1/gc-ai";let recognition=null,listening=false;const qs=s=>document.querySelector(s);const messages=()=>qs("#gcAiMessages");function addMessage(text,who="bot"){const box=messages();if(!box)return;const el=document.createElement("div");el.className="gc-ai-message "+(who==="user"?"gc-ai-user":"gc-ai-bot");el.textContent=String(text||"");box.appendChild(el);box.scrollTop=box.scrollHeight}function setStatus(text){const el=qs("#gcAiStatus");if(el)el.textContent="● "+text}function openAI(){qs("#gcAiPanel")?.classList.add("open");qs("#gcAiInput")?.focus()}function closeAI(){qs("#gcAiPanel")?.classList.remove("open")}function clickSection(section){const btn=document.querySelector('.nav-item[data-section="'+section+'"]');if(btn){btn.click();return true}return false}async function localAction(raw){const t=normalizeText(raw),video=qs("#videoPlayer");if(/(abra|abrir|va para|ir para|mostre).*(tv|canais?|ao vivo)/.test(t)){clickSection("live");return"Abri a TV ao vivo."}if(/(abra|abrir|va para|ir para|mostre).*(filme|filmes)/.test(t)){clickSection("movies");return"Abri os filmes."}if(/(abra|abrir|va para|ir para|mostre).*(serie|series)/.test(t)){clickSection("series");return"Abri as séries."}if(/(abra|abrir|va para|ir para|mostre).*(inicio|home)/.test(t)){clickSection("home");return"Voltei para o início."}if(/(pausar|pause|pare|parar)/.test(t)&&video){video.pause();return"Reprodução pausada."}if(/(continuar|continue|reproduzir|play|tocar)/.test(t)&&video){try{await video.play();return"Retomei a reprodução."}catch{}}if(/(tela cheia|fullscreen|full screen)/.test(t)){const target=qs("#playerPanel")||video;try{if(document.fullscreenElement)await document.exitFullscreen();else await target.requestFullscreen?.();return"Alternância de tela cheia executada."}catch{}}if(/(fechar|sair).*(player|video|reproducao|reprodução)/.test(t)){qs("#closePlayer")?.click();return"Fechei o player."}if(/(buscar|pesquisar|procure|procurar|encontre|encontrar)/.test(t)){let term=raw.replace(/^(.*?)(buscar|pesquisar|procure|procurar|encontre|encontrar)\s+/i,"").trim().replace(/^(por|o|a|um|uma)\s+/i,"").trim();qs("#searchButton")?.click();const input=qs("#globalSearch");if(input&&term){input.value=term;input.dispatchEvent(new Event("input",{bubbles:true}))}return term?'Pesquisando por "'+term+'".':"Abri a pesquisa."}return null}async function askAI(raw){const action=await localAction(raw);if(action){addMessage(action);return}setStatus("PENSANDO...");try{const s=window.__GC_STATE__||{},v=qs("#videoPlayer");const context={app:"GC PLAY PRO",section:s.currentSection||null,currentItem:s.currentItem?{name:s.currentItem.name,type:s.currentItem.type,group:s.currentItem.group,xtreamStreamId:s.currentItem.xtreamStreamId||null}:null,catalogCounts:s.counts||null,playback:{paused:!!v?.paused}};const response=await fetch(AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:raw,context})});const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(data.error||"Falha ao consultar a IA.");addMessage(data.reply||"Não consegui gerar uma resposta.");setStatus("PRONTO")}catch(error){addMessage("O cérebro do GC AI ainda não está configurado. "+(error?.message||""));setStatus("IA INDISPONÍVEL")}}function initVoice(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition,button=qs("#gcAiVoice");if(!button)return;if(!SR){button.title="Reconhecimento de voz não disponível neste dispositivo";return}recognition=new SR();recognition.lang="pt-BR";recognition.interimResults=false;recognition.continuous=false;recognition.onstart=()=>{listening=true;button.classList.add("listening");setStatus("OUVINDO...")};recognition.onend=()=>{listening=false;button.classList.remove("listening");if(qs("#gcAiStatus")?.textContent.includes("OUVINDO"))setStatus("PRONTO")};recognition.onerror=()=>{listening=false;button.classList.remove("listening");setStatus("ERRO DE VOZ")};recognition.onresult=async e=>{const text=e.results?.[0]?.[0]?.transcript?.trim();if(!text)return;addMessage(text,"user");await askAI(text)};button.addEventListener("click",()=>{try{if(listening)recognition.stop();else recognition.start()}catch{}})}function init(){const open=qs("#gcAiOpen"),close=qs("#gcAiClose"),form=qs("#gcAiForm"),input=qs("#gcAiInput");open?.addEventListener("click",openAI);close?.addEventListener("click",closeAI);form?.addEventListener("submit",async e=>{e.preventDefault();const text=input?.value?.trim();if(!text)return;input.value="";addMessage(text,"user");await askAI(text)});document.querySelectorAll("[data-gc-ai-quick]").forEach(btn=>btn.addEventListener("click",()=>{const text=btn.dataset.gcAiQuick;addMessage(text,"user");askAI(text)}));initVoice()}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();window.GCAI={open:openAI,close:closeAI,ask:askAI}})();
-
-
-/* GC SAMSUNG DIAGNOSTIC v1 */
-(function installGCSamsungDiagnostic(){
-  try{
-    if(!GC_IS_SAMSUNG_TV) return;
-    if(window.__GC_SAMSUNG_DIAG__) return;
-    window.__GC_SAMSUNG_DIAG__=true;
-    const box=document.createElement("div");
-    box.id="gcSamsungDiag";
-    Object.assign(box.style,{position:"fixed",top:"8px",left:"8px",zIndex:"2147483647",background:"rgba(0,0,0,.94)",color:"#69ff65",font:"12px/1.35 monospace",padding:"10px",border:"1px solid #69ff65",borderRadius:"8px",maxWidth:"92vw",maxHeight:"42vh",overflow:"auto",whiteSpace:"pre-wrap",pointerEvents:"none"});
-    document.body.appendChild(box);
-    let probeDone=false, probeText="aguardando";
-    async function dbLiveCount(){
-      try{
-        if(!state.db) return "DB: ainda não aberto";
-        return await new Promise(resolve=>{
-          const tx=state.db.transaction(STORE_NAME,"readonly");
-          const st=tx.objectStore(STORE_NAME);
-          const idx=st.indexNames.contains("type")?st.index("type"):null;
-          if(!idx){resolve("DB live: índice type ausente");return;}
-          const req=idx.count(IDBKeyRange.only("live"));
-          req.onsuccess=()=>resolve("DB live: "+req.result);
-          req.onerror=()=>resolve("DB live: ERRO "+(req.error?.message||"count"));
-        });
-      }catch(e){return "DB live: EX "+(e?.message||e)}
-    }
-    async function probe(){
-      if(probeDone) return;
-      probeDone=true;
-      try{
-        if(typeof fetchSamsungLiveDirect!=="function"){probeText="Xtream live probe: função não encontrada";return}
-        const rows=await fetchSamsungLiveDirect(20);
-        probeText="Xtream live probe: "+(Array.isArray(rows)?rows.length:"RESPOSTA INVÁLIDA");
-      }catch(e){probeText="Xtream live probe: ERRO "+(e?.message||e)}
-    }
-    async function paint(){
-      const liveRam=Array.isArray(state.items)?state.items.filter(x=>x&&x.type==="live").length:0;
-      const cards=document.querySelectorAll('[data-item-id],.content-card,.channel-card,.media-card').length;
-      const keys=Object.keys(state).filter(k=>/session|xtream/i.test(k));
-      const session=state.xtreamSession||state.xtream?.session||state.session||null;
-      const meta=state.playlistMeta||{};
-      const lines=[
-        "GC DIAGNÓSTICO SAMSUNG",
-        "UA: "+(navigator.userAgent||"").slice(0,120),
-        "Samsung/Tizen: "+GC_IS_SAMSUNG_TV,
-        "section/filter: "+state.currentSection+" / "+state.currentFilter,
-        "playlist URL: "+(meta.url?"SIM":"NÃO"),
-        "state.items: "+(Array.isArray(state.items)?state.items.length:0),
-        "RAM live: "+liveRam,
-        "counts.live: "+(state.counts?.live??"n/a"),
-        "counts.movie/series: "+(state.counts?.movie??"n/a")+" / "+(state.counts?.series??"n/a"),
-        "total: "+(state.total??"n/a"),
-        "session encontrada: "+!!session,
-        "chaves session/xtream: "+(keys.join(",")||"nenhuma"),
-        "cards DOM: "+cards,
-        "render diag: "+(window.__GC_RENDER_DIAG__?.lastRender||"none"),
-        "JS error: "+(window.__GC_RENDER_DIAG__?.lastError||"none"),
-        "promise error: "+(window.__GC_RENDER_DIAG__?.lastUnhandled||"none"),
-        probeText,
-        await dbLiveCount()
-      ];
-      box.textContent=lines.join("\n");
-      probe();
-    }
-    setTimeout(paint,1500);
-    setInterval(paint,1500);
-  }catch(e){console.error("[GC DIAG]",e)}
-})();
-
-
-/* GC SAMSUNG RENDER DIAGNOSTIC v1 */
-(function(){
-  if(!GC_IS_SAMSUNG_TV) return;
-  window.__GC_RENDER_DIAG__={lastError:"",lastUnhandled:"",lastQuery:"",lastRender:""};
-  const put=(kind,value)=>{window.__GC_RENDER_DIAG__[kind]=String(value||"").slice(0,500);};
-  window.addEventListener("error",e=>put("lastError",e.error?.stack||e.message));
-  window.addEventListener("unhandledrejection",e=>put("lastUnhandled",e.reason?.stack||e.reason?.message||e.reason));
-})();
