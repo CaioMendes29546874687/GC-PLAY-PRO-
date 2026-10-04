@@ -7302,9 +7302,18 @@ async function loadM3U(
     );
 
     /*
-       Não bloqueamos a interface durante
-       todo o processo de gravação.
+       Antes de mostrar o resultado final, garantimos que todas as
+       gravações terminaram e que o catálogo compacto de séries foi
+       persistido. Assim o contador nunca aparece como 0 por uma
+       condição de corrida.
     */
+    while (writeProcessing || writeQueue.length) {
+      await sleep(100);
+    }
+
+    await persistSeriesCatalogSnapshot();
+
+    await loadDatabaseStats();
 
     if (processed === 0) {
       throw new Error(
@@ -8401,50 +8410,49 @@ function setupLocalFileButton() {
 
 async function loadDatabaseStats() {
   try {
-    if (!state.db) {
-      return;
-    }
+    if (!state.db) return;
 
-    const [
-      total,
-      live,
-      movie,
-      series
-    ] = await Promise.all([
+    const [total, live, movie] = await Promise.all([
       countAllItems(),
       countByType("live"),
-      countByType("movie"),
-      countByType("series")
+      countByType("movie")
     ]);
 
-    state.total =
-      total;
+    /* A contagem de séries NUNCA vem do índice "type":
+       esse índice conta episódios. O número correto é o tamanho
+       do catálogo agrupado, uma entrada por série. */
+    let catalog = Array.isArray(state.seriesCatalog)
+      ? state.seriesCatalog
+      : [];
 
-    state.counts.live =
-      live;
+    if (!catalog.length) {
+      try {
+        catalog = await loadSeriesCatalogFromDB();
+        if (catalog.length) {
+          state.seriesCatalog = catalog;
+          state.seriesCatalogMap = new Map(
+            catalog.map(item => [item.seriesKey, item])
+          );
+          state.seriesCatalogReady = true;
+          state.seriesItemsCache = catalog;
+        }
+      } catch (catalogError) {
+        console.warn("[GC PLAY PRO] Não foi possível ler catálogo de séries:", catalogError);
+      }
+    }
 
-    state.counts.movie =
-      movie;
-
-    /*
-       "series" representa séries únicas, não episódios.
-       Enquanto o catálogo ainda está sendo reconstruído, usamos
-       o contador bruto apenas como valor transitório.
-    */
+    state.total = total;
+    state.counts.live = live;
+    state.counts.movie = movie;
     state.counts.series =
-      state.seriesCatalog.length
-        ? state.seriesCatalog.length
-        : (state.seriesUniqueKeys instanceof Set
-            ? state.seriesUniqueKeys.size
-            : 0);
+      catalog.length ||
+      (state.seriesUniqueKeys instanceof Set
+        ? state.seriesUniqueKeys.size
+        : 0);
 
     renderStats();
-
   } catch (error) {
-    console.error(
-      "Erro carregando estatísticas:",
-      error
-    );
+    console.error("Erro carregando estatísticas:", error);
   }
 }
 
