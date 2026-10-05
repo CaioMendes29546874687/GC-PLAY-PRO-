@@ -9130,6 +9130,27 @@ async function initApp() {
 
   await loadLocalCatalog();
 
+  /*
+     AUTO-RESTORE DA PLAYLIST:
+     Se o navegador ainda tem uma URL M3U salva, mas o IndexedDB
+     foi limpo/incompleto (troca de versão, limpeza de cache ou
+     atualização do navegador), não deixe o site abrir vazio.
+     Reimportamos automaticamente a playlist salva.
+  */
+  try {
+    const savedPlaylist = getSavedPlaylist();
+    if (
+      savedPlaylist?.url &&
+      Number(state.total || 0) === 0 &&
+      !state.loading
+    ) {
+      updateLoadMessage("Restaurando sua playlist...");
+      await loadM3U(savedPlaylist.url);
+    }
+  } catch (error) {
+    console.warn("[GC PLAY PRO] Auto-restauração da playlist:", error);
+  }
+
   /* -------------------------------------------------------
      ESTATÍSTICAS
      ------------------------------------------------------- */
