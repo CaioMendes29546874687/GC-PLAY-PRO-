@@ -4788,12 +4788,18 @@ async function playItem(item) {
         ? liveTsUrl
         : "";
 
+    const liveDirectHlsFallback =
+      item.xtreamKind === "live" && liveHlsUrl !== sourceUrl
+        ? liveHlsUrl
+        : (item.xtreamKind === "live" && isHLS(originalUrl) && originalUrl !== sourceUrl ? originalUrl : "");
+
     await playHLS(
       video,
       playbackUrl,
       message,
       liveTsProxyFallback,
-      liveTsDirectFallback
+      liveTsDirectFallback,
+      liveDirectHlsFallback
     );
 
     return;
@@ -5037,8 +5043,49 @@ async function playHLS(
   url,
   message,
   mpegtsFallbackUrl = "",
-  directMpegtsFallbackUrl = ""
+  directMpegtsFallbackUrl = "",
+  directHlsFallbackUrl = ""
 ) {
+  /* Alguns servidores aceitam HLS direto, mas o proxy pode falhar
+     na reescrita do manifesto/segmentos. Antes de cair para MPEG-TS,
+     tentamos uma única vez o HLS direto com o loader padrão. */
+  let directHlsStarted = false;
+  const tryDirectHlsFallback = async () => {
+    if (!directHlsFallbackUrl || directHlsStarted || directHlsFallbackUrl === url) return false;
+    directHlsStarted = true;
+    try {
+      if (state.hls) { state.hls.destroy(); state.hls = null; }
+      if (message) message.textContent = "Tentando conexão HLS direta...";
+      const HlsDirect = await loadHLS();
+      if (!HlsDirect?.isSupported()) throw new Error("HLS.js indisponível");
+      const direct = new HlsDirect({
+        enableWorker: true,
+        backBufferLength: 12,
+        lowLatencyMode: false,
+        maxBufferLength: 12,
+        maxMaxBufferLength: 24,
+        liveSyncDurationCount: 3,
+        liveMaxLatencyDurationCount: 8,
+        fragLoadingTimeOut: 15000,
+        manifestLoadingTimeOut: 15000,
+        levelLoadingTimeOut: 15000
+      });
+      state.hls = direct;
+      direct.on(HlsDirect.Events.MANIFEST_PARSED, async () => {
+        if (state.settings.autoplay) { try { await video.play(); } catch {} }
+      });
+      direct.on(HlsDirect.Events.FRAG_BUFFERED, () => { if (message) message.textContent = ""; });
+      direct.on(HlsDirect.Events.ERROR, (event, data) => {
+        if (data?.fatal && message) message.textContent = "HLS direto também falhou.";
+      });
+      direct.attachMedia(video);
+      direct.loadSource(directHlsFallbackUrl);
+      return true;
+    } catch (error) {
+      console.warn("[GC PLAY PRO] HLS direto falhou:", error);
+      return false;
+    }
+  };
   let startupTimer = null;
   let fallbackStarted = false;
 
@@ -5243,10 +5290,11 @@ async function playHLS(
 
     /* HLS sem primeiro frame também troca de transporte cedo,
        evitando a tela de carregamento indefinida. */
-    startupTimer = setTimeout(() => {
+    startupTimer = setTimeout(async () => {
       if (video.readyState >= 2 || video.videoWidth > 0) return;
+      if (await tryDirectHlsFallback()) return;
       startMpegTSFallback();
-    }, 8000);
+    }, 6000);
 
     hls.on(
       Hls.Events.ERROR,
@@ -5281,6 +5329,7 @@ async function playHLS(
             } catch {}
           }
 
+          if (await tryDirectHlsFallback()) return;
           if (mpegtsFallbackUrl && !fallbackStarted) {
             startMpegTSFallback();
             return;
