@@ -30,8 +30,11 @@ const SERIES_STORE = "seriesCatalog";
 
 const RAM_LIMIT = 4000;
 const WRITE_BATCH = 20000;
-const FIRST_PAINT_BATCH = 1000;
-const UI_RENDER_INTERVAL = 2500;
+/* Primeira pintura agressiva: não espere 1000 itens para mostrar a biblioteca. */
+const FIRST_PAINT_BATCH = 150;
+const UI_RENDER_INTERVAL = 1500;
+const CACHE_META_KEY = "GC_PLAY_PRO_CATALOG_META_V2";
+const CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 const WRITE_QUEUE_LIMIT = 3;
 const RESUME_KEY = "GC_PLAY_PRO_RESUME_V1";
 
@@ -85,6 +88,10 @@ const state = {
   dash: null,
 
   seriesItemsCache: null,
+
+  /* Chaves únicas usadas durante a importação para que o contador
+     de séries nunca conte episódios como séries individuais. */
+  importSeriesKeys: new Set(),
 
   seriesCatalog: [],
   seriesCatalogMap: new Map(),
@@ -1604,15 +1611,27 @@ async function tryLoadXtreamFast(url, signal) {
        filmes/séries para depois. Isso fazia a interface parecer
        que a lista tinha somente canais.
     */
-    const results = await Promise.allSettled([
+    /*
+       PRIMEIRO PAINT: não espere filmes e séries para liberar a
+       interface. Login + TV ao vivo são suficientes para validar a
+       sessão e mostrar o catálogo imediatamente. Filmes e séries usam
+       ensureXtreamSectionLoaded() em segundo plano depois.
+    */
+    const liveResults = await Promise.allSettled([
       fetchXtreamJSON(session, "", signal),
       fetchXtreamJSON(session, "get_live_categories", signal),
-      fetchXtreamJSON(session, "get_live_streams", signal),
-      fetchXtreamJSON(session, "get_vod_categories", signal),
-      fetchXtreamJSON(session, "get_vod_streams", signal),
-      fetchXtreamJSON(session, "get_series_categories", signal),
-      fetchXtreamJSON(session, "get_series", signal)
+      fetchXtreamJSON(session, "get_live_streams", signal)
     ]);
+
+    const results = [
+      liveResults[0],
+      liveResults[1],
+      liveResults[2],
+      null,
+      null,
+      null,
+      null
+    ];
 
     if (signal?.aborted) {
       throw new DOMException("Operação cancelada", "AbortError");
@@ -4665,13 +4684,15 @@ async function playItem(item) {
   const gcAndroidLike =
     /Android|Android TV/i.test(navigator.userAgent || "");
 
+  /*
+     TV Xtream: HLS (.m3u8) passa a ser o transporte principal em
+     todos os navegadores. É mais compatível com Android/TV e evita
+     depender do MPEG-TS/MSE logo no primeiro frame. MPEG-TS continua
+     disponível como fallback dentro de playHLS().
+  */
   const sourceUrl =
     item.xtreamKind === "live"
-      ? (
-          gcAndroidLike
-            ? liveTsUrl
-            : (liveExtension === "ts" ? liveTsUrl : liveHlsUrl)
-        )
+      ? liveHlsUrl
       : originalUrl;
 
   video.playbackRate =
@@ -4767,12 +4788,18 @@ async function playItem(item) {
         ? liveTsUrl
         : "";
 
+    const liveDirectHlsFallback =
+      item.xtreamKind === "live" && liveHlsUrl !== sourceUrl
+        ? liveHlsUrl
+        : (item.xtreamKind === "live" && isHLS(originalUrl) && originalUrl !== sourceUrl ? originalUrl : "");
+
     await playHLS(
       video,
       playbackUrl,
       message,
       liveTsProxyFallback,
-      liveTsDirectFallback
+      liveTsDirectFallback,
+      liveDirectHlsFallback
     );
 
     return;
@@ -5016,8 +5043,49 @@ async function playHLS(
   url,
   message,
   mpegtsFallbackUrl = "",
-  directMpegtsFallbackUrl = ""
+  directMpegtsFallbackUrl = "",
+  directHlsFallbackUrl = ""
 ) {
+  /* Alguns servidores aceitam HLS direto, mas o proxy pode falhar
+     na reescrita do manifesto/segmentos. Antes de cair para MPEG-TS,
+     tentamos uma única vez o HLS direto com o loader padrão. */
+  let directHlsStarted = false;
+  const tryDirectHlsFallback = async () => {
+    if (!directHlsFallbackUrl || directHlsStarted || directHlsFallbackUrl === url) return false;
+    directHlsStarted = true;
+    try {
+      if (state.hls) { state.hls.destroy(); state.hls = null; }
+      if (message) message.textContent = "Tentando conexão HLS direta...";
+      const HlsDirect = await loadHLS();
+      if (!HlsDirect?.isSupported()) throw new Error("HLS.js indisponível");
+      const direct = new HlsDirect({
+        enableWorker: true,
+        backBufferLength: 12,
+        lowLatencyMode: false,
+        maxBufferLength: 12,
+        maxMaxBufferLength: 24,
+        liveSyncDurationCount: 3,
+        liveMaxLatencyDurationCount: 8,
+        fragLoadingTimeOut: 15000,
+        manifestLoadingTimeOut: 15000,
+        levelLoadingTimeOut: 15000
+      });
+      state.hls = direct;
+      direct.on(HlsDirect.Events.MANIFEST_PARSED, async () => {
+        if (state.settings.autoplay) { try { await video.play(); } catch {} }
+      });
+      direct.on(HlsDirect.Events.FRAG_BUFFERED, () => { if (message) message.textContent = ""; });
+      direct.on(HlsDirect.Events.ERROR, (event, data) => {
+        if (data?.fatal && message) message.textContent = "HLS direto também falhou.";
+      });
+      direct.attachMedia(video);
+      direct.loadSource(directHlsFallbackUrl);
+      return true;
+    } catch (error) {
+      console.warn("[GC PLAY PRO] HLS direto falhou:", error);
+      return false;
+    }
+  };
   let startupTimer = null;
   let fallbackStarted = false;
 
@@ -5222,10 +5290,11 @@ async function playHLS(
 
     /* HLS sem primeiro frame também troca de transporte cedo,
        evitando a tela de carregamento indefinida. */
-    startupTimer = setTimeout(() => {
+    startupTimer = setTimeout(async () => {
       if (video.readyState >= 2 || video.videoWidth > 0) return;
+      if (await tryDirectHlsFallback()) return;
       startMpegTSFallback();
-    }, 8000);
+    }, 6000);
 
     hls.on(
       Hls.Events.ERROR,
@@ -5260,6 +5329,7 @@ async function playHLS(
             } catch {}
           }
 
+          if (await tryDirectHlsFallback()) return;
           if (mpegtsFallbackUrl && !fallbackStarted) {
             startMpegTSFallback();
             return;
@@ -6480,7 +6550,14 @@ function processParsedItem(
   } else if (item.type === "movie") {
     state.counts.movie++;
   } else if (item.type === "series") {
-    state.counts.series++;
+    /* Uma série pode aparecer centenas de vezes (um registro por episódio).
+       O contador precisa representar séries únicas, não episódios. */
+    const info = getDerivedSeriesInfo(item);
+    const key = normalizeText(
+      info.seriesKey || info.seriesName || item.seriesName || item.name || item.url
+    );
+    if (key) state.importSeriesKeys.add(key);
+    state.counts.series = state.importSeriesKeys.size;
   }
 
   /*
@@ -6493,6 +6570,142 @@ function processParsedItem(
 
   if (state.items.length < RAM_LIMIT) {
     state.items.push(item);
+  }
+}
+
+/* =========================================================
+   CACHE LOCAL — RESTAURAÇÃO INSTANTÂNEA
+   ========================================================= */
+
+/*
+   Para listas gigantes, nunca obrigue o usuário a baixar/parsingar
+   novamente uma playlist que já está no aparelho. O IndexedDB é o
+   catálogo persistente; o snapshot abaixo guarda somente metadados
+   pequenos para que a primeira tela possa ser restaurada sem contar
+   centenas de milhares de registros.
+*/
+function saveCatalogCacheMeta(url) {
+  try {
+    localStorage.setItem(
+      CACHE_META_KEY,
+      JSON.stringify({
+        url: String(url || "").trim(),
+        updatedAt: Date.now(),
+        total: Number(state.total || 0),
+        counts: {
+          live: Number(state.counts?.live || 0),
+          movie: Number(state.counts?.movie || 0),
+          series: Number(
+            state.seriesCatalogReady
+              ? state.seriesCatalog.length
+              : state.counts?.series || 0
+          )
+        }
+      })
+    );
+  } catch {}
+}
+
+function getCatalogCacheMeta(url) {
+  try {
+    const raw = localStorage.getItem(CACHE_META_KEY);
+    if (!raw) return null;
+
+    const meta = JSON.parse(raw);
+    if (!meta || String(meta.url || "").trim() !== String(url || "").trim()) {
+      return null;
+    }
+
+    if (!Number.isFinite(Number(meta.updatedAt))) return null;
+
+    return meta;
+  } catch {
+    return null;
+  }
+}
+
+async function tryRestoreCatalogInstant(url) {
+  const meta = getCatalogCacheMeta(url);
+  if (!meta) return false;
+
+  /*
+     Não confie somente no snapshot: confirme que o banco realmente
+     possui dados. Se o navegador limpou o IndexedDB, seguimos pela
+     rede normalmente.
+  */
+  try {
+    if (!state.db) {
+      state.db = await openDB();
+    }
+
+    const sample = await loadSample(Math.min(RAM_LIMIT, 1200));
+    if (!sample.length) return false;
+
+    state.items = sample;
+    state.seriesItemsCache = null;
+
+    try {
+      const savedGroups = JSON.parse(
+        localStorage.getItem("GC_PLAY_PRO_GROUPS_V1") || "[]"
+      );
+      state.groups = Array.isArray(savedGroups) ? savedGroups : [];
+    } catch {
+      state.groups = [];
+    }
+
+    state.groupsReady = state.groups.length > 0;
+
+    const counts = meta.counts || {};
+    state.counts = {
+      live: Number(counts.live || 0),
+      movie: Number(counts.movie || 0),
+      series: Number(counts.series || 0)
+    };
+
+    state.total = Number(
+      meta.total ||
+      state.counts.live + state.counts.movie + state.counts.series
+    );
+
+    state.seriesCatalog = [];
+    state.seriesCatalogMap = new Map();
+    state.seriesCatalogReady = false;
+    state.seriesCatalogBuilding = false;
+
+    state.playlistMeta.url = String(url);
+    state.playlistMeta.name =
+      document.getElementById("playlistName")?.value?.trim() ||
+      getSavedPlaylist()?.name ||
+      "Minha Playlist";
+
+    renderStats();
+    renderGenreFilters();
+    render();
+    await renderHomeDashboard();
+
+    const age = Math.max(0, Date.now() - Number(meta.updatedAt || Date.now()));
+    const ageMin = Math.floor(age / 60000);
+
+    updateLoadMessage(
+      ageMin > 0
+        ? `Catálogo local instantâneo • atualizado há ${ageMin} min`
+        : "Catálogo local instantâneo"
+    );
+
+    toast(
+      `Biblioteca pronta: ${formatNumber(state.total)} conteúdos`,
+      2500
+    );
+
+    /*
+       Após meia hora, uma nova submissão volta ao fluxo de rede.
+       Enquanto o cache está recente, o usuário não precisa esperar
+       a playlist inteira ser baixada novamente.
+    */
+    return age <= CACHE_MAX_AGE_MS;
+  } catch (error) {
+    console.warn("[GC PLAY PRO] cache local indisponível:", error);
+    return false;
   }
 }
 
@@ -6543,6 +6756,17 @@ async function loadM3U(
   state.loading =
     true;
 
+  /*
+     Cache-first: se esta URL já foi importada recentemente, restaure
+     a biblioteca local antes de qualquer download. Isso evita apagar
+     o banco e reprocessar 100k/300k+ registros para cada abertura.
+  */
+  const cachedInstant = await tryRestoreCatalogInstant(url);
+  if (cachedInstant) {
+    state.loading = false;
+    return true;
+  }
+
   writeError = null;
 
   state.items =
@@ -6564,6 +6788,7 @@ async function loadM3U(
     0;
 
   state.seriesItemsCache = null;
+  state.importSeriesKeys = new Set();
   state.seriesCatalog = [];
   state.seriesCatalogMap = new Map();
   state.seriesCatalogChanged = new Set();
@@ -6643,12 +6868,22 @@ async function loadM3U(
 
       await buildGenreCatalog();
       await loadDatabaseStats();
+      saveCatalogCacheMeta(url);
 
       state.loading = false;
       resetToPlaylistHome();
       await renderHomeDashboard();
 
-
+      /*
+         Filmes e séries continuam em segundo plano. A tela e a TV ao vivo
+         não ficam bloqueadas esperando catálogos grandes.
+      */
+      Promise.allSettled([
+        ensureXtreamSectionLoaded("movie"),
+        ensureXtreamSectionLoaded("series")
+      ]).then(() => {
+        saveCatalogCacheMeta(url);
+      }).catch(() => {});
 
       const elapsed = (performance.now() - startTime) / 1000;
       updateLoadMessage(
@@ -6939,6 +7174,7 @@ async function loadM3U(
         renderGenreFilters();
         renderStats();
         render();
+        saveCatalogCacheMeta(url);
       } catch (catalogError) {
         console.warn(
           "[GC PLAY PRO] Catálogo de séries em segundo plano:",
@@ -6964,6 +7200,7 @@ async function loadM3U(
     await renderHomeDashboard();
 
     renderStats();
+    saveCatalogCacheMeta(url);
 
     updateLoadMessage(
       `Playlist carregada: ${formatNumber(
