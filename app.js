@@ -1644,18 +1644,18 @@ async function tryLoadXtreamFast(url, signal) {
     const liveResults = await Promise.allSettled([
       fetchXtreamJSON(session, "", signal),
       fetchXtreamJSON(session, "get_live_categories", signal),
-      fetchXtreamJSON(session, "get_live_streams", signal)
+      fetchXtreamJSON(session, "get_live_streams", signal),
+      fetchXtreamJSON(session, "get_vod_categories", signal),
+      fetchXtreamJSON(session, "get_vod_streams", signal),
+      fetchXtreamJSON(session, "get_series_categories", signal),
+      fetchXtreamJSON(session, "get_series", signal)
     ]);
 
-    const results = [
-      liveResults[0],
-      liveResults[1],
-      liveResults[2],
-      null,
-      null,
-      null,
-      null
-    ];
+    /* Cada índice corresponde exatamente ao endpoint acima.
+       A versão anterior preenchia 3 chamadas e deixava os índices
+       de filmes/séries como null, fazendo o catálogo inicial contar
+       apenas TV ao vivo mesmo quando a API respondia corretamente. */
+    const results = liveResults;
 
     if (signal?.aborted) {
       throw new DOMException("Operação cancelada", "AbortError");
@@ -2097,63 +2097,114 @@ async function fetchXtreamSeriesEpisodes(seriesItem, season, signal) {
    ========================================================= */
 
 async function fetchPlaylist(url, signal) {
-  const finalUrl = resolvePlaylistUrl(url);
+  const baseUrl = resolvePlaylistUrl(url);
 
   /*
-     O fetch da playlist precisa ter timeout apenas para a fase
-     de conexão/recebimento dos headers. Depois que os headers
-     chegam, o stream pode continuar por quanto tempo for necessário.
+     Playlist M3U grande precisa ser recebida em streaming. Não usamos
+     response.text()/json() aqui. Também fazemos uma segunda tentativa
+     quando o proxy/origem retorna 502/503/504/429, sem duplicar a
+     importação nem apagar o catálogo antes de obter uma resposta válida.
   */
-  const timeoutController = new AbortController();
-  const timeoutId = setTimeout(() => {
-    timeoutController.abort();
-  }, 60000);
+  let lastError = null;
 
-  const onAbort = () => timeoutController.abort();
-
-  if (signal) {
-    if (signal.aborted) {
-      clearTimeout(timeoutId);
-      throw new DOMException("Operação cancelada", "AbortError");
-    }
-    signal.addEventListener("abort", onAbort, { once: true });
-  }
-
-  let response;
-
-  try {
-    response = await fetch(finalUrl, {
-      method: "GET",
-      signal: timeoutController.signal,
-      headers: {
-        "Accept":
-          "application/vnd.apple.mpegurl," +
-          "audio/x-mpegurl," +
-          "text/plain," +
-          "application/x-mpegURL," +
-          "*/*"
-      },
-      cache: "no-store",
-      redirect: "follow"
-    });
-  } catch (error) {
+  for (let attempt = 0; attempt < 2; attempt++) {
     if (signal?.aborted) {
       throw new DOMException("Operação cancelada", "AbortError");
     }
 
-    if (error?.name === "AbortError") {
-      throw new Error(
-        "Tempo limite excedido ao conectar à playlist/proxy (60s)."
-      );
-    }
+    const finalUrl = attempt === 0
+      ? baseUrl
+      : (baseUrl.includes("?")
+        ? baseUrl + "&gc_retry=" + Date.now()
+        : baseUrl + "?gc_retry=" + Date.now());
 
-    throw new Error(
-      `Falha de conexão com a playlist: ${error?.message || error}`
-    );
-  } finally {
-    clearTimeout(timeoutId);
-    signal?.removeEventListener("abort", onAbort);
+    const timeoutController = new AbortController();
+    const timeoutId = setTimeout(() => timeoutController.abort(), 60000);
+    const onAbort = () => timeoutController.abort();
+
+    if (signal) signal.addEventListener("abort", onAbort, { once: true });
+
+    try {
+      const response = await fetch(finalUrl, {
+        method: "GET",
+        signal: timeoutController.signal,
+        headers: {
+          "Accept":
+            "application/vnd.apple.mpegurl," +
+            "audio/x-mpegurl," +
+            "text/plain," +
+            "application/x-mpegURL," +
+            "*/*"
+        },
+        cache: "no-store",
+        redirect: "follow"
+      });
+
+      if (!response.ok) {
+        let detail = "";
+        try {
+          const contentType = response.headers.get("content-type") || "";
+          if (contentType.includes("application/json")) {
+            const data = await response.clone().json();
+            if (data?.error) detail = " — " + data.error;
+            if (data?.detail) detail += " — " + data.detail;
+            if (data?.status) detail += " [origem HTTP " + data.status + "]";
+          }
+        } catch {}
+
+        const retryable = [429, 502, 503, 504].includes(response.status);
+        lastError = new Error("Servidor respondeu HTTP " + response.status + detail);
+        if (retryable && attempt === 0) continue;
+        throw lastError;
+      }
+
+      if (!response.body) {
+        throw new Error("O servidor não retornou um fluxo de dados.");
+      }
+
+      const contentType = (response.headers.get("content-type") || "").toLowerCase();
+
+      if (/text\/html/i.test(contentType)) {
+        throw new Error("A origem retornou uma página HTML em vez de uma playlist M3U.");
+      }
+
+      /* Se a URL de importação caiu em um arquivo de mídia, não deixe o
+         parser consumir megabytes e terminar silenciosamente com 0 itens. */
+      if (/(video\/mp4|video\/mp2t|audio\/mpeg|audio\/mp4)/i.test(contentType)) {
+        throw new Error(
+          "A URL da lista retornou um arquivo de mídia (" + contentType +
+          "), não uma playlist M3U."
+        );
+      }
+
+      return response;
+    } catch (error) {
+      lastError = error;
+
+      if (signal?.aborted) {
+        throw new DOMException("Operação cancelada", "AbortError");
+      }
+
+      if (error?.name === "AbortError") {
+        if (attempt === 0) continue;
+        throw new Error("Tempo limite excedido ao conectar à playlist/proxy (60s).");
+      }
+
+      if (attempt === 0 && /HTTP (429|502|503|504)/.test(String(error?.message || ""))) {
+        continue;
+      }
+
+      throw new Error(
+        error?.message || ("Falha de conexão com a playlist: " + error)
+      );
+    } finally {
+      clearTimeout(timeoutId);
+      signal?.removeEventListener("abort", onAbort);
+    }
   }
+
+  throw lastError || new Error("Não foi possível acessar a playlist.");
+}
 
   if (!response.ok) {
     let detail = "";
