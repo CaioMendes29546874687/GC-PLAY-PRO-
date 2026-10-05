@@ -1534,9 +1534,33 @@ async function loadLiveEPG(item) {
   const container = $("#playerEPG");
   if (!container) return;
 
-  if (!item || item.type !== "live" || !state.xtreamSession || !item.xtreamStreamId) {
+  if (!item || item.type !== "live" || !item.xtreamStreamId) {
     container.innerHTML = "";
     container.classList.remove("show");
+    return;
+  }
+
+  /* Recupera a sessão Xtream a partir da própria URL do canal quando
+     a sessão não foi restaurada do estado/cache. Isso evita perder o
+     EPG depois de uma atualização ou restauração do catálogo. */
+  let epgSession = state.xtreamSession;
+  if (!epgSession && item.url) {
+    try {
+      const parsed = new URL(String(item.url));
+      const match = parsed.pathname.match(/\/live\/([^/]+)\/([^/]+)\//i);
+      if (match) {
+        epgSession = {
+          base: parsed.origin,
+          username: decodeURIComponent(match[1]),
+          password: decodeURIComponent(match[2])
+        };
+      }
+    } catch {}
+  }
+
+  if (!epgSession) {
+    container.innerHTML = '<div class="gc-epg-empty">EPG não disponível para este canal.</div>';
+    container.classList.add("show");
     return;
   }
 
@@ -1545,7 +1569,7 @@ async function loadLiveEPG(item) {
 
   try {
     const data = await fetchXtreamJSON(
-      state.xtreamSession,
+      epgSession,
       "get_short_epg",
       undefined,
       {
@@ -4692,7 +4716,7 @@ async function playItem(item) {
   */
   const sourceUrl =
     item.xtreamKind === "live"
-      ? liveHlsUrl
+      ? liveTsUrl
       : originalUrl;
 
   video.playbackRate =
