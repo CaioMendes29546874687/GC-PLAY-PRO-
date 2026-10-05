@@ -848,6 +848,9 @@ body.gc-future{
   font-size:9px;
 }
 
+/* Remove o antigo indicador/caixa do player que aparecia no centro do vídeo. */
+.gc-future .player-message{display:none!important;}
+
 /* ================================================================
    SCREEN 6 — MOBILE
    Same visual language, not a separate app.
