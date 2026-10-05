@@ -6648,7 +6648,7 @@ function getCatalogCacheMeta(url) {
   }
 }
 
-async async function tryRestoreCatalogInstant(url) {
+async function tryRestoreCatalogInstant(url) {
   const meta = getCatalogCacheMeta(url);
   if (!meta) return false;
 
