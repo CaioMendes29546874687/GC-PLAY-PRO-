@@ -4672,13 +4672,15 @@ async function playItem(item) {
   const gcAndroidLike =
     /Android|Android TV/i.test(navigator.userAgent || "");
 
+  /*
+     TV Xtream: HLS (.m3u8) passa a ser o transporte principal em
+     todos os navegadores. É mais compatível com Android/TV e evita
+     depender do MPEG-TS/MSE logo no primeiro frame. MPEG-TS continua
+     disponível como fallback dentro de playHLS().
+  */
   const sourceUrl =
     item.xtreamKind === "live"
-      ? (
-          gcAndroidLike
-            ? liveTsUrl
-            : (liveExtension === "ts" ? liveTsUrl : liveHlsUrl)
-        )
+      ? liveHlsUrl
       : originalUrl;
 
   video.playbackRate =
