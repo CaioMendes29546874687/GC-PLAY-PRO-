@@ -14,12 +14,12 @@ const APP_SHELL = [
   "./style.css?v=20261005-PLAYER3",
   "./app.js?v=20261003-SERIES5",
   "./gc-pro-ui-v3.css?v=20261001-11",
-  "./gc-pro-ui-v3.js?v=20261002-5",
+  "./gc-pro-ui-v3.js?v=20261003-6",
   "./gc-playback-hotfix.js?v=20261001-3",
   "./gc-live-fix.js?v=20261002-8",
   "./gc-android-live-fix.js?v=20261001-1",
   "./gc-final-fix.js?v=20261002-14",
-  "./gc-vlc.js?v=20261002-1"
+  "./gc-vlc.js?v=20261003-2"
 ];
 
 self.addEventListener("install", event => {
