@@ -847,6 +847,7 @@ body.gc-future{
   color:#91a69a;
   font-size:9px;
 }
+.gc-future .player-message:empty{display:none!important;}
 
 /* ================================================================
    SCREEN 6 — MOBILE
