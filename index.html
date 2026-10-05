@@ -505,11 +505,16 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     const current=localStorage.getItem("GC_PLAY_PRO_PLAYLIST_URL");
     if(current===p)return;
     setTimeout(async()=>{
-      if(typeof window.gcPlayProSavePlaylist==="function"){
-        try{
-          const ok=await window.gcPlayProSavePlaylist("GC PLAY PRO — LISTA ATIVADA",p);
-          if(ok!==false) localStorage.setItem("GC_PLAY_PRO_PLAYLIST_URL",p);
-        }catch(e){console.warn("[GC ACTIVATION] carga automática",e)}
+      try{
+        /* A URL já vem do gc-device. Importar diretamente evita chamar
+           a rotina do formulário com um argumento que não é um Event. */
+        localStorage.setItem("GC_PLAY_PRO_PLAYLIST_NAME","GC PLAY PRO — LISTA ATIVADA");
+        localStorage.setItem("GC_PLAY_PRO_PLAYLIST_URL",p);
+        if(typeof window.loadM3U==="function"){
+          await window.loadM3U(p);
+        }
+      }catch(e){
+        console.warn("[GC ACTIVATION] carga automática",e);
       }
     },1800);
   }
