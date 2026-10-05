@@ -7102,6 +7102,7 @@ async function loadM3U(
         renderGenreFilters();
         renderStats();
         render();
+        saveCatalogCacheMeta(url);
       } catch (catalogError) {
         console.warn(
           "[GC PLAY PRO] Catálogo de séries em segundo plano:",
