@@ -1611,15 +1611,27 @@ async function tryLoadXtreamFast(url, signal) {
        filmes/séries para depois. Isso fazia a interface parecer
        que a lista tinha somente canais.
     */
-    const results = await Promise.allSettled([
+    /*
+       PRIMEIRO PAINT: não espere filmes e séries para liberar a
+       interface. Login + TV ao vivo são suficientes para validar a
+       sessão e mostrar o catálogo imediatamente. Filmes e séries usam
+       ensureXtreamSectionLoaded() em segundo plano depois.
+    */
+    const liveResults = await Promise.allSettled([
       fetchXtreamJSON(session, "", signal),
       fetchXtreamJSON(session, "get_live_categories", signal),
-      fetchXtreamJSON(session, "get_live_streams", signal),
-      fetchXtreamJSON(session, "get_vod_categories", signal),
-      fetchXtreamJSON(session, "get_vod_streams", signal),
-      fetchXtreamJSON(session, "get_series_categories", signal),
-      fetchXtreamJSON(session, "get_series", signal)
+      fetchXtreamJSON(session, "get_live_streams", signal)
     ]);
+
+    const results = [
+      liveResults[0],
+      liveResults[1],
+      liveResults[2],
+      null,
+      null,
+      null,
+      null
+    ];
 
     if (signal?.aborted) {
       throw new DOMException("Operação cancelada", "AbortError");
