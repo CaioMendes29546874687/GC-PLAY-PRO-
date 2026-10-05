@@ -30,8 +30,11 @@ const SERIES_STORE = "seriesCatalog";
 
 const RAM_LIMIT = 4000;
 const WRITE_BATCH = 20000;
-const FIRST_PAINT_BATCH = 1000;
-const UI_RENDER_INTERVAL = 2500;
+/* Primeira pintura agressiva: não espere 1000 itens para mostrar a biblioteca. */
+const FIRST_PAINT_BATCH = 150;
+const UI_RENDER_INTERVAL = 1500;
+const CACHE_META_KEY = "GC_PLAY_PRO_CATALOG_META_V2";
+const CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 const WRITE_QUEUE_LIMIT = 3;
 const RESUME_KEY = "GC_PLAY_PRO_RESUME_V1";
 
@@ -6508,6 +6511,142 @@ function processParsedItem(
 }
 
 /* =========================================================
+   CACHE LOCAL — RESTAURAÇÃO INSTANTÂNEA
+   ========================================================= */
+
+/*
+   Para listas gigantes, nunca obrigue o usuário a baixar/parsingar
+   novamente uma playlist que já está no aparelho. O IndexedDB é o
+   catálogo persistente; o snapshot abaixo guarda somente metadados
+   pequenos para que a primeira tela possa ser restaurada sem contar
+   centenas de milhares de registros.
+*/
+function saveCatalogCacheMeta(url) {
+  try {
+    localStorage.setItem(
+      CACHE_META_KEY,
+      JSON.stringify({
+        url: String(url || "").trim(),
+        updatedAt: Date.now(),
+        total: Number(state.total || 0),
+        counts: {
+          live: Number(state.counts?.live || 0),
+          movie: Number(state.counts?.movie || 0),
+          series: Number(
+            state.seriesCatalogReady
+              ? state.seriesCatalog.length
+              : state.counts?.series || 0
+          )
+        }
+      })
+    );
+  } catch {}
+}
+
+function getCatalogCacheMeta(url) {
+  try {
+    const raw = localStorage.getItem(CACHE_META_KEY);
+    if (!raw) return null;
+
+    const meta = JSON.parse(raw);
+    if (!meta || String(meta.url || "").trim() !== String(url || "").trim()) {
+      return null;
+    }
+
+    if (!Number.isFinite(Number(meta.updatedAt))) return null;
+
+    return meta;
+  } catch {
+    return null;
+  }
+}
+
+async function tryRestoreCatalogInstant(url) {
+  const meta = getCatalogCacheMeta(url);
+  if (!meta) return false;
+
+  /*
+     Não confie somente no snapshot: confirme que o banco realmente
+     possui dados. Se o navegador limpou o IndexedDB, seguimos pela
+     rede normalmente.
+  */
+  try {
+    if (!state.db) {
+      state.db = await openDB();
+    }
+
+    const sample = await loadSample(Math.min(RAM_LIMIT, 1200));
+    if (!sample.length) return false;
+
+    state.items = sample;
+    state.seriesItemsCache = null;
+
+    try {
+      const savedGroups = JSON.parse(
+        localStorage.getItem("GC_PLAY_PRO_GROUPS_V1") || "[]"
+      );
+      state.groups = Array.isArray(savedGroups) ? savedGroups : [];
+    } catch {
+      state.groups = [];
+    }
+
+    state.groupsReady = state.groups.length > 0;
+
+    const counts = meta.counts || {};
+    state.counts = {
+      live: Number(counts.live || 0),
+      movie: Number(counts.movie || 0),
+      series: Number(counts.series || 0)
+    };
+
+    state.total = Number(
+      meta.total ||
+      state.counts.live + state.counts.movie + state.counts.series
+    );
+
+    state.seriesCatalog = [];
+    state.seriesCatalogMap = new Map();
+    state.seriesCatalogReady = false;
+    state.seriesCatalogBuilding = false;
+
+    state.playlistMeta.url = String(url);
+    state.playlistMeta.name =
+      document.getElementById("playlistName")?.value?.trim() ||
+      getSavedPlaylist()?.name ||
+      "Minha Playlist";
+
+    renderStats();
+    renderGenreFilters();
+    render();
+    await renderHomeDashboard();
+
+    const age = Math.max(0, Date.now() - Number(meta.updatedAt || Date.now()));
+    const ageMin = Math.floor(age / 60000);
+
+    updateLoadMessage(
+      ageMin > 0
+        ? `Catálogo local instantâneo • atualizado há ${ageMin} min`
+        : "Catálogo local instantâneo"
+    );
+
+    toast(
+      `Biblioteca pronta: ${formatNumber(state.total)} conteúdos`,
+      2500
+    );
+
+    /*
+       Após meia hora, uma nova submissão volta ao fluxo de rede.
+       Enquanto o cache está recente, o usuário não precisa esperar
+       a playlist inteira ser baixada novamente.
+    */
+    return age <= CACHE_MAX_AGE_MS;
+  } catch (error) {
+    console.warn("[GC PLAY PRO] cache local indisponível:", error);
+    return false;
+  }
+}
+
+/* =========================================================
    CARREGAR M3U — MOTOR PRINCIPAL
    ========================================================= */
 
@@ -6553,6 +6692,17 @@ async function loadM3U(
 
   state.loading =
     true;
+
+  /*
+     Cache-first: se esta URL já foi importada recentemente, restaure
+     a biblioteca local antes de qualquer download. Isso evita apagar
+     o banco e reprocessar 100k/300k+ registros para cada abertura.
+  */
+  const cachedInstant = await tryRestoreCatalogInstant(url);
+  if (cachedInstant) {
+    state.loading = false;
+    return true;
+  }
 
   writeError = null;
 
@@ -6655,6 +6805,7 @@ async function loadM3U(
 
       await buildGenreCatalog();
       await loadDatabaseStats();
+      saveCatalogCacheMeta(url);
 
       state.loading = false;
       resetToPlaylistHome();
@@ -6976,6 +7127,7 @@ async function loadM3U(
     await renderHomeDashboard();
 
     renderStats();
+    saveCatalogCacheMeta(url);
 
     updateLoadMessage(
       `Playlist carregada: ${formatNumber(
