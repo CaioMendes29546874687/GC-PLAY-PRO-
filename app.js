@@ -5321,7 +5321,7 @@ async function playHLS(
 
     hls.on(
       Hls.Events.ERROR,
-      (
+      async (
         event,
         data
       ) => {
