@@ -86,6 +86,10 @@ const state = {
 
   seriesItemsCache: null,
 
+  /* Chaves únicas usadas durante a importação para que o contador
+     de séries nunca conte episódios como séries individuais. */
+  importSeriesKeys: new Set(),
+
   seriesCatalog: [],
   seriesCatalogMap: new Map(),
   seriesCatalogChanged: new Set(),
@@ -6480,7 +6484,14 @@ function processParsedItem(
   } else if (item.type === "movie") {
     state.counts.movie++;
   } else if (item.type === "series") {
-    state.counts.series++;
+    /* Uma série pode aparecer centenas de vezes (um registro por episódio).
+       O contador precisa representar séries únicas, não episódios. */
+    const info = getDerivedSeriesInfo(item);
+    const key = normalizeText(
+      info.seriesKey || info.seriesName || item.seriesName || item.name || item.url
+    );
+    if (key) state.importSeriesKeys.add(key);
+    state.counts.series = state.importSeriesKeys.size;
   }
 
   /*
@@ -6564,6 +6575,7 @@ async function loadM3U(
     0;
 
   state.seriesItemsCache = null;
+  state.importSeriesKeys = new Set();
   state.seriesCatalog = [];
   state.seriesCatalogMap = new Map();
   state.seriesCatalogChanged = new Set();
