@@ -1701,7 +1701,8 @@ async function tryLoadXtreamFast(url, signal) {
        carregado somente quando o usuário abrir aquela seção.
     */
     if (!live.length && !movies.length && !series.length) {
-      console.warn("[GC PLAY PRO] Xtream autenticou, mas nenhum stream veio; mantendo sessão para carregamento sob demanda.");
+      console.warn("[GC PLAY PRO] Xtream respondeu sem streams no carregamento rápido; continuando para a importação M3U.");
+      return null;
     }
 
     const liveCategories = new Map();
