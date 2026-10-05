@@ -6,7 +6,7 @@
 
 "use strict";
 
-const CACHE_NAME = "gc-play-pro-v130";
+const CACHE_NAME = "gc-play-pro-v131";
 
 const APP_SHELL = [
   "./",
@@ -19,7 +19,7 @@ const APP_SHELL = [
   "./gc-live-fix.js?v=20261002-8",
   "./gc-android-live-fix.js?v=20261001-1",
   "./gc-final-fix.js?v=20261002-14",
-  "./gc-vlc.js?v=20261003-2"
+  "./gc-vlc.js?v=20261005-1"
 ];
 
 self.addEventListener("install", event => {
