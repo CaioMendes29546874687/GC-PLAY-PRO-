@@ -7,7 +7,7 @@
 "use strict";
 
 (() => {
-  const VLC_VERSION = "20261002-1";
+  const VLC_VERSION = "20261005-1";
   let button = null;
 
   function getState() {
@@ -125,6 +125,11 @@
     const style = document.createElement("style");
     style.id = "gc-vlc-style";
     style.textContent = `
+      .gc-player-message-hidden{
+        display:none!important;
+        visibility:hidden!important;
+        pointer-events:none!important;
+      }
       .gc-vlc-button{
         align-items:center;
         justify-content:center;
@@ -136,8 +141,29 @@
     document.head.appendChild(style);
   }
 
+  function installPlayerMessageFix() {
+    const message = document.getElementById("playerMessage");
+    if (!message || message.__gcOverlayFixInstalled) return;
+
+    const sync = () => {
+      const hasText = String(message.textContent || "").trim().length > 0;
+      message.classList.toggle("gc-player-message-hidden", !hasText);
+    };
+
+    message.__gcOverlayFixInstalled = true;
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(message, {
+      childList: true,
+      characterData: true,
+      subtree: true
+    });
+    message.__gcOverlayFixObserver = observer;
+  }
+
   function start() {
     injectStyle();
+    installPlayerMessageFix();
     ensureButton();
 
     /*
