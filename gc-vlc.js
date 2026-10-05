@@ -39,7 +39,7 @@
           ? "ts"
           : "m3u8";
 
-      const base = String(state.xtreamSession.base).replace(//+$/, "");
+      const base = String(state.xtreamSession.base).replace(/\/+$/, "");
       const user = encodeURIComponent(String(state.xtreamSession.username));
       const pass = encodeURIComponent(String(state.xtreamSession.password));
       const id = encodeURIComponent(String(item.xtreamStreamId));
