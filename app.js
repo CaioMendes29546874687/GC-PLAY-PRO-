@@ -9128,27 +9128,64 @@ async function initApp() {
      CARREGAR CATÁLOGO
      ------------------------------------------------------- */
 
-  await loadLocalCatalog();
-
   /*
-     AUTO-RESTORE DA PLAYLIST:
-     Se o navegador ainda tem uma URL M3U salva, mas o IndexedDB
-     foi limpo/incompleto (troca de versão, limpeza de cache ou
-     atualização do navegador), não deixe o site abrir vazio.
-     Reimportamos automaticamente a playlist salva.
+     RECUPERAÇÃO PRIORITÁRIA DA PLAYLIST:
+     Se existe uma URL M3U salva e o IndexedDB está vazio, não espere
+     a reconstrução de um catálogo antigo. Primeiro baixe/reimporte a
+     playlist. Isso é especialmente importante para catálogos grandes
+     (100k/300k+ itens), onde a reconstrução local pode demorar e deixar
+     a tela aparentemente vazia.
   */
+  let restoredPlaylistAtStartup = false;
+
   try {
     const savedPlaylist = getSavedPlaylist();
-    if (
-      savedPlaylist?.url &&
-      Number(state.total || 0) === 0 &&
-      !state.loading
-    ) {
-      updateLoadMessage("Restaurando sua playlist...");
-      await loadM3U(savedPlaylist.url);
+
+    if (savedPlaylist?.url) {
+      let hasLocalItems = false;
+
+      try {
+        const sample = await loadSample(1);
+        hasLocalItems = Array.isArray(sample) && sample.length > 0;
+      } catch (error) {
+        console.warn("[GC PLAY PRO] Não foi possível verificar o catálogo local:", error);
+      }
+
+      if (!hasLocalItems) {
+        updateLoadMessage("Restaurando sua playlist...");
+        restoredPlaylistAtStartup = await loadM3U(savedPlaylist.url);
+      }
     }
   } catch (error) {
-    console.warn("[GC PLAY PRO] Auto-restauração da playlist:", error);
+    console.warn("[GC PLAY PRO] Restauração prioritária da playlist:", error);
+  }
+
+  /*
+     Só reconstrói o catálogo local quando a restauração prioritária
+     não carregou uma nova playlist. Assim o startup não fica preso
+     reconstruindo uma base vazia/antiga antes de tentar a M3U salva.
+  */
+  if (!restoredPlaylistAtStartup) {
+    await loadLocalCatalog();
+
+    /*
+       Segunda tentativa: cobre o caso em que o banco foi alterado
+       durante a inicialização ou ficou sem registros depois da leitura.
+    */
+    try {
+      const savedPlaylist = getSavedPlaylist();
+
+      if (
+        savedPlaylist?.url &&
+        Number(state.total || 0) === 0 &&
+        !state.loading
+      ) {
+        updateLoadMessage("Restaurando sua playlist...");
+        await loadM3U(savedPlaylist.url);
+      }
+    } catch (error) {
+      console.warn("[GC PLAY PRO] Auto-restauração da playlist:", error);
+    }
   }
 
   /* -------------------------------------------------------
