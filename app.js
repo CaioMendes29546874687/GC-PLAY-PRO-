@@ -6825,7 +6825,16 @@ async function loadM3U(
       resetToPlaylistHome();
       await renderHomeDashboard();
 
-
+      /*
+         Filmes e séries continuam em segundo plano. A tela e a TV ao vivo
+         não ficam bloqueadas esperando catálogos grandes.
+      */
+      Promise.allSettled([
+        ensureXtreamSectionLoaded("movie"),
+        ensureXtreamSectionLoaded("series")
+      ]).then(() => {
+        saveCatalogCacheMeta(url);
+      }).catch(() => {});
 
       const elapsed = (performance.now() - startTime) / 1000;
       updateLoadMessage(
