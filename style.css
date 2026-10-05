@@ -847,7 +847,10 @@ body.gc-future{
   color:#91a69a;
   font-size:9px;
 }
-.gc-future .player-message:empty{display:none!important;}
+/* A mensagem antiga do player criava o pequeno contorno no centro do vídeo.
+   O status de carregamento fica no fluxo do aplicativo; o vídeo deve ficar
+   totalmente limpo, sem bolinha/caixa sobreposta. */
+.gc-future .player-message{display:none!important;}
 
 /* ================================================================
    SCREEN 6 — MOBILE
