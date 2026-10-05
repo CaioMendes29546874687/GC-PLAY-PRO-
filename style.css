@@ -847,8 +847,9 @@ body.gc-future{
   color:#91a69a;
   font-size:9px;
 }
-
-/* Remove o antigo indicador/caixa do player que aparecia no centro do vídeo. */
+/* A mensagem antiga do player criava o pequeno contorno no centro do vídeo.
+   O status de carregamento fica no fluxo do aplicativo; o vídeo deve ficar
+   totalmente limpo, sem bolinha/caixa sobreposta. */
 .gc-future .player-message{display:none!important;}
 
 /* ================================================================
