@@ -1718,14 +1718,17 @@ async function tryLoadXtreamFast(url, signal) {
        sessão e mostrar o catálogo imediatamente. Filmes e séries usam
        ensureXtreamSectionLoaded() em segundo plano depois.
     */
+    /*
+       PRIMEIRO PAINT REAL:
+       não baixe VOD e séries junto com a abertura. Em listas grandes,
+       essas respostas podem ter dezenas/centenas de milhares de registros
+       e atrasavam TV, filmes e séries. A abertura busca apenas autenticação
+       + TV ao vivo; VOD e séries entram sob demanda.
+    */
     const liveResults = await Promise.allSettled([
       fetchXtreamJSON(session, "", signal),
       fetchXtreamJSON(session, "get_live_categories", signal),
-      fetchXtreamJSON(session, "get_live_streams", signal),
-      fetchXtreamJSON(session, "get_vod_categories", signal),
-      fetchXtreamJSON(session, "get_vod_streams", signal),
-      fetchXtreamJSON(session, "get_series_categories", signal),
-      fetchXtreamJSON(session, "get_series", signal)
+      fetchXtreamJSON(session, "get_live_streams", signal)
     ]);
 
     /* Cada índice corresponde exatamente ao endpoint acima.
@@ -1770,8 +1773,9 @@ async function tryLoadXtreamFast(url, signal) {
     }
 
     const live = unwrapXtreamArray(value(2));
-    const movies = unwrapXtreamArray(value(4));
-    const series = unwrapXtreamArray(value(6));
+    /* VOD e séries são carregados sob demanda após a primeira pintura. */
+    const movies = [];
+    const series = [];
 
     /*
        Catálogo parcial também é válido: o que não veio agora será
@@ -1792,17 +1796,8 @@ async function tryLoadXtreamFast(url, signal) {
       }
     }
 
-    for (const cat of unwrapXtreamArray(value(3))) {
-      if (cat?.category_id != null && cat?.category_name) {
-        movieCategories.set(String(cat.category_id), String(cat.category_name));
-      }
-    }
-
-    for (const cat of unwrapXtreamArray(value(5))) {
-      if (cat?.category_id != null && cat?.category_name) {
-        seriesCategories.set(String(cat.category_id), String(cat.category_name));
-      }
-    }
+    /* Categorias de filmes/séries serão preenchidas pelo carregamento
+       sob demanda. Não fazem parte do primeiro paint. */
 
     const allowed = Array.isArray(userInfo.allowed_output_formats)
       ? userInfo.allowed_output_formats.map(v => String(v).toLowerCase())
@@ -4879,9 +4874,14 @@ async function playItem(item) {
      depender do MPEG-TS/MSE logo no primeiro frame. MPEG-TS continua
      disponível como fallback dentro de playHLS().
   */
+  /*
+     TV Xtream: HLS é o transporte inicial no navegador. MPEG-TS puro
+     não é reproduzido nativamente pelo elemento <video> e estava fazendo
+     canais carregarem sem imagem. TS permanece como fallback do player.
+  */
   const sourceUrl =
     item.xtreamKind === "live"
-      ? liveTsUrl
+      ? liveHlsUrl
       : originalUrl;
 
   video.playbackRate =
