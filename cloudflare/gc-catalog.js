@@ -61,6 +61,30 @@ function looksLikeHls(u, ct) {
   return p.endsWith(".m3u8") || t.includes("mpegurl") || t.includes("application/x-mpegurl");
 }
 
+function looksLikeDash(u, ct) {
+  const p = u.pathname.toLowerCase();
+  const t = (ct || "").toLowerCase();
+  return p.endsWith(".mpd") || t.includes("dash+xml") || t.includes("application/dash");
+}
+
+function rewriteDashManifest(text, baseUrl, workerOrigin) {
+  const rewrite = value => {
+    const raw = String(value || "").trim();
+    if (!raw || raw.startsWith("#") || raw.startsWith("data:")) return raw;
+    try {
+      const absolute = new URL(raw, baseUrl).toString();
+      return mediaProxyUrl(workerOrigin, absolute);
+    } catch {
+      return raw;
+    }
+  };
+
+  let out = String(text || "");
+  out = out.replace(/(<BaseURL[^>]*>)([^<]+)(<\/BaseURL>)/gi, (_, a, value, b) => a + rewrite(value) + b);
+  out = out.replace(/\b(media|initialization|sourceURL|href)="([^"]+)"/gi, (_, key, value) => key + '="' + rewrite(value) + '"');
+  return out;
+}
+
 function mediaProxyUrl(workerOrigin, target) {
   return workerOrigin + "?mode=media&url=" + encodeURIComponent(target);
 }
@@ -112,12 +136,22 @@ async function fetchMedia(request, target) {
 
   const ct = upstream.headers.get("content-type") || "";
   const targetIsHls = looksLikeHls(target, ct);
+  const targetIsDash = looksLikeDash(target, ct);
 
   if (targetIsHls && upstream.ok && upstream.body) {
     const text = await upstream.text();
     const rewritten = rewriteHlsManifest(text, target.toString(), new URL(request.url).origin);
     const outHeaders = new Headers(MEDIA_CORS);
     outHeaders.set("Content-Type", "application/vnd.apple.mpegurl");
+    outHeaders.set("Cache-Control", "no-store");
+    return new Response(rewritten, { status: upstream.status, headers: outHeaders });
+  }
+
+  if (targetIsDash && upstream.ok && upstream.body) {
+    const text = await upstream.text();
+    const rewritten = rewriteDashManifest(text, target.toString(), new URL(request.url).origin);
+    const outHeaders = new Headers(MEDIA_CORS);
+    outHeaders.set("Content-Type", "application/dash+xml");
     outHeaders.set("Cache-Control", "no-store");
     return new Response(rewritten, { status: upstream.status, headers: outHeaders });
   }
