@@ -3391,6 +3391,11 @@ async function rebuildSeriesCatalogInBackground(force = false) {
   }
 
   state.seriesCatalogBuilding = true;
+  const diagnostics = window.GCArchitecture?.diagnostics;
+  diagnostics?.record?.("series_rebuild_start", {
+    force: !!force,
+    cached: Array.isArray(state.seriesCatalog) ? state.seriesCatalog.length : 0
+  });
 
   try {
     const map = new Map();
@@ -3505,7 +3510,23 @@ async function rebuildSeriesCatalogInBackground(force = false) {
       request.onerror = () => reject(request.error);
     });
 
-    const result = Array.from(map.values());
+    const result = Array.from(map.values()).map(entry => {
+      const seasons = {};
+      for (const [season, count] of Object.entries(entry.seasons || {})) {
+        seasons[String(Number(season))] = Number(count || 0);
+      }
+      entry.seasons = seasons;
+      entry.seasonCount = Object.keys(seasons).length;
+      return entry;
+    }).sort((a,b) =>
+      String(a.seriesName || "").localeCompare(String(b.seriesName || ""), "pt-BR", { sensitivity: "base" })
+    );
+
+    diagnostics?.record?.("series_rebuild_complete", {
+      series: result.length,
+      episodes: result.reduce((n, item) => n + Number(item.episodeCount || 0), 0),
+      seasons: result.reduce((n, item) => n + Number(item.seasonCount || 0), 0)
+    });
 
     if (state.db.objectStoreNames.contains(SERIES_STORE)) {
       await new Promise((resolve, reject) => {
@@ -3545,6 +3566,9 @@ async function rebuildSeriesCatalogInBackground(force = false) {
       render();
     }
   } catch (error) {
+    diagnostics?.record?.("series_rebuild_error", {
+      error: String(error?.message || error)
+    });
     console.warn(
       "Reconstrução do catálogo de séries falhou:",
       error
