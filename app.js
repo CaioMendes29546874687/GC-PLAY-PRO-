@@ -7271,65 +7271,9 @@ async function loadM3U(
     }
 
     /*
-       O índice de séries já foi gravado durante a importação.
-       Carregamos somente esse índice — nunca os 400k episódios.
+       O catálogo de séries só é reconstruído depois que a fila do
+       IndexedDB terminar. Isso evita contar um catálogo parcial.
     */
-    setTimeout(async () => {
-      try {
-        while (writeProcessing || writeQueue.length) {
-          await sleep(100);
-        }
-
-        if (writeError) {
-          console.warn(
-            "[GC PLAY PRO] Gravação em segundo plano:",
-            writeError
-          );
-          return;
-        }
-
-        /*
-           IMPORTANTE: o contador bruto de episódios é atualizado
-           durante a importação. Aqui, depois que TODA a gravação
-           terminou, reconstruímos o catálogo por nome para obter
-           a quantidade real de séries únicas.
-        */
-        await rebuildSeriesCatalogInBackground(true);
-
-        state.seriesCatalog =
-          await loadSeriesCatalogFromDB();
-
-        state.seriesCatalogMap =
-          new Map(
-            state.seriesCatalog.map(
-              item => [item.seriesKey, item]
-            )
-          );
-
-        state.seriesCatalogReady =
-          true;
-
-        /*
-           Antes daqui, updateLiveCounters() mostrava o número
-           de episódios como se fossem séries. Agora o contador
-           passa a usar exclusivamente o catálogo único.
-        */
-        state.counts.series =
-          state.seriesCatalog.length;
-
-        state.total = Number(processed || 0);
-
-        renderGenreFilters();
-        renderStats();
-        render();
-        saveCatalogCacheMeta(url);
-      } catch (catalogError) {
-        console.warn(
-          "[GC PLAY PRO] Catálogo de séries em segundo plano:",
-          catalogError
-        );
-      }
-    }, 0);
 
     /* -----------------------------------------------------
        RESULTADO FINAL
@@ -7345,6 +7289,12 @@ async function loadM3U(
     }
 
     if (writeError) throw writeError;
+
+    await rebuildSeriesCatalogInBackground(true);
+
+    if (state.seriesCatalogReady) {
+      state.counts.series = state.seriesCatalog.length;
+    }
 
     /* O total representa itens/episódios importados. A contagem de
        séries, por outro lado, representa séries únicas. Não misture as
@@ -7541,6 +7491,8 @@ async function loadFile(
     series: 0
   };
 
+  state.importSeriesKeys = new Set();
+
   state.groups =
     [];
 
@@ -7672,8 +7624,11 @@ async function loadFile(
       writeProcessing ||
       writeQueue.length
     ) {
+      if (writeError) throw writeError;
       await sleep(50);
     }
+
+    if (writeError) throw writeError;
 
     render();
 
@@ -7686,13 +7641,11 @@ async function loadFile(
     );
 
     /*
-       Só agora reconstruímos o catálogo de séries. A importação
-       principal já terminou, então o usuário recupera o controle
-       da interface imediatamente.
+       O catálogo de séries é derivado somente depois que todos os
+       episódios foram gravados. Assim nenhuma temporada/episódio fica
+       de fora da reconstrução final.
     */
-    setTimeout(() => {
-      rebuildSeriesCatalogInBackground(true);
-    }, 50);
+    await rebuildSeriesCatalogInBackground(true);
 
     toast(
       `${formatNumber(
