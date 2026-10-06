@@ -1064,115 +1064,127 @@ function getXtreamPathType(url) {
 }
 
 function classifyItem(name, group, url, meta = {}) {
-  const nameText = normalizeText(name);
-  const groupText = normalizeText(group);
+  const rawName = String(name || "").trim();
+  const rawGroup = String(group || "").trim();
+  const nameText = normalizeText(rawName);
+  const groupText = normalizeText(rawGroup);
   const lowerUrl = String(url || "").toLowerCase();
+
   const explicitType = normalizeText(
     meta.type || meta.tvgType || meta.streamType || meta.contentType || meta.mediaType || ""
   );
 
-  /* Alguns geradores M3U informam o tipo diretamente no EXTINF.
-     Quando existe essa informação, ela tem prioridade absoluta. */
-  if (/^(live|tv|channel|channels|televisao|televisão|canais?)$/.test(explicitType)) return "live";
-  if (/^(movie|movies|film|filme|filmes|vod)$/.test(explicitType)) return "movie";
-  if (/^(series|serie|série|series_episode|episode|episodio|episódio)$/.test(explicitType)) return "series";
+  /*
+     REGRA 1 — tipo explícito do provedor.
+     Só aceitamos valores realmente inequívocos. "vod" significa VOD/filme;
+     "tv" sozinho não deve transformar qualquer VOD em TV.
+  */
+  if (/^(live|channel|channels|televisao|televisão|canais?|live_tv|tv_live)$/.test(explicitType)) {
+    return "live";
+  }
+  if (/^(movie|movies|film|filme|filmes|vod|video|video_on_demand)$/.test(explicitType)) {
+    return "movie";
+  }
+  if (/^(series|serie|série|series_episode|episode|episodio|episódio|tv_series|show)$/.test(explicitType)) {
+    return "series";
+  }
 
   /*
-     Em playlists Xtream/M3U Plus, o caminho da própria URL é
-     a fonte mais confiável: /live/, /movie/ e /series/.
-     Isso tem prioridade sobre nomes e grupos mistos.
+     REGRA 2 — estrutura Xtream da URL. É a fonte mais forte quando existe.
   */
   const pathType = getXtreamPathType(url);
-
-  if (pathType) {
-    return pathType;
-  }
+  if (pathType) return pathType;
 
   /*
-     A classificação precisa ser EXCLUSIVA.
-     Não podemos usar apenas "serie" ou "filme" em qualquer
-     parte do texto, porque grupos como "CANAIS | FILMES & SERIES"
-     são canais, não séries.
+     REGRA 3 — metadados de série no nome/URL.
+     Reconhece S01E01, 1x02, Season 1 Episode 2, T01E02 etc.
   */
+  const hasEpisodePattern =
+    /(?:^|[\s._\-\[\]()])(?:s|t|season|temporada)\s*0*\d{1,3}\s*(?:e|ep|episode|episodio|episódio)\s*0*\d{1,4}(?:$|[\s._\-\[\]()])/i.test(rawName) ||
+    /(?:^|[\s._\-\[\]()])0*\d{1,3}\s*x\s*0*\d{1,4}(?:$|[\s._\-\[\]()])/i.test(rawName) ||
+    /(?:season|temporada|episod|episode|serie|série)[\\/_-]/i.test(lowerUrl) ||
+    /[\\/]s0*\d{1,3}[\\/_-]e0*\d{1,4}/i.test(lowerUrl);
 
-  const explicitSeries =
-    /\/series\//i.test(lowerUrl) ||
-    /\b(?:s|season|t|temporada)\s*0*\d{1,3}\s*(?:e|ep|episode|episodio)\s*0*\d{1,4}\b/i.test(nameText) ||
-    /\b0*\d{1,3}\s*x\s*0*\d{1,4}\b/i.test(nameText) ||
-    /\b(?:s|season|t|temporada)\s*0*\d{1,3}\s*(?:e|ep|episode|episodio)\s*0*\d{1,4}\b/i.test(lowerUrl);
+  if (hasEpisodePattern) return "series";
 
-  if (explicitSeries) {
-    return "series";
-  }
+  /*
+     REGRA 4 — grupo principal.
+     O PRIMEIRO grupo/segmento é usado para evitar falsos positivos em
+     categorias como "CANAIS | FILMES & SERIES".
+  */
+  const groupParts = groupText
+    .split(/[|>:/\\]+/)
+    .map(v => v.trim())
+    .filter(Boolean);
 
-  const groupHead = groupText
-    .split(/[|>:/\\]+/)[0]
-    .trim();
+  const primaryGroup = groupParts[0] || groupText;
 
   const groupIsSeries =
-    /^(?:serie|series|série|séries)\b/i.test(groupHead);
+    /^(?:serie|series|série|séries|tv series|novelas?|shows?)$/i.test(primaryGroup) ||
+    /^(?:serie|series|série|séries)\b/i.test(primaryGroup);
 
   const groupIsMovie =
-    /^(?:filme|filmes|movie|movies|vod)\b/i.test(groupHead);
+    /^(?:filme|filmes|movie|movies|vod|v.o.d|cinema)$/i.test(primaryGroup) ||
+    /^(?:filme|filmes|movie|movies|vod|cinema)\b/i.test(primaryGroup);
 
-  if (groupIsSeries) {
-    return "series";
-  }
+  const groupIsLive =
+    /^(?:live|ao vivo|canais?|channels?|tv|iptv|televis[aã]o)$/i.test(primaryGroup) ||
+    /^(?:live|ao vivo|canais?|channels?)\b/i.test(primaryGroup);
 
-  if (
-    /\/movie(?:s)?\//i.test(lowerUrl) ||
-    groupIsMovie
-  ) {
-    return "movie";
-  }
+  if (groupIsSeries) return "series";
+  if (groupIsMovie) return "movie";
+  if (groupIsLive) return "live";
 
   /*
-     Alguns provedores usam grupos como:
-     "FILMES | AÇÃO", "MOVIES | NETFLIX" ou
-     "SÉRIES | DRAMA". Aceitamos esses grupos somente
-     quando não são uma categoria mista de canais.
+     REGRA 5 — grupos secundários, somente quando não há conflito.
   */
-  const groupHasMovie =
-    /\b(?:filme|filmes|movie|movies|vod)\b/i.test(groupText);
+  const hasMovieGroup = /\b(?:filmes?|movies?|vod|cinema)\b/i.test(groupText);
+  const hasSeriesGroup = /\b(?:séries?|series|novelas?|temporadas?)\b/i.test(groupText);
+  const hasLiveGroup = /\b(?:canais?|channels?|ao vivo|live|iptv)\b/i.test(groupText);
 
-  const groupHasSeries =
-    /\b(?:serie|series|série|séries|season|temporada)\b/i.test(groupText);
-
-  const groupHasLive =
-    /\b(?:canais?|canal|tv|ao vivo|live|iptv)\b/i.test(groupText);
-
-  if (groupHasMovie && !groupHasSeries && !groupHasLive) {
-    return "movie";
-  }
-
-  if (groupHasSeries && !groupHasMovie && !groupHasLive) {
-    return "series";
-  }
+  if (hasMovieGroup && !hasSeriesGroup && !hasLiveGroup) return "movie";
+  if (hasSeriesGroup && !hasMovieGroup && !hasLiveGroup) return "series";
 
   /*
-     Alguns provedores usam [FILME], FILME: ou MOVIE:
-     no próprio nome. Só aceitamos esses formatos explícitos,
-     nunca uma palavra "filme" perdida no grupo.
+     REGRA 6 — marcadores explícitos no título.
   */
-  if (
-    /^(?:filme|movie)\s*[:\-]|\[(?:filme|movie)\]/i.test(nameText)
-  ) {
+  if (/^(?:filme|movie)\s*[:\-\[]/i.test(rawName)) return "movie";
+  if (/^(?:serie|série|series)\s*[:\-\[]/i.test(rawName)) return "series";
+
+  /*
+     REGRA 7 — extensões VOD. Não podemos chamar todo .ts de filme:
+     .ts/.m2ts/.mpeg são normalmente transportes de TV ao vivo.
+  */
+  if (/\.(?:mp4|m4v|mkv|avi|mov|wmv|webm|flv)(?:$|[?#])/i.test(lowerUrl)) {
     return "movie";
   }
 
-  /* Formatos de exportadores M3U que não usam /movie/ ou /series/ na URL. */
-  if (/\.(?:mp4|mkv|avi|mov|wmv|m4v)(?:$|[?#])/i.test(lowerUrl)) {
-    if (explicitSeries || /\\b(?:s|season|t|temporada)\\s*0*\\d{1,3}(?:\\s*e|\\b)/i.test(nameText)) return "series";
-    return "movie";
-  }
-
-  if (/\.(?:ts|mpeg|mpg)(?:$|[?#])/i.test(lowerUrl)) {
+  if (/\.(?:ts|m2ts|mpeg|mpg)(?:$|[?#])/i.test(lowerUrl)) {
     return "live";
   }
 
+  /*
+     REGRA 8 — rotas de transmissão ao vivo que não usam extensão.
+  */
+  if (/\/(?:live|stream|channel|channels|tv|play)\//i.test(lowerUrl)) {
+    return "live";
+  }
+
+  /*
+     REGRA 9 — para VOD sem extensão, nomes claramente cinematográficos.
+     Não usamos palavras genéricas como "HD" ou "TV".
+  */
+  if (/\b(?:filme|movie|cinema)\b/i.test(nameText) && !hasEpisodePattern) {
+    return "movie";
+  }
+
+  /*
+     Último recurso: manter live para compatibilidade com listas antigas
+     que fornecem somente nome + URL sem nenhum metadado. O catálogo não
+     inventa "filme" ou "série" quando a M3U não fornece evidência.
+  */
   return "live";
 }
-
 
 /* =========================================================
    NORMALIZAÇÃO DO TÍTULO DA SÉRIE
@@ -1383,7 +1395,6 @@ function normalizeItem(data) {
     String(data.url || "").trim();
 
   const type =
-    data.type ||
     classifyItem(
       name,
       group,
@@ -1477,7 +1488,7 @@ async function migrateCatalogTypes() {
      (seriesKey/season/episode). A migração anterior só alterava
      o tipo e deixava episódios antigos com seriesKey vazio.
   */
-  const migrationKey = "GC_PLAY_PRO_CATEGORY_TYPES_V7";
+  const migrationKey = "GC_PLAY_PRO_CATEGORY_TYPES_V8";
 
   try {
     if (localStorage.getItem(migrationKey) === "1") {
@@ -1580,6 +1591,7 @@ async function migrateCatalogTypes() {
         localStorage.removeItem("GC_PLAY_PRO_SERIES_MIGRATION_V3");
         localStorage.removeItem("GC_PLAY_PRO_SERIES_MIGRATION_V2");
         localStorage.removeItem("GC_PLAY_PRO_CATEGORY_TYPES_V5");
+        localStorage.removeItem("GC_PLAY_PRO_CATEGORY_TYPES_V7");
         localStorage.removeItem("GC_PLAY_PRO_CATEGORY_TYPES_V4");
       } catch {}
 
