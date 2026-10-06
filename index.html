@@ -508,12 +508,12 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
       try{
         const r=await gcDevicePost("/activate",{activation_code:code,device_uid:id(),device_name:"GC PLAY PRO",platform:navigator.userAgent.slice(0,120)});
         const d=await r.json().catch(()=>({}));
-        if(!r.ok||!d.ok)throw new Error(d.error||"Ativação não autorizada.");
+        if(!r.ok||!d.ok)throw new Error(d.error||`Ativação recusada pelo servidor (${r.status}).`);
         localStorage.setItem(K,JSON.stringify({activationCode:code,deviceId:d.device_id,deviceUid:id(),clientId:d.client_id||"",listId:d.list_id||"",expiresAt:d.expires_at,listName:d.list_name,playlistUrl:d.playlist_url,updatedAt:Date.now()}));
         localStorage.setItem("GC_PLAY_PRO_ACTIVATED_PLAYLIST_V1",d.playlist_url);
         msg("✓ Ativado até "+new Date(d.expires_at).toLocaleDateString("pt-BR"));
         setTimeout(()=>location.reload(),700);
-      }catch(e){msg(e.name==="AbortError"?"Servidor demorou mais de 12 segundos para responder. Tente novamente.":"Não foi possível comunicar com o servidor de ativação. Tente novamente.")}
+      }catch(e){msg(e.name==="AbortError"?"Servidor demorou mais de 12 segundos para responder. Tente novamente.":(e?.message||"Não foi possível comunicar com o servidor de ativação."))}
     };
     return {show,hide};
   }
