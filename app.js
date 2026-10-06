@@ -128,6 +128,9 @@ const state = {
   seriesFallbackPromise: null,
   xtreamSeriesFallbackNeeded: false,
 
+  /* Cache counts are not proof that a section is loaded in IndexedDB. */
+  xtreamLoaded: { live: false, movie: false, series: false },
+
   epgTimer: null
 };
 
@@ -2124,8 +2127,8 @@ async function ensureXtreamSectionLoaded(type) {
   const session = state.xtreamSession;
   if (!session || !["movie","series"].includes(type)) return false;
 
-  const current = state.counts?.[type] || 0;
-  if (current > 0) return true;
+  state.xtreamLoaded = state.xtreamLoaded || { live:false, movie:false, series:false };
+  if (state.xtreamLoaded[type]) return true;
 
   if (state.__xtreamLoading?.[type]) return state.__xtreamLoading[type];
 
@@ -2215,6 +2218,7 @@ async function ensureXtreamSectionLoaded(type) {
       }
 
       state.counts[type] = items.length;
+      state.xtreamLoaded[type] = true;
       state.total = state.counts.live + state.counts.movie + state.counts.series;
       state.groups = Array.from(new Set([...(state.groups || []), ...groups]));
       if (type === "series") {
@@ -3251,7 +3255,7 @@ async function render() {
   if (
     type === "movie" &&
     state.xtreamSession &&
-    Number(state.counts?.movie || 0) === 0
+    !state.xtreamLoaded?.movie
   ) {
     grid.innerHTML = `
       <div class="gc-loading">
@@ -6518,7 +6522,7 @@ async function handleSection(
        Isso evita a tela vazia quando a API respondeu inicialmente
        apenas a TV ao vivo.
     */
-    if (state.xtreamSession && Number(state.counts?.movie || 0) === 0) {
+    if (state.xtreamSession && !state.xtreamLoaded?.movie) {
       await ensureXtreamSectionLoaded("movie");
     } else {
       await render();
@@ -6543,7 +6547,7 @@ async function handleSection(
 
     renderGenreFilters();
 
-    if (state.xtreamSession && Number(state.counts?.series || 0) === 0) {
+    if (state.xtreamSession && !state.xtreamLoaded?.series) {
       await ensureXtreamSectionLoaded("series");
     } else {
       await render();
@@ -7197,6 +7201,7 @@ async function tryRestoreCatalogInstant(url) {
     */
     state.xtreamSession = null;
     state.xtreamUserInfo = null;
+    state.xtreamLoaded = { live:false, movie:false, series:false };
     try {
       const savedXtream = localStorage.getItem("GC_PLAY_PRO_XTREAM_SESSION_V1");
       const session = savedXtream ? JSON.parse(savedXtream) : null;
@@ -7327,6 +7332,7 @@ async function loadM3U(
   state.xtreamSession = null;
   state.xtreamUserInfo = null;
   state.xtreamSeriesFallbackNeeded = false;
+  state.xtreamLoaded = { live:false, movie:false, series:false };
 
   state.groupsReady =
     false;
