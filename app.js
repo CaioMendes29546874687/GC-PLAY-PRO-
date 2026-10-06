@@ -1657,21 +1657,32 @@ async function loadLiveEPG(item) {
      a sessão não foi restaurada do estado/cache. Isso evita perder o
      EPG depois de uma atualização ou restauração do catálogo. */
   let epgSession = state.xtreamSession;
-  if (!epgSession && item.url) {
+  let epgStreamId = item.xtreamStreamId || item.epgStreamId || "";
+
+  /*
+     M3U puro também pode carregar canais Xtream no formato
+     /live/usuario/senha/12345.ts. Nesse caso a importação antiga
+     não criava xtreamStreamId, então o EPG nunca era consultado.
+     Recuperamos sessão e ID diretamente da URL.
+  */
+  if (item.url) {
     try {
       const parsed = new URL(String(item.url));
-      const match = parsed.pathname.match(/\/live\/([^/]+)\/([^/]+)\//i);
+      const match = parsed.pathname.match(/\/live\/([^/]+)\/([^/]+)\/(\d+)(?:\.[^/]+)?$/i);
       if (match) {
-        epgSession = {
-          base: parsed.origin,
-          username: decodeURIComponent(match[1]),
-          password: decodeURIComponent(match[2])
-        };
+        if (!epgSession) {
+          epgSession = {
+            base: parsed.origin,
+            username: decodeURIComponent(match[1]),
+            password: decodeURIComponent(match[2])
+          };
+        }
+        if (!epgStreamId) epgStreamId = match[3];
       }
     } catch {}
   }
 
-  if (!epgSession) {
+  if (!epgSession || !epgStreamId) {
     container.innerHTML = '<div class="gc-epg-empty">EPG não disponível para este canal.</div>';
     container.classList.add("show");
     return;
@@ -1686,7 +1697,7 @@ async function loadLiveEPG(item) {
       "get_short_epg",
       undefined,
       {
-        stream_id: item.xtreamStreamId,
+        stream_id: epgStreamId,
         limit: 6
       }
     );
