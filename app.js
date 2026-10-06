@@ -4991,6 +4991,10 @@ async function playItem(item) {
       buffer_seconds:Math.round(gcDiagSession.bufferSeconds*10)/10
     });
   };
+  if(video.__gcDiagPlaying) video.removeEventListener("playing",video.__gcDiagPlaying);
+  if(video.__gcDiagWaiting) video.removeEventListener("waiting",video.__gcDiagWaiting);
+  if(video.__gcDiagStalled) video.removeEventListener("stalled",video.__gcDiagStalled);
+  if(video.__gcDiagError) video.removeEventListener("error",video.__gcDiagError);
   video.__gcDiagPlaying=gcDiagReportPlaying;
   video.__gcDiagWaiting=gcDiagReportWaiting;
   video.__gcDiagStalled=gcDiagReportStalled;
