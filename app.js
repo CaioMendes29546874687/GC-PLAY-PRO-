@@ -27,7 +27,7 @@ const GC_HEALTH_URL =
 const GC_PROXY_HOSTS = null;
 
 const DB_NAME = "GC_PLAY_PRO_FAST";
-const DB_VERSION = 6;
+const DB_VERSION = 7;
 const STORE_NAME = "items";
 const SERIES_STORE = "seriesCatalog";
 
@@ -36,7 +36,7 @@ const WRITE_BATCH = 20000;
 /* Primeira pintura agressiva: não espere 1000 itens para mostrar a biblioteca. */
 const FIRST_PAINT_BATCH = 150;
 const UI_RENDER_INTERVAL = 1500;
-const CACHE_META_KEY = "GC_PLAY_PRO_CATALOG_META_V4";
+const CACHE_META_KEY = "GC_PLAY_PRO_CATALOG_META_V5";
 const CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 const WRITE_QUEUE_LIMIT = 3;
 const RESUME_KEY = "GC_PLAY_PRO_RESUME_V1";
@@ -1157,12 +1157,12 @@ function classifyItem(name, group, url, meta = {}) {
   }
 
   /* Formatos de exportadores M3U que não usam /movie/ ou /series/ na URL. */
-  if (/\\.(?:mp4|mkv|avi|mov|wmv|m4v)(?:$|[?#])/i.test(lowerUrl)) {
+  if (/\.(?:mp4|mkv|avi|mov|wmv|m4v)(?:$|[?#])/i.test(lowerUrl)) {
     if (explicitSeries || /\\b(?:s|season|t|temporada)\\s*0*\\d{1,3}(?:\\s*e|\\b)/i.test(nameText)) return "series";
     return "movie";
   }
 
-  if (/\\.(?:ts|mpeg|mpg)(?:$|[?#])/i.test(lowerUrl)) {
+  if (/\.(?:ts|mpeg|mpg)(?:$|[?#])/i.test(lowerUrl)) {
     return "live";
   }
 
@@ -3172,13 +3172,28 @@ async function queryCatalogItems({
   return new Promise((resolve, reject) => {
     const result = [];
     let skipped = 0;
-    const transaction = state.db.transaction(STORE_NAME, "readonly");
-    const store = transaction.objectStore(STORE_NAME);
-    const useTypeIndex = !!type && type !== "adult";
-    const source = useTypeIndex ? store.index("type") : store;
-    const request = useTypeIndex
-      ? source.openCursor(IDBKeyRange.only(type))
-      : source.openCursor();
+    let transaction;
+    let request;
+    try {
+      transaction = state.db.transaction(STORE_NAME, "readonly");
+      const store = transaction.objectStore(STORE_NAME);
+      const useTypeIndex = !!type && type !== "adult";
+      let source = store;
+      if (useTypeIndex) {
+        try {
+          source = store.index("type");
+          request = source.openCursor(IDBKeyRange.only(type));
+        } catch {
+          /* Bancos antigos podem não ter o índice; varremos o store. */
+          request = store.openCursor();
+        }
+      } else {
+        request = store.openCursor();
+      }
+    } catch (error) {
+      reject(error);
+      return;
+    }
 
     request.onsuccess = event => {
       const cursor = event.target.result;
@@ -3316,6 +3331,21 @@ async function render() {
 
   /* TV ao vivo precisa continuar visível mesmo se o índice IndexedDB
      estiver atrasado/corrompido. A RAM já contém os canais importados. */
+  if (!items.length && type) {
+    try {
+      items = await queryCatalogItems({
+        type: null,
+        genre: state.currentGenre,
+        term: state.searchTerm,
+        limit: 1200,
+        offset: 0
+      });
+      items = items.filter(item => item?.type === type || (type === "adult" && isAdultContent(item))).slice(0,120);
+    } catch (error) {
+      console.warn("[GC PLAY PRO] fallback de catálogo:", error);
+    }
+  }
+
   if (!items.length && type === "live") {
     items = state.items
       .filter(item => item && item.type === "live" && !isAdultContent(item))
