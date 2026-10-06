@@ -36,7 +36,7 @@ const WRITE_BATCH = 20000;
 /* Primeira pintura agressiva: não espere 1000 itens para mostrar a biblioteca. */
 const FIRST_PAINT_BATCH = 150;
 const UI_RENDER_INTERVAL = 1500;
-const CACHE_META_KEY = "GC_PLAY_PRO_CATALOG_META_V3";
+const CACHE_META_KEY = "GC_PLAY_PRO_CATALOG_META_V4";
 const CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 const WRITE_QUEUE_LIMIT = 3;
 const RESUME_KEY = "GC_PLAY_PRO_RESUME_V1";
@@ -3116,7 +3116,8 @@ async function queryCatalogItems({
   type = null,
   genre = "all",
   term = "",
-  limit = 120
+  limit = 120,
+  offset = 0
 } = {}) {
   /*
      A RAM_LIMIT é apenas uma amostra para a primeira pintura.
@@ -9585,6 +9586,7 @@ async function initApp() {
 
   setupCardEvents();
   setupHomeEvents();
+  setupNavigation();
 
   setupFilters();
 
