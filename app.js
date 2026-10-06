@@ -5682,6 +5682,9 @@ async function playItem(item) {
      manifesto/segmentos precisam de CORS e reescrita.
   */
   const isHttpsSource = /^https:\/\//i.test(sourceUrl);
+  const proxyPlaybackUrl = isHttpUrl(sourceUrl)
+    ? buildMediaProxyUrl(sourceUrl)
+    : sourceUrl;
   const playbackUrl = (
     !looksLikeLiveStream &&
     !isHLS(sourceUrl) &&
@@ -5689,9 +5692,18 @@ async function playItem(item) {
     isHttpsSource
   )
     ? sourceUrl
-    : (isHttpUrl(sourceUrl) ? buildMediaProxyUrl(sourceUrl) : sourceUrl);
+    : proxyPlaybackUrl;
+
+  /*
+     O fallback deve ser o caminho alternativo real:
+     - VOD HTTPS: direto -> gateway GC
+     - HTTP: gateway já é o primeiro e a origem fica como fallback
+     - HLS/DASH: gateway primeiro e origem direta fica como fallback
+  */
   video.__gcDirectPlaybackUrl =
-    playbackUrl !== directPlaybackUrl ? directPlaybackUrl : "";
+    playbackUrl === sourceUrl
+      ? (proxyPlaybackUrl !== sourceUrl ? proxyPlaybackUrl : "")
+      : (sourceUrl !== playbackUrl ? sourceUrl : "");
   delete video.__gcDirectPlaybackRetry;
 
   video.playbackRate =
