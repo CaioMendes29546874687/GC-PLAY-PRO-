@@ -12,8 +12,11 @@ app.use(express.json({limit:"25mb"}));
 app.use(express.urlencoded({extended:false,limit:"1mb"}));
 app.use((req,res,next)=>{
   const o=req.headers.origin;
-  if(!o||o===ORIGIN){res.setHeader("Access-Control-Allow-Origin",o||ORIGIN);res.setHeader("Vary","Origin");res.setHeader("Access-Control-Allow-Headers","Content-Type, Authorization");res.setHeader("Access-Control-Allow-Methods","GET,POST,PATCH,DELETE,OPTIONS");}
-  if(req.method==="OPTIONS")return res.sendStatus(204); next();
+  res.setHeader("Access-Control-Allow-Origin","*");
+  res.setHeader("Access-Control-Allow-Headers","Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Methods","GET,POST,PATCH,DELETE,OPTIONS");
+  if(req.method==="OPTIONS")return res.sendStatus(204);
+  next();
 });
 let pool;
 function getPool(){if(!DATABASE_URL)throw new Error("DATABASE_URL não configurada.");if(!pool)pool=new Pool({connectionString:DATABASE_URL,ssl:{rejectUnauthorized:false},max:8});return pool}
@@ -98,6 +101,7 @@ async function resolveDeviceActivation(code,deviceUid,deviceName,platform){
 }
 
 app.post("/api/device/activate",async(req,res)=>{
+  console.log("GC ACTIVATE REQUEST",JSON.stringify({origin:req.headers.origin||"",contentType:req.headers["content-type"]||"",code:String(req.body?.activation_code||"").replace(/[^A-Za-z0-9]/g,"").slice(0,4)+"****"}));
   try{
     const b=req.body||{},code=normalizeActivationCode(b.activation_code),uid=String(b.device_uid||"").trim();
     if(code.length<6||!uid)return res.status(400).json({ok:false,error:"Código de ativação e identificador do dispositivo são obrigatórios."});
@@ -107,6 +111,7 @@ app.post("/api/device/activate",async(req,res)=>{
 });
 
 app.post("/api/device/check",async(req,res)=>{
+  console.log("GC CHECK REQUEST",JSON.stringify({origin:req.headers.origin||"",contentType:req.headers["content-type"]||""}));
   try{
     const b=req.body||{},code=normalizeActivationCode(b.activation_code),uid=String(b.device_uid||"").trim();
     if(code.length<6||!uid)return res.status(400).json({ok:false,active:false,reason:"missing_credentials"});
