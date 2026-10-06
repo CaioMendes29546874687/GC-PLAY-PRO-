@@ -106,6 +106,7 @@ app.post("/api/device/activate",async(req,res)=>{
     const b=req.body||{},code=normalizeActivationCode(b.activation_code),uid=String(b.device_uid||"").trim();
     if(code.length<6||!uid)return res.status(400).json({ok:false,error:"Código de ativação e identificador do dispositivo são obrigatórios."});
     const result=await resolveDeviceActivation(code,uid,b.device_name,b.platform);
+    console.log("GC ACTIVATE RESULT",JSON.stringify({status:result.status||200,ok:!!result.ok,error:result.error||"",reason:result.reason||""}));
     return res.status(result.status||200).json(result);
   }catch(e){return res.status(500).json({ok:false,error:e.message})}
 });
