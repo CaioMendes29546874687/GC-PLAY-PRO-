@@ -6,7 +6,7 @@
   "use strict";
   if(window.__GC_PLAYBACK_CORE_V2__) return;
   window.__GC_PLAYBACK_CORE_V2__=true;
-  const VERSION="2026.10.06.5";
+  const VERSION="2026.10.06.6";
   const originalApi=window.GC_PLAY_PRO;
   const state=()=>window.__GC_STATE__||originalApi?.state||null;
   const msg=t=>{const e=document.getElementById("playerMessage");if(e)e.textContent=t||""};
@@ -52,6 +52,33 @@
       }catch{}
     }
     return u;
+  }
+  function waitPlaying(v,timeout=9000){
+    return new Promise((resolve,reject)=>{
+      let done=false;
+      const finish=(ok,err)=>{
+        if(done)return; done=true; clearTimeout(timer);
+        v.removeEventListener("playing",onPlaying);
+        v.removeEventListener("error",onError);
+        ok?resolve(true):reject(err||Error("media startup failed"));
+      };
+      const onPlaying=()=>finish(true);
+      const onError=()=>finish(false,v.error||Error("HTML5 media error"));
+      const timer=setTimeout(()=>finish(false,Error("startup timeout")),timeout);
+      v.addEventListener("playing",onPlaying,{once:true});
+      v.addEventListener("error",onError,{once:true});
+      if(v.readyState>=3) onPlaying();
+    });
+  }
+  async function nativeVideo(v,u,item){
+    const primary=http(u)&&/^https:\/\//i.test(u)?u:proxy(u,item);
+    const fallback=primary===u?proxy(u,item):u;
+    v.src=primary; v.load();
+    try{await v.play()}catch{}
+    if(fallback!==primary){
+      const onError=()=>{try{v.src=fallback;v.load();v.play().catch(()=>{})}catch{}};
+      v.addEventListener("error",onError,{once:true});
+    }
   }
   async function play(item){
     if(!item?.url){msg("Este conteúdo não possui uma URL válida.");return false}
