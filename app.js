@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-06-PLAYFIX3 */
+/* GC BUILD 2026-10-06-PLAYFIX4 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -4370,9 +4370,10 @@ async function playShaka(video, url, message, directFallbackUrl = "", fallbackEn
       try {
         if (message) message.textContent = "Shaka falhou — usando motor compatível...";
         let fallbackTimeoutId = null;
+        let fallbackResult = false;
         try {
-          await Promise.race([
-            fallbackEngine(),
+          fallbackResult = await Promise.race([
+            Promise.resolve(fallbackEngine()).then(value => value !== false),
             new Promise((_, reject) => {
               fallbackTimeoutId = setTimeout(
                 () => reject(new Error("fallback player timeout")),
@@ -4383,7 +4384,7 @@ async function playShaka(video, url, message, directFallbackUrl = "", fallbackEn
         } finally {
           if (fallbackTimeoutId) clearTimeout(fallbackTimeoutId);
         }
-        return true;
+        return fallbackResult === true;
       } catch (fallbackError) {
         console.warn("[GC SHAKA] motor de fallback falhou:", fallbackError);
       }
@@ -5674,11 +5675,23 @@ async function playItem(item) {
      A origem original permanece guardada para fallback.
   */
   const directPlaybackUrl = sourceUrl;
-  const playbackUrl = isHttpUrl(sourceUrl)
-    ? buildMediaProxyUrl(sourceUrl)
-    : sourceUrl;
+  /*
+     VOD HTTPS: tente a origem diretamente primeiro. <video> não exige
+     CORS para a simples reprodução cross-origin. HTTP continua usando
+     o gateway para evitar mixed-content; HLS/DASH usam o gateway porque
+     manifesto/segmentos precisam de CORS e reescrita.
+  */
+  const isHttpsSource = /^https:\/\//i.test(sourceUrl);
+  const playbackUrl = (
+    !looksLikeLiveStream &&
+    !isHLS(sourceUrl) &&
+    !isDASH(sourceUrl) &&
+    isHttpsSource
+  )
+    ? sourceUrl
+    : (isHttpUrl(sourceUrl) ? buildMediaProxyUrl(sourceUrl) : sourceUrl);
   video.__gcDirectPlaybackUrl =
-    directPlaybackUrl !== playbackUrl ? directPlaybackUrl : "";
+    playbackUrl !== directPlaybackUrl ? directPlaybackUrl : "";
   delete video.__gcDirectPlaybackRetry;
 
   video.playbackRate =
@@ -5777,7 +5790,7 @@ async function playItem(item) {
       message,
       liveDirectHlsFallback || (playbackUrl !== sourceUrl ? sourceUrl : ""),
       async () => {
-        await playHLS(
+        return await playHLS(
           video,
           playbackUrl,
           message,
@@ -6344,7 +6357,10 @@ async function playHLS(
       message.textContent =
         "Não foi possível iniciar este fluxo HLS.";
     }
+    return false;
   }
+
+  return true;
 }
 
 /* =========================================================
@@ -8265,15 +8281,28 @@ async function loadM3U(
 
     if (writeError) throw writeError;
 
-    await rebuildSeriesCatalogInBackground(true);
-
-    if (state.seriesCatalogReady) {
-      state.counts.series = state.seriesCatalog.length;
-    }
+    /*
+       Não bloquear a abertura da biblioteca pela reconstrução detalhada
+       de temporadas/episódios. Em listas grandes ela pode percorrer
+       centenas de milhares de registros. O contador de séries já foi
+       calculado por chaves únicas durante a importação.
+    */
+    const seriesRebuildPromise = rebuildSeriesCatalogInBackground(true)
+      .then(() => {
+        if (state.seriesCatalogReady) {
+          state.counts.series = state.seriesCatalog.length;
+          state.total = processed;
+          updateLiveCounters();
+          renderStats();
+          saveCatalogCacheMeta(url);
+          if (state.currentFilter === "series") render();
+        }
+      })
+      .catch(error => console.warn("[GC PLAY PRO] reconstrução de séries em segundo plano:", error));
+    state.seriesRebuildPromise = seriesRebuildPromise;
 
     /* O total representa itens/episódios importados. A contagem de
-       séries, por outro lado, representa séries únicas. Não misture as
-       duas métricas, senão uma playlist com episódios faz o total cair. */
+       séries representa séries únicas. */
     state.total = processed;
 
     try {
@@ -10106,14 +10135,14 @@ async function initApp() {
   );
 
   /*
-     BUILD GUARD — 2026-10-06 PLAYFIX2
+     BUILD GUARD — 2026-10-06 PLAYFIX4
      O catálogo anterior ficou persistido no IndexedDB mesmo depois das
      correções de parser/classificação. Isso fazia a interface continuar
      mostrando números antigos e categorias incorretas.
      Em uma mudança estrutural de catálogo, fazemos uma única limpeza e
      deixamos a rotina de ativação/importação reconstruir a biblioteca.
   */
-  const GC_CATALOG_BUILD = "20261006-PLAYFIX3";
+  const GC_CATALOG_BUILD = "20261006-PLAYFIX4";
   try {
     const previousBuild = localStorage.getItem("GC_PLAY_PRO_CATALOG_BUILD_V1");
     if (previousBuild !== GC_CATALOG_BUILD) {
