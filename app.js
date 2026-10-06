@@ -3486,11 +3486,14 @@ async function rebuildSeriesCatalogInBackground(force = false) {
             entry.logo = item.logo;
           }
 
-          if (info.season !== null && info.season !== undefined) {
-            const season = String(Number(info.season));
-            entry.seasons[season] =
-              Number(entry.seasons[season] || 0) + 1;
-          }
+          const detectedSeason =
+            info.season !== null && info.season !== undefined
+              ? Number(info.season)
+              : (item.season !== null && item.season !== undefined ? Number(item.season) : 1);
+
+          const season = String(Number.isFinite(detectedSeason) && detectedSeason > 0 ? detectedSeason : 1);
+          entry.seasons[season] =
+            Number(entry.seasons[season] || 0) + 1;
 
           entry.episodeCount++;
         }
