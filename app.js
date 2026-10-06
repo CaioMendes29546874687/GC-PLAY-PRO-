@@ -2205,59 +2205,6 @@ async function fetchPlaylist(url, signal) {
   throw lastError || new Error("Não foi possível acessar a playlist.");
 }
 
-  if (!response.ok) {
-    let detail = "";
-
-    try {
-      const contentType =
-        response.headers.get("content-type") || "";
-
-      if (contentType.includes("application/json")) {
-        const data = await response.clone().json();
-
-        if (data?.error) {
-          detail = ` — ${data.error}`;
-        }
-
-        if (data?.detail) {
-          detail += ` — ${data.detail}`;
-        }
-
-        if (data?.host) {
-          detail += ` (${data.host})`;
-        }
-
-        if (data?.status) {
-          detail += ` [origem HTTP ${data.status}]`;
-        }
-      } else {
-        const text = (await response.clone().text()).slice(0, 300).trim();
-        if (text) detail = ` — ${text}`;
-      }
-    } catch {}
-
-    throw new Error(
-      `Servidor respondeu HTTP ${response.status}${detail}`
-    );
-  }
-
-  if (!response.body) {
-    throw new Error(
-      "O servidor não retornou um fluxo de dados."
-    );
-  }
-
-  const contentType =
-    response.headers.get("content-type") || "";
-
-  if (/text\/html/i.test(contentType)) {
-    throw new Error(
-      "A origem retornou uma página HTML em vez de uma playlist M3U."
-    );
-  }
-
-  return response;
-}
 
 /* =========================================================
    PARSER M3U PROGRESSIVO
