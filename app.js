@@ -4988,6 +4988,24 @@ async function playItem(item) {
     return;
   }
 
+  // Android TV/Android: use the native Media3/ExoPlayer engine.
+  // The web player remains the fallback for PC, browser and Smart TV browsers.
+  if (window.AndroidGCPlayer && typeof window.AndroidGCPlayer.play === "function") {
+    try {
+      const nativeUrl = buildMediaProxyUrl(item.url);
+      window.AndroidGCPlayer.play(
+        nativeUrl || item.url,
+        String(item.name || "GC PLAY PRO"),
+        String(item.type || "")
+      );
+      state.currentItem = item;
+      gcDiagReport("native_start", { engine: "media3-exoplayer" });
+      return;
+    } catch (nativeError) {
+      console.warn("[GC NATIVE PLAYER] fallback para player web:", nativeError);
+    }
+  }
+
   const panel =
     $("#playerPanel");
 
