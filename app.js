@@ -10113,7 +10113,7 @@ async function initApp() {
      Em uma mudança estrutural de catálogo, fazemos uma única limpeza e
      deixamos a rotina de ativação/importação reconstruir a biblioteca.
   */
-  const GC_CATALOG_BUILD = "20261006-PLAYFIX2";
+  const GC_CATALOG_BUILD = "20261006-PLAYFIX3";
   try {
     const previousBuild = localStorage.getItem("GC_PLAY_PRO_CATALOG_BUILD_V1");
     if (previousBuild !== GC_CATALOG_BUILD) {
