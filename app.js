@@ -4187,6 +4187,207 @@ async function loadHLS() {
 }
 
 /* =========================================================
+   SHAKA PLAYER — MOTOR ADAPTATIVO PRINCIPAL
+   HLS + DASH + fMP4/CMAF. HLS.js/dash.js permanecem como fallback.
+   ========================================================= */
+
+function loadShaka() {
+  if (window.shaka?.Player) return Promise.resolve(window.shaka);
+
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector('script[data-gc-shaka="1"]');
+
+    if (existing) {
+      existing.addEventListener("load", () => window.shaka?.Player
+        ? resolve(window.shaka)
+        : reject(new Error("Shaka Player não ficou disponível.")), { once: true });
+      existing.addEventListener("error", () => reject(new Error("Shaka Player não foi carregado.")), { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/shaka-player@5.2.12/dist/shaka-player.compiled.js";
+    script.async = true;
+    script.dataset.gcShaka = "1";
+
+    script.onload = () => {
+      if (window.shaka?.Player) resolve(window.shaka);
+      else reject(new Error("Shaka Player não foi carregado."));
+    };
+
+    script.onerror = () => reject(new Error("Não foi possível carregar Shaka Player."));
+    document.head.appendChild(script);
+  });
+}
+
+function destroyShakaPlayer() {
+  if (!state.shaka) return;
+  try {
+    const result = state.shaka.destroy?.();
+    if (result?.catch) result.catch(() => {});
+  } catch {}
+  state.shaka = null;
+}
+
+async function playShaka(video, url, message, directFallbackUrl = "", fallbackEngine = null) {
+  let player = null;
+  let startupTimer = null;
+  let fallbackTriggered = false;
+
+  const clearStartup = () => {
+    if (startupTimer) {
+      clearTimeout(startupTimer);
+      startupTimer = null;
+    }
+  };
+
+  const fallback = async (reason) => {
+    if (fallbackTriggered) return false;
+    fallbackTriggered = true;
+    clearStartup();
+    console.warn("[GC SHAKA] fallback:", reason);
+
+    destroyShakaPlayer();
+
+    if (typeof fallbackEngine === "function") {
+      try {
+        if (message) message.textContent = "Shaka falhou — usando motor compatível...";
+        await fallbackEngine();
+        return true;
+      } catch (fallbackError) {
+        console.warn("[GC SHAKA] motor de fallback falhou:", fallbackError);
+      }
+    }
+
+    if (directFallbackUrl && directFallbackUrl !== url) {
+      try {
+        if (message) message.textContent = "Tentando conexão direta...";
+        video.src = directFallbackUrl;
+        video.load();
+        if (state.settings.autoplay) await video.play().catch(() => {});
+        return true;
+      } catch {}
+    }
+
+    if (message) message.textContent = "O fluxo não respondeu neste dispositivo.";
+    return false;
+  };
+
+  try {
+    const shaka = await loadShaka();
+
+    try {
+      shaka.polyfill?.installAll?.();
+    } catch {}
+
+    if (!shaka.Player.isBrowserSupported()) {
+      throw new Error("Shaka não é suportado neste navegador.");
+    }
+
+    destroyShakaPlayer();
+
+    player = new shaka.Player();
+    state.shaka = player;
+
+    /*
+       Todo pedido de manifesto, playlist, segmento e chave passa pelo
+       mesmo gateway de mídia. Isso é essencial quando o provedor não
+       libera CORS para o navegador.
+    */
+    const networking = player.getNetworkingEngine?.();
+    if (networking) {
+      networking.registerRequestFilter((type, request) => {
+        if (!request?.uris) return;
+
+        request.uris = request.uris.map(uri => {
+          try {
+            return isHttpUrl(uri) ? buildMediaProxyUrl(uri) : uri;
+          } catch {
+            return uri;
+          }
+        });
+      });
+    }
+
+    player.configure({
+      streaming: {
+        lowLatencyMode: false,
+        bufferingGoal: 12,
+        rebufferingGoal: 2,
+        bufferBehind: 30,
+        retryParameters: {
+          maxAttempts: 3,
+          baseDelay: 500,
+          backoffFactor: 1.5,
+          fuzzFactor: 0.5,
+          timeout: 10000
+        }
+      },
+      abr: {
+        enabled: true,
+        defaultBandwidthEstimate: 2500000,
+        switchInterval: 8,
+        bandwidthUpgradeTarget: 0.85,
+        bandwidthDowngradeTarget: 0.95
+      }
+    });
+
+    player.addEventListener("error", event => {
+      const detail = event?.detail;
+      console.warn("[GC SHAKA] erro", detail);
+
+      if (!fallbackTriggered && detail?.severity !== shaka.util.Error.Severity?.RECOVERABLE) {
+        fallback(detail?.code || "erro de mídia");
+      }
+    });
+
+    player.addEventListener("buffering", event => {
+      if (message && event.buffering) message.textContent = "CARREGANDO / BUFFERIZANDO...";
+    });
+
+    player.addEventListener("adaptation", () => {
+      if (message && video.readyState >= 2) message.textContent = "";
+    });
+
+    player.addEventListener("loaded", () => {
+      if (message) message.textContent = "";
+    });
+
+    if (message) {
+      message.textContent = isDASH(url) ? "Conectando ao DASH/CMAF..." : "Conectando ao HLS...";
+    }
+
+    await player.load(url);
+
+    clearStartup();
+
+    if (state.settings.autoplay) {
+      try {
+        await video.play();
+      } catch {
+        if (message) message.textContent = "Toque no botão ▶ para iniciar.";
+      }
+    }
+
+    /*
+       Se o manifesto abriu mas nenhum frame apareceu, deixa o fallback
+       assumir o fluxo. Isso evita ficar preso indefinidamente em "conectando".
+    */
+    startupTimer = setTimeout(() => {
+      if (video.readyState < 2 && !video.videoWidth) {
+        fallback("tempo de inicialização excedido");
+      }
+    }, 12000);
+
+    return true;
+  } catch (error) {
+    clearStartup();
+    await fallback(error?.message || error);
+    return false;
+  }
+}
+
+/* =========================================================
    MPEG-DASH / CMAF PLAYER
    ========================================================= */
 
@@ -4889,6 +5090,10 @@ function closePlayer() {
     state.dash = null;
   }
 
+  if (state.shaka) {
+    destroyShakaPlayer();
+  }
+
   if (state.epgTimer) {
     clearInterval(state.epgTimer);
     state.epgTimer = null;
@@ -5182,6 +5387,10 @@ async function playItem(item) {
     state.dash = null;
   }
 
+  if (state.shaka) {
+    destroyShakaPlayer();
+  }
+
   if (video && state.currentItem) {
     saveResumePosition(state.currentItem, video);
   }
@@ -5373,12 +5582,23 @@ async function playItem(item) {
      ------------------------------------------------------- */
 
   if (isDASH(sourceUrl)) {
-    await playDASH(
+    const shakaStarted = await playShaka(
       video,
       playbackUrl,
       message,
-      sourceUrl !== playbackUrl ? sourceUrl : ""
+      sourceUrl !== playbackUrl ? sourceUrl : "",
+      async () => {
+        await playDASH(
+          video,
+          playbackUrl,
+          message,
+          sourceUrl !== playbackUrl ? sourceUrl : ""
+        );
+      }
     );
+
+    if (shakaStarted) return;
+
     return;
   }
 
@@ -5402,14 +5622,24 @@ async function playItem(item) {
         ? liveHlsUrl
         : (item.xtreamKind === "live" && isHLS(originalUrl) && originalUrl !== sourceUrl ? originalUrl : "");
 
-    await playHLS(
+    const shakaStarted = await playShaka(
       video,
       playbackUrl,
       message,
-      liveTsProxyFallback,
-      liveTsDirectFallback,
-      liveDirectHlsFallback
+      liveDirectHlsFallback || (playbackUrl !== sourceUrl ? sourceUrl : ""),
+      async () => {
+        await playHLS(
+          video,
+          playbackUrl,
+          message,
+          liveTsProxyFallback,
+          liveTsDirectFallback,
+          liveDirectHlsFallback
+        );
+      }
     );
+
+    if (shakaStarted) return;
 
     return;
   }
