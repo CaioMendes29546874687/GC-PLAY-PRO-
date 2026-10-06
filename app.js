@@ -3475,6 +3475,7 @@ async function rebuildSeriesCatalogInBackground(force = false) {
               logo: item.logo || "",
               group: item.group || "",
               genre: info.genre || getGenreName(item.group),
+              xtreamSeriesId: item.xtreamSeriesId ? String(item.xtreamSeriesId) : "",
               episodeCount: 0,
               seasons: {}
             };
@@ -3484,6 +3485,9 @@ async function rebuildSeriesCatalogInBackground(force = false) {
 
           if (!entry.logo && item.logo) {
             entry.logo = item.logo;
+          }
+          if (!entry.xtreamSeriesId && item.xtreamSeriesId) {
+            entry.xtreamSeriesId = String(item.xtreamSeriesId);
           }
 
           const detectedSeason =
