@@ -134,6 +134,88 @@ const state = {
 /* Exposto apenas para os módulos de reprodução externos. */
 window.__GC_STATE__ = state;
 
+/* =========================================================
+   TELEMETRIA DE CONEXÃO / REPRODUÇÃO
+   Mede a experiência real do cliente sem guardar a URL da mídia.
+   ========================================================= */
+const GC_DIAG_API = "https://gc-play-pro-backend.onrender.com";
+const GC_DIAG_KEY = "GC_PLAY_PRO_ACTIVATION_V1";
+function gcDiagActivation(){
+  try{return JSON.parse(localStorage.getItem(GC_DIAG_KEY)||"null")}catch{return null}
+}
+function gcDiagNetwork(){
+  const c=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+  return {
+    online:navigator.onLine!==false,
+    network_rtt_ms:Number.isFinite(Number(c?.rtt))?Number(c.rtt):null,
+    network_downlink_mbps:Number.isFinite(Number(c?.downlink))?Number(c.downlink):null,
+    network_effective_type:String(c?.effectiveType||"")
+  };
+}
+async function gcDiagReport(event_type,extra={}){
+  const a=gcDiagActivation();
+  if(!a?.activationCode||!a?.deviceUid)return;
+  const n=gcDiagNetwork();
+  try{
+    await fetch(GC_DIAG_API+"/api/telemetry/playback",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      keepalive:true,
+      body:JSON.stringify({
+        activation_code:a.activationCode,
+        device_uid:a.deviceUid,
+        event_type,
+        stream_key:extra.stream_key||state.currentItem?.id||state.currentItem?.name||"",
+        stream_name:String(extra.stream_name||state.currentItem?.name||"Conteúdo").slice(0,300),
+        stream_type:extra.stream_type||state.currentItem?.type||"unknown",
+        startup_ms:extra.startup_ms??null,
+        buffer_seconds:extra.buffer_seconds??0,
+        network_rtt_ms:n.network_rtt_ms,
+        network_downlink_mbps:n.network_downlink_mbps,
+        network_effective_type:n.network_effective_type,
+        online:n.online,
+        error_code:extra.error_code||"",
+        error_message:extra.error_message||"",
+        browser:navigator.userAgent
+      })
+    });
+  }catch{}
+}
+async function gcDiagHeartbeat(){
+  const a=gcDiagActivation();
+  if(!a?.activationCode||!a?.deviceUid)return;
+  const n=gcDiagNetwork(),t0=performance.now();
+  try{
+    const r=await fetch(GC_DIAG_API+"/health?gc_ping="+Date.now(),{cache:"no-store"});
+    const backend_rtt_ms=Math.round(performance.now()-t0);
+    if(!r.ok)return;
+    await fetch(GC_DIAG_API+"/api/telemetry/heartbeat",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      keepalive:true,
+      body:JSON.stringify({
+        activation_code:a.activationCode,
+        device_uid:a.deviceUid,
+        device_name:"GC PLAY PRO",
+        platform:navigator.userAgent,
+        online:n.online,
+        network_rtt_ms:n.network_rtt_ms,
+        backend_rtt_ms,
+        network_downlink_mbps:n.network_downlink_mbps,
+        network_effective_type:n.network_effective_type
+      })
+    });
+  }catch{
+    /* Sem internet não conseguimos reportar; a próxima batida registra o retorno. */
+  }
+}
+window.GCDiagnostics={report:gcDiagReport,heartbeat:gcDiagHeartbeat,network:gcDiagNetwork};
+setTimeout(gcDiagHeartbeat,2500);
+setInterval(gcDiagHeartbeat,30000);
+window.addEventListener("online",()=>gcDiagHeartbeat());
+window.addEventListener("offline",()=>gcDiagReport("error",{error_code:"OFFLINE",error_message:"Conexão do aparelho ficou offline."}));
+
+
 
 /* =========================================================
    DOM
@@ -4862,6 +4944,65 @@ async function playItem(item) {
 
   state.currentItem =
     item;
+
+  const gcDiagStartedAt = performance.now();
+  const gcDiagSession = {
+    itemId: item.id || item.name,
+    streamName: String(item.name || "Conteúdo"),
+    streamType: String(item.type || "unknown"),
+    waitingAt: 0,
+    bufferSeconds: 0,
+    playingReported: false,
+    errorReported: false
+  };
+  state.__gcDiagSession = gcDiagSession;
+  gcDiagReport("start");
+
+  const gcDiagReportPlaying = () => {
+    if (state.__gcDiagSession !== gcDiagSession || gcDiagSession.playingReported) return;
+    gcDiagSession.playingReported = true;
+    if (gcDiagSession.waitingAt) {
+      gcDiagSession.bufferSeconds += Math.max(0,(performance.now()-gcDiagSession.waitingAt)/1000);
+      gcDiagSession.waitingAt=0;
+    }
+    gcDiagReport("playing",{
+      startup_ms:Math.round(performance.now()-gcDiagStartedAt),
+      buffer_seconds:Math.round(gcDiagSession.bufferSeconds*10)/10
+    });
+  };
+  const gcDiagReportWaiting = () => {
+    if (state.__gcDiagSession !== gcDiagSession) return;
+    if (!gcDiagSession.waitingAt) gcDiagSession.waitingAt=performance.now();
+    gcDiagReport("waiting",{buffer_seconds:Math.round(gcDiagSession.bufferSeconds*10)/10});
+  };
+  const gcDiagReportStalled = () => {
+    if (state.__gcDiagSession !== gcDiagSession) return;
+    if (!gcDiagSession.waitingAt) gcDiagSession.waitingAt=performance.now();
+    gcDiagReport("stalled",{buffer_seconds:Math.round(gcDiagSession.bufferSeconds*10)/10});
+  };
+  const gcDiagReportError = () => {
+    if (state.__gcDiagSession !== gcDiagSession || gcDiagSession.errorReported) return;
+    gcDiagSession.errorReported=true;
+    const code=video.error?.code;
+    gcDiagReport("error",{
+      error_code:code?String(code):"MEDIA_ERROR",
+      error_message:code?("MediaError code "+code):"Falha de reprodução",
+      startup_ms:Math.round(performance.now()-gcDiagStartedAt),
+      buffer_seconds:Math.round(gcDiagSession.bufferSeconds*10)/10
+    });
+  };
+  if(video.__gcDiagPlaying) video.removeEventListener("playing",video.__gcDiagPlaying);
+  if(video.__gcDiagWaiting) video.removeEventListener("waiting",video.__gcDiagWaiting);
+  if(video.__gcDiagStalled) video.removeEventListener("stalled",video.__gcDiagStalled);
+  if(video.__gcDiagError) video.removeEventListener("error",video.__gcDiagError);
+  video.__gcDiagPlaying=gcDiagReportPlaying;
+  video.__gcDiagWaiting=gcDiagReportWaiting;
+  video.__gcDiagStalled=gcDiagReportStalled;
+  video.__gcDiagError=gcDiagReportError;
+  video.addEventListener("playing",gcDiagReportPlaying);
+  video.addEventListener("waiting",gcDiagReportWaiting);
+  video.addEventListener("stalled",gcDiagReportStalled);
+  video.addEventListener("error",gcDiagReportError);
 
   const earlyUrl = String(item.url || "");
   const earlyLive = item.type === "live" || earlyUrl.includes("/live/") || earlyUrl.includes("/stream/") || earlyUrl.includes("/channel/") || earlyUrl.includes("/play/") || earlyUrl.includes("/tv/");
