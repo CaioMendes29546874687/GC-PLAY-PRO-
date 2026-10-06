@@ -3671,6 +3671,9 @@ async function getSeriesEpisodes(seriesKey, season = null) {
     state.seriesCatalogMap.get(seriesKey) ||
     state.seriesCatalog.find(item => item.seriesKey === seriesKey);
 
+  /* Xtream: carregamento sob demanda da série inteira. Não limitar por temporada
+     antes de receber a resposta, pois alguns provedores só retornam a estrutura
+     completa quando a série é consultada. */
   if (selectedSeries?.xtreamSeriesId && state.xtreamSession) {
     try {
       const result = await fetchXtreamSeriesEpisodes(
@@ -3679,43 +3682,57 @@ async function getSeriesEpisodes(seriesKey, season = null) {
         state.loadAbort?.signal
       );
 
-      /* Episódios Xtream são carregados sob demanda e não entram no
-         IndexedDB. Guarde-os em memória para o clique do episódio
-         chegar ao player mesmo quando o catálogo tem dezenas de milhares
-         de itens. */
-      const dynamic = window.__GC_DYNAMIC_ITEMS__ || (window.__GC_DYNAMIC_ITEMS__ = new Map());
+      const dynamic = window.__GC_DYNAMIC_ITEMS__ ||
+        (window.__GC_DYNAMIC_ITEMS__ = new Map());
+
       for (const episode of result) {
         if (episode?.id) dynamic.set(String(episode.id), episode);
       }
 
-      return result;
+      return result.sort((a,b) =>
+        Number(a.season ?? 999999) - Number(b.season ?? 999999) ||
+        Number(a.episode ?? 999999) - Number(b.episode ?? 999999)
+      );
     } catch (error) {
       console.warn("[GC PLAY PRO] Episódios Xtream:", error);
+      window.GCArchitecture?.diagnostics?.push?.("series_episode_fallback", {
+        seriesKey,
+        error: String(error?.message || error)
+      });
     }
   }
 
   const keys = new Set([seriesKey]);
-
   for (const [oldKey, canonicalKey] of state.seriesKeyAliases) {
-    if (canonicalKey === seriesKey) {
-      keys.add(oldKey);
-    }
+    if (canonicalKey === seriesKey) keys.add(oldKey);
   }
 
-  const batches = await Promise.all(
-    Array.from(keys).map(key =>
-      querySeriesEpisodesByKey(key, season)
-    )
-  );
-
-  const seen = new Set();
   const result = [];
+  const seen = new Set();
 
-  for (const batch of batches) {
+  for (const key of keys) {
+    const batch = await querySeriesEpisodesByKey(key, season);
     for (const item of batch) {
-      if (seen.has(item.id)) continue;
-      seen.add(item.id);
-      result.push(item);
+      const id = String(item.id || "");
+      if (id && seen.has(id)) continue;
+      if (id) seen.add(id);
+
+      const info = extractSeriesInfo(item);
+      const normalizedSeason =
+        item.season != null ? Number(item.season) :
+        info.season != null ? Number(info.season) : 1;
+
+      if (season !== null && normalizedSeason !== Number(season)) continue;
+
+      result.push({
+        ...item,
+        type: "series",
+        seriesKey,
+        seriesName: selectedSeries?.seriesName || info.seriesName,
+        season: normalizedSeason,
+        episode: item.episode != null ? Number(item.episode) :
+          info.episode != null ? Number(info.episode) : null
+      });
     }
   }
 
@@ -3730,7 +3747,6 @@ async function getSeriesEpisodes(seriesKey, season = null) {
 
   return result;
 }
-
 /* =========================================================
    RENDER ESTATÍSTICAS
    ========================================================= */
