@@ -75,6 +75,24 @@
     v.src=primary;v.load();
     try{await v.play()}catch{msg("Toque em ▶ para iniciar.");}
   }
+  function waitPlaying(v,timeout=9000){
+    return new Promise((resolve,reject)=>{
+      let done=false;
+      const finish=(ok,err)=>{
+        if(done)return; done=true;
+        clearTimeout(timer);
+        v.removeEventListener("playing",onPlaying);
+        v.removeEventListener("error",onError);
+        if(ok)resolve(true); else reject(err||Error("media startup failed"));
+      };
+      const onPlaying=()=>finish(true);
+      const onError=()=>finish(false,v.error||Error("HTML5 media error"));
+      const timer=setTimeout(()=>finish(false,Error("startup timeout")),timeout);
+      v.addEventListener("playing",onPlaying,{once:true});
+      v.addEventListener("error",onError,{once:true});
+      if(v.readyState>=3) onPlaying();
+    });
+  }
   async function play(item){
     if(!item?.url){msg("Este conteúdo não possui uma URL válida.");return false}
     const s=state(); if(s)s.currentItem=item;
@@ -83,56 +101,67 @@
     show(item); stopEngines(); resetVideo(v);
     const raw=directUrl(item);
     const kind=dash(raw)?"dash":hls(raw)?"hls":(item.type==="live"||ts(raw))?"ts":vod(raw)?"vod":"unknown";
-    if(s?.GCPlaybackCore) s.GCPlaybackCore.kind=kind;
+    if(s){s.GCPlaybackCore=s.GCPlaybackCore||{};s.GCPlaybackCore.kind=kind;s.GCPlaybackCore.startedAt=Date.now()}
     msg(kind==="hls"?"Conectando ao HLS...":kind==="dash"?"Conectando ao DASH...":kind==="ts"?"Conectando ao MPEG-TS...":"Iniciando vídeo...");
+    const note=(stage,extra={})=>{console.info("[GC PLAYBACK V2]",stage,{kind,url:raw,...extra});try{window.dispatchEvent(new CustomEvent("gc-playback-stage",{detail:{stage,kind,...extra}}))}catch{}};
     try{
       if(kind==="hls"){
-        const p=proxy(raw,item);
-        const fallback=p!==raw?raw:"";
+        const p=proxy(raw,item); const fallback=p!==raw?raw:"";
         if(typeof window.playHLS!=="function") throw Error("Motor HLS indisponível");
-        const ok=await Promise.race([
-          Promise.resolve(window.playHLS(v,p,document.getElementById("playerMessage"),"",fallback)),
-          new Promise((_,rej)=>setTimeout(()=>rej(Error("HLS startup timeout")),8000))
-        ]);
-        if(ok!==false)return true;
-        throw Error("HLS não iniciou");
+        note("hls_start",{proxied:p!==raw});
+        await window.playHLS(v,p,document.getElementById("playerMessage"),"",fallback);
+        msg("Aguardando primeiro quadro...");
+        await waitPlaying(v,9000);
+        msg(""); note("playing"); return true;
       }
       if(kind==="dash"){
         const p=proxy(raw,item);
+        note("dash_start",{proxied:p!==raw});
+        let ok=false;
         if(typeof window.playShaka==="function"){
-          const ok=await Promise.race([
-            Promise.resolve(window.playShaka(v,p,document.getElementById("playerMessage"),p!==raw?raw:"")),
-            new Promise((_,rej)=>setTimeout(()=>rej(Error("DASH startup timeout")),8000))
-          ]);
-          if(ok!==false)return true;
+          try{ok=await window.playShaka(v,p,document.getElementById("playerMessage"),p!==raw?raw:"");}catch(e){note("shaka_error",{error:String(e)})}
         }
-        if(typeof window.playDASH==="function"){
-          await window.playDASH(v,p,document.getElementById("playerMessage"),p!==raw?raw:"");
-          return true;
+        if(!ok && typeof window.playDASH==="function"){
+          await window.playDASH(v,p,document.getElementById("playerMessage"),p!==raw?raw:""); ok=true;
         }
-        throw Error("Motor DASH indisponível");
+        if(!ok) throw Error("Motor DASH indisponível");
+        msg("Aguardando primeiro quadro..."); await waitPlaying(v,9000); msg(""); note("playing"); return true;
       }
       if(kind==="ts"){
         if(typeof window.playMpegTS!=="function")throw Error("Motor MPEG-TS indisponível");
-        await Promise.race([
-          Promise.resolve(window.playMpegTS(v,proxy(raw,item),document.getElementById("playerMessage"),raw,"")),
-          new Promise((_,rej)=>setTimeout(()=>rej(Error("MPEG-TS startup timeout")),9000))
-        ]);
-        return true;
+        note("ts_start");
+        await window.playMpegTS(v,proxy(raw,item),document.getElementById("playerMessage"),raw,"");
+        msg("Aguardando primeiro quadro...");
+        await waitPlaying(v,10000);
+        msg(""); note("playing"); return true;
       }
+      note("native_start");
       await nativeVideo(v,raw,item);
-      return true;
+      await waitPlaying(v,7000);
+      msg(""); note("playing"); return true;
     }catch(e){
-      console.warn("[GC PLAYBACK V2]",kind,e);
+      note("primary_failed",{error:String(e?.message||e)});
       stopEngines(); resetVideo(v);
-      msg("Falha ao iniciar a mídia. Tentando conexão direta...");
+      msg("Primeira conexão falhou. Tentando origem direta...");
       try{
-        if(kind==="hls" && typeof window.playHLS==="function"){await window.playHLS(v,raw,document.getElementById("playerMessage"));return true}
-        if(kind==="ts" && typeof window.playMpegTS==="function"){await window.playMpegTS(v,raw,document.getElementById("playerMessage"));return true}
-        await nativeVideo(v,raw,item); return true;
-      }catch(e2){console.error("[GC PLAYBACK V2] final",e2);msg("Não foi possível reproduzir este conteúdo.");return false}
+        if(kind==="hls" && typeof window.playHLS==="function"){
+          await window.playHLS(v,raw,document.getElementById("playerMessage"));
+          await waitPlaying(v,9000); msg(""); note("direct_playing"); return true;
+        }
+        if(kind==="ts" && typeof window.playMpegTS==="function"){
+          await window.playMpegTS(v,raw,document.getElementById("playerMessage"));
+          await waitPlaying(v,10000); msg(""); note("direct_playing"); return true;
+        }
+        await nativeVideo(v,raw,item); await waitPlaying(v,7000); msg(""); note("direct_playing"); return true;
+      }catch(e2){
+        note("final_failed",{error:String(e2?.message||e2)});
+        stopEngines(); resetVideo(v);
+        msg("Não foi possível reproduzir este conteúdo.");
+        return false;
+      }
     }
   }
+
   window.GCPlaybackCore={version:VERSION,play,stop:stopEngines};
   window.playItem=play;
   if(originalApi) originalApi.playItem=play;
