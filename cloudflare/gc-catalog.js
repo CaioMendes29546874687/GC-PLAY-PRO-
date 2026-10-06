@@ -67,13 +67,13 @@ function looksLikeDash(u, ct) {
   return p.endsWith(".mpd") || t.includes("dash+xml") || t.includes("application/dash");
 }
 
-function rewriteDashManifest(text, baseUrl, workerOrigin) {
+function rewriteDashManifest(text, baseUrl, workerOrigin, referrer = "", userAgent = "") {
   const rewrite = value => {
     const raw = String(value || "").trim();
     if (!raw || raw.startsWith("#") || raw.startsWith("data:")) return raw;
     try {
       const absolute = new URL(raw, baseUrl).toString();
-      return mediaProxyUrl(workerOrigin, absolute);
+      return mediaProxyUrl(workerOrigin, absolute, referrer, userAgent);
     } catch {
       return raw;
     }
@@ -85,17 +85,22 @@ function rewriteDashManifest(text, baseUrl, workerOrigin) {
   return out;
 }
 
-function mediaProxyUrl(workerOrigin, target) {
-  return workerOrigin + "?mode=media&url=" + encodeURIComponent(target);
+function mediaProxyUrl(workerOrigin, target, referrer = "", userAgent = "") {
+  const p = new URL(workerOrigin);
+  p.searchParams.set("mode", "media");
+  p.searchParams.set("url", target);
+  if (referrer) p.searchParams.set("ref", String(referrer).slice(0, 2048));
+  if (userAgent) p.searchParams.set("ua", String(userAgent).slice(0, 2048));
+  return p.toString();
 }
 
-function rewriteHlsManifest(text, baseUrl, workerOrigin) {
+function rewriteHlsManifest(text, baseUrl, workerOrigin, referrer = "", userAgent = "") {
   const rewrite = value => {
     const raw = String(value || "").trim();
     if (!raw || raw.startsWith("#") || raw.startsWith("data:")) return raw;
     let absolute;
     try { absolute = new URL(raw, baseUrl).toString(); } catch { return raw; }
-    return mediaProxyUrl(workerOrigin, absolute);
+    return mediaProxyUrl(workerOrigin, absolute, referrer, userAgent);
   };
 
   let out = String(text || "");
@@ -124,6 +129,11 @@ async function fetchMedia(request, target) {
     const value = request.headers.get(name);
     if (value) baseHeaders.set(name, value);
   }
+  const parsedRequest = new URL(request.url);
+  const customReferrer = parsedRequest.searchParams.get("ref") || "";
+  const customUserAgent = parsedRequest.searchParams.get("ua") || "";
+  if (customReferrer) baseHeaders.set("Referer", customReferrer);
+  if (customUserAgent) baseHeaders.set("User-Agent", customUserAgent);
 
   /*
      Compatibilidade IPTV:
@@ -165,7 +175,7 @@ async function fetchMedia(request, target) {
 
   if (targetIsHls && upstream.ok && upstream.body) {
     const text = await upstream.text();
-    const rewritten = rewriteHlsManifest(text, target.toString(), new URL(request.url).origin);
+    const rewritten = rewriteHlsManifest(text, target.toString(), new URL(request.url).origin, customReferrer, customUserAgent);
     const outHeaders = new Headers(MEDIA_CORS);
     outHeaders.set("Content-Type", "application/vnd.apple.mpegurl");
     outHeaders.set("Cache-Control", "no-store");
@@ -174,7 +184,7 @@ async function fetchMedia(request, target) {
 
   if (targetIsDash && upstream.ok && upstream.body) {
     const text = await upstream.text();
-    const rewritten = rewriteDashManifest(text, target.toString(), new URL(request.url).origin);
+    const rewritten = rewriteDashManifest(text, target.toString(), new URL(request.url).origin, customReferrer, customUserAgent);
     const outHeaders = new Headers(MEDIA_CORS);
     outHeaders.set("Content-Type", "application/dash+xml");
     outHeaders.set("Cache-Control", "no-store");
