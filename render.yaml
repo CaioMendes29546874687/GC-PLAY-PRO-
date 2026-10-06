@@ -14,9 +14,6 @@ services:
         fromDatabase:
           name: gc-play-pro-db
           property: connectionString
-      - key: SUPABASE_URL
-        value: https://kuzgdvpdqmocklsgyzvt.supabase.co
-      - key: SUPABASE_KEY
         sync: false
 
 databases:
