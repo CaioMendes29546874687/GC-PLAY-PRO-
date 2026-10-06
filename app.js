@@ -822,7 +822,8 @@ function loadSample(limit = RAM_LIMIT) {
 function queryItems({
   type = null,
   group = null,
-  limit = 120
+  limit = 120,
+  offset = 0
 } = {}) {
   return new Promise((resolve, reject) => {
     const result = [];
@@ -3036,6 +3037,7 @@ async function queryCatalogItems({
   */
   return new Promise((resolve, reject) => {
     const result = [];
+    let skipped = 0;
     const transaction = state.db.transaction(STORE_NAME, "readonly");
     const store = transaction.objectStore(STORE_NAME);
     const useTypeIndex = !!type && type !== "adult";
@@ -3053,7 +3055,8 @@ async function queryCatalogItems({
       }
 
       if (matches(cursor.value)) {
-        result.push(cursor.value);
+        if (skipped < offset) skipped++;
+        else result.push(cursor.value);
       }
 
       cursor.continue();
@@ -5744,6 +5747,32 @@ function setupCardEvents() {
   grid.addEventListener(
     "click",
     async event => {
+      const loadMore = event.target.closest("[data-load-more-catalog]");
+      if (loadMore) {
+        event.preventDefault();
+        event.stopPropagation();
+        const type =
+          state.currentFilter === "all" || state.currentFilter === "adult"
+            ? (state.currentFilter === "adult" ? "adult" : null)
+            : state.currentFilter;
+        const nextOffset = Number(state.catalogOffset || 0) + 120;
+        const next = await queryCatalogItems({
+          type,
+          genre: state.currentGenre,
+          term: state.searchTerm,
+          limit: 121,
+          offset: nextOffset
+        });
+        if (!next.length) {
+          loadMore.remove();
+          return;
+        }
+        state.catalogOffset = nextOffset;
+        loadMore.insertAdjacentHTML("beforebegin", next.slice(0,120).map(renderCard).join(""));
+        if (next.length <= 120) loadMore.remove();
+        return;
+      }
+
       const favoriteButton =
         event.target.closest(
           "[data-favorite-id]"
