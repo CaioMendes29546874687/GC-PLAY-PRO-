@@ -25,7 +25,7 @@ const GC_HEALTH_URL =
 
 /* Compatibilidade M3U: usado apenas como fallback para fontes pequenas. */
 const GC_PARSER_FALLBACK_URL =
-  `${GC_DIAG_API}/api/playlist/parse`;
+  "https://gc-play-pro-backend.onrender.com/api/playlist/parse";
 
 /* O proxy é genérico: cada playlist pode usar um domínio diferente. */
 const GC_PROXY_HOSTS = null;
