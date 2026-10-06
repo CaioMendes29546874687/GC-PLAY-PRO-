@@ -389,11 +389,6 @@ function loadState() {
         const session = JSON.parse(xtreamSaved);
         if (session?.base && session?.username && session?.password) {
           state.xtreamSession = session;
-          state.xtreamLoaded = {
-            live: Number(actualLive || 0) > 0,
-            movie: false,
-            series: false
-          };
         }
       }
     } catch {}
