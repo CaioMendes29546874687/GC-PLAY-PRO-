@@ -158,7 +158,7 @@
 
   /* 10 — activation bridge */
   const ActivationEngine={
-    key:"GC_PLAY_PRO_ACTIVATION",
+    key:"GC_PLAY_PRO_ACTIVATION_V1",
     read(){try{return JSON.parse(localStorage.getItem(this.key)||"null")}catch{return null}},
     valid(){
       const x=this.read(); if(!x)return false;
