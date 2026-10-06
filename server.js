@@ -17,7 +17,7 @@ app.use((req,res,next)=>{
 let pool;
 function getPool(){if(!DATABASE_URL)throw new Error("DATABASE_URL não configurada.");if(!pool)pool=new Pool({connectionString:DATABASE_URL,ssl:{rejectUnauthorized:false},max:8});return pool}
 async function db(){return getPool()}
-async function init(){const p=getPool();const fs=await import("node:fs/promises");await p.query(await fs.readFile(new URL("./schema.sql",import.meta.url),"utf8"));console.log("GC DB: schema pronto.")}
+async function init(){const p=getPool();const fs=await import("node:fs/promises");await p.query(await fs.readFile(new URL("./schema.sql",import.meta.url),"utf8"));console.log("GC DB: schema pronto.");if(process.env.MIGRATION_PAYLOAD){setTimeout(async()=>{try{const r=await fetch("http://127.0.0.1:"+PORT+"/api/migration/import",{method:"POST",headers:{"Content-Type":"application/json","x-migration-token":MIGRATION_TOKEN},body:process.env.MIGRATION_PAYLOAD});console.log("GC DB: migration payload",await r.text())}catch(e){console.error("GC DB migration:",e.message)}},1000)}}
 const b64=x=>Buffer.from(x).toString("base64url");
 const unb64=x=>Buffer.from(x,"base64url").toString();
 function hashPassword(pass,salt=crypto.randomBytes(16).toString("hex")){return new Promise((resolve,reject)=>crypto.scrypt(pass,salt,64,(e,k)=>e?reject(e):resolve(salt+"$"+k.toString("hex"))))}
