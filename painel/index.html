@@ -82,6 +82,30 @@
 <section class="card" id="devicesCard"><div class="head"><h2>◉ Dispositivos cadastrados</h2><span class="syncState"><i class="syncDot"></i><span id="deviceCountLabel">0 cadastrados</span></span></div><div class="devices" id="devicesBody"></div></section>
 <section class="card" id="logsCard"><div class="head"><h2>✓ Últimas sincronizações</h2><span class="syncState">histórico</span></div><div class="list" id="logsBody"></div></section>
 </div>
+<section class="card" id="diagnosticsCard" style="margin-top:18px">
+ <div class="head">
+   <h2>◈ DIAGNÓSTICO DE ESTABILIDADE</h2>
+   <div class="act"><span class="syncState" id="diagUpdated">—</span><button class="btn" id="diagRefresh">↻ ANALISAR AGORA</button></div>
+ </div>
+ <div class="stats" style="padding:0 0 14px">
+   <div class="stat" id="diagListStat"><small>LISTAS INSTÁVEIS</small><strong id="dLists">0</strong></div>
+   <div class="stat" id="diagChannelStat"><small>CANAIS OSCILANDO</small><strong id="dChannels">0</strong></div>
+   <div class="stat" id="diagClientStat"><small>CLIENTES AFETADOS</small><strong id="dClients">0</strong></div>
+   <div class="stat" id="diagNetworkStat"><small>DISPOSITIVOS COM REDE RUIM</small><strong id="dNetwork">0</strong></div>
+   <div class="stat"><small>BUFFER/ERROS (15 MIN)</small><strong id="dPlayback">0</strong></div>
+ </div>
+ <div class="tableWrap">
+  <table class="table"><thead><tr><th>Cliente / Dispositivo</th><th>Rede</th><th>Reprodução</th><th>Último conteúdo</th><th>Diagnóstico</th></tr></thead><tbody id="diagDevicesBody"></tbody></table>
+ </div>
+ <div class="head" style="margin-top:16px"><h2 style="font-size:14px">Canais com ocorrência</h2><span class="syncState">últimas 24h</span></div>
+ <div class="tableWrap">
+  <table class="table"><thead><tr><th>Canal</th><th>Lista</th><th>Status</th><th>Ocorrências</th><th>Último teste</th><th>Último erro</th></tr></thead><tbody id="diagChannelsBody"></tbody></table>
+ </div>
+ <div class="head" style="margin-top:16px"><h2 style="font-size:14px">Eventos recentes</h2><span class="syncState">cliente → servidor</span></div>
+ <div class="tableWrap">
+  <table class="table"><thead><tr><th>Hora</th><th>Cliente</th><th>Conteúdo</th><th>Evento</th><th>Rede</th><th>Detalhe</th></tr></thead><tbody id="diagEventsBody"></tbody></table>
+ </div>
+</section>
 </main></div>
 
 <div class="modal" id="clientModal"><div class="modalbox"><h2 id="clientModalTitle">Novo cliente</h2><div class="formgrid">
@@ -111,10 +135,10 @@ function parseSource(raw){try{const u=new URL(raw.trim()),q=u.searchParams;retur
 function openModal(id){$(id).style.display="grid"}function closeModal(id){$(id).style.display="none"}
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
 const $=id=>document.getElementById(id);
-let authToken=localStorage.getItem("gc_render_token")||"", currentUser=null, authMode="login", rows={lists:[],clients:[],devices:[],logs:[]}, timer=null, editClientId=null;
+let authToken=localStorage.getItem("gc_render_token")||"", currentUser=null, authMode="login", rows={lists:[],clients:[],devices:[],logs:[],diagnostics:{overview:null,details:null}}, timer=null, editClientId=null, diagTimer=null;
 async function api(path,options={}){const headers={"Content-Type":"application/json",...(options.headers||{})};if(authToken)headers.Authorization="Bearer "+authToken;const r=await fetch(RENDER_API+path,{...options,headers,cache:"no-store"});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||("HTTP "+r.status));return data}
 function setSession(data){authToken=data?.token||"";currentUser=data?.user||null;if(authToken)localStorage.setItem("gc_render_token",authToken);else localStorage.removeItem("gc_render_token")}
-async function showApp(user){currentUser=user;$("authScreen").classList.add("hidden");$("app").style.display="flex";$("adminEmail").textContent=user?.email||"";$("adminName").textContent=user?.name||"Administrador";$("avatar").textContent=($("adminName").textContent||"CM").slice(0,2).toUpperCase();await load();await syncAll(true);clearInterval(timer);timer=setInterval(()=>syncAll(true),30*60*1000)}
+async function showApp(user){currentUser=user;$("authScreen").classList.add("hidden");$("app").style.display="flex";$("adminEmail").textContent=user?.email||"";$("adminName").textContent=user?.name||"Administrador";$("avatar").textContent=($("adminName").textContent||"CM").slice(0,2).toUpperCase();await load();await syncAll(true);await loadDiagnostics();clearInterval(timer);timer=setInterval(()=>syncAll(true),30*60*1000);clearInterval(diagTimer);diagTimer=setInterval(loadDiagnostics,30000)}
 async function boot(){try{const s=await api("/api/auth/me");await showApp(s.user)}catch{setSession(null);$("authScreen").classList.remove("hidden")}}
 boot();
 
@@ -122,6 +146,54 @@ $("authToggle").onclick=()=>{authMode=authMode==="login"?"signup":"login";$("nam
 $("authSubmit").onclick=async()=>{const email=$("authEmail").value.trim(),pass=$("authPass").value,name=$("authName").value.trim();$("authMsg").textContent="";$("authMsg").style.color="#ff9aab";if(!email||pass.length<6)return $("authMsg").textContent="Informe e-mail e senha com pelo menos 6 caracteres.";try{const data=await api(authMode==="signup"?"/api/auth/setup":"/api/auth/login",{method:"POST",body:JSON.stringify({email,password:pass,name})});setSession(data);await showApp(data.user)}catch(e){$("authMsg").textContent=e.message}};
 
 async function load(){try{const data=await api("/api/data");rows={lists:data.lists||[],clients:data.clients||[],devices:data.devices||[],logs:data.logs||[]};render()}catch(e){toast("Erro ao carregar dados: "+e.message)}}
+
+async function loadDiagnostics(){
+ try{
+   const [overview,details]=await Promise.all([api("/api/diagnostics/overview"),api("/api/diagnostics/details")]);
+   rows.diagnostics={overview,details};
+   renderDiagnostics();
+ }catch(e){console.warn("Diagnóstico:",e.message)}
+}
+function diagBadge(s){
+ if(s==="error"||s==="playback_error")return '<span class="badge err">PROBLEMA</span>';
+ if(s==="unstable"||s==="buffering"||s==="internet_unstable")return '<span class="badge warn">OSCILANDO</span>';
+ if(s==="internet_slow")return '<span class="badge warn">INTERNET LENTA</span>';
+ if(s==="offline")return '<span class="badge off">OFFLINE</span>';
+ if(s==="ok")return '<span class="badge on">NORMAL</span>';
+ return '<span class="badge">SEM DADOS</span>';
+}
+function probableCause(d){
+ const s=d.diagnostics_status;
+ if(s==="internet_slow"||s==="internet_unstable")return "Provável internet do cliente";
+ if(s==="offline")return "Cliente sem conexão";
+ if(s==="buffering"||s==="playback_error")return "Analisar canal/lista";
+ return "Sem indício de falha";
+}
+function renderDiagnostics(){
+ const o=rows.diagnostics.overview||{},dev=o.devices||{},pl=o.playback||{},ch=o.channels||{},ls=o.lists||{},details=rows.diagnostics.details||{};
+ $("dLists").textContent=Number(ls.errors||0)+Number(ls.unstable||0);
+ $("dChannels").textContent=Number(ch.errors||0)+Number(ch.unstable||0);
+ $("dClients").textContent=Number(pl.clients_affected||0);
+ $("dNetwork").textContent=Number(dev.network_issues||0);
+ $("dPlayback").textContent=Number(pl.errors||0)+Number(pl.buffering||0);
+ $("diagUpdated").textContent="Atualizado "+fmtDateTime(new Date());
+ const devices=details.devices||[];
+ $("diagDevicesBody").innerHTML=devices.map(d=>{
+   const net=d.network_online===false?"OFFLINE":((d.network_downlink_mbps!=null?Number(d.network_downlink_mbps).toFixed(1)+" Mbps":"—")+" • "+(d.network_rtt_ms!=null?Math.round(d.network_rtt_ms)+" ms":"—"));
+   return '<tr><td><b>'+esc(d.client_name||"Cliente")+'</b><br><span class="muted">'+esc(d.device_name||"Dispositivo")+' • '+esc(d.platform||"")+'</span></td><td>'+net+'</td><td>'+esc(d.last_stream_name||"—")+'<br><span class="muted">'+esc(d.last_stream_type||"")+' '+(d.last_buffer_seconds?("• buffer "+Number(d.last_buffer_seconds).toFixed(1)+"s"):"")+'</span></td><td>'+fmtDateTime(d.last_playback_at)+'</td><td>'+diagBadge(d.diagnostics_status)+'<br><small class="muted">'+esc(probableCause(d))+'</small></td></tr>';
+ }).join("")||'<tr><td colspan="5" class="empty">Nenhum dispositivo enviou diagnóstico ainda.</td></tr>';
+ const channels=details.channels||[];
+ $("diagChannelsBody").innerHTML=channels.map(x=>'<tr><td><b>'+esc(x.stream_name)+'</b><br><span class="muted">'+esc(x.stream_type||"")+'</span></td><td>'+esc(x.list_name||"—")+'</td><td>'+diagBadge(x.status)+'</td><td>'+Number(x.error_reports||0)+' erros • '+Number(x.buffer_reports||0)+' buffers • '+Number(x.client_reports||0)+' relatos</td><td>'+fmtDateTime(x.last_checked_at)+'</td><td>'+esc(x.last_error||"—")+'</td></tr>').join("")||'<tr><td colspan="6" class="empty">Nenhuma ocorrência de canal registrada.</td></tr>';
+ const events=details.events||[];
+ $("diagEventsBody").innerHTML=events.slice(0,60).map(x=>{
+   const net=x.network_downlink_mbps!=null?Number(x.network_downlink_mbps).toFixed(1)+" Mbps":(x.network_rtt_ms!=null?Math.round(x.network_rtt_ms)+" ms":"—");
+   return '<tr><td>'+fmtDateTime(x.occurred_at)+'</td><td>'+esc(x.client_name||"—")+'<br><span class="muted">'+esc(x.device_name||"")+'</span></td><td>'+esc(x.stream_name||"—")+'</td><td>'+diagBadge(x.event_type==="error"?"error":(x.event_type==="waiting"||x.event_type==="stalled"?"unstable":"ok"))+' '+esc(x.event_type)+'</td><td>'+net+'</td><td>'+esc(x.error_message||"—")+'</td></tr>';
+ }).join("")||'<tr><td colspan="6" class="empty">Nenhum evento recente.</td></tr>';
+}
+async function probeList(id){
+ try{toast("Testando a lista e amostrando canais...");const r=await api("/api/diagnostics/probe-list/"+id,{method:"POST"});toast("Teste concluído: "+r.score+"% • "+r.sampled+" canais analisados.");await load();await loadDiagnostics()}catch(e){toast("Falha no teste: "+e.message)}
+}
+
 function render(){
  const lists=rows.lists,clients=rows.clients,devices=rows.devices;
  $("sClients").textContent=clients.length;$("sActive").textContent=clients.filter(x=>x.status==="active").length;
@@ -134,7 +206,7 @@ function render(){
   const l=byId[x.list_id],count=devices.filter(d=>d.client_id===x.id).length;
   return '<tr><td><b>'+esc(x.name)+'</b><br><span class="muted">'+esc(x.email||"")+'</span></td><td>'+esc(x.plan)+'</td><td>'+esc(l?.name||"Sem lista")+'</td><td>'+fmtDate(l?.expires_at)+'</td><td>'+statusBadge(l?.status||"unknown")+'</td><td>'+count+'/'+x.device_limit+'</td><td><span class="pill">'+esc(x.activation_code||"—")+'</span></td><td class="act"><button onclick="editClient(\''+x.id+'\')">✎</button><button onclick="toggleClient(\''+x.id+'\')">⏻</button><button onclick="deleteClient(\''+x.id+'\')">×</button></td></tr>'
  }).join("")||'<tr><td colspan="8" class="empty">Nenhum cliente cadastrado.</td></tr>';
- $("listsBody").innerHTML=lists.map(x=>'<div class="listrow"><span><b>'+esc(x.name)+'</b><br><span class="muted">'+esc(x.username||"")+'</span></span><span>'+esc(x.server_url||"—")+'</span><span>'+fmtDate(x.expires_at)+'</span><span>'+statusBadge(x.status)+'</span><span class="act"><button onclick="syncOne(\''+x.id+'\')">↻</button><button onclick="editList(\''+x.id+'\')">✎</button><button onclick="deleteList(\''+x.id+'\')">×</button></span></div>').join("")||'<div class="empty">Nenhuma lista cadastrada.</div>';
+ $("listsBody").innerHTML=lists.map(x=>'<div class="listrow"><span><b>'+esc(x.name)+'</b><br><span class="muted">'+esc(x.username||"")+'</span></span><span>'+esc(x.server_url||"—")+'</span><span>'+fmtDate(x.expires_at)+'</span><span>'+diagBadge(x.health_status||"unknown")+' '+(x.health_score!=null?x.health_score+"%":"—")+'</span><span class="act"><button title="Testar saúde" onclick="probeList(\''+x.id+'\')">◈</button><button onclick="syncOne(\''+x.id+'\')">↻</button><button onclick="editList(\''+x.id+'\')">✎</button><button onclick="deleteList(\''+x.id+'\')">×</button></span></div>').join("")||'<div class="empty">Nenhuma lista cadastrada.</div>';
  $("deviceCountLabel").textContent=devices.length+" cadastrado"+(devices.length===1?"":"s");
  const clientById=Object.fromEntries(clients.map(x=>[x.id,x]));
  $("devicesBody").innerHTML=devices.map(d=>{
@@ -179,7 +251,7 @@ async function deleteDevice(id){
     await load();
   }catch(e){toast("Erro ao remover dispositivo: "+e.message)}
 }
-window.syncOne=syncOne;window.editClient=editClient;window.toggleClient=toggleClient;window.deleteClient=deleteClient;window.editList=editList;window.deleteList=deleteList;window.deleteDevice=deleteDevice;
+window.syncOne=syncOne;window.editClient=editClient;window.toggleClient=toggleClient;window.deleteClient=deleteClient;window.editList=editList;window.deleteList=deleteList;window.deleteDevice=deleteDevice;window.probeList=probeList;
 </script>
 </body>
 </html>
