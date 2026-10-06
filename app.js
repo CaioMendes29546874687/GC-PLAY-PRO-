@@ -6917,6 +6917,27 @@ async function tryRestoreCatalogInstant(url) {
       getSavedPlaylist()?.name ||
       "Minha Playlist";
 
+    /*
+       Restaurar também a sessão Xtream salva. Sem isso o catálogo
+       instantâneo aparecia, mas Filmes/Séries ficavam sem fonte para
+       o carregamento sob demanda após recarregar a página.
+    */
+    state.xtreamSession = null;
+    state.xtreamUserInfo = null;
+    try {
+      const savedXtream = localStorage.getItem("GC_PLAY_PRO_XTREAM_SESSION_V1");
+      const session = savedXtream ? JSON.parse(savedXtream) : null;
+      if (session?.base && session?.username && session?.password) {
+        const parsed = parseXtreamLogin(url);
+        if (parsed &&
+            parsed.base === session.base &&
+            parsed.username === session.username &&
+            parsed.password === session.password) {
+          state.xtreamSession = session;
+        }
+      }
+    } catch {}
+
     renderStats();
     renderGenreFilters();
     render();
