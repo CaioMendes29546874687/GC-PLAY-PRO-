@@ -119,9 +119,30 @@
     },10*60*1000);
   }
 
-  global.GCArchitecture.searchCatalog=function(term,limit=100){
+  global.GCArchitecture.searchCatalog=async function(term,limit=100){
     rebuildSearchIndex();
-    return A.search.search(lastIndex,term,limit);
+    const s=global.__GC_STATE__;
+    const query=String(term||"").trim();
+    if(!query) return [];
+    /* Para listas grandes, consulta o índice RAM primeiro e só depois
+       usa o catálogo completo quando ele já estiver disponível. */
+    let result=A.search.search(lastIndex,query,limit);
+    if(!result.length && Array.isArray(s?.seriesCatalog) && s.seriesCatalog.length){
+      result=A.search.search(s.seriesCatalog,query,limit);
+    }
+    diag("search",{term:query.slice(0,120),results:result.length});
+    return result;
+  };
+
+  /* Ponte de séries: mantém a hierarquia real do app e expõe uma
+     consulta única para GC IA, busca e diagnóstico. */
+  global.GCArchitecture.seriesCatalog=async function(){
+    const s=global.__GC_STATE__;
+    return Array.isArray(s?.seriesCatalog) ? s.seriesCatalog : [];
+  };
+  global.GCArchitecture.seriesEpisodes=async function(seriesKey,season=null){
+    if(typeof global.getSeriesEpisodes!=="function") return [];
+    return global.getSeriesEpisodes(seriesKey,season);
   };
 
   global.GCArchitecture.diagnosticsSnapshot=function(){
