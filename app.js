@@ -2278,7 +2278,9 @@ async function ensureXtreamSectionLoaded(type) {
         groups.add(group);
       }
 
-      if (!items.length) return false;
+      if (!items.length) {
+        return await loadM3USectionFallback(type, state.playlistMeta.url);
+      }
 
       await writeBatch(items, type === "series" ? seriesCatalog : []);
       for (const item of items.slice(0, RAM_LIMIT)) {
@@ -2315,6 +2317,10 @@ async function ensureXtreamSectionLoaded(type) {
     } catch (error) {
       const elapsedMs = Math.round(performance.now() - started);
       console.warn("[GC PLAY PRO] Carregamento sob demanda:", type, error);
+      if (state.playlistMeta?.url) {
+        const fallbackOk = await loadM3USectionFallback(type, state.playlistMeta.url);
+        if (fallbackOk) return true;
+      }
       window.GCArchitecture?.diagnostics?.record?.("xtream_section_error", {
         type,
         elapsedMs,
@@ -2395,6 +2401,79 @@ async function fetchXtreamSeriesEpisodes(seriesItem, season, signal) {
   );
 
   return result;
+}
+
+/* =========================================================
+   FALLBACK DE SEÇÃO — M3U QUANDO A API XTREAM FALHA
+   ========================================================= */
+async function loadM3USectionFallback(type, sourceUrl) {
+  if (!sourceUrl || !["live","movie","series"].includes(type)) return false;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 120000);
+  const found = [];
+  const groups = new Set();
+  let batch = [];
+
+  try {
+    const label = type === "live" ? "TV ao vivo" : type === "movie" ? "filmes" : "séries";
+    updateLoadMessage("API não entregou " + label + ". Lendo a M3U...");
+    const response = await fetchPlaylist(sourceUrl, controller.signal);
+
+    for await (const item of parseM3UStream(response, controller.signal)) {
+      if (!item || item.type !== type || !item.url) continue;
+      found.push(item);
+      batch.push(item);
+      if (item.group) groups.add(item.group);
+
+      if (batch.length >= WRITE_BATCH) {
+        await writeBatch(batch);
+        batch = [];
+      }
+
+      if (found.length % 5000 === 0) {
+        updateLoadMessage("Lendo " + label + ": " + formatNumber(found.length));
+        await new Promise(requestAnimationFrame);
+      }
+    }
+
+    if (batch.length) await writeBatch(batch);
+    if (!found.length) return false;
+
+    for (const item of found.slice(0, RAM_LIMIT)) {
+      const pos = state.items.findIndex(x => x.id === item.id);
+      if (pos >= 0) state.items[pos] = item;
+      else if (state.items.length < RAM_LIMIT) state.items.push(item);
+    }
+
+    state.xtreamLoaded = state.xtreamLoaded || { live:false, movie:false, series:false };
+    state.xtreamLoaded[type] = true;
+
+    if (type === "series") {
+      state.seriesCatalog = [];
+      state.seriesCatalogMap = new Map();
+      state.seriesCatalogReady = false;
+      state.seriesItemsCache = null;
+      await rebuildSeriesCatalogInBackground(true);
+      state.counts.series = state.seriesCatalog.length;
+    } else {
+      state.counts[type] = found.length;
+    }
+
+    state.total = Number(state.counts.live || 0) + Number(state.counts.movie || 0) + Number(state.counts.series || 0);
+    state.groups = Array.from(new Set([...(state.groups || []), ...groups]));
+
+    await buildGenreCatalog();
+    await loadDatabaseStats();
+    renderGenreFilters();
+    await render();
+    updateLoadMessage(label + ": " + formatNumber(type === "series" ? state.seriesCatalog.length : found.length) + " disponíveis pela M3U.");
+    return true;
+  } catch (error) {
+    console.warn("[GC PLAY PRO] fallback M3U falhou:", type, error);
+    return false;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 /* =========================================================
