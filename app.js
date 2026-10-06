@@ -1417,36 +1417,32 @@ async function migrateCatalogTypes() {
    ========================================================= */
 
 function shouldUseProxy(url) {
+  /* Compatibilidade do catálogo. NÃO use para transportar mídia. */
   try {
     const parsed = new URL(String(url || ""));
-
-    /* Nunca proxifique novamente o próprio endpoint do GC. */
     const proxy = new URL(GC_M3U_PROXY);
-    if (parsed.origin === proxy.origin && parsed.pathname === proxy.pathname) {
-      return false;
-    }
-
-    return (
-      parsed.protocol === "http:" ||
-      parsed.protocol === "https:"
-    );
+    return !(parsed.origin === proxy.origin && parsed.pathname === proxy.pathname) &&
+      (parsed.protocol === "http:" || parsed.protocol === "https:");
   } catch {
     return false;
   }
 }
+
 function buildProxyUrl(url) {
-  return (
-    `${GC_M3U_PROXY}?url=` +
-    encodeURIComponent(url)
-  );
+  return GC_M3U_PROXY + "?url=" + encodeURIComponent(url);
+}
+
+/* Catálogo/importação pode usar gateway; mídia deve ir direto à origem. */
+function resolveCatalogUrl(url) {
+  return shouldUseProxy(url) ? buildProxyUrl(url) : url;
+}
+
+function resolvePlaybackUrl(url) {
+  return String(url || "");
 }
 
 function resolvePlaylistUrl(url) {
-  if (shouldUseProxy(url)) {
-    return buildProxyUrl(url);
-  }
-
-  return url;
+  return resolveCatalogUrl(url);
 }
 
 /* =========================================================
@@ -1499,7 +1495,7 @@ async function fetchXtreamJSON(session, action, signal, extraParams = {}) {
     }
   }
 
-  const response = await fetch(buildProxyUrl(url.toString()), {
+  const response = await fetch(resolveCatalogUrl(url.toString()), {
     method: "GET",
     cache: "no-store",
     signal,
@@ -4773,10 +4769,7 @@ async function playItem(item) {
   const vodHttp = isVodFile && /^http:/i.test(sourceUrl);
   const useGcProxy = shouldUseProxy(sourceUrl) && (!isVodFile || vodHttp);
 
-  const playbackUrl =
-    useGcProxy
-      ? buildProxyUrl(sourceUrl)
-      : sourceUrl;
+  const playbackUrl = resolvePlaybackUrl(sourceUrl);
 
   /* -------------------------------------------------------
      MPEG-TS AO VIVO
