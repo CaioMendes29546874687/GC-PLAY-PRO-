@@ -2978,6 +2978,58 @@ async function queryCatalogItems({
   });
 }
 
+/* Busca global escalável: percorre o IndexedDB sem copiar centenas de milhares
+   de registros para a RAM. Mantém apenas os melhores resultados. */
+async function architectureGlobalSearch(term, limit = 100) {
+  const query = normalizeText(term);
+  if (!query) return [];
+  if (!state.db) return state.items
+    .filter(item => !isAdultContent(item))
+    .map(item => ({ item, score: 0 }))
+    .filter(x => normalizeText(x.item.name || "").includes(query))
+    .slice(0, limit)
+    .map(x => x.item);
+
+  return new Promise((resolve, reject) => {
+    const best = [];
+    const transaction = state.db.transaction(STORE_NAME, "readonly");
+    const request = transaction.objectStore(STORE_NAME).openCursor();
+
+    const add = item => {
+      if (!item || isAdultContent(item)) return;
+      const name = normalizeText(item.name || "");
+      const group = normalizeText(item.group || "");
+      const series = normalizeText(item.seriesName || "");
+      if (!name.includes(query) && !group.includes(query) && !series.includes(query)) return;
+
+      let score = 0;
+      if (name === query) score += 1000;
+      else if (name.startsWith(query)) score += 600;
+      else if (name.includes(query)) score += 400;
+      if (series.startsWith(query)) score += 250;
+      if (group.includes(query)) score += 80;
+      if (item.type === "series") score += 20;
+
+      best.push({item,score});
+      best.sort((a,b)=>b.score-a.score);
+      if (best.length > limit) best.length = limit;
+    };
+
+    request.onsuccess = event => {
+      const cursor = event.target.result;
+      if (!cursor) {
+        resolve(best.map(x=>x.item));
+        return;
+      }
+      add(cursor.value);
+      cursor.continue();
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
+window.GCArchitectureGlobalSearch = architectureGlobalSearch;
+
 async function render() {
   if (state.currentSection === "home" && state.currentFilter === "all") {
     await renderHomeDashboard();
