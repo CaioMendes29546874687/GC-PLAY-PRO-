@@ -36,7 +36,7 @@ const WRITE_BATCH = 20000;
 /* Primeira pintura agressiva: não espere 1000 itens para mostrar a biblioteca. */
 const FIRST_PAINT_BATCH = 150;
 const UI_RENDER_INTERVAL = 1500;
-const CACHE_META_KEY = "GC_PLAY_PRO_CATALOG_META_V2";
+const CACHE_META_KEY = "GC_PLAY_PRO_CATALOG_META_V3";
 const CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 const WRITE_QUEUE_LIMIT = 3;
 const RESUME_KEY = "GC_PLAY_PRO_RESUME_V1";
@@ -1059,10 +1059,19 @@ function getXtreamPathType(url) {
   return null;
 }
 
-function classifyItem(name, group, url) {
+function classifyItem(name, group, url, meta = {}) {
   const nameText = normalizeText(name);
   const groupText = normalizeText(group);
   const lowerUrl = String(url || "").toLowerCase();
+  const explicitType = normalizeText(
+    meta.type || meta.tvgType || meta.streamType || meta.contentType || meta.mediaType || ""
+  );
+
+  /* Alguns geradores M3U informam o tipo diretamente no EXTINF.
+     Quando existe essa informação, ela tem prioridade absoluta. */
+  if (/^(live|tv|channel|channels|televisao|televisão|canais?)$/.test(explicitType)) return "live";
+  if (/^(movie|movies|film|filme|filmes|vod)$/.test(explicitType)) return "movie";
+  if (/^(series|serie|série|series_episode|episode|episodio|episódio)$/.test(explicitType)) return "series";
 
   /*
      Em playlists Xtream/M3U Plus, o caminho da própria URL é
@@ -1145,6 +1154,16 @@ function classifyItem(name, group, url) {
     /^(?:filme|movie)\s*[:\-]|\[(?:filme|movie)\]/i.test(nameText)
   ) {
     return "movie";
+  }
+
+  /* Formatos de exportadores M3U que não usam /movie/ ou /series/ na URL. */
+  if (/\\.(?:mp4|mkv|avi|mov|wmv|m4v)(?:$|[?#])/i.test(lowerUrl)) {
+    if (explicitSeries || /\\b(?:s|season|t|temporada)\\s*0*\\d{1,3}(?:\\s*e|\\b)/i.test(nameText)) return "series";
+    return "movie";
+  }
+
+  if (/\\.(?:ts|mpeg|mpg)(?:$|[?#])/i.test(lowerUrl)) {
+    return "live";
   }
 
   return "live";
@@ -1364,7 +1383,14 @@ function normalizeItem(data) {
     classifyItem(
       name,
       group,
-      url
+      url,
+      {
+        type: data.type,
+        tvgType: data.tvgType,
+        streamType: data.streamType,
+        contentType: data.contentType,
+        mediaType: data.mediaType
+      }
     );
 
   const id =
@@ -1395,6 +1421,11 @@ function normalizeItem(data) {
 
     tvgName:
       data.tvgName || "",
+
+    tvgType: data.tvgType || "",
+    streamType: data.streamType || "",
+    contentType: data.contentType || "",
+    mediaType: data.mediaType || "",
 
     country:
       data.country || "",
@@ -1442,7 +1473,7 @@ async function migrateCatalogTypes() {
      (seriesKey/season/episode). A migração anterior só alterava
      o tipo e deixava episódios antigos com seriesKey vazio.
   */
-  const migrationKey = "GC_PLAY_PRO_CATEGORY_TYPES_V6";
+  const migrationKey = "GC_PLAY_PRO_CATEGORY_TYPES_V7";
 
   try {
     if (localStorage.getItem(migrationKey) === "1") {
@@ -1478,7 +1509,8 @@ async function migrateCatalogTypes() {
       const newType = classifyItem(
         item.name,
         item.group,
-        item.url
+        item.url,
+        item
       );
 
       let next = item;
@@ -2603,6 +2635,10 @@ function parseEXTINF(line) {
     logo: attrs["tvg-logo"] || attrs.logo || "",
     tvgId: attrs["tvg-id"] || "",
     tvgName: attrs["tvg-name"] || "",
+    tvgType: attrs["tvg-type"] || attrs["type"] || "",
+    streamType: attrs["stream-type"] || attrs["stream_type"] || "",
+    contentType: attrs["content-type"] || attrs["content_type"] || "",
+    mediaType: attrs["media-type"] || attrs["media_type"] || "",
     country: attrs["tvg-country"] || attrs.country || "",
     language: attrs["tvg-language"] || attrs.language || ""
   };
