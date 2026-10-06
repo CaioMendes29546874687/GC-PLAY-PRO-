@@ -71,7 +71,7 @@ async function resolveDeviceActivation(code,deviceUid,deviceName,platform){
   const client=await loadClientForActivation(code);
   if(!client) return {ok:false,status:404,error:"Código de ativação inválido."};
   const clientStatus=String(client.status||"").trim().toLowerCase();
-  if(["blocked","inactive","expired","disabled"].includes(clientStatus)) return {ok:false,status:403,error:"Cliente bloqueado ou inativo."};
+  if(clientStatus==="blocked") return {ok:false,status:403,error:"Cliente bloqueado pelo administrador."};
   if(clientStatus!=="active"){
     await (await db()).query("update clients set status='active',updated_at=now() where id=$1",[client.id]);
     client.status="active";
@@ -119,7 +119,7 @@ app.post("/api/device/check",async(req,res)=>{
     const client=await loadClientForActivation(code);
     if(!client)return res.status(404).json({ok:false,active:false,reason:"invalid_code"});
     const clientStatus=String(client.status||"").trim().toLowerCase();
-    if(["blocked","inactive","expired","disabled"].includes(clientStatus))return res.status(403).json({ok:false,active:false,reason:"client_blocked"});
+    if(clientStatus==="blocked")return res.status(403).json({ok:false,active:false,reason:"client_blocked"});
     if(clientStatus!=="active"){
       await (await db()).query("update clients set status='active',updated_at=now() where id=$1",[client.id]);
       client.status="active";
