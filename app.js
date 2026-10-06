@@ -4970,7 +4970,7 @@ async function playItem(item) {
   /* HLS/live media uses the streaming gateway so manifests, segments,
      keys and Range requests share the same CORS-safe path. */
   const playbackUrl =
-    isHLS(sourceUrl) || (looksLikeLiveStream && item.type === "live")
+    isHLS(sourceUrl) || isDASH(sourceUrl) || (looksLikeLiveStream && item.type === "live")
       ? buildMediaProxyUrl(sourceUrl)
       : sourceUrl;
 
