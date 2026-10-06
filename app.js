@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-02-23 */
+/* GC BUILD 2026-10-06-PLAYFIX2 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -1221,9 +1221,6 @@ function extractSeriesInfo(item) {
   const group = String(item?.group || "").trim();
   const url = String(item?.url || "");
 
-  const directSeason = Number(
-    item?.tvgSeason ?? item?.seriesSeasonNumber ?? item?.season
-  );
   /*
      Mantemos o nome original para descobrir temporada/episódio.
      Não usamos normalizeText() aqui porque queremos preservar
@@ -4372,7 +4369,20 @@ async function playShaka(video, url, message, directFallbackUrl = "", fallbackEn
     if (typeof fallbackEngine === "function") {
       try {
         if (message) message.textContent = "Shaka falhou — usando motor compatível...";
-        await fallbackEngine();
+        let fallbackTimeoutId = null;
+        try {
+          await Promise.race([
+            fallbackEngine(),
+            new Promise((_, reject) => {
+              fallbackTimeoutId = setTimeout(
+                () => reject(new Error("fallback player timeout")),
+                9000
+              );
+            })
+          ]);
+        } finally {
+          if (fallbackTimeoutId) clearTimeout(fallbackTimeoutId);
+        }
         return true;
       } catch (fallbackError) {
         console.warn("[GC SHAKA] motor de fallback falhou:", fallbackError);
@@ -4477,7 +4487,26 @@ async function playShaka(video, url, message, directFallbackUrl = "", fallbackEn
       message.textContent = isDASH(url) ? "Conectando ao DASH/CMAF..." : "Conectando ao HLS...";
     }
 
-    await player.load(url);
+    /*
+       player.load() pode ficar pendurado quando o provedor aceita a
+       conexão mas não entrega manifesto/segmentos. Sem timeout, o usuário
+       fica indefinidamente no spinner. O timeout precisa envolver o LOAD,
+       não apenas o primeiro frame.
+    */
+    let loadTimeoutId = null;
+    try {
+      await Promise.race([
+        player.load(url),
+        new Promise((_, reject) => {
+          loadTimeoutId = setTimeout(
+            () => reject(new Error("SHaka load timeout")),
+            10000
+          );
+        })
+      ]);
+    } finally {
+      if (loadTimeoutId) clearTimeout(loadTimeoutId);
+    }
 
     clearStartup();
 
