@@ -17,8 +17,10 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           set -e
-          for file in app.js gc-architecture-v2.js gc-architecture-bridge.js gc-final-readiness.js gc-samsung-fix.js sw.js; do
+          for file in app.js gc-architecture-v2.js gc-architecture-bridge.js gc-final-readiness.js gc-samsung-fix.js gc-pro-runtime.js gc-smoke-test.js sw.js; do
             if [ -f "$file" ]; then
               node --check "$file"
             fi
           done
+      - name: GC architecture smoke test
+        run: node gc-smoke-test.js
