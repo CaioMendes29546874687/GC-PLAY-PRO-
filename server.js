@@ -135,8 +135,8 @@ app.delete("/api/devices/:id",auth,async(req,res)=>{
     const p=await db();
     const d=(await p.query("select id,client_id,device_uid from devices where id=$1",[req.params.id])).rows[0];
     if(!d)return res.status(404).json({error:"Dispositivo não encontrado."});
-    await p.query("delete from devices where id=$1",[req.params.id]);
     await p.query("update activations set revoked_at=coalesce(revoked_at,now()) where device_id=$1 and revoked_at is null",[req.params.id]);
+    await p.query("delete from devices where id=$1",[req.params.id]);
     res.json({ok:true,revoked_device_id:req.params.id});
   }catch(e){res.status(500).json({error:e.message})}
 });
