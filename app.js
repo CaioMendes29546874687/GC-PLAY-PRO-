@@ -5053,14 +5053,19 @@ async function playItem(item) {
     /\/tv\//i.test(sourceUrl);
 
   /*
-     HLS/DASH/live passam pelo gateway de mídia desde o primeiro
-     pedido. Filmes/episódios normais continuam podendo usar a
-     origem direta quando o navegador suporta o formato.
+     TODO conteúdo HTTP(S) passa pelo gateway de mídia. Isso é importante
+     também para filmes e episódios: o GitHub Pages é HTTPS e uma origem
+     HTTP pode ser bloqueada como mixed-content antes mesmo de o <video>
+     conseguir disparar o erro. O proxy também normaliza CORS/Range.
+     A origem original permanece guardada para fallback.
   */
-  const playbackUrl =
-    isHLS(sourceUrl) || isDASH(sourceUrl) || looksLikeLiveStream
-      ? buildMediaProxyUrl(sourceUrl)
-      : sourceUrl;
+  const directPlaybackUrl = sourceUrl;
+  const playbackUrl = isHttpUrl(sourceUrl)
+    ? buildMediaProxyUrl(sourceUrl)
+    : sourceUrl;
+  video.__gcDirectPlaybackUrl =
+    directPlaybackUrl !== playbackUrl ? directPlaybackUrl : "";
+  delete video.__gcDirectPlaybackRetry;
 
   video.playbackRate =
     Number(state.settings.playbackRate) > 0
@@ -5318,6 +5323,33 @@ async function playItem(item) {
       "VIDEO ERROR:",
       mediaError
     );
+
+    /*
+       Se o gateway falhar para um VOD, faça uma única tentativa direta.
+       Isso cobre provedores que aceitam o vídeo diretamente mas rejeitam
+       a requisição originada pelo Worker. Não repetimos o ciclo.
+    */
+    if (
+      video.__gcDirectPlaybackUrl &&
+      !video.__gcDirectPlaybackRetry
+    ) {
+      video.__gcDirectPlaybackRetry = "1";
+      const fallback = video.__gcDirectPlaybackUrl;
+      video.__gcDirectPlaybackUrl = "";
+
+      if (message) {
+        message.textContent = "Gateway recusou a mídia — tentando conexão direta...";
+      }
+
+      try {
+        video.src = fallback;
+        video.load();
+        video.play().catch(() => {});
+        return;
+      } catch (fallbackError) {
+        console.warn("[GC PLAY PRO] fallback VOD direto:", fallbackError);
+      }
+    }
 
     if (message) {
       message.textContent =
