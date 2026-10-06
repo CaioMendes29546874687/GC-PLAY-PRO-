@@ -1576,24 +1576,47 @@ async function fetchXtreamJSON(session, action, signal, extraParams = {}) {
     }
   }
 
-  const response = await fetch(buildProxyUrl(url.toString()), {
-    method: "GET",
-    cache: "no-store",
-    signal,
-    headers: { "Accept": "application/json" }
-  });
+  /* Cada chamada de catálogo precisa ter um limite próprio.
+     Sem isso, uma API Xtream que aceita a conexão mas não responde
+     mantém Filmes/Séries presos em "carregando" indefinidamente. */
+  const controller = new AbortController();
+  const timeoutMs = action === "get_series_info" ? 30000 : 25000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  if (!response.ok) {
-    throw new Error("Xtream API HTTP " + response.status);
+  const onAbort = () => controller.abort();
+  if (signal) {
+    if (signal.aborted) controller.abort();
+    else signal.addEventListener("abort", onAbort, { once: true });
   }
 
-  const data = await response.json();
+  try {
+    const response = await fetch(buildProxyUrl(url.toString()), {
+      method: "GET",
+      cache: "no-store",
+      signal: controller.signal,
+      headers: { "Accept": "application/json" }
+    });
 
-  if (data && typeof data === "object" && data.user_info && data.user_info.auth === 0) {
-    throw new Error("Conta Xtream recusada pelo servidor.");
+    if (!response.ok) {
+      throw new Error("Xtream API HTTP " + response.status);
+    }
+
+    const data = await response.json();
+
+    if (data && typeof data === "object" && data.user_info && data.user_info.auth === 0) {
+      throw new Error("Conta Xtream recusada pelo servidor.");
+    }
+
+    return data;
+  } catch (error) {
+    if (controller.signal.aborted && !signal?.aborted) {
+      throw new Error("Tempo limite do catálogo Xtream excedido.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+    if (signal) signal.removeEventListener("abort", onAbort);
   }
-
-  return data;
 }
 
 function decodeBase64Text(value) {
@@ -2002,10 +2025,19 @@ async function ensureXtreamSectionLoaded(type) {
 
   state.__xtreamLoading = state.__xtreamLoading || {};
   state.__xtreamLoading[type] = (async () => {
+    const started = performance.now();
     try {
+      const label = type === "movie" ? "filmes" : "séries";
+      updateLoadMessage("Carregando catálogo de " + label + "...");
+      window.GCArchitecture?.diagnostics?.record?.("xtream_section_start", {
+        type,
+        startedAt: new Date().toISOString()
+      });
+
       const actionCategories = type === "movie" ? "get_vod_categories" : "get_series_categories";
       const actionStreams = type === "movie" ? "get_vod_streams" : "get_series";
 
+      /* As duas respostas são independentes e têm timeout próprio. */
       const [catResult, streamResult] = await Promise.all([
         fetchXtreamJSON(session, actionCategories, undefined),
         fetchXtreamJSON(session, actionStreams, undefined)
@@ -2088,10 +2120,31 @@ async function ensureXtreamSectionLoaded(type) {
       await loadDatabaseStats();
       renderGenreFilters();
       render();
+
+      const elapsedMs = Math.round(performance.now() - started);
+      window.GCArchitecture?.diagnostics?.record?.("xtream_section_success", {
+        type,
+        count: items.length,
+        elapsedMs
+      });
+      updateLoadMessage(
+        (type === "movie" ? "Filmes" : "Séries") +
+        ": " + formatNumber(items.length) + " itens disponíveis."
+      );
       return true;
     } catch (error) {
+      const elapsedMs = Math.round(performance.now() - started);
       console.warn("[GC PLAY PRO] Carregamento sob demanda:", type, error);
-      toast("Não foi possível carregar " + (type === "movie" ? "os filmes" : "as séries") + ".");
+      window.GCArchitecture?.diagnostics?.record?.("xtream_section_error", {
+        type,
+        elapsedMs,
+        error: String(error?.message || error)
+      });
+      toast(
+        "Não foi possível carregar " +
+        (type === "movie" ? "os filmes" : "as séries") +
+        ": " + String(error?.message || "erro de conexão")
+      );
       return false;
     } finally {
       delete state.__xtreamLoading[type];
@@ -3083,6 +3136,24 @@ async function render() {
     state.currentFilter === "all" || state.currentFilter === "adult"
       ? (state.currentFilter === "adult" ? "adult" : null)
       : state.currentFilter;
+
+  /* Filmes Xtream também são carregados sob demanda. Sem esta guarda,
+     a primeira entrada em FILMES consultava o IndexedDB vazio e mostrava
+     "Nenhum conteúdo" antes de qualquer chamada à API. */
+  if (
+    type === "movie" &&
+    state.xtreamSession &&
+    Number(state.counts?.movie || 0) === 0
+  ) {
+    grid.innerHTML = `
+      <div class="gc-loading">
+        <span class="gc-spinner"></span>
+        Carregando catálogo de filmes...
+      </div>
+    `;
+    await ensureXtreamSectionLoaded("movie");
+    if (requestId !== renderRequestId) return;
+  }
 
   let items = await queryCatalogItems({
     type,
@@ -7006,7 +7077,10 @@ async function loadM3U(
       state.groups = xtreamFast.groups;
       state.groupsReady = true;
       state.counts = { ...xtreamFast.counts };
-      state.total = xtreamFast.items.length;
+      state.total =
+        Number(xtreamFast.counts?.live || 0) +
+        Number(xtreamFast.counts?.movie || 0) +
+        Number(xtreamFast.counts?.series || 0);
       state.seriesCatalog = xtreamFast.seriesCatalog;
       state.seriesCatalogMap = new Map(
         xtreamFast.seriesCatalog.map(item => [item.seriesKey, item])
@@ -7040,16 +7114,15 @@ async function loadM3U(
       await renderHomeDashboard();
 
       /*
-         Filmes e séries continuam em segundo plano. A tela e a TV ao vivo
-         não ficam bloqueadas esperando catálogos grandes.
+         NÃO baixe VOD e séries em paralelo aqui.
+         Em listas grandes, get_vod_streams + get_series podem devolver
+         dezenas/centenas de milhares de registros e competir com a
+         primeira pintura, IndexedDB e memória da TV.
+         Cada seção agora chama ensureXtreamSectionLoaded() somente quando
+         o usuário realmente a abre. Isso deixa TV ao vivo utilizável
+         imediatamente e evita o "spinner infinito" provocado por
+         duas importações pesadas concorrentes.
       */
-      Promise.allSettled([
-        ensureXtreamSectionLoaded("movie"),
-        ensureXtreamSectionLoaded("series")
-      ]).then(() => {
-        saveCatalogCacheMeta(url);
-      }).catch(() => {});
-
       const elapsed = (performance.now() - startTime) / 1000;
       updateLoadMessage(
         "Catálogo rápido: " + formatNumber(xtreamFast.items.length) +
