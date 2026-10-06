@@ -119,20 +119,45 @@ async function fetchCatalog(u) {
 }
 
 async function fetchMedia(request, target) {
-  const headers = new Headers();
+  const baseHeaders = new Headers();
   for (const name of ["Range", "Accept", "User-Agent"]) {
     const value = request.headers.get(name);
-    if (value) headers.set(name, value);
+    if (value) baseHeaders.set(name, value);
   }
-  /* Se o provedor valida Origin, o upstream vê a própria origem,
-     não a origem do GitHub Pages. */
-  headers.set("Origin", target.origin);
 
-  const upstream = await fetch(target.toString(), {
+  /*
+     Alguns servidores IPTV aceitam a mídia somente quando a requisição
+     parece vir do próprio domínio. Outros recusam Origin/Referer artificiais.
+     Por isso usamos uma tentativa compatível primeiro e, para respostas de
+     bloqueio transitório/autorização, uma segunda tentativa sem Origin/Referer.
+  */
+  const primaryHeaders = new Headers(baseHeaders);
+  primaryHeaders.set("Origin", target.origin);
+  primaryHeaders.set("Referer", target.origin + "/");
+
+  const requestInit = {
     method: request.method === "HEAD" ? "HEAD" : "GET",
-    headers,
     redirect: "follow"
+  };
+
+  let upstream = await fetch(target.toString(), {
+    ...requestInit,
+    headers: primaryHeaders
   });
+
+  const firstType = upstream.headers.get("content-type") || "";
+  const retryStatus = [401, 403, 406, 408, 425, 429, 500, 502, 503, 504].includes(upstream.status);
+  const suspiciousMediaBody =
+    /text\/html/i.test(firstType) &&
+    (target.pathname.toLowerCase().includes(".m3u8") || target.pathname.toLowerCase().includes(".mpd"));
+
+  if (retryStatus || suspiciousMediaBody) {
+    const fallbackHeaders = new Headers(baseHeaders);
+    upstream = await fetch(target.toString(), {
+      ...requestInit,
+      headers: fallbackHeaders
+    });
+  }
 
   const ct = upstream.headers.get("content-type") || "";
   const targetIsHls = looksLikeHls(target, ct);
