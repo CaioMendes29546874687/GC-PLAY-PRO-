@@ -23,6 +23,10 @@ const GC_M3U_PROXY = GC_CATALOG_GATEWAY;
 const GC_HEALTH_URL =
   `${GC_SUPABASE_URL}/functions/v1/gc-health`;
 
+/* Compatibilidade M3U: usado apenas como fallback para fontes pequenas. */
+const GC_PARSER_FALLBACK_URL =
+  `${GC_DIAG_API}/api/playlist/parse`;
+
 /* O proxy é genérico: cada playlist pode usar um domínio diferente. */
 const GC_PROXY_HOSTS = null;
 
@@ -7744,6 +7748,70 @@ async function loadM3U(
             requestAnimationFrame
           );
         }
+      }
+    }
+
+    /* -----------------------------------------------------
+       FALLBACK iptv-playlist-parser
+       -----------------------------------------------------
+       O parser principal continua em streaming para listas gigantes.
+       Se a origem respondeu, mas nenhum registro foi reconhecido, usamos
+       o parser oficial como segunda leitura através do backend. Isso cobre
+       variações M3U que o parser incremental não reconheça e mantém CORS
+       fora do navegador.
+       ----------------------------------------------------- */
+    if (processed === 0) {
+      updateLoadMessage("Tentando parser M3U de compatibilidade...");
+      try {
+        const parserResponse = await fetch(GC_PARSER_FALLBACK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({ url }),
+          cache: "no-store"
+        });
+        const parserData = await parserResponse.json().catch(() => ({}));
+        if (parserResponse.ok && parserData?.ok && Array.isArray(parserData.items)) {
+          for (const parsed of parserData.items) {
+            if (!parsed?.url) continue;
+            const item = normalizeItem({
+              name: parsed.name || parsed.tvg?.name || "Sem nome",
+              url: parsed.url,
+              group: parsed.group?.title || "",
+              tvgId: parsed.tvg?.id || "",
+              tvgName: parsed.tvg?.name || parsed.name || "",
+              tvgLogo: parsed.tvg?.logo || "",
+              tvgUrl: parsed.tvg?.url || "",
+              lang: parsed.lang || "",
+              httpReferrer: parsed.http?.referrer || "",
+              httpUserAgent: parsed.http?.["user-agent"] || ""
+            });
+            processParsedItem(item, batch, groups);
+            processed++;
+            if (batch.length >= WRITE_BATCH) {
+              const batchToWrite = batch;
+              batch = [];
+              queueWrite(batchToWrite, takeSeriesCatalogUpdates());
+              await waitForWriteCapacity();
+            }
+          }
+          if (processed > 0) {
+            updateLoadMessage("Parser de compatibilidade encontrou " + formatNumber(processed) + " itens.");
+            window.GCArchitecture?.diagnostics?.record?.("m3u_parser_fallback_success", {
+              parser: parserData.parser || "iptv-playlist-parser",
+              items: processed
+            });
+          }
+        } else {
+          window.GCArchitecture?.diagnostics?.record?.("m3u_parser_fallback_error", {
+            status: parserResponse.status,
+            error: parserData?.error || "parser sem itens"
+          });
+        }
+      } catch (parserError) {
+        console.warn("[GC PLAY PRO] fallback iptv-playlist-parser:", parserError);
+        window.GCArchitecture?.diagnostics?.record?.("m3u_parser_fallback_error", {
+          error: String(parserError?.message || parserError)
+        });
       }
     }
 
