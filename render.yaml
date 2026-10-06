@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: gc-play-pro-backend
+    runtime: node
+    plan: free
+    region: oregon
+    repo: https://github.com/CaioMendes29546874687/GC-PLAY-PRO-
+    branch: main
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gc-play-pro-db
+          property: connectionString
+      - key: SUPABASE_URL
+        value: https://kuzgdvpdqmocklsgyzvt.supabase.co
+      - key: SUPABASE_KEY
+        sync: false
+
+databases:
+  - name: gc-play-pro-db
+    plan: free
+    region: oregon
+    postgresMajorVersion: "18"
+    databaseName: gc_play_pro_db
+    user: gc_play_pro_db_user
