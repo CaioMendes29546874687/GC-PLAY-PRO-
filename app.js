@@ -405,34 +405,78 @@ function openDB() {
    APAGAR BANCO ANTIGO RAPIDAMENTE
    ========================================================= */
 
-function resetDatabaseFast() {
-  return new Promise((resolve, reject) => {
+async function resetDatabaseFast() {
+  /*
+     NÃO usamos deleteDatabase() para trocar uma playlist.
+     deleteDatabase() pode ficar bloqueado indefinidamente se outra aba
+     ainda tiver uma conexão aberta, deixando o carregamento preso em
+     "Preparando catálogo". Para substituição de catálogo, limpar os
+     object stores preserva o schema, os índices e funciona mesmo quando
+     outra aba mantém o banco aberto.
+  */
+  if (!state.db) {
+    state.db = await openDB();
+  }
+
+  const db = state.db;
+
+  if (!db.objectStoreNames.contains(STORE_NAME)) {
+    throw new Error("Object store do catálogo não existe.");
+  }
+
+  const stores = [STORE_NAME];
+
+  if (db.objectStoreNames.contains(SERIES_STORE)) {
+    stores.push(SERIES_STORE);
+  }
+
+  await new Promise((resolve, reject) => {
+    let settled = false;
+    let transaction;
+
     try {
-      if (state.db) {
-        try {
-          state.db.close();
-        } catch {}
+      transaction = db.transaction(stores, "readwrite");
+
+      for (const storeName of stores) {
+        transaction.objectStore(storeName).clear();
       }
 
-      const request = indexedDB.deleteDatabase(DB_NAME);
-
-      request.onsuccess = () => {
+      transaction.oncomplete = () => {
+        if (settled) return;
+        settled = true;
         resolve();
       };
 
-      request.onerror = () => {
-        reject(request.error);
+      transaction.onerror = () => {
+        if (settled) return;
+        settled = true;
+        reject(
+          transaction.error ||
+          new Error("Falha ao limpar o catálogo IndexedDB.")
+        );
       };
 
-      request.onblocked = () => {
-        console.warn(
-          "Exclusão do banco bloqueada por outra aba."
+      transaction.onabort = () => {
+        if (settled) return;
+        settled = true;
+        reject(
+          transaction.error ||
+          new Error("Transação de limpeza do catálogo foi abortada.")
         );
       };
     } catch (error) {
-      reject(error);
+      if (!settled) {
+        settled = true;
+        reject(error);
+      }
     }
   });
+
+  /*
+     A conexão continua aberta e pronta para a importação seguinte.
+     Isso evita o ciclo delete/open e reduz a chance de banco bloqueado.
+  */
+  return true;
 }
 
 /* =========================================================
