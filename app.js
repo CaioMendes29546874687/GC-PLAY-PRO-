@@ -7741,7 +7741,7 @@ async function tryRestoreCatalogInstant(url) {
       state.db = await openDB();
     }
 
-    const sample = await loadSample(Math.min(RAM_LIMIT, 1200));
+    const sample = await loadSample(Math.min(RAM_LIMIT, 180));
     if (!sample.length) return false;
 
     state.items = sample;
@@ -7758,34 +7758,16 @@ async function tryRestoreCatalogInstant(url) {
 
     state.groupsReady = state.groups.length > 0;
 
-    const [actualLive, actualMovie, actualSeriesEpisodes, actualSeriesUnique] = await Promise.all([
-      countByType("live"),
-      countByType("movie"),
-      countByType("series"),
-      new Promise((resolve) => {
-        try {
-          if (!state.db.objectStoreNames.contains(SERIES_STORE)) return resolve(0);
-          const tx = state.db.transaction(SERIES_STORE, "readonly");
-          const req = tx.objectStore(SERIES_STORE).count();
-          req.onsuccess = () => resolve(Number(req.result || 0));
-          req.onerror = () => resolve(0);
-        } catch {
-          resolve(0);
-        }
-      })
-    ]);
-
     /*
-       Nunca mostre episódios como se fossem séries no boot do cache.
-       O índice seriesCatalog guarda uma entrada por série; se ele ainda
-       estiver vazio, usamos o snapshot salvo na última finalização.
+       BOOT O(1): os contadores já foram salvos junto do snapshot.
+       Não percorra índices do IndexedDB só para abrir o aplicativo.
+       Em catálogos de 300k+ registros isso era trabalho desnecessário
+       justamente no primeiro paint.
     */
-    const uniqueSeries = Number(actualSeriesUnique || 0) || Number(meta.counts?.series || 0);
-
     state.counts = {
-      live: Number(actualLive || 0),
-      movie: Number(actualMovie || 0),
-      series: uniqueSeries
+      live: Number(meta.counts?.live || 0),
+      movie: Number(meta.counts?.movie || 0),
+      series: Number(meta.counts?.series || 0)
     };
 
     state.total =
@@ -7850,7 +7832,13 @@ async function tryRestoreCatalogInstant(url) {
        Enquanto o cache está recente, o usuário não precisa esperar
        a playlist inteira ser baixada novamente.
     */
-    return age <= CACHE_MAX_AGE_MS;
+    /*
+       CACHE-FIRST REAL: mesmo se o snapshot estiver antigo, a biblioteca
+       local continua sendo a fonte imediata. A atualização da playlist
+       não pode transformar a abertura do app em uma nova importação de
+       centenas de milhares de registros.
+    */
+    return true;
   } catch (error) {
     console.warn("[GC PLAY PRO] cache local indisponível:", error);
     return false;
