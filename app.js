@@ -3233,6 +3233,21 @@ function renderSeasonCard(season,count) {
 function setupSeriesBrowserEvents(grid) {
   grid.querySelectorAll("[data-series-key]").forEach(card=>card.addEventListener("click",()=>{state.seriesView.seriesKey=card.dataset.seriesKey||null;state.seriesView.season=null;render();}));
   grid.querySelectorAll("[data-series-season]").forEach(card=>card.addEventListener("click",()=>{state.seriesView.season=Number(card.dataset.seriesSeason);render();}));
+  const loadMoreSeries = grid.querySelector("[data-load-more-series]");
+  if (loadMoreSeries) {
+    loadMoreSeries.addEventListener("click", () => {
+      const all = state.seriesCatalog || [];
+      const offset = Number(loadMoreSeries.dataset.offset || 120);
+      const next = all.slice(offset, offset + 120);
+      if (!next.length) {
+        loadMoreSeries.remove();
+        return;
+      }
+      loadMoreSeries.dataset.offset = String(offset + next.length);
+      loadMoreSeries.insertAdjacentHTML("beforebegin", next.map(renderSeriesCard).join(""));
+      if (offset + next.length >= all.length) loadMoreSeries.remove();
+    });
+  }
   const back=grid.querySelector("[data-series-back]");
   if(back) back.addEventListener("click",()=>{if(state.seriesView.season!==null) state.seriesView.season=null; else state.seriesView.seriesKey=null;render();});
 }
@@ -3339,7 +3354,12 @@ async function renderSeriesBrowser(grid,empty) {
   if(!key){
     if(!items.length){grid.innerHTML="";if(empty)empty.style.display="block";return;}
     if(empty)empty.style.display="none";
-    grid.innerHTML=items.slice(0,120).map(renderSeriesCard).join("");
+    state.seriesCatalog = items;
+    const firstPage = items.slice(0,120);
+    const more = items.length > 120
+      ? '<div class="gc-load-more-wrap"><button type="button" class="secondary-button gc-load-more" data-load-more-series data-offset="120">CARREGAR MAIS SÉRIES</button></div>'
+      : "";
+    grid.innerHTML=firstPage.map(renderSeriesCard).join("") + more;
     setupSeriesBrowserEvents(grid);
     return;
   }
