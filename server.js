@@ -17,7 +17,7 @@ app.use((req,res,next)=>{
 let pool;
 function getPool(){if(!DATABASE_URL)throw new Error("DATABASE_URL não configurada.");if(!pool)pool=new Pool({connectionString:DATABASE_URL,ssl:{rejectUnauthorized:false},max:8});return pool}
 async function db(){return getPool()}
-async function init(){const p=getPool();const fs=await import("node:fs/promises");await p.query(await fs.readFile(new URL("./schema.sql",import.meta.url),"utf8"));console.log("GC DB: schema pronto.");if(process.env.MIGRATION_PAYLOAD){setTimeout(async()=>{try{const r=await fetch("http://127.0.0.1:"+PORT+"/api/migration/import",{method:"POST",headers:{"Content-Type":"application/json","x-migration-token":MIGRATION_TOKEN},body:process.env.MIGRATION_PAYLOAD});console.log("GC DB: migration payload",await r.text())}catch(e){console.error("GC DB migration:",e.message)}},1000)}}
+async function init(){const p=getPool();const fs=await import("node:fs/promises");await p.query(await fs.readFile(new URL("./schema.sql",import.meta.url),"utf8"));console.log("GC DB: schema pronto.");}
 const b64=x=>Buffer.from(x).toString("base64url");
 const unb64=x=>Buffer.from(x,"base64url").toString();
 function hashPassword(pass,salt=crypto.randomBytes(16).toString("hex")){return new Promise((resolve,reject)=>crypto.scrypt(pass,salt,64,(e,k)=>e?reject(e):resolve(salt+"$"+k.toString("hex"))))}
@@ -39,6 +39,86 @@ app.get("/api/auth/status",async(_q,r)=>{try{r.json({ok:true,configured:await ad
 app.post("/api/auth/setup",async(req,res)=>{try{if(await adminCount()>0)return res.status(409).json({error:"O acesso administrativo já foi criado. Use Entrar."});const {email,password,name}=req.body||{};if(!email||!password||String(password).length<6)return res.status(400).json({error:"E-mail e senha são obrigatórios; a senha deve ter pelo menos 6 caracteres."});const p=await db(),h=await hashPassword(password),profile=(await p.query("select id,full_name,role from admin_profiles order by created_at asc limit 1")).rows[0];const id=profile?.id||crypto.randomUUID();await p.query("insert into admin_profiles(id,full_name,role) values($1,$2,'admin') on conflict(id) do update set full_name=coalesce(excluded.full_name,admin_profiles.full_name),role='admin'",[id,name||profile?.full_name||"Administrador"]);await p.query("insert into admin_auth(id,email,password_hash,full_name,created_at,updated_at) values($1,$2,$3,$4,now(),now())",[id,String(email).toLowerCase(),h,name||profile?.full_name||"Administrador"]);const user={id,email:String(email).toLowerCase(),name:name||profile?.full_name||"Administrador"};res.json({ok:true,token:sign({id:user.id,email:user.email,name:user.name,exp:Date.now()+7*86400000}),user})}catch(e){res.status(500).json({error:e.code==="23505"?"E-mail já cadastrado.":e.message})}});
 app.post("/api/auth/login",async(req,res)=>{try{const {email,password}=req.body||{};const p=await db(),q=await p.query("select id,email,password_hash,full_name from admin_auth where lower(email)=lower($1) limit 1",[email||""]);const u=q.rows[0];if(!u||!(await verifyPassword(password||"",u.password_hash)))return res.status(401).json({error:"E-mail ou senha inválidos."});res.json({ok:true,token:sign({id:u.id,email:u.email,name:u.full_name||"Administrador",exp:Date.now()+7*86400000}),user:{id:u.id,email:u.email,name:u.full_name||"Administrador"}})}catch(e){res.status(500).json({error:e.message})}});
 app.get("/api/auth/me",auth,async(req,res)=>res.json({ok:true,user:{id:req.user.id,email:req.user.email,name:req.user.name}}));
+
+function normalizeActivationCode(v){return String(v||"").replace(/[^a-z0-9]/gi,"").toUpperCase().slice(0,32)}
+function buildManagedPlaylistUrl(list){
+  if(!list) return "";
+  const source=String(list.source_url||"").trim();
+  if(source && !source.includes("***")) return source;
+  if(list.server_url && list.username && list.provider_password){
+    const u=new URL("/get.php",serverOf(list.server_url));
+    u.searchParams.set("username",list.username);
+    u.searchParams.set("password",list.provider_password);
+    u.searchParams.set("type","m3u_plus");
+    u.searchParams.set("output","ts");
+    return u.toString();
+  }
+  return source;
+}
+async function loadClientForActivation(code){
+  const p=await db();
+  const q=await p.query(
+    "select c.id,c.name,c.activation_code,c.device_limit,c.status,c.list_id,l.name list_name,l.source_url,l.server_url,l.username,l.provider_password,l.expires_at,l.status list_status from clients c left join provider_lists l on l.id=c.list_id where upper(c.activation_code)=upper($1) limit 1",
+    [code]
+  );
+  return q.rows[0]||null;
+}
+async function resolveDeviceActivation(code,deviceUid,deviceName,platform){
+  const client=await loadClientForActivation(code);
+  if(!client) return {ok:false,status:404,error:"Código de ativação inválido."};
+  if(client.status!=="active") return {ok:false,status:403,error:"Cliente bloqueado ou inativo."};
+  if(!client.list_id) return {ok:false,status:409,error:"Cliente sem lista vinculada."};
+  if(client.list_status==="expired" || (client.expires_at && new Date(client.expires_at)<=new Date())){
+    return {ok:false,status:403,error:"A lista deste cliente está expirada."};
+  }
+  if(!client.expires_at) return {ok:false,status:409,error:"A validade da lista ainda não foi sincronizada."};
+  if(!client.server_url || !client.username || !client.provider_password){
+    return {ok:false,status:409,error:"Credenciais da lista não estão disponíveis."};
+  }
+  const p=await db();
+  const existing=(await p.query("select id,status from devices where client_id=$1 and device_uid=$2 limit 1",[client.id,String(deviceUid||"")])).rows[0];
+  if(existing){
+    if(existing.status==="blocked") return {ok:false,status:403,error:"Este dispositivo foi revogado. Digite o código novamente para criar uma nova ativação."};
+    await p.query("update devices set status='online',device_name=coalesce($1,device_name),platform=coalesce($2,platform),last_seen_at=now() where id=$3",[String(deviceName||"GC PLAY PRO"),String(platform||""),existing.id]);
+    await p.query("insert into activations(client_id,device_id,activation_code,activated_at) values($1,$2,$3,now())",[client.id,existing.id,client.activation_code]);
+    return {ok:true,device_id:existing.id,client_id:client.id,expires_at:client.expires_at,list_name:client.list_name,playlist_url:buildManagedPlaylistUrl(client)};
+  }
+  const limit=Math.max(1,Number(client.device_limit)||1);
+  const activeCount=Number((await p.query("select count(*)::int n from devices where client_id=$1 and status<>'blocked'",[client.id])).rows[0].n);
+  if(activeCount>=limit) return {ok:false,status:409,error:"Limite de dispositivos atingido. Remova um dispositivo no painel para liberar uma nova ativação."};
+  const created=(await p.query("insert into devices(client_id,device_uid,device_name,platform,last_seen_at,status) values($1,$2,$3,$4,now(),'online') returning id",[client.id,String(deviceUid||""),String(deviceName||"GC PLAY PRO"),String(platform||"")])).rows[0];
+  await p.query("insert into activations(client_id,device_id,activation_code,activated_at) values($1,$2,$3,now())",[client.id,created.id,client.activation_code]);
+  return {ok:true,device_id:created.id,client_id:client.id,expires_at:client.expires_at,list_name:client.list_name,playlist_url:buildManagedPlaylistUrl(client)};
+}
+
+app.post("/api/device/activate",async(req,res)=>{
+  try{
+    const b=req.body||{},code=normalizeActivationCode(b.activation_code),uid=String(b.device_uid||"").trim();
+    if(code.length<6||!uid)return res.status(400).json({ok:false,error:"Código de ativação e identificador do dispositivo são obrigatórios."});
+    const result=await resolveDeviceActivation(code,uid,b.device_name,b.platform);
+    return res.status(result.status||200).json(result);
+  }catch(e){return res.status(500).json({ok:false,error:e.message})}
+});
+
+app.post("/api/device/check",async(req,res)=>{
+  try{
+    const b=req.body||{},code=normalizeActivationCode(b.activation_code),uid=String(b.device_uid||"").trim();
+    if(code.length<6||!uid)return res.status(400).json({ok:false,active:false,reason:"missing_credentials"});
+    const client=await loadClientForActivation(code);
+    if(!client)return res.status(404).json({ok:false,active:false,reason:"invalid_code"});
+    if(client.status!=="active")return res.status(403).json({ok:false,active:false,reason:"client_blocked"});
+    if(!client.list_id||!client.expires_at||new Date(client.expires_at)<=new Date()||client.list_status==="expired"){
+      return res.status(403).json({ok:false,active:false,reason:"expired",expires_at:client.expires_at||null});
+    }
+    const p=await db();
+    const d=(await p.query("select id,status,device_name,platform from devices where client_id=$1 and device_uid=$2 limit 1",[client.id,uid])).rows[0];
+    if(!d)return res.status(404).json({ok:false,active:false,reason:"device_revoked"});
+    if(d.status==="blocked")return res.status(403).json({ok:false,active:false,reason:"device_revoked"});
+    await p.query("update devices set status='online',last_seen_at=now() where id=$1",[d.id]);
+    return res.json({ok:true,active:true,device_id:d.id,client_id:client.id,expires_at:client.expires_at,list_name:client.list_name});
+  }catch(e){return res.status(500).json({ok:false,active:false,reason:"server_error",error:e.message})}
+});
+
 app.get("/api/data",auth,async(_req,res)=>{try{res.json({ok:true,...await dashboardData()})}catch(e){res.status(500).json({error:e.message})}});
 app.post("/api/clients",auth,async(req,res)=>{try{const x=req.body||{},p=await db();const q=await p.query("insert into clients(name,email,phone,plan,list_id,device_limit,status,activation_code) values($1,$2,$3,$4,$5,$6,'active',$7) returning *",[x.name,x.email||null,x.phone||null,x.plan||"Mensal",x.list_id||null,Number(x.device_limit)||1,String(x.activation_code||crypto.randomUUID().replaceAll("-","").slice(0,8).toUpperCase())]);res.json({ok:true,client:q.rows[0]})}catch(e){res.status(500).json({error:e.message})}});
 app.patch("/api/clients/:id",auth,async(req,res)=>{try{const x=req.body||{},p=await db();const q=await p.query("update clients set name=$1,plan=$2,device_limit=$3,list_id=$4,status=coalesce($5,status),updated_at=now() where id=$6 returning *",[x.name,x.plan,Number(x.device_limit)||1,x.list_id||null,x.status||null,req.params.id]);res.json({ok:true,client:q.rows[0]})}catch(e){res.status(500).json({error:e.message})}});
@@ -49,6 +129,18 @@ app.post("/api/sync",auth,async(req,res)=>{try{const p=await db(),ids=req.body?.
 app.post("/api/lists",auth,async(req,res)=>{try{const x=req.body||{};if(!x.name||!x.server_url||!x.username||!x.provider_password)return res.status(400).json({error:"Nome, servidor, usuário e senha são obrigatórios."});const p=await db(),q=await p.query("insert into provider_lists(name,source_url,server_url,username,provider_password,status,max_connections) values($1,$2,$3,$4,$5,'unknown',1) returning id,name,server_url,username,expires_at,status,provider_status,max_connections,active_connections,last_sync_at,last_error,created_at",[x.name,x.source_url||null,serverOf(x.server_url),x.username,x.provider_password]);const s=await syncList(q.rows[0].id);res.json({ok:true,list:(await p.query("select id,name,server_url,username,expires_at,status,provider_status,max_connections,active_connections,last_sync_at,last_error,created_at from provider_lists where id=$1",[q.rows[0].id])).rows[0],sync:s})}catch(e){res.status(500).json({error:e.message})}});
 app.patch("/api/lists/:id",auth,async(req,res)=>{try{const p=await db(),x=req.body||{};const q=await p.query("update provider_lists set name=$1 where id=$2 returning id,name,server_url,username,expires_at,status,provider_status,max_connections,active_connections,last_sync_at,last_error,created_at",[x.name,req.params.id]);res.json({ok:true,list:q.rows[0]})}catch(e){res.status(500).json({error:e.message})}});
 app.delete("/api/lists/:id",auth,async(req,res)=>{try{await (await db()).query("delete from provider_lists where id=$1",[req.params.id]);res.json({ok:true})}catch(e){res.status(500).json({error:e.message})}});
+
+app.delete("/api/devices/:id",auth,async(req,res)=>{
+  try{
+    const p=await db();
+    const d=(await p.query("select id,client_id,device_uid from devices where id=$1",[req.params.id])).rows[0];
+    if(!d)return res.status(404).json({error:"Dispositivo não encontrado."});
+    await p.query("update activations set revoked_at=coalesce(revoked_at,now()) where device_id=$1 and revoked_at is null",[req.params.id]);
+    await p.query("delete from devices where id=$1",[req.params.id]);
+    res.json({ok:true,revoked_device_id:req.params.id});
+  }catch(e){res.status(500).json({error:e.message})}
+});
+
 app.post("/api/migration/import",async(req,res)=>{try{if(!MIGRATION_TOKEN||req.headers["x-migration-token"]!==MIGRATION_TOKEN)return res.status(401).json({error:"Migration token inválido."});const b=req.body||{},p=await db(),c=await p.connect();try{await c.query("BEGIN");for(const x of b.provider_lists||[])await c.query("insert into provider_lists(id,name,source_url,server_url,username,provider_password,expires_at,provider_status,status,max_connections,active_connections,last_sync_at,last_error,created_by,provider_secret_id,created_at,updated_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) on conflict(id) do update set name=excluded.name,source_url=excluded.source_url,server_url=excluded.server_url,username=excluded.username,provider_password=excluded.provider_password,expires_at=excluded.expires_at,provider_status=excluded.provider_status,status=excluded.status,max_connections=excluded.max_connections,active_connections=excluded.active_connections,last_sync_at=excluded.last_sync_at,last_error=excluded.last_error,created_by=excluded.created_by,provider_secret_id=excluded.provider_secret_id,updated_at=excluded.updated_at",[x.id,x.name,x.source_url,x.server_url,x.username,x.provider_password,x.expires_at,x.provider_status,x.status,x.max_connections??1,x.active_connections??0,x.last_sync_at,x.last_error,x.created_by,x.provider_secret_id,x.created_at,x.updated_at]);for(const x of b.clients||[])await c.query("insert into clients(id,name,email,phone,plan,list_id,device_limit,status,activation_code,created_at,updated_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) on conflict(id) do update set name=excluded.name,email=excluded.email,phone=excluded.phone,plan=excluded.plan,list_id=excluded.list_id,device_limit=excluded.device_limit,status=excluded.status,activation_code=excluded.activation_code,updated_at=excluded.updated_at",[x.id,x.name,x.email,x.phone,x.plan,x.list_id,x.device_limit??1,x.status,x.activation_code,x.created_at,x.updated_at]);for(const x of b.devices||[])await c.query("insert into devices(id,client_id,device_uid,device_name,platform,last_seen_at,status,created_at) values($1,$2,$3,$4,$5,$6,$7,$8) on conflict(id) do update set client_id=excluded.client_id,device_uid=excluded.device_uid,device_name=excluded.device_name,platform=excluded.platform,last_seen_at=excluded.last_seen_at,status=excluded.status",[x.id,x.client_id,x.device_uid,x.device_name,x.platform,x.last_seen_at,x.status,x.created_at]);for(const x of b.activations||[])await c.query("insert into activations(id,client_id,device_id,activation_code,activated_at,revoked_at) values($1,$2,$3,$4,$5,$6) on conflict(id) do update set client_id=excluded.client_id,device_id=excluded.device_id,activation_code=excluded.activation_code,activated_at=excluded.activated_at,revoked_at=excluded.revoked_at",[x.id,x.client_id,x.device_id,x.activation_code,x.activated_at,x.revoked_at]);for(const x of b.sync_logs||[])await c.query("insert into sync_logs(id,list_id,status,old_expiry,new_expiry,details,created_at) values($1,$2,$3,$4,$5,$6,$7) on conflict(id) do update set list_id=excluded.list_id,status=excluded.status,old_expiry=excluded.old_expiry,new_expiry=excluded.new_expiry,details=excluded.details,created_at=excluded.created_at",[x.id,x.list_id,x.status,x.old_expiry,x.new_expiry,x.details,x.created_at]);for(const x of b.admin_profiles||[])await c.query("insert into admin_profiles(id,full_name,role,created_at) values($1,$2,$3,$4) on conflict(id) do update set full_name=excluded.full_name,role=excluded.role",[x.id,x.full_name,x.role,x.created_at]);await c.query("select setval(pg_get_serial_sequence('sync_logs','id'),coalesce((select max(id) from sync_logs),1),true)");await c.query("commit")}catch(e){await c.query("rollback");throw e}finally{c.release()}res.json({ok:true,imported:{lists:(b.provider_lists||[]).length,clients:(b.clients||[]).length,devices:(b.devices||[]).length,activations:(b.activations||[]).length,sync_logs:(b.sync_logs||[]).length,admin_profiles:(b.admin_profiles||[]).length}})}catch(e){res.status(500).json({ok:false,error:e.message})}});
 app.use(express.static("."));
 app.listen(PORT,()=>{init().catch(e=>console.error("GC DB init:",e));console.log("GC PLAY PRO backend listening on "+PORT)});
