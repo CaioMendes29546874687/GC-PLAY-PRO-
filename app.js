@@ -494,6 +494,26 @@ async function waitForWriteCapacity(limit = WRITE_QUEUE_LIMIT) {
   }
 }
 
+/*
+   Aguarda qualquer gravação da playlist anterior terminar antes de
+   limpar/reutilizar o IndexedDB. Sem isso, uma importação nova poderia
+   disputar a mesma conexão com um lote antigo e misturar catálogos.
+*/
+async function waitForWriteIdle() {
+  while (writeProcessing) {
+    await sleep(25);
+  }
+
+  if (writeError) {
+    throw writeError;
+  }
+
+  if (writeQueue.length) {
+    await new Promise(resolve => setTimeout(resolve, 0));
+    return waitForWriteIdle();
+  }
+}
+
 function queueWrite(items, seriesUpdates = []) {
   if (
     (!items || !items.length) &&
@@ -6872,6 +6892,22 @@ async function loadM3U(
     true;
 
   /*
+     Nunca inicie uma nova importação enquanto um lote da playlist
+     anterior ainda estiver sendo gravado no IndexedDB.
+  */
+  try {
+    await waitForWriteIdle();
+  } catch (previousWriteError) {
+    console.warn("[GC PLAY PRO] gravação anterior:", previousWriteError);
+    writeQueue = [];
+    writeError = null;
+    await waitForWriteIdle();
+  }
+
+  writeQueue = [];
+  writeError = null;
+
+  /*
      Cache-first: se esta URL já foi importada recentemente, restaure
      a biblioteca local antes de qualquer download. Isso evita apagar
      o banco e reprocessar 100k/300k+ registros para cada abertura.
@@ -7483,6 +7519,18 @@ async function loadFile(
 
   state.loading =
     true;
+
+  try {
+    await waitForWriteIdle();
+  } catch (previousWriteError) {
+    console.warn("[GC PLAY PRO] gravação anterior (arquivo):", previousWriteError);
+    writeQueue = [];
+    writeError = null;
+    await waitForWriteIdle();
+  }
+
+  writeQueue = [];
+  writeError = null;
 
   state.items =
     [];
