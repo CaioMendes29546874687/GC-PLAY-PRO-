@@ -36,7 +36,9 @@ class MainActivity : AppCompatActivity() {
         exo?.clearMediaItems()
         if (libvlc == null) libvlc = LibVLC(this, arrayListOf("--network-caching=1000"))
         if (vlc == null) vlc = MediaPlayer(libvlc)
-        vlc!!.media = Media(libvlc, Uri.parse(url)).apply { release() }
+        val media = Media(libvlc, Uri.parse(url))
+        vlc!!.media = media
+        media.release()
         vlc!!.play()
     }
 
