@@ -126,15 +126,13 @@ async function fetchMedia(request, target) {
   }
 
   /*
-     Alguns servidores IPTV aceitam a mídia somente quando a requisição
-     parece vir do próprio domínio. Outros recusam Origin/Referer artificiais.
-     Por isso usamos uma tentativa compatível primeiro e, para respostas de
-     bloqueio transitório/autorização, uma segunda tentativa sem Origin/Referer.
+     Compatibilidade IPTV:
+     muitos servidores rejeitam Origin/Referer artificiais. A tentativa
+     principal agora é a mais neutra possível (Range/Accept/User-Agent),
+     que também é a que mais se aproxima de um player nativo.
+     Se a origem exigir identificação por Origin/Referer, fazemos uma
+     segunda tentativa com o domínio da própria origem.
   */
-  const primaryHeaders = new Headers(baseHeaders);
-  primaryHeaders.set("Origin", target.origin);
-  primaryHeaders.set("Referer", target.origin + "/");
-
   const requestInit = {
     method: request.method === "HEAD" ? "HEAD" : "GET",
     redirect: "follow"
@@ -142,7 +140,7 @@ async function fetchMedia(request, target) {
 
   let upstream = await fetch(target.toString(), {
     ...requestInit,
-    headers: primaryHeaders
+    headers: new Headers(baseHeaders)
   });
 
   const firstType = upstream.headers.get("content-type") || "";
@@ -152,10 +150,12 @@ async function fetchMedia(request, target) {
     (target.pathname.toLowerCase().includes(".m3u8") || target.pathname.toLowerCase().includes(".mpd"));
 
   if (retryStatus || suspiciousMediaBody) {
-    const fallbackHeaders = new Headers(baseHeaders);
+    const providerHeaders = new Headers(baseHeaders);
+    providerHeaders.set("Origin", target.origin);
+    providerHeaders.set("Referer", target.origin + "/");
     upstream = await fetch(target.toString(), {
       ...requestInit,
-      headers: fallbackHeaders
+      headers: providerHeaders
     });
   }
 
