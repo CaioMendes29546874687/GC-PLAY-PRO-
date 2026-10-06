@@ -1456,6 +1456,8 @@ function normalizeItem(data) {
     streamType: data.streamType || "",
     contentType: data.contentType || "",
     mediaType: data.mediaType || "",
+    httpReferrer: data.httpReferrer || "",
+    httpUserAgent: data.httpUserAgent || "",
     tvgSeason: data.tvgSeason || "",
     tvgEpisode: data.tvgEpisode || "",
     tvgSerie: data.tvgSerie || "",
@@ -1664,14 +1666,19 @@ function buildProxyUrl(url) {
   }
 }
 
-function buildMediaProxyUrl(url) {
+function buildMediaProxyUrl(url, item = null) {
   const value = String(url || "").trim();
   if (!value) return "";
   try {
     const parsed = new URL(value);
     if (!/^https?:$/.test(parsed.protocol)) return value;
     if (parsed.hostname === new URL(GC_CATALOG_GATEWAY).hostname && parsed.searchParams.get("mode") === "media") return value;
-    return `${GC_CATALOG_GATEWAY}?mode=media&url=${encodeURIComponent(value)}`;
+    const proxy = new URL(GC_CATALOG_GATEWAY);
+    proxy.searchParams.set("mode", "media");
+    proxy.searchParams.set("url", value);
+    if (item?.httpReferrer) proxy.searchParams.set("ref", String(item.httpReferrer).slice(0, 2048));
+    if (item?.httpUserAgent) proxy.searchParams.set("ua", String(item.httpUserAgent).slice(0, 2048));
+    return proxy.toString();
   } catch {
     return value;
   }
@@ -2676,7 +2683,17 @@ async function* parseM3UStream(
         ) {
           currentInfo =
             parseEXTINF(line);
+          continue;
+        }
 
+        if (line.startsWith("#EXTVLCOPT:") || line.startsWith("#EXTHTTP:") || line.startsWith("#KODIPROP:")) {
+          currentInfo = currentInfo || { name: "Sem nome", group: "Sem categoria" };
+          const directive = line.slice(line.indexOf(":") + 1);
+          const eq = directive.indexOf("=");
+          const key = (eq >= 0 ? directive.slice(0, eq) : directive).trim().toLowerCase();
+          const value = (eq >= 0 ? directive.slice(eq + 1) : "").trim().replace(/^"(.*)"$/, "$1").replace(/^'(.*)'$/, "$1");
+          if (key.includes("http-referrer") || key.includes("referer") || key.includes("referrer")) currentInfo.httpReferrer = value;
+          if (key.includes("http-user-agent") || key === "user-agent" || key.includes("useragent")) currentInfo.httpUserAgent = value;
           continue;
         }
 
@@ -2721,7 +2738,17 @@ async function* parseM3UStream(
       ) {
         currentInfo =
           parseEXTINF(line);
+        continue;
+      }
 
+      if (line.startsWith("#EXTVLCOPT:") || line.startsWith("#EXTHTTP:") || line.startsWith("#KODIPROP:")) {
+        currentInfo = currentInfo || { name: "Sem nome", group: "Sem categoria" };
+        const directive = line.slice(line.indexOf(":") + 1);
+        const eq = directive.indexOf("=");
+        const key = (eq >= 0 ? directive.slice(0, eq) : directive).trim().toLowerCase();
+        const value = (eq >= 0 ? directive.slice(eq + 1) : "").trim().replace(/^"(.*)"$/, "$1").replace(/^'(.*)'$/, "$1");
+        if (key.includes("http-referrer") || key.includes("referer") || key.includes("referrer")) currentInfo.httpReferrer = value;
+        if (key.includes("http-user-agent") || key === "user-agent" || key.includes("useragent")) currentInfo.httpUserAgent = value;
         continue;
       }
 
@@ -5353,7 +5380,7 @@ async function playItem(item) {
   // The web player remains the fallback for PC, browser and Smart TV browsers.
   if (window.AndroidGCPlayer && typeof window.AndroidGCPlayer.play === "function") {
     try {
-      const nativeUrl = buildMediaProxyUrl(item.url);
+      const nativeUrl = buildMediaProxyUrl(item.url, item);
       window.AndroidGCPlayer.play(
         nativeUrl || item.url,
         String(item.name || "GC PLAY PRO"),
@@ -5685,7 +5712,7 @@ async function playItem(item) {
   */
   const isHttpsSource = /^https:\/\//i.test(sourceUrl);
   const proxyPlaybackUrl = isHttpUrl(sourceUrl)
-    ? buildMediaProxyUrl(sourceUrl)
+    ? buildMediaProxyUrl(sourceUrl, item)
     : sourceUrl;
   const playbackUrl = (
     !looksLikeLiveStream &&
@@ -5785,7 +5812,7 @@ async function playItem(item) {
   if (isHLS(sourceUrl)) {
     const liveTsProxyFallback =
       item.xtreamKind === "live" && liveTsUrl !== sourceUrl
-        ? buildMediaProxyUrl(liveTsUrl)
+        ? buildMediaProxyUrl(liveTsUrl, item)
         : "";
 
     const liveTsDirectFallback =
@@ -5868,10 +5895,10 @@ async function playItem(item) {
         item.xtreamKind === "live"
           ? (
               originalLiveIsHls
-                ? buildMediaProxyUrl(originalUrl)
+                ? buildMediaProxyUrl(originalUrl, item)
                 : (
                     liveHlsUrl !== sourceUrl
-                      ? buildMediaProxyUrl(liveHlsUrl)
+                      ? buildMediaProxyUrl(liveHlsUrl, item)
                       : ""
                   )
             )
