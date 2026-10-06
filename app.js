@@ -3556,6 +3556,7 @@ async function rebuildSeriesCatalogInBackground(force = false) {
     );
     state.seriesCatalogReady = true;
     state.seriesItemsCache = result;
+    state.seriesCatalogChanged = new Set(result.map(item => item.seriesKey));
 
     /* O contador mostra séries únicas; episódios ficam dentro
        de cada série/temporada. */
@@ -3599,12 +3600,15 @@ async function getFilteredSeriesItems() {
 
   if (state.searchTerm) {
     const term = normalizeText(state.searchTerm);
-
-    items = items.filter(item =>
-      normalizeText(item.name || item.seriesName || "").includes(term) ||
-      normalizeText(item.group || "").includes(term) ||
-      normalizeText(item.seriesName || "").includes(term)
-    );
+    const indexed = window.GCArchitecture?.search?.search?.(items, term, items.length) || [];
+    const allowed = new Set(indexed.map(item => item.seriesKey));
+    items = indexed.length
+      ? items.filter(item => allowed.has(item.seriesKey))
+      : items.filter(item =>
+          normalizeText(item.name || item.seriesName || "").includes(term) ||
+          normalizeText(item.group || "").includes(term) ||
+          normalizeText(item.seriesName || "").includes(term)
+        );
   }
 
   return items;
