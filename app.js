@@ -7237,10 +7237,7 @@ async function loadM3U(
         state.counts.series =
           state.seriesCatalog.length;
 
-        state.total =
-          state.counts.live +
-          state.counts.movie +
-          state.counts.series;
+        state.total = Number(processed || countAllItems());
 
         renderGenreFilters();
         renderStats();
@@ -7257,6 +7254,32 @@ async function loadM3U(
     /* -----------------------------------------------------
        RESULTADO FINAL
        ----------------------------------------------------- */
+
+    /* A importação só é considerada concluída depois que TODA a fila
+       do IndexedDB terminou. Antes disso, o cache podia ser salvo com
+       apenas parte da playlist e a próxima abertura restaurava um banco
+       incompleto. */
+    while (writeProcessing || writeQueue.length) {
+      if (writeError) throw writeError;
+      await sleep(25);
+    }
+
+    if (writeError) throw writeError;
+
+    /* O total representa itens/episódios importados. A contagem de
+       séries, por outro lado, representa séries únicas. Não misture as
+       duas métricas, senão uma playlist com episódios faz o total cair. */
+    state.total = processed;
+
+    try {
+      const databaseGroups = await getGroups();
+      if (databaseGroups.length) {
+        state.groups = databaseGroups;
+        localStorage.setItem("GC_PLAY_PRO_GROUPS_V1", JSON.stringify(state.groups));
+      }
+    } catch (groupError) {
+      console.warn("[GC PLAY PRO] grupos finais:", groupError);
+    }
 
     const elapsed =
       (
