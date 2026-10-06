@@ -7237,7 +7237,7 @@ async function loadM3U(
         state.counts.series =
           state.seriesCatalog.length;
 
-        state.total = Number(processed || countAllItems());
+        state.total = Number(processed || 0);
 
         renderGenreFilters();
         renderStats();
