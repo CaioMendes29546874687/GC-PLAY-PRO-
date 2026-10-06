@@ -1,123 +1,54 @@
 import express from "express";
 import pg from "pg";
+import crypto from "node:crypto";
 const {Pool}=pg;
 const app=express();
-app.use(express.json({limit:"25mb"}));
 const PORT=process.env.PORT||10000;
 const DATABASE_URL=process.env.DATABASE_URL||"";
-const SUPABASE_URL=process.env.SUPABASE_URL||"";
-const SUPABASE_KEY=process.env.SUPABASE_KEY||"";
-const RENDER_ALLOWED_ORIGIN="https://caiomendes29546874687.github.io";
-
+const MIGRATION_TOKEN=process.env.MIGRATION_TOKEN||"";
+const AUTH_SECRET=process.env.AUTH_SECRET||"";
+const ORIGIN="https://caiomendes29546874687.github.io";
+app.use(express.json({limit:"25mb"}));
 app.use((req,res,next)=>{
-  const origin=req.headers.origin;
-  if(!origin || origin===RENDER_ALLOWED_ORIGIN){
-    res.setHeader("Access-Control-Allow-Origin",origin||RENDER_ALLOWED_ORIGIN);
-    res.setHeader("Vary","Origin");
-    res.setHeader("Access-Control-Allow-Headers","Content-Type, Authorization, apikey, x-client-info");
-    res.setHeader("Access-Control-Allow-Methods","GET,POST,OPTIONS");
-  }
-  if(req.method==="OPTIONS")return res.sendStatus(204);
-  next();
+  const o=req.headers.origin;
+  if(!o||o===ORIGIN){res.setHeader("Access-Control-Allow-Origin",o||ORIGIN);res.setHeader("Vary","Origin");res.setHeader("Access-Control-Allow-Headers","Content-Type, Authorization");res.setHeader("Access-Control-Allow-Methods","GET,POST,PATCH,DELETE,OPTIONS");}
+  if(req.method==="OPTIONS")return res.sendStatus(204); next();
 });
-let pool=null;
-
-function getPool(){
-  if(!DATABASE_URL) return null;
-  if(!pool) pool=new Pool({connectionString:DATABASE_URL,ssl:{rejectUnauthorized:false},max:5});
-  return pool;
-}
-async function db(){const p=getPool();if(!p)throw new Error("DATABASE_URL não configurada no Render.");return p;}
-async function init(){
-  const p=getPool(); if(!p){console.warn("GC DB: DATABASE_URL ausente; serviço inicia em modo configuração.");return;}
-  const fs=await import("node:fs/promises");
-  await p.query(await fs.readFile(new URL("./schema.sql",import.meta.url),"utf8"));
-  console.log("GC DB: schema pronto.");
-}
-async function supabaseFetch(path,token){
-  if(!SUPABASE_URL||!SUPABASE_KEY)throw new Error("Supabase de origem não configurado no Render.");
-  const r=await fetch(SUPABASE_URL+"/rest/v1/"+path,{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+token,Accept:"application/json"},signal:AbortSignal.timeout(30000)});
-  const raw=await r.text();
-  if(!r.ok)throw new Error("Supabase REST HTTP "+r.status+": "+raw.slice(0,500));
-  return raw?JSON.parse(raw):[];
-}
-async function supabaseUser(token){
-  if(!SUPABASE_URL||!SUPABASE_KEY||!token)return null;
-  const r=await fetch(SUPABASE_URL+"/auth/v1/user",{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+token}});
-  if(!r.ok)return null; return r.json();
-}
-function rowsObject(rows){return rows.map(r=>({...r}));}
-
-app.get("/health",async(_req,res)=>{
-  let database="not_configured";
-  try{const p=getPool();if(p){await p.query("select 1");database="ok";}}catch(e){database="error";}
-  res.json({ok:true,service:"gc-play-pro-backend",database,version:"render-migration-1"});
-});
-
-app.get("/api/status",async(_req,res)=>{
-  try{const p=await db();const q=await p.query("select (select count(*) from provider_lists) lists,(select count(*) from clients) clients,(select count(*) from devices) devices,(select count(*) from activations) activations,(select count(*) from sync_logs) sync_logs,(select count(*) from admin_profiles) admin_profiles");res.json({ok:true,...q.rows[0]});}
-  catch(e){res.status(503).json({ok:false,error:e.message});}
-});
-
-app.post("/api/migration/pull",async(req,res)=>{
-  try{
-    const auth=(req.headers.authorization||"").replace(/^Bearer\\s+/i,"");
-    const u=await supabaseUser(auth);
-    if(!u?.id)return res.status(401).json({error:"Sessão Supabase inválida."});
-    const admins=await supabaseFetch("admin_profiles?id=eq."+encodeURIComponent(u.id)+"&select=id,role",auth);
-    if(!admins?.some(x=>x.role==="admin"))return res.status(403).json({error:"Acesso de administrador necessário."});
-    const tables=["provider_lists","clients","devices","activations","sync_logs","admin_profiles"];
-    const data={};
-    for(const table of tables)data[table]=await supabaseFetch(table+"?select=*",auth);
-    const p=await db(); const client=await p.connect();
-    try{
-      await client.query("BEGIN");
-      for(const x of data.provider_lists||[])await client.query(`INSERT INTO provider_lists(id,name,source_url,server_url,username,provider_password,expires_at,provider_status,status,max_connections,active_connections,last_sync_at,last_error,created_by,provider_secret_id,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) ON CONFLICT(id) DO UPDATE SET name=EXCLUDED.name,source_url=EXCLUDED.source_url,server_url=EXCLUDED.server_url,username=EXCLUDED.username,provider_password=EXCLUDED.provider_password,expires_at=EXCLUDED.expires_at,provider_status=EXCLUDED.provider_status,status=EXCLUDED.status,max_connections=EXCLUDED.max_connections,active_connections=EXCLUDED.active_connections,last_sync_at=EXCLUDED.last_sync_at,last_error=EXCLUDED.last_error,created_by=EXCLUDED.created_by,provider_secret_id=EXCLUDED.provider_secret_id,updated_at=EXCLUDED.updated_at`,[x.id,x.name,x.source_url,x.server_url,x.username,x.provider_password,x.expires_at,x.provider_status,x.status,x.max_connections??1,x.active_connections??0,x.last_sync_at,x.last_error,x.created_by,x.provider_secret_id,x.created_at,x.updated_at]);
-      for(const x of data.clients||[])await client.query(`INSERT INTO clients(id,name,email,phone,plan,list_id,device_limit,status,activation_code,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) ON CONFLICT(id) DO UPDATE SET name=EXCLUDED.name,email=EXCLUDED.email,phone=EXCLUDED.phone,plan=EXCLUDED.plan,list_id=EXCLUDED.list_id,device_limit=EXCLUDED.device_limit,status=EXCLUDED.status,activation_code=EXCLUDED.activation_code,updated_at=EXCLUDED.updated_at`,[x.id,x.name,x.email,x.phone,x.plan,x.list_id,x.device_limit??1,x.status,x.activation_code,x.created_at,x.updated_at]);
-      for(const x of data.devices||[])await client.query(`INSERT INTO devices(id,client_id,device_uid,device_name,platform,last_seen_at,status,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT(id) DO UPDATE SET client_id=EXCLUDED.client_id,device_uid=EXCLUDED.device_uid,device_name=EXCLUDED.device_name,platform=EXCLUDED.platform,last_seen_at=EXCLUDED.last_seen_at,status=EXCLUDED.status`,[x.id,x.client_id,x.device_uid,x.device_name,x.platform,x.last_seen_at,x.status,x.created_at]);
-      for(const x of data.activations||[])await client.query(`INSERT INTO activations(id,client_id,device_id,activation_code,activated_at,revoked_at) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(id) DO UPDATE SET client_id=EXCLUDED.client_id,device_id=EXCLUDED.device_id,activation_code=EXCLUDED.activation_code,activated_at=EXCLUDED.activated_at,revoked_at=EXCLUDED.revoked_at`,[x.id,x.client_id,x.device_id,x.activation_code,x.activated_at,x.revoked_at]);
-      for(const x of data.sync_logs||[])await client.query(`INSERT INTO sync_logs(id,list_id,status,old_expiry,new_expiry,details,created_at) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(id) DO UPDATE SET list_id=EXCLUDED.list_id,status=EXCLUDED.status,old_expiry=EXCLUDED.old_expiry,new_expiry=EXCLUDED.new_expiry,details=EXCLUDED.details,created_at=EXCLUDED.created_at`,[x.id,x.list_id,x.status,x.old_expiry,x.new_expiry,x.details,x.created_at]);
-      for(const x of data.admin_profiles||[])await client.query(`INSERT INTO admin_profiles(id,full_name,role,created_at) VALUES($1,$2,$3,$4) ON CONFLICT(id) DO UPDATE SET full_name=EXCLUDED.full_name,role=EXCLUDED.role`,[x.id,x.full_name,x.role,x.created_at]);
-      await client.query("SELECT setval(pg_get_serial_sequence('sync_logs','id'),COALESCE((SELECT MAX(id) FROM sync_logs),1),true)");
-      await client.query("COMMIT");
-      const q=await client.query("select (select count(*) from provider_lists) lists,(select count(*) from clients) clients,(select count(*) from devices) devices,(select count(*) from activations) activations,(select count(*) from sync_logs) sync_logs,(select count(*) from admin_profiles) admin_profiles");
-      res.json({ok:true,source:"supabase",destination:"render",imported:q.rows[0]});
-    }catch(e){await client.query("ROLLBACK");throw e}finally{client.release()}
-  }catch(e){res.status(500).json({ok:false,error:e.message});}
-});
-
-app.post("/api/migration/import",async(req,res)=>{
-  try{
-    const auth=(req.headers.authorization||"").replace(/^Bearer\s+/i,"");
-    const u=await supabaseUser(auth);
-    if(!u?.id)return res.status(401).json({error:"Sessão Supabase inválida."});
-    const body=req.body||{}; const p=await db(); const client=await p.connect();
-    try{
-      await client.query("BEGIN");
-      const tables=["provider_lists","clients","devices","activations","sync_logs","admin_profiles"];
-      for(const table of tables){
-        const items=Array.isArray(body[table])?body[table]:[];
-        if(!items.length)continue;
-        if(table==="provider_lists"){
-          for(const x of items)await client.query(`INSERT INTO provider_lists(id,name,source_url,server_url,username,provider_password,expires_at,provider_status,status,max_connections,active_connections,last_sync_at,last_error,created_by,provider_secret_id,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) ON CONFLICT(id) DO UPDATE SET name=EXCLUDED.name,source_url=EXCLUDED.source_url,server_url=EXCLUDED.server_url,username=EXCLUDED.username,provider_password=EXCLUDED.provider_password,expires_at=EXCLUDED.expires_at,provider_status=EXCLUDED.provider_status,status=EXCLUDED.status,max_connections=EXCLUDED.max_connections,active_connections=EXCLUDED.active_connections,last_sync_at=EXCLUDED.last_sync_at,last_error=EXCLUDED.last_error,created_by=EXCLUDED.created_by,provider_secret_id=EXCLUDED.provider_secret_id,updated_at=EXCLUDED.updated_at`,[x.id,x.name,x.source_url,x.server_url,x.username,x.provider_password,x.expires_at,x.provider_status,x.status,x.max_connections??1,x.active_connections??0,x.last_sync_at,x.last_error,x.created_by,x.provider_secret_id,x.created_at,x.updated_at]);
-        } else if(table==="clients"){
-          for(const x of items)await client.query(`INSERT INTO clients(id,name,email,phone,plan,list_id,device_limit,status,activation_code,created_at,updated_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) ON CONFLICT(id) DO UPDATE SET name=EXCLUDED.name,email=EXCLUDED.email,phone=EXCLUDED.phone,plan=EXCLUDED.plan,list_id=EXCLUDED.list_id,device_limit=EXCLUDED.device_limit,status=EXCLUDED.status,activation_code=EXCLUDED.activation_code,updated_at=EXCLUDED.updated_at`,[x.id,x.name,x.email,x.phone,x.plan,x.list_id,x.device_limit??1,x.status,x.activation_code,x.created_at,x.updated_at]);
-        } else if(table==="devices"){
-          for(const x of items)await client.query(`INSERT INTO devices(id,client_id,device_uid,device_name,platform,last_seen_at,status,created_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT(id) DO UPDATE SET client_id=EXCLUDED.client_id,device_uid=EXCLUDED.device_uid,device_name=EXCLUDED.device_name,platform=EXCLUDED.platform,last_seen_at=EXCLUDED.last_seen_at,status=EXCLUDED.status`,[x.id,x.client_id,x.device_uid,x.device_name,x.platform,x.last_seen_at,x.status,x.created_at]);
-        } else if(table==="activations"){
-          for(const x of items)await client.query(`INSERT INTO activations(id,client_id,device_id,activation_code,activated_at,revoked_at) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(id) DO UPDATE SET client_id=EXCLUDED.client_id,device_id=EXCLUDED.device_id,activation_code=EXCLUDED.activation_code,activated_at=EXCLUDED.activated_at,revoked_at=EXCLUDED.revoked_at`,[x.id,x.client_id,x.device_id,x.activation_code,x.activated_at,x.revoked_at]);
-        } else if(table==="sync_logs"){
-          for(const x of items)await client.query(`INSERT INTO sync_logs(id,list_id,status,old_expiry,new_expiry,details,created_at) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(id) DO UPDATE SET list_id=EXCLUDED.list_id,status=EXCLUDED.status,old_expiry=EXCLUDED.old_expiry,new_expiry=EXCLUDED.new_expiry,details=EXCLUDED.details,created_at=EXCLUDED.created_at`,[x.id,x.list_id,x.status,x.old_expiry,x.new_expiry,x.details,x.created_at]);
-        } else if(table==="admin_profiles"){
-          for(const x of items)await client.query(`INSERT INTO admin_profiles(id,full_name,role,created_at) VALUES($1,$2,$3,$4) ON CONFLICT(id) DO UPDATE SET full_name=EXCLUDED.full_name,role=EXCLUDED.role`,[x.id,x.full_name,x.role,x.created_at]);
-        }
-      }
-      await client.query("COMMIT");
-      const q=await client.query("select (select count(*) from provider_lists) lists,(select count(*) from clients) clients,(select count(*) from devices) devices,(select count(*) from activations) activations,(select count(*) from sync_logs) sync_logs,(select count(*) from admin_profiles) admin_profiles");
-      res.json({ok:true,imported:q.rows[0]});
-    }catch(e){await client.query("ROLLBACK");throw e}finally{client.release()}
-  }catch(e){res.status(500).json({ok:false,error:e.message});}
-});
-
+let pool;
+function getPool(){if(!DATABASE_URL)throw new Error("DATABASE_URL não configurada.");if(!pool)pool=new Pool({connectionString:DATABASE_URL,ssl:{rejectUnauthorized:false},max:8});return pool}
+async function db(){return getPool()}
+async function init(){const p=getPool();const fs=await import("node:fs/promises");await p.query(await fs.readFile(new URL("./schema.sql",import.meta.url),"utf8"));console.log("GC DB: schema pronto.")}
+const b64=x=>Buffer.from(x).toString("base64url");
+const unb64=x=>Buffer.from(x,"base64url").toString();
+function hashPassword(pass,salt=crypto.randomBytes(16).toString("hex")){return new Promise((resolve,reject)=>crypto.scrypt(pass,salt,64,(e,k)=>e?reject(e):resolve(salt+"$"+k.toString("hex"))))}
+function verifyPassword(pass,stored){return new Promise((resolve,reject)=>{const [salt,hex]=String(stored||"").split("$");if(!salt||!hex)return resolve(false);crypto.scrypt(pass,salt,64,(e,k)=>{if(e)return reject(e);const a=Buffer.from(hex,"hex"),b=k;if(a.length!==b.length)return resolve(false);resolve(crypto.timingSafeEqual(a,b))})})}
+function sign(payload){const raw=b64(JSON.stringify(payload));const sig=crypto.createHmac("sha256",AUTH_SECRET||"gc-play-pro-dev-secret").update(raw).digest("base64url");return raw+"."+sig}
+function verify(token){try{const [raw,sig]=String(token||"").split(".");if(!raw||!sig)return null;const exp=crypto.createHmac("sha256",AUTH_SECRET||"gc-play-pro-dev-secret").update(raw).digest("base64url");if(sig.length!==exp.length||!crypto.timingSafeEqual(Buffer.from(sig),Buffer.from(exp)))return null;const p=JSON.parse(unb64(raw));return p.exp>Date.now()?p:null}catch{return null}}
+async function auth(req,res,next){const p=verify((req.headers.authorization||"").replace(/^Bearer\s+/i,""));if(!p?.id)return res.status(401).json({error:"Sessão inválida."});req.user=p;next()}
+async function adminCount(){const p=await db();return Number((await p.query("select count(*)::int n from admin_auth")).rows[0].n)}
+function safeList(r){const x={...r};delete x.provider_password;delete x.provider_secret_id;return x}
+async function dashboardData(){const p=await db();const [l,c,d,g]=await Promise.all([
+ p.query("select id,name,server_url,username,expires_at,status,provider_status,max_connections,active_connections,last_sync_at,last_error,created_at from provider_lists order by created_at desc"),
+ p.query("select id,name,email,phone,plan,list_id,device_limit,status,activation_code,created_at,updated_at from clients order by created_at desc"),
+ p.query("select id,client_id,device_uid,device_name,platform,last_seen_at,status from devices order by last_seen_at desc"),
+ p.query("select id,list_id,status,old_expiry,new_expiry,details,created_at from sync_logs order by created_at desc limit 12")
+]);return{lists:l.rows.map(safeList),clients:c.rows,devices:d.rows,logs:g.rows}}
+app.get("/health",async(_q,r)=>{try{await (await db()).query("select 1");r.json({ok:true,service:"gc-play-pro-backend",database:"ok",version:"render-native-panel-1"})}catch(e){r.status(503).json({ok:false,error:e.message})}});
+app.get("/api/status",async(_q,r)=>{try{const p=await db();const q=await p.query("select (select count(*) from provider_lists) lists,(select count(*) from clients) clients,(select count(*) from devices) devices,(select count(*) from activations) activations,(select count(*) from sync_logs) sync_logs,(select count(*) from admin_profiles) admin_profiles");r.json({ok:true,...q.rows[0]})}catch(e){r.status(503).json({ok:false,error:e.message})}});
+app.get("/api/auth/status",async(_q,r)=>{try{r.json({ok:true,configured:await adminCount()>0})}catch(e){r.status(503).json({ok:false,error:e.message})}});
+app.post("/api/auth/setup",async(req,res)=>{try{if(await adminCount()>0)return res.status(409).json({error:"O acesso administrativo já foi criado. Use Entrar."});const {email,password,name}=req.body||{};if(!email||!password||String(password).length<6)return res.status(400).json({error:"E-mail e senha são obrigatórios; a senha deve ter pelo menos 6 caracteres."});const p=await db(),h=await hashPassword(password),profile=(await p.query("select id,full_name,role from admin_profiles order by created_at asc limit 1")).rows[0];const id=profile?.id||crypto.randomUUID();await p.query("insert into admin_profiles(id,full_name,role) values($1,$2,'admin') on conflict(id) do update set full_name=coalesce(excluded.full_name,admin_profiles.full_name),role='admin'",[id,name||profile?.full_name||"Administrador"]);await p.query("insert into admin_auth(id,email,password_hash,full_name,created_at,updated_at) values($1,$2,$3,$4,now(),now())",[id,String(email).toLowerCase(),h,name||profile?.full_name||"Administrador"]);const user={id,email:String(email).toLowerCase(),name:name||profile?.full_name||"Administrador"};res.json({ok:true,token:sign({id:user.id,email:user.email,name:user.name,exp:Date.now()+7*86400000}),user})}catch(e){res.status(500).json({error:e.code==="23505"?"E-mail já cadastrado.":e.message})}});
+app.post("/api/auth/login",async(req,res)=>{try{const {email,password}=req.body||{};const p=await db(),q=await p.query("select id,email,password_hash,full_name from admin_auth where lower(email)=lower($1) limit 1",[email||""]);const u=q.rows[0];if(!u||!(await verifyPassword(password||"",u.password_hash)))return res.status(401).json({error:"E-mail ou senha inválidos."});res.json({ok:true,token:sign({id:u.id,email:u.email,name:u.full_name||"Administrador",exp:Date.now()+7*86400000}),user:{id:u.id,email:u.email,name:u.full_name||"Administrador"}})}catch(e){res.status(500).json({error:e.message})}});
+app.get("/api/auth/me",auth,async(req,res)=>res.json({ok:true,user:{id:req.user.id,email:req.user.email,name:req.user.name}}));
+app.get("/api/data",auth,async(_req,res)=>{try{res.json({ok:true,...await dashboardData()})}catch(e){res.status(500).json({error:e.message})}});
+app.post("/api/clients",auth,async(req,res)=>{try{const x=req.body||{},p=await db();const q=await p.query("insert into clients(name,email,phone,plan,list_id,device_limit,status,activation_code) values($1,$2,$3,$4,$5,$6,'active',$7) returning *",[x.name,x.email||null,x.phone||null,x.plan||"Mensal",x.list_id||null,Number(x.device_limit)||1,String(x.activation_code||crypto.randomUUID().replaceAll("-","").slice(0,8).toUpperCase())]);res.json({ok:true,client:q.rows[0]})}catch(e){res.status(500).json({error:e.message})}});
+app.patch("/api/clients/:id",auth,async(req,res)=>{try{const x=req.body||{},p=await db();const q=await p.query("update clients set name=$1,plan=$2,device_limit=$3,list_id=$4,status=coalesce($5,status),updated_at=now() where id=$6 returning *",[x.name,x.plan,Number(x.device_limit)||1,x.list_id||null,x.status||null,req.params.id]);res.json({ok:true,client:q.rows[0]})}catch(e){res.status(500).json({error:e.message})}});
+app.delete("/api/clients/:id",auth,async(req,res)=>{try{await (await db()).query("delete from clients where id=$1",[req.params.id]);res.json({ok:true})}catch(e){res.status(500).json({error:e.message})}});
+function serverOf(v){try{return new URL(v).origin}catch{return v}}
+async function syncList(id){const p=await db(),q=await p.query("select * from provider_lists where id=$1",[id]),l=q.rows[0];if(!l)throw new Error("Lista não encontrada.");const old=l.expires_at;if(!l.server_url||!l.username||!l.provider_password)throw new Error("Credenciais da lista ausentes no Render.");const u=new URL("/player_api.php",serverOf(l.server_url));u.searchParams.set("username",l.username);u.searchParams.set("password",l.provider_password);const r=await fetch(u,{headers:{"User-Agent":"GC-PLAY-PRO-MANAGER/Render","Accept":"application/json"},signal:AbortSignal.timeout(15000)});const raw=await r.text();if(!r.ok)throw new Error("Servidor respondeu HTTP "+r.status);let x;try{x=JSON.parse(raw)}catch{throw new Error("Servidor não retornou JSON Xtream.")}if(!x?.user_info)throw new Error("Resposta sem user_info.");const exp=(()=>{const n=Number(x.user_info.exp_date);if(!Number.isFinite(n))return null;return new Date(n<100000000000?n*1000:n).toISOString()})();const ps=String(x.user_info.status||"unknown"),now=new Date(),expired=exp&&new Date(exp)<=now,soon=exp&&new Date(exp).getTime()<=now.getTime()+604800000,st=expired||/expired|disabled|inactive/i.test(ps)?"expired":soon?"expiring":"active";await p.query("update provider_lists set server_url=$1,expires_at=$2,provider_status=$3,status=$4,last_sync_at=now(),last_error=null,max_connections=$5,active_connections=$6 where id=$7",[serverOf(l.server_url),exp,ps,st,Number(x.user_info.max_connections)||1,Number(x.user_info.active_cons)||0,id]);await p.query("insert into sync_logs(list_id,status,old_expiry,new_expiry,details) values($1,'success',$2,$3,$4)",[id,old,exp,JSON.stringify({provider_status:ps})]);return{ok:true,id,name:l.name,new_expiry:exp,status:st,provider_status:ps}}
+app.post("/api/sync",auth,async(req,res)=>{try{const p=await db(),ids=req.body?.all?(await p.query("select id from provider_lists")).rows.map(x=>x.id):[req.body?.list_id];const results=[];for(const id of ids.filter(Boolean)){try{results.push(await syncList(id))}catch(e){const msg=e.message;await p.query("update provider_lists set status='error',last_sync_at=now(),last_error=$1 where id=$2",[msg,id]);await p.query("insert into sync_logs(list_id,status,details) values($1,'error',$2)",[id,msg]);results.push({id,ok:false,error:msg})}}res.json({ok:results.every(x=>x.ok),count:results.length,results})}catch(e){res.status(500).json({error:e.message})}});
+app.post("/api/lists",auth,async(req,res)=>{try{const x=req.body||{};if(!x.name||!x.server_url||!x.username||!x.provider_password)return res.status(400).json({error:"Nome, servidor, usuário e senha são obrigatórios."});const p=await db(),q=await p.query("insert into provider_lists(name,source_url,server_url,username,provider_password,status,max_connections) values($1,$2,$3,$4,$5,'unknown',1) returning id,name,server_url,username,expires_at,status,provider_status,max_connections,active_connections,last_sync_at,last_error,created_at",[x.name,x.source_url||null,serverOf(x.server_url),x.username,x.provider_password]);const s=await syncList(q.rows[0].id);res.json({ok:true,list:(await p.query("select id,name,server_url,username,expires_at,status,provider_status,max_connections,active_connections,last_sync_at,last_error,created_at from provider_lists where id=$1",[q.rows[0].id])).rows[0],sync:s})}catch(e){res.status(500).json({error:e.message})}});
+app.patch("/api/lists/:id",auth,async(req,res)=>{try{const p=await db(),x=req.body||{};const q=await p.query("update provider_lists set name=$1 where id=$2 returning id,name,server_url,username,expires_at,status,provider_status,max_connections,active_connections,last_sync_at,last_error,created_at",[x.name,req.params.id]);res.json({ok:true,list:q.rows[0]})}catch(e){res.status(500).json({error:e.message})}});
+app.delete("/api/lists/:id",auth,async(req,res)=>{try{await (await db()).query("delete from provider_lists where id=$1",[req.params.id]);res.json({ok:true})}catch(e){res.status(500).json({error:e.message})}});
+app.post("/api/migration/import",async(req,res)=>{try{if(!MIGRATION_TOKEN||req.headers["x-migration-token"]!==MIGRATION_TOKEN)return res.status(401).json({error:"Migration token inválido."});const b=req.body||{},p=await db(),c=await p.connect();try{await c.query("BEGIN");for(const x of b.provider_lists||[])await c.query("insert into provider_lists(id,name,source_url,server_url,username,provider_password,expires_at,provider_status,status,max_connections,active_connections,last_sync_at,last_error,created_by,provider_secret_id,created_at,updated_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) on conflict(id) do update set name=excluded.name,source_url=excluded.source_url,server_url=excluded.server_url,username=excluded.username,provider_password=excluded.provider_password,expires_at=excluded.expires_at,provider_status=excluded.provider_status,status=excluded.status,max_connections=excluded.max_connections,active_connections=excluded.active_connections,last_sync_at=excluded.last_sync_at,last_error=excluded.last_error,created_by=excluded.created_by,provider_secret_id=excluded.provider_secret_id,updated_at=excluded.updated_at",[x.id,x.name,x.source_url,x.server_url,x.username,x.provider_password,x.expires_at,x.provider_status,x.status,x.max_connections??1,x.active_connections??0,x.last_sync_at,x.last_error,x.created_by,x.provider_secret_id,x.created_at,x.updated_at]);for(const x of b.clients||[])await c.query("insert into clients(id,name,email,phone,plan,list_id,device_limit,status,activation_code,created_at,updated_at) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) on conflict(id) do update set name=excluded.name,email=excluded.email,phone=excluded.phone,plan=excluded.plan,list_id=excluded.list_id,device_limit=excluded.device_limit,status=excluded.status,activation_code=excluded.activation_code,updated_at=excluded.updated_at",[x.id,x.name,x.email,x.phone,x.plan,x.list_id,x.device_limit??1,x.status,x.activation_code,x.created_at,x.updated_at]);for(const x of b.devices||[])await c.query("insert into devices(id,client_id,device_uid,device_name,platform,last_seen_at,status,created_at) values($1,$2,$3,$4,$5,$6,$7,$8) on conflict(id) do update set client_id=excluded.client_id,device_uid=excluded.device_uid,device_name=excluded.device_name,platform=excluded.platform,last_seen_at=excluded.last_seen_at,status=excluded.status",[x.id,x.client_id,x.device_uid,x.device_name,x.platform,x.last_seen_at,x.status,x.created_at]);for(const x of b.activations||[])await c.query("insert into activations(id,client_id,device_id,activation_code,activated_at,revoked_at) values($1,$2,$3,$4,$5,$6) on conflict(id) do update set client_id=excluded.client_id,device_id=excluded.device_id,activation_code=excluded.activation_code,activated_at=excluded.activated_at,revoked_at=excluded.revoked_at",[x.id,x.client_id,x.device_id,x.activation_code,x.activated_at,x.revoked_at]);for(const x of b.sync_logs||[])await c.query("insert into sync_logs(id,list_id,status,old_expiry,new_expiry,details,created_at) values($1,$2,$3,$4,$5,$6,$7) on conflict(id) do update set list_id=excluded.list_id,status=excluded.status,old_expiry=excluded.old_expiry,new_expiry=excluded.new_expiry,details=excluded.details,created_at=excluded.created_at",[x.id,x.list_id,x.status,x.old_expiry,x.new_expiry,x.details,x.created_at]);for(const x of b.admin_profiles||[])await c.query("insert into admin_profiles(id,full_name,role,created_at) values($1,$2,$3,$4) on conflict(id) do update set full_name=excluded.full_name,role=excluded.role",[x.id,x.full_name,x.role,x.created_at]);await c.query("select setval(pg_get_serial_sequence('sync_logs','id'),coalesce((select max(id) from sync_logs),1),true)");await c.query("commit")}catch(e){await c.query("rollback");throw e}finally{c.release()}res.json({ok:true,imported:{lists:(b.provider_lists||[]).length,clients:(b.clients||[]).length,devices:(b.devices||[]).length,activations:(b.activations||[]).length,sync_logs:(b.sync_logs||[]).length,admin_profiles:(b.admin_profiles||[]).length}})}catch(e){res.status(500).json({ok:false,error:e.message})}});
 app.use(express.static("."));
-app.listen(PORT,()=>{init().catch(e=>console.error("GC DB init:",e));console.log("GC PLAY PRO backend listening on "+PORT);});
+app.listen(PORT,()=>{init().catch(e=>console.error("GC DB init:",e));console.log("GC PLAY PRO backend listening on "+PORT)});

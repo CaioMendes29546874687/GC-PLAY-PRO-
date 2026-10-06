@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#010503"><meta name="gc-manager-version" content="20261003-SYNC5">
 <title>GC PLAY PRO — Manager</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--g:#39ff88;--gh:#72ffab;--c:#3de9ff;--y:#ffd21f;--r:#ff4968;--bg:#010503;--p:#06110a;--p2:#0a1710;--line:rgba(57,255,136,.18);--text:#effff5;--muted:#72877a;--shadow:0 25px 80px #0008}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 75% 0%,#39ff881a,transparent 28%),radial-gradient(circle at 10% 90%,#3de9ff0d,transparent 30%),var(--bg);color:var(--text);font:14px Inter,system-ui,Arial,sans-serif;min-height:100vh}button,input,select{font:inherit}button{cursor:pointer}.hidden{display:none!important}
@@ -23,7 +22,7 @@
   <div class="authbox">
     <div class="logo">GC PLAY PRO<small>PAINEL DE ATIVAÇÃO • MANAGER • SYNC 5</small></div>
     <h1 id="authTitle">Entrar no painel</h1>
-    <p id="authSub">Área administrativa protegida pelo Supabase Auth.</p>
+    <p id="authSub">Área administrativa protegida pelo Render.</p>
     <div class="field" id="nameField" style="display:none"><label>NOME</label><input id="authName" autocomplete="name" placeholder="Seu nome"></div>
     <div class="field"><label>E-MAIL</label><input id="authEmail" type="email" autocomplete="email" placeholder="admin@exemplo.com"></div>
     <div class="field"><label>SENHA</label><input id="authPass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
@@ -102,80 +101,18 @@
 
 <div class="toast" id="toast"></div>
 <script>
-const SUPABASE_URL="https://kuzgdvpdqmocklsgyzvt.supabase.co";
-const SUPABASE_KEY="sb_publishable_2qV7Uw-99dQlVcXluSuikw_YZGClN13";
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-const $=id=>document.getElementById(id);
-let rows={lists:[],clients:[],devices:[],logs:[]}, editClientId=null, authMode="login", timer=null;
-
-function toast(t){const e=$("toast");e.textContent=t;e.style.display="block";clearTimeout(e._t);e._t=setTimeout(()=>e.style.display="none",3200)}
-function esc(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]))}
-function fmtDate(v){if(!v)return"—";const d=new Date(v);return Number.isNaN(d.getTime())?"—":d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"})}
-function fmtDateTime(v){if(!v)return"—";const d=new Date(v);return Number.isNaN(d.getTime())?"—":d.toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}
-function statusBadge(s){if(s==="active")return'<span class="badge on">ATIVA</span>';if(s==="expiring")return'<span class="badge warn">EXPIRANDO</span>';if(s==="expired")return'<span class="badge off">EXPIRADA</span>';if(s==="error")return'<span class="badge err">ERRO</span>';return'<span class="badge">AGUARDANDO</span>'}
-function code(){return crypto.randomUUID().replaceAll("-","").slice(0,8).toUpperCase()}
-function parseSource(raw){
- try{const u=new URL(raw.trim());const q=u.searchParams;return{server:u.origin,user:q.get("username")||"",pass:q.get("password")||"",url:raw.trim()}}
- catch{return{server:"",user:"",pass:"",url:raw.trim()}}
-}
-function openModal(id){$(id).style.display="grid"}function closeModal(id){$(id).style.display="none"}
-document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
-
 const RENDER_API="https://gc-play-pro-backend.onrender.com";
-async function migrateToRender(silent=false){
- const {data:{session}}=await sb.auth.getSession();
- if(!session?.access_token)return false;
- try{
-  if(!silent)toast("RENDER • migrando dados do Supabase...");
-  const r=await fetch(RENDER_API+"/api/migration/pull",{method:"POST",headers:{Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},body:"{}",cache:"no-store"});
-  const data=await r.json().catch(()=>({}));
-  if(!r.ok||!data.ok)throw new Error(data.error||("HTTP "+r.status));
-  localStorage.setItem("gc_render_migrated","1");
-  if(!silent)toast("✓ RENDER • migração concluída.");
-  return true;
- }catch(e){if(!silent)toast("RENDER • "+(e?.message||String(e)));return false}
-}
-async function showApp(session){
- $("authScreen").classList.add("hidden");$("app").style.display="flex";
- await migrateToRender(true);
- const {data:userData}=await sb.auth.getUser();const u=userData.user;
- $("adminEmail").textContent=u?.email||"";$("adminName").textContent=u?.user_metadata?.full_name||"Administrador";
- $("avatar").textContent=($("adminName").textContent||"CM").slice(0,2).toUpperCase();
- await load();
- await syncAll(true);
- clearInterval(timer);timer=setInterval(()=>syncAll(true),30*60*1000);
-}
-async function boot(){
- const {data:{session}}=await sb.auth.getSession();
- if(session) await showApp(session);
- else $("authScreen").classList.remove("hidden");
-}
+let authToken=localStorage.getItem("gc_render_token")||"", currentUser=null;
+async function api(path,options={}){const headers={"Content-Type":"application/json",...(options.headers||{})};if(authToken)headers.Authorization="Bearer "+authToken;const r=await fetch(RENDER_API+path,{...options,headers,cache:"no-store"});const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||("HTTP "+r.status));return data}
+function setSession(data){authToken=data?.token||"";currentUser=data?.user||null;if(authToken)localStorage.setItem("gc_render_token",authToken);else localStorage.removeItem("gc_render_token")}
+async function showApp(user){currentUser=user;$("authScreen").classList.add("hidden");$("app").style.display="flex";$("adminEmail").textContent=user?.email||"";$("adminName").textContent=user?.name||"Administrador";$("avatar").textContent=($("adminName").textContent||"CM").slice(0,2).toUpperCase();await load();await syncAll(true);clearInterval(timer);timer=setInterval(()=>syncAll(true),30*60*1000)}
+async function boot(){try{const s=await api("/api/auth/me");await showApp(s.user)}catch{setSession(null);$("authScreen").classList.remove("hidden")}}
 boot();
 
 $("authToggle").onclick=()=>{authMode=authMode==="login"?"signup":"login";$("nameField").style.display=authMode==="signup"?"block":"none";$("authTitle").textContent=authMode==="signup"?"Criar acesso administrativo":"Entrar no painel";$("authSubmit").textContent=authMode==="signup"?"CRIAR ACESSO":"ENTRAR";$("authToggle").textContent=authMode==="signup"?"Voltar para login":"Criar acesso";$("authMsg").textContent=""};
-$("authSubmit").onclick=async()=>{
- const email=$("authEmail").value.trim(),pass=$("authPass").value,name=$("authName").value.trim();
- $("authMsg").textContent="";
- if(!email||pass.length<6)return $("authMsg").textContent="Informe e-mail e senha com pelo menos 6 caracteres.";
- let res;
- if(authMode==="signup")res=await sb.auth.signUp({email,password:pass,options:{data:{full_name:name}}});
- else res=await sb.auth.signInWithPassword({email,password:pass});
- if(res.error)return $("authMsg").textContent=res.error.message;
- if(authMode==="signup"&&!res.data.session){$("authMsg").style.color="#ffd21f";$("authMsg").textContent="Conta criada. Confirme o e-mail se o projeto exigir confirmação e depois entre.";return}
- await showApp(res.data.session);
-};
+$("authSubmit").onclick=async()=>{const email=$("authEmail").value.trim(),pass=$("authPass").value,name=$("authName").value.trim();$("authMsg").textContent="";$("authMsg").style.color="#ff9aab";if(!email||pass.length<6)return $("authMsg").textContent="Informe e-mail e senha com pelo menos 6 caracteres.";try{const data=await api(authMode==="signup"?"/api/auth/setup":"/api/auth/login",{method:"POST",body:JSON.stringify({email,password:pass,name})});setSession(data);await showApp(data.user)}catch(e){$("authMsg").textContent=e.message}};
 
-async function load(){
- const [l,c,d,g]=await Promise.all([
-  sb.from("provider_lists").select("id,name,server_url,username,expires_at,status,provider_status,max_connections,active_connections,last_sync_at,last_error,created_at").order("created_at",{ascending:false}),
-  sb.from("clients").select("id,name,email,phone,plan,list_id,device_limit,status,activation_code,created_at").order("created_at",{ascending:false}),
-  sb.from("devices").select("id,client_id,device_uid,device_name,platform,last_seen_at,status").order("last_seen_at",{ascending:false}),
-  sb.from("sync_logs").select("id,list_id,status,old_expiry,new_expiry,details,created_at").order("created_at",{ascending:false}).limit(12)
- ]);
- if(l.error||c.error||d.error||g.error){toast("Erro ao carregar dados. Verifique a sessão.");return}
- rows={lists:l.data||[],clients:c.data||[],devices:d.data||[],logs:g.data||[]};
- render();
-}
+async function load(){try{const data=await api("/api/data");rows={lists:data.lists||[],clients:data.clients||[],devices:data.devices||[],logs:data.logs||[]};render()}catch(e){toast("Erro ao carregar dados: "+e.message)}}
 function render(){
  const lists=rows.lists,clients=rows.clients,devices=rows.devices;
  $("sClients").textContent=clients.length;$("sActive").textContent=clients.filter(x=>x.status==="active").length;
@@ -201,60 +138,20 @@ $("clientSearch").oninput=render;
 $("newClient").onclick=()=>{ $("clientModalTitle").textContent="Novo cliente";$("cName").value="";$("cEmail").value="";$("cPhone").value="";$("cLimit").value=1;$("cList").value="";openModal("clientModal")};
 $("newList").onclick=()=>{["lName","lUrl","lUser","lPass","lNote"].forEach(id=>$(id).value="");openModal("listModal")};
 $("lUrl").oninput=()=>{const p=parseSource($("lUrl").value);if(p.server&&!$("lUser").value)$("lUser").value=p.user;if(p.pass&&!$("lPass").value)$("lPass").value=p.pass};
-$("saveClient").onclick=async()=>{
- const name=$("cName").value.trim();if(!name)return toast("Informe o nome do cliente.");
- const {error}=await sb.from("clients").insert({name,email:$("cEmail").value.trim()||null,phone:$("cPhone").value.trim()||null,plan:$("cPlan").value,device_limit:Number($("cLimit").value)||1,list_id:$("cList").value||null,activation_code:code()});
- if(error)return toast("Erro: "+error.message);closeModal("clientModal");toast("✓ Cliente cadastrado.");await load();
-};
-$("saveList").onclick=async()=>{
- const name=$("lName").value.trim(),raw=$("lUrl").value.trim(),parsed=parseSource(raw),user=$("lUser").value.trim()||parsed.user,pass=$("lPass").value||parsed.pass;
- if(!name||!raw||!user||!pass)return toast("Nome, URL, usuário e senha são obrigatórios.");
- const secret=await sb.rpc("gc_create_provider_secret",{p_secret:pass});if(secret.error)return toast("Erro ao guardar credencial: "+secret.error.message);
- let safeUrl=raw; try{const u=new URL(raw); if(u.searchParams.has("password"))u.searchParams.set("password","***"); safeUrl=u.toString()}catch{} const {error}=await sb.from("provider_lists").insert({name,source_url:safeUrl,server_url:parsed.server,username:user,provider_secret_id:secret.data});
- if(error)return toast("Erro: "+error.message);
- closeModal("listModal");toast("✓ Lista cadastrada. Sincronizando validade...");await load();
- const list=rows.lists.find(x=>x.name===name);if(list)await syncOne(list.id);else await syncAll(true);
-};
-const GC_MANAGER_SYNC_VERSION="20261003-SYNC5";
-async function callSync(body){
- const url=SUPABASE_URL+"/functions/v1/gc-sync";
- toast("GC SYNC 5 • conectando...");
- try{
-  const r=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(body),cache:"no-store"});
-  const raw=await r.text();let data=null;try{data=raw?JSON.parse(raw):null}catch{}
-  if(!r.ok)throw new Error(data?.error||data?.message||raw||("HTTP "+r.status));
-  if(!data)throw new Error("Resposta vazia do gc-sync.");
-  return {data,error:null};
- }catch(e){return {data:null,error:e instanceof Error?e:new Error(String(e))}}
-}
-async function syncOne(id){
- toast("GC SYNC 5 • consultando validade...");
- const {data,error}=await callSync({list_id:id});
- if(error){toast("SYNC 5 ERRO: "+error.message);return}
- const r=data?.results?.[0];
- toast(r?.ok?"✓ SYNC 5 • validade: "+fmtDate(r.new_expiry):"⚠ SYNC 5 • "+(r?.error||"Falha"));
- await load();
-}
-async function syncAll(silent=false){
- if(!silent)toast("GC SYNC 5 • sincronizando...");
- if(!rows.lists.length){if(!silent)toast("Nenhuma lista cadastrada.");return}
- const {data,error}=await callSync({all:true});
- if(error){if(!silent)toast("SYNC 5 ERRO: "+error.message);return}
- await load();
- if(!silent)toast(data?.ok?"✓ SYNC 5 • "+(data?.count||0)+" lista(s) verificadas.":"⚠ SYNC 5 • "+(data?.results?.find(x=>!x.ok)?.error||"verifique os logs."));
-}
-$("sync").onclick=()=>syncAll(false);$("syncSide").onclick=()=>syncAll(false);$("migrateRender").onclick=()=>migrateToRender(false);
-$("askExpiring").onclick=()=>{$("clientSearch").value="";render();document.getElementById("listsCard").scrollIntoView({behavior:"smooth"});toast("Mostrando o painel de validade.")};
-async function editClient(id){
- const c=rows.clients.find(x=>x.id===id);if(!c)return;editClientId=id;$("eName").value=c.name;$("ePlan").value=c.plan;$("eLimit").value=c.device_limit;$("eList").value=c.list_id||"";openModal("editModal");
-}
-$("updateClient").onclick=async()=>{const {error}=await sb.from("clients").update({name:$("eName").value.trim(),plan:$("ePlan").value,device_limit:Number($("eLimit").value)||1,list_id:$("eList").value||null}).eq("id",editClientId);if(error)return toast(error.message);closeModal("editModal");toast("✓ Cliente atualizado.");await load()};
-async function toggleClient(id){const c=rows.clients.find(x=>x.id===id);if(!c)return;const {error}=await sb.from("clients").update({status:c.status==="blocked"?"active":"blocked"}).eq("id",id);if(error)return toast(error.message);await load();toast("Status do cliente atualizado.")};
-async function deleteClient(id){if(!confirm("Excluir este cliente e seus dispositivos?"))return;const {error}=await sb.from("clients").delete().eq("id",id);if(error)return toast(error.message);await load();toast("Cliente excluído.")};
-async function editList(id){const l=rows.lists.find(x=>x.id===id);if(!l)return;const p=prompt("Novo nome da lista:",l.name);if(p&&p.trim()){const {error}=await sb.from("provider_lists").update({name:p.trim()}).eq("id",id);if(error)return toast(error.message);await load()}};
-async function deleteList(id){if(!confirm("Excluir esta lista? Os clientes permanecerão sem lista."))return;const {error}=await sb.from("provider_lists").delete().eq("id",id);if(error)return toast(error.message);await load();toast("Lista excluída.")};
+$("saveClient").onclick=async()=>{const name=$("cName").value.trim();if(!name)return toast("Informe o nome do cliente.");try{await api("/api/clients",{method:"POST",body:JSON.stringify({name,email:$("cEmail").value.trim()||null,phone:$("cPhone").value.trim()||null,plan:$("cPlan").value,device_limit:Number($("cLimit").value)||1,list_id:$("cList").value||null})});closeModal("clientModal");toast("✓ Cliente cadastrado.");await load()}catch(e){toast("Erro: "+e.message)}};
+$("saveList").onclick=async()=>{const name=$("lName").value.trim(),raw=$("lUrl").value.trim(),parsed=parseSource(raw),user=$("lUser").value.trim()||parsed.user,pass=$("lPass").value||parsed.pass;if(!name||!raw||!user||!pass)return toast("Nome, URL, usuário e senha são obrigatórios.");try{const data=await api("/api/lists",{method:"POST",body:JSON.stringify({name,source_url:raw,server_url:parsed.server,username:user,provider_password:pass})});closeModal("listModal");toast(data.sync?.ok?"✓ Lista cadastrada e validade sincronizada.":"⚠ Lista cadastrada; sincronização falhou.");await load()}catch(e){toast("Erro: "+e.message)}};
+async function syncOne(id){try{const data=await api("/api/sync",{method:"POST",body:JSON.stringify({list_id:id})});const r=data.results?.[0];toast(r?.ok?"✓ Validade: "+fmtDate(r.new_expiry):"⚠ "+(r?.error||"Falha"));await load()}catch(e){toast("SYNC ERRO: "+e.message)}}
+async function syncAll(silent=false){try{if(!rows.lists.length){if(!silent)toast("Nenhuma lista cadastrada.");return}const data=await api("/api/sync",{method:"POST",body:JSON.stringify({all:true})});await load();if(!silent)toast(data.ok?"✓ "+(data.count||0)+" lista(s) verificadas.":"⚠ Verifique os logs.")}catch(e){if(!silent)toast("SYNC ERRO: "+e.message)}}
+$("sync").onclick=()=>syncAll(false);$("syncSide").onclick=()=>syncAll(false);
+$("askExpiring").onclick=()=>{$("clientSearch").value="";render();$("listsCard").scrollIntoView({behavior:"smooth"});toast("Mostrando o painel de validade.")};
+async function editClient(id){const x=rows.clients.find(x=>x.id===id);if(!x)return;editClientId=id;$("eName").value=x.name;$("ePlan").value=x.plan;$("eLimit").value=x.device_limit;$("eList").value=x.list_id||"";openModal("editModal")}
+$("updateClient").onclick=async()=>{try{await api("/api/clients/"+editClientId,{method:"PATCH",body:JSON.stringify({name:$("eName").value.trim(),plan:$("ePlan").value,device_limit:Number($("eLimit").value)||1,list_id:$("eList").value||null})});closeModal("editModal");toast("✓ Cliente atualizado.");await load()}catch(e){toast(e.message)}};
+async function toggleClient(id){const x=rows.clients.find(x=>x.id===id);if(!x)return;try{await api("/api/clients/"+id,{method:"PATCH",body:JSON.stringify({name:x.name,plan:x.plan,device_limit:x.device_limit,list_id:x.list_id,status:x.status==="blocked"?"active":"blocked"})});await load();toast("Status do cliente atualizado.")}catch(e){toast(e.message)}}
+async function deleteClient(id){if(!confirm("Excluir este cliente e seus dispositivos?"))return;try{await api("/api/clients/"+id,{method:"DELETE"});await load();toast("Cliente excluído.")}catch(e){toast(e.message)}}
+async function editList(id){const l=rows.lists.find(x=>x.id===id);if(!l)return;const p=prompt("Novo nome da lista:",l.name);if(p&&p.trim()){try{await api("/api/lists/"+id,{method:"PATCH",body:JSON.stringify({name:p.trim()})});await load()}catch(e){toast(e.message)}}}
+async function deleteList(id){if(!confirm("Excluir esta lista? Os clientes permanecerão sem lista."))return;try{await api("/api/lists/"+id,{method:"DELETE"});await load();toast("Lista excluída.")}catch(e){toast(e.message)}}
 document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");const map={dashboard:"clientsCard",clients:"clientsCard",lists:"listsCard",devices:"devicesCard",logs:"logsCard",activations:"clientsCard",plans:"clientsCard",settings:"clientsCard"};$(map[b.dataset.view]||"clientsCard").scrollIntoView({behavior:"smooth"});toast(b.innerText.trim()+" selecionado")});
-$("logout").onclick=async()=>{clearInterval(timer);await sb.auth.signOut();location.reload()};
+$("logout").onclick=()=>{clearInterval(timer);setSession(null);location.reload()};
 window.syncOne=syncOne;window.editClient=editClient;window.toggleClient=toggleClient;window.deleteClient=deleteClient;window.editList=editList;window.deleteList=deleteList;
 </script>
 </body>
