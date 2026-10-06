@@ -4814,6 +4814,34 @@ async function playItem(item) {
   const message =
     $("#playerMessage");
 
+  /*
+     Eventos globais de diagnóstico: o usuário nunca fica com um
+     player visualmente parado sem saber se está conectando, bufferizando
+     ou se o navegador recusou o formato.
+  */
+  const setPlayerMessage = text => {
+    if (message) message.textContent = text || "";
+  };
+  const onWaiting = () => setPlayerMessage("CARREGANDO / BUFFERIZANDO...");
+  const onPlaying = () => setPlayerMessage("");
+  const onStalled = () => setPlayerMessage("CONEXÃO LENTA — TENTANDO RECUPERAR...");
+  const onVideoError = () => {
+    const code = video.error?.code;
+    setPlayerMessage(code ? `ERRO DE REPRODUÇÃO (CÓDIGO ${code})` : "NÃO FOI POSSÍVEL REPRODUZIR ESTE CONTEÚDO.");
+  };
+  video.removeEventListener("waiting", video.__gcWaitingHandler);
+  video.removeEventListener("playing", video.__gcPlayingHandler);
+  video.removeEventListener("stalled", video.__gcStalledHandler);
+  video.removeEventListener("error", video.__gcErrorHandler);
+  video.__gcWaitingHandler = onWaiting;
+  video.__gcPlayingHandler = onPlaying;
+  video.__gcStalledHandler = onStalled;
+  video.__gcErrorHandler = onVideoError;
+  video.addEventListener("waiting", onWaiting);
+  video.addEventListener("playing", onPlaying);
+  video.addEventListener("stalled", onStalled);
+  video.addEventListener("error", onVideoError);
+
   if (!video) {
     toast(
       "Elemento de vídeo não encontrado."
@@ -4998,10 +5026,28 @@ async function playItem(item) {
       ? liveHlsUrl
       : originalUrl;
 
-  /* HLS/live media uses the streaming gateway so manifests, segments,
-     keys and Range requests share the same CORS-safe path. */
+  /*
+     Determine o tipo de transporte ANTES de montar playbackUrl.
+     Esta ordem é crítica: a versão anterior referenciava
+     looksLikeLiveStream antes da declaração const e abortava
+     playItem() com ReferenceError, deixando o player sem qualquer
+     mensagem de conexão.
+  */
+  const looksLikeLiveStream =
+    item.type === "live" ||
+    /\/live\//i.test(originalUrl) ||
+    /\/stream\//i.test(originalUrl) ||
+    /\/channel\//i.test(originalUrl) ||
+    /\/play\//i.test(originalUrl) ||
+    /\/tv\//i.test(sourceUrl);
+
+  /*
+     HLS/DASH/live passam pelo gateway de mídia desde o primeiro
+     pedido. Filmes/episódios normais continuam podendo usar a
+     origem direta quando o navegador suporta o formato.
+  */
   const playbackUrl =
-    isHLS(sourceUrl) || isDASH(sourceUrl) || (looksLikeLiveStream && item.type === "live")
+    isHLS(sourceUrl) || isDASH(sourceUrl) || looksLikeLiveStream
       ? buildMediaProxyUrl(sourceUrl)
       : sourceUrl;
 
@@ -5011,20 +5057,6 @@ async function playItem(item) {
       : 1;
 
   const resumePosition = getResumePosition(item);
-
-  /*
-     Para arquivos de vídeo normais, tentamos primeiro a origem
-     direta. Isso evita jogar todo o tráfego de vídeo pelo proxy
-     quando o servidor já permite reprodução no navegador.
-     HLS.js e MPEG-TS continuam usando o proxy quando necessário.
-  */
-  const looksLikeLiveStream =
-    item.type === "live" ||
-    /\/live\//i.test(originalUrl) ||
-    /\/stream\//i.test(originalUrl) ||
-    /\/channel\//i.test(originalUrl) ||
-    /\/play\//i.test(originalUrl) ||
-    /\/tv\//i.test(sourceUrl);
 
   /*
      Conteúdo Xtream também passa pelo proxy desde o primeiro pedido.
@@ -5467,10 +5499,10 @@ async function playHLS(
           if (
             context &&
             context.url &&
-            shouldUseProxy(context.url)
+            isHttpUrl(context.url)
           ) {
             context.url =
-              buildProxyUrl(context.url);
+              buildMediaProxyUrl(context.url);
           }
         } catch (error) {
           console.warn(
