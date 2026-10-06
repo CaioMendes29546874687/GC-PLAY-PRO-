@@ -66,7 +66,12 @@ async function loadClientForActivation(code){
 async function resolveDeviceActivation(code,deviceUid,deviceName,platform){
   const client=await loadClientForActivation(code);
   if(!client) return {ok:false,status:404,error:"Código de ativação inválido."};
-  if(client.status!=="active") return {ok:false,status:403,error:"Cliente bloqueado ou inativo."};
+  const clientStatus=String(client.status||"").trim().toLowerCase();
+  if(["blocked","inactive","expired","disabled"].includes(clientStatus)) return {ok:false,status:403,error:"Cliente bloqueado ou inativo."};
+  if(clientStatus!=="active"){
+    await (await db()).query("update clients set status='active',updated_at=now() where id=$1",[client.id]);
+    client.status="active";
+  }
   if(!client.list_id) return {ok:false,status:409,error:"Cliente sem lista vinculada."};
   if(client.list_status==="expired" || (client.expires_at && new Date(client.expires_at)<=new Date())){
     return {ok:false,status:403,error:"A lista deste cliente está expirada."};
@@ -106,7 +111,12 @@ app.post("/api/device/check",async(req,res)=>{
     if(code.length<6||!uid)return res.status(400).json({ok:false,active:false,reason:"missing_credentials"});
     const client=await loadClientForActivation(code);
     if(!client)return res.status(404).json({ok:false,active:false,reason:"invalid_code"});
-    if(client.status!=="active")return res.status(403).json({ok:false,active:false,reason:"client_blocked"});
+    const clientStatus=String(client.status||"").trim().toLowerCase();
+    if(["blocked","inactive","expired","disabled"].includes(clientStatus))return res.status(403).json({ok:false,active:false,reason:"client_blocked"});
+    if(clientStatus!=="active"){
+      await (await db()).query("update clients set status='active',updated_at=now() where id=$1",[client.id]);
+      client.status="active";
+    }
     if(!client.list_id||!client.expires_at||new Date(client.expires_at)<=new Date()||client.list_status==="expired"){
       return res.status(403).json({ok:false,active:false,reason:"expired",expires_at:client.expires_at||null});
     }
