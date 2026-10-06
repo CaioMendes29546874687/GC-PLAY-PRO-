@@ -40,7 +40,7 @@ const WRITE_BATCH = 20000;
 /* Primeira pintura agressiva: não espere 1000 itens para mostrar a biblioteca. */
 const FIRST_PAINT_BATCH = 150;
 const UI_RENDER_INTERVAL = 1500;
-const CACHE_META_KEY = "GC_PLAY_PRO_CATALOG_META_V6";
+const CACHE_META_KEY = "GC_PLAY_PRO_CATALOG_META_V7";
 const CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 const WRITE_QUEUE_LIMIT = 3;
 const RESUME_KEY = "GC_PLAY_PRO_RESUME_V1";
@@ -1513,7 +1513,7 @@ async function migrateCatalogTypes() {
      (seriesKey/season/episode). A migração anterior só alterava
      o tipo e deixava episódios antigos com seriesKey vazio.
   */
-  const migrationKey = "GC_PLAY_PRO_CATEGORY_TYPES_V8";
+  const migrationKey = "GC_PLAY_PRO_CATEGORY_TYPES_V9";
 
   try {
     if (localStorage.getItem(migrationKey) === "1") {
