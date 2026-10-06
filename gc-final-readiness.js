@@ -74,8 +74,13 @@
       const raw=localStorage.getItem("GC_PLAY_PRO_ACTIVATION_V1");
       if(!raw) return {valid:false,reason:"missing"};
       const x=JSON.parse(raw);
+      if(x?.active===false) return {valid:false,reason:"inactive",deviceId:x?.deviceId||null};
       const expires=Date.parse(x?.expiresAt||"");
-      if(!expires) return {valid:false,reason:"invalid_expiry"};
+      if(!expires) return {valid:false,reason:"invalid_expiry",deviceId:x?.deviceId||null};
+      const currentDevice=localStorage.getItem("GC_PLAY_PRO_DEVICE_ID")||null;
+      const deviceBound=!!x?.deviceId;
+      const deviceMatches=!deviceBound || !currentDevice || String(x.deviceId)===String(currentDevice);
+      if(!deviceMatches) return {valid:false,reason:"device_mismatch",expiresAt:new Date(expires).toISOString(),deviceId:x.deviceId};
       return {valid:expires>Date.now(),expiresAt:new Date(expires).toISOString(),deviceId:x?.deviceId||null};
     }catch{return {valid:false,reason:"invalid_storage"}}
   }
