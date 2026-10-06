@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-06-PLAYFIX6 */
+/* GC BUILD 2026-10-06-PLAYFIX7 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -41,7 +41,7 @@ const WRITE_BATCH = 20000;
 const FIRST_PAINT_BATCH = 150;
 const UI_RENDER_INTERVAL = 1500;
 const CACHE_META_KEY = "GC_PLAY_PRO_CATALOG_META_V7";
-const CACHE_MAX_AGE_MS = 30 * 60 * 1000;
+const CACHE_MAX_AGE_MS = 2 * 60 * 60 * 1000;
 const WRITE_QUEUE_LIMIT = 3;
 const RESUME_KEY = "GC_PLAY_PRO_RESUME_V1";
 
@@ -5072,7 +5072,7 @@ async function playMpegTS(
       if (!tryDirectFallback() && message) {
         message.textContent = "O canal está demorando para responder.";
       }
-    }, 6000);
+    }, 5000);
 
     player.on(
       mpegts.Events.ERROR,
@@ -5799,6 +5799,24 @@ async function playItem(item) {
         : (item.xtreamKind === "live" && isHLS(originalUrl) && originalUrl !== playbackUrl
             ? originalUrl
             : "");
+
+    /*
+       HLS.js é o primeiro motor no navegador. Ele foi desenhado para
+       carregar o manifesto, níveis e segmentos diretamente no <video>
+       e expõe recuperação específica para erros de rede/mídia.
+       Shaka fica como segunda linha para HLS/DASH quando o caminho
+       HLS.js não consegue iniciar.
+    */
+    const hlsStarted = await playHLS(
+      video,
+      playbackUrl,
+      message,
+      liveTsProxyFallback,
+      liveTsDirectFallback,
+      liveDirectHlsFallback
+    );
+
+    if (hlsStarted !== false) return;
 
     const shakaStarted = await playShaka(
       video,
@@ -7635,11 +7653,11 @@ function processParsedItem(
   } else if (item.type === "movie") {
     state.counts.movie++;
   } else if (item.type === "series") {
-    /* Uma série pode aparecer centenas de vezes (um registro por episódio).
-       O contador precisa representar séries únicas, não episódios. */
-    const info = getDerivedSeriesInfo(item);
+    /* IMPORTAÇÃO RÁPIDA: normalizeItem() já calculou seriesKey.
+       Reextrair SxxExx aqui para cada episódio duplicava regex, normalizeText
+       e canonicalização centenas de milhares de vezes. */
     const key = normalizeText(
-      info.seriesKey || info.seriesName || item.seriesName || item.name || item.url
+      item.seriesKey || item.seriesName || item.name || item.url
     );
     if (key) state.importSeriesKeys.add(key);
     state.counts.series = state.importSeriesKeys.size;
