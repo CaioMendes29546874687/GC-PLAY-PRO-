@@ -3170,11 +3170,14 @@ async function render() {
     if (requestId !== renderRequestId) return;
   }
 
+  state.catalogOffset = 0;
+
   let items = await queryCatalogItems({
     type,
     genre: state.currentGenre,
     term: state.searchTerm,
-    limit: 120
+    limit: 121,
+    offset: 0
   });
 
   /* TV ao vivo precisa continuar visível mesmo se o índice IndexedDB
@@ -3194,7 +3197,12 @@ async function render() {
   }
 
   if (empty) empty.style.display = "none";
-  grid.innerHTML = items.map(renderCard).join("");
+  const hasMore = items.length > 120;
+  grid.innerHTML =
+    items.slice(0,120).map(renderCard).join("") +
+    (hasMore
+      ? '<div class="gc-load-more-wrap"><button type="button" class="secondary-button gc-load-more" data-load-more-catalog>CARREGAR MAIS</button></div>'
+      : "");
 }
 
 /* =========================================================
