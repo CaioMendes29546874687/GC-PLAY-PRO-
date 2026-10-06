@@ -10105,6 +10105,45 @@ async function initApp() {
     "Inicializando sistema..."
   );
 
+  /*
+     BUILD GUARD — 2026-10-06 PLAYFIX2
+     O catálogo anterior ficou persistido no IndexedDB mesmo depois das
+     correções de parser/classificação. Isso fazia a interface continuar
+     mostrando números antigos e categorias incorretas.
+     Em uma mudança estrutural de catálogo, fazemos uma única limpeza e
+     deixamos a rotina de ativação/importação reconstruir a biblioteca.
+  */
+  const GC_CATALOG_BUILD = "20261006-PLAYFIX2";
+  try {
+    const previousBuild = localStorage.getItem("GC_PLAY_PRO_CATALOG_BUILD_V1");
+    if (previousBuild !== GC_CATALOG_BUILD) {
+      console.warn("[GC PLAY PRO] Atualização estrutural: reconstruindo catálogo local.");
+
+      localStorage.removeItem("GC_PLAY_PRO_CATALOG_META_V6");
+      localStorage.removeItem("GC_PLAY_PRO_CATALOG_META_V7");
+      localStorage.removeItem("GC_PLAY_PRO_CATEGORY_TYPES_V8");
+      localStorage.removeItem("GC_PLAY_PRO_CATEGORY_TYPES_V9");
+      localStorage.removeItem("GC_PLAY_PRO_GROUPS_V1");
+
+      /* Se existe lista ativada pelo Manager, o boot automático abaixo
+         precisa enxergar a URL como nova para reimportá-la. */
+      if (localStorage.getItem("GC_PLAY_PRO_ACTIVATED_PLAYLIST_V1")) {
+        localStorage.setItem("GC_PLAY_PRO_PLAYLIST_URL", "");
+      }
+
+      localStorage.setItem("GC_PLAY_PRO_CATALOG_BUILD_V1", GC_CATALOG_BUILD);
+      state.items = [];
+      state.groups = [];
+      state.counts = { live: 0, movie: 0, series: 0 };
+      state.total = 0;
+      state.seriesCatalog = [];
+      state.seriesCatalogMap = new Map();
+      state.seriesCatalogReady = false;
+    }
+  } catch (buildError) {
+    console.warn("[GC PLAY PRO] build guard:", buildError);
+  }
+
   ensureCSS();
 
   setupPlaylistButtonFallback();
