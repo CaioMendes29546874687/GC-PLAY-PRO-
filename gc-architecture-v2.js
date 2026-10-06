@@ -163,6 +163,7 @@
     valid(){
       const x=this.read(); if(!x)return false;
       if(x.expiresAt&&!Number.isNaN(Date.parse(x.expiresAt)))return Date.parse(x.expiresAt)>Date.now();
+      if(x.active===false)return false;
       return !!x.active;
     }
   };
@@ -188,7 +189,14 @@
   const SecurityEngine={
     isHttp(url){try{return /^https?:$/.test(new URL(url).protocol)}catch{return false}},
     catalog(url){if(!this.isHttp(url))return false;try{const u=new URL(url);return !u.username&&!u.password}catch{return false}},
-    playback(url){return this.isHttp(url)}
+    playback(url){
+      if(!this.isHttp(url)) return false;
+      try{
+        const u=new URL(url);
+        if(u.username||u.password) return false;
+        return true;
+      }catch{return false}
+    }
   };
 
   /* 14 — GC IA */
