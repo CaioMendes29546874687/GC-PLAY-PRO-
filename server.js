@@ -9,6 +9,7 @@ const MIGRATION_TOKEN=process.env.MIGRATION_TOKEN||"";
 const AUTH_SECRET=process.env.AUTH_SECRET||"";
 const ORIGIN="https://caiomendes29546874687.github.io";
 app.use(express.json({limit:"25mb"}));
+app.use(express.urlencoded({extended:false,limit:"1mb"}));
 app.use((req,res,next)=>{
   const o=req.headers.origin;
   if(!o||o===ORIGIN){res.setHeader("Access-Control-Allow-Origin",o||ORIGIN);res.setHeader("Vary","Origin");res.setHeader("Access-Control-Allow-Headers","Content-Type, Authorization");res.setHeader("Access-Control-Allow-Methods","GET,POST,PATCH,DELETE,OPTIONS");}

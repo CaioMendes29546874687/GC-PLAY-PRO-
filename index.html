@@ -476,6 +476,14 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
   function read(){
     try{return JSON.parse(localStorage.getItem(K)||"null")}catch{return null}
   }
+  async function gcDevicePost(path,payload){
+    const body=new URLSearchParams();
+    Object.entries(payload||{}).forEach(([k,v])=>body.set(k,String(v??"")));
+    const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),12000);
+    try{
+      return await fetch(API+path,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body,cache:"no-store",credentials:"omit",signal:ctrl.signal});
+    }finally{clearTimeout(timer)}
+  }
   function clearActivation(){
     localStorage.removeItem(K);
     localStorage.removeItem("GC_PLAY_PRO_ACTIVATED_PLAYLIST_V1");
@@ -498,14 +506,14 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
       if(code.length<6)return msg("Digite o código de ativação.");
       msg("Verificando...");
       try{
-        const r=await fetch(API+"/activate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({activation_code:code,device_uid:id(),device_name:"GC PLAY PRO",platform:navigator.userAgent.slice(0,120)})});
+        const r=await gcDevicePost("/activate",{activation_code:code,device_uid:id(),device_name:"GC PLAY PRO",platform:navigator.userAgent.slice(0,120)});
         const d=await r.json().catch(()=>({}));
         if(!r.ok||!d.ok)throw new Error(d.error||"Ativação não autorizada.");
         localStorage.setItem(K,JSON.stringify({activationCode:code,deviceId:d.device_id,deviceUid:id(),clientId:d.client_id||"",listId:d.list_id||"",expiresAt:d.expires_at,listName:d.list_name,playlistUrl:d.playlist_url,updatedAt:Date.now()}));
         localStorage.setItem("GC_PLAY_PRO_ACTIVATED_PLAYLIST_V1",d.playlist_url);
         msg("✓ Ativado até "+new Date(d.expires_at).toLocaleDateString("pt-BR"));
         setTimeout(()=>location.reload(),700);
-      }catch(e){msg(e.message||"Falha na ativação.")}
+      }catch(e){msg(e.name==="AbortError"?"Servidor demorou mais de 12 segundos para responder. Tente novamente.":"Não foi possível comunicar com o servidor de ativação. Tente novamente.")}
     };
     return {show,hide};
   }
@@ -513,7 +521,7 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     if(!s?.activationCode||!s?.expiresAt)return {active:false,reason:"missing"};
     if(new Date(s.expiresAt).getTime()<=Date.now())return {active:false,reason:"expired"};
     try{
-      const r=await fetch(API+"/check",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({activation_code:s.activationCode,device_uid:id()})});
+      const r=await gcDevicePost("/check",{activation_code:s.activationCode,device_uid:id()});
       const d=await r.json().catch(()=>({}));
       if(r.ok&&d.ok&&d.active){
         const next={...s,deviceId:d.device_id||s.deviceId,deviceUid:id(),clientId:d.client_id||s.clientId||"",listId:d.list_id||s.listId||"",expiresAt:d.expires_at||s.expiresAt,listName:d.list_name||s.listName,updatedAt:Date.now()};
