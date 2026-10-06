@@ -7030,6 +7030,10 @@ async function loadM3U(
   state.groups =
     [];
 
+  state.xtreamSession = null;
+  state.xtreamUserInfo = null;
+  state.xtreamSeriesFallbackNeeded = false;
+
   state.groupsReady =
     false;
 
