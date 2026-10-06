@@ -96,10 +96,13 @@ async function fetchCatalog(u) {
 
 async function fetchMedia(request, target) {
   const headers = new Headers();
-  for (const name of ["Range", "Accept", "Origin", "Referer", "User-Agent"]) {
+  for (const name of ["Range", "Accept", "User-Agent"]) {
     const value = request.headers.get(name);
     if (value) headers.set(name, value);
   }
+  /* Se o provedor valida Origin, o upstream vê a própria origem,
+     não a origem do GitHub Pages. */
+  headers.set("Origin", target.origin);
 
   const upstream = await fetch(target.toString(), {
     method: request.method === "HEAD" ? "HEAD" : "GET",
