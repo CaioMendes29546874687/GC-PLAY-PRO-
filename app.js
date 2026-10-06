@@ -10139,6 +10139,11 @@ async function initApp() {
       state.seriesCatalog = [];
       state.seriesCatalogMap = new Map();
       state.seriesCatalogReady = false;
+      try {
+        await resetDatabaseFast();
+      } catch (resetError) {
+        console.warn("[GC PLAY PRO] não foi possível limpar o IndexedDB:", resetError);
+      }
     }
   } catch (buildError) {
     console.warn("[GC PLAY PRO] build guard:", buildError);
