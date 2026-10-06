@@ -24,6 +24,7 @@ const checks = [
   ["gateway Cloudflare configurado", /gc-catalog\.caioroberto318\.workers\.dev/.test(app)],
   ["media gateway configurado", /mode=media/.test(app) && /buildMediaProxyUrl/.test(app)],
   ["DASH via media gateway", /isDASH\(sourceUrl\)/.test(app)],
+  ["catálogo paginado", /data-load-more-catalog/.test(app) && /offset = 0/.test(app)],
   ["Xtream com timeout", /timeoutMs = action === "get_series_info" \? 30000 : 25000/.test(app)],
   ["filmes sob demanda", /ensureXtreamSectionLoaded\("movie"\)/.test(app)],
   ["séries sob demanda", /ensureXtreamSectionLoaded\("series"\)/.test(app)],

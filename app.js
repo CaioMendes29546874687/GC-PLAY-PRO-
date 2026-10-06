@@ -822,7 +822,8 @@ function loadSample(limit = RAM_LIMIT) {
 function queryItems({
   type = null,
   group = null,
-  limit = 120
+  limit = 120,
+  offset = 0
 } = {}) {
   return new Promise((resolve, reject) => {
     const result = [];
@@ -3036,6 +3037,7 @@ async function queryCatalogItems({
   */
   return new Promise((resolve, reject) => {
     const result = [];
+    let skipped = 0;
     const transaction = state.db.transaction(STORE_NAME, "readonly");
     const store = transaction.objectStore(STORE_NAME);
     const useTypeIndex = !!type && type !== "adult";
@@ -3053,7 +3055,8 @@ async function queryCatalogItems({
       }
 
       if (matches(cursor.value)) {
-        result.push(cursor.value);
+        if (skipped < offset) skipped++;
+        else result.push(cursor.value);
       }
 
       cursor.continue();
@@ -3167,11 +3170,14 @@ async function render() {
     if (requestId !== renderRequestId) return;
   }
 
+  state.catalogOffset = 0;
+
   let items = await queryCatalogItems({
     type,
     genre: state.currentGenre,
     term: state.searchTerm,
-    limit: 120
+    limit: 121,
+    offset: 0
   });
 
   /* TV ao vivo precisa continuar visível mesmo se o índice IndexedDB
@@ -3191,7 +3197,12 @@ async function render() {
   }
 
   if (empty) empty.style.display = "none";
-  grid.innerHTML = items.map(renderCard).join("");
+  const hasMore = items.length > 120;
+  grid.innerHTML =
+    items.slice(0,120).map(renderCard).join("") +
+    (hasMore
+      ? '<div class="gc-load-more-wrap"><button type="button" class="secondary-button gc-load-more" data-load-more-catalog>CARREGAR MAIS</button></div>'
+      : "");
 }
 
 /* =========================================================
@@ -3222,6 +3233,21 @@ function renderSeasonCard(season,count) {
 function setupSeriesBrowserEvents(grid) {
   grid.querySelectorAll("[data-series-key]").forEach(card=>card.addEventListener("click",()=>{state.seriesView.seriesKey=card.dataset.seriesKey||null;state.seriesView.season=null;render();}));
   grid.querySelectorAll("[data-series-season]").forEach(card=>card.addEventListener("click",()=>{state.seriesView.season=Number(card.dataset.seriesSeason);render();}));
+  const loadMoreSeries = grid.querySelector("[data-load-more-series]");
+  if (loadMoreSeries) {
+    loadMoreSeries.addEventListener("click", () => {
+      const all = state.seriesCatalog || [];
+      const offset = Number(loadMoreSeries.dataset.offset || 120);
+      const next = all.slice(offset, offset + 120);
+      if (!next.length) {
+        loadMoreSeries.remove();
+        return;
+      }
+      loadMoreSeries.dataset.offset = String(offset + next.length);
+      loadMoreSeries.insertAdjacentHTML("beforebegin", next.map(renderSeriesCard).join(""));
+      if (offset + next.length >= all.length) loadMoreSeries.remove();
+    });
+  }
   const back=grid.querySelector("[data-series-back]");
   if(back) back.addEventListener("click",()=>{if(state.seriesView.season!==null) state.seriesView.season=null; else state.seriesView.seriesKey=null;render();});
 }
@@ -3328,7 +3354,12 @@ async function renderSeriesBrowser(grid,empty) {
   if(!key){
     if(!items.length){grid.innerHTML="";if(empty)empty.style.display="block";return;}
     if(empty)empty.style.display="none";
-    grid.innerHTML=items.slice(0,120).map(renderSeriesCard).join("");
+    state.seriesCatalog = items;
+    const firstPage = items.slice(0,120);
+    const more = items.length > 120
+      ? '<div class="gc-load-more-wrap"><button type="button" class="secondary-button gc-load-more" data-load-more-series data-offset="120">CARREGAR MAIS SÉRIES</button></div>'
+      : "";
+    grid.innerHTML=firstPage.map(renderSeriesCard).join("") + more;
     setupSeriesBrowserEvents(grid);
     return;
   }
@@ -5744,6 +5775,32 @@ function setupCardEvents() {
   grid.addEventListener(
     "click",
     async event => {
+      const loadMore = event.target.closest("[data-load-more-catalog]");
+      if (loadMore) {
+        event.preventDefault();
+        event.stopPropagation();
+        const type =
+          state.currentFilter === "all" || state.currentFilter === "adult"
+            ? (state.currentFilter === "adult" ? "adult" : null)
+            : state.currentFilter;
+        const nextOffset = Number(state.catalogOffset || 0) + 120;
+        const next = await queryCatalogItems({
+          type,
+          genre: state.currentGenre,
+          term: state.searchTerm,
+          limit: 121,
+          offset: nextOffset
+        });
+        if (!next.length) {
+          loadMore.remove();
+          return;
+        }
+        state.catalogOffset = nextOffset;
+        loadMore.insertAdjacentHTML("beforebegin", next.slice(0,120).map(renderCard).join(""));
+        if (next.length <= 120) loadMore.remove();
+        return;
+      }
+
       const favoriteButton =
         event.target.closest(
           "[data-favorite-id]"
