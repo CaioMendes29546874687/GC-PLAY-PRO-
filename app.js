@@ -1519,6 +1519,20 @@ function resolvePlaylistUrl(url) {
 function parseXtreamLogin(url) {
   try {
     const parsed = new URL(String(url || ""));
+
+    /*
+       Listas ativadas chegam pelo gateway de catálogo. Desembrulhamos
+       somente o parâmetro ?url= para recuperar a origem Xtream e manter
+       o catálogo no Cloudflare, sem usar Supabase como proxy de mídia.
+    */
+    if (
+      parsed.hostname === "gc-catalog.caioroberto318.workers.dev" &&
+      parsed.searchParams.get("url")
+    ) {
+      const nested = parsed.searchParams.get("url");
+      if (nested) return parseXtreamLogin(nested);
+    }
+
     const path = parsed.pathname.toLowerCase();
 
     if (!/(?:^|\/)get\.php$/.test(path) && !/(?:^|\/)player_api\.php$/.test(path)) return null;
