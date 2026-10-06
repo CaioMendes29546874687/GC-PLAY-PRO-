@@ -23,6 +23,7 @@ const checks = [
   ["sem proxy de vídeo Supabase", !app.includes("/functions/v1/m3u-proxy")],
   ["gateway Cloudflare configurado", /gc-catalog\.caioroberto318\.workers\.dev/.test(app)],
   ["media gateway configurado", /mode=media/.test(app) && /buildMediaProxyUrl/.test(app)],
+  ["DASH via media gateway", /isDASH\(sourceUrl\)/.test(app)],
   ["Xtream com timeout", /timeoutMs = action === "get_series_info" \? 30000 : 25000/.test(app)],
   ["filmes sob demanda", /ensureXtreamSectionLoaded\("movie"\)/.test(app)],
   ["séries sob demanda", /ensureXtreamSectionLoaded\("series"\)/.test(app)],
