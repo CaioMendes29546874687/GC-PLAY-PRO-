@@ -1171,6 +1171,10 @@ function extractSeriesInfo(item) {
       ""
     )
     .replace(
+      /\s*\[\s*(?:s|t)\s*0*\d{1,3}\s*\]\s*$/i,
+      ""
+    )
+    .replace(
       /\s*[-|:_./()\[\]]*\s*(?:episode|episodio|ep)\s*0*\d{1,4}.*$/i,
       ""
     )
