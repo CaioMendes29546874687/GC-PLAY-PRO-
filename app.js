@@ -1215,18 +1215,34 @@ function canonicalSeriesTitle(value) {
 function extractSeriesInfo(item) {
   const name = String(item?.name || "").trim();
   const tvgName = String(item?.tvgName || "").trim();
+  const providerSeriesTitle = String(
+    item?.serieTitle || item?.seriesTitle || item?.tvgSerieName || ""
+  ).trim();
   const group = String(item?.group || "").trim();
   const url = String(item?.url || "");
 
+  const directSeason = Number(
+    item?.tvgSeason ?? item?.seriesSeasonNumber ?? item?.season
+  );
   /*
      Mantemos o nome original para descobrir temporada/episódio.
      Não usamos normalizeText() aqui porque queremos preservar
      separadores e números exatamente como vieram.
   */
-  const sources = [name, tvgName, group, url];
+  const sources = [name, tvgName, providerSeriesTitle, group, url];
 
   let season = null;
   let episode = null;
+
+  const directSeason = Number(
+    item?.tvgSeason ?? item?.seriesSeasonNumber ?? item?.season
+  );
+  const directEpisode = Number(
+    item?.tvgEpisode ?? item?.seriesEpisodeNumber ?? item?.episode
+  );
+
+  if (Number.isFinite(directSeason) && directSeason > 0) season = directSeason;
+  if (Number.isFinite(directEpisode) && directEpisode > 0) episode = directEpisode;
 
   const patterns = [
     /\b(?:s|t)\s*0*(\d{1,3})\s*e\s*0*(\d{1,4})\b/i,
@@ -1309,7 +1325,7 @@ function extractSeriesInfo(item) {
     }
   }
 
-  let seriesName = tvgName || name;
+  let seriesName = providerSeriesTitle || tvgName || name;
 
   /*
      Se o grupo já contém o nome da série + temporada,
@@ -1441,6 +1457,11 @@ function normalizeItem(data) {
     streamType: data.streamType || "",
     contentType: data.contentType || "",
     mediaType: data.mediaType || "",
+    tvgSeason: data.tvgSeason || "",
+    tvgEpisode: data.tvgEpisode || "",
+    tvgSerie: data.tvgSerie || "",
+    serieTitle: data.serieTitle || data.seriesTitle || "",
+    seriesTitle: data.seriesTitle || data.serieTitle || "",
 
     country:
       data.country || "",
@@ -1454,7 +1475,11 @@ function normalizeItem(data) {
             name,
             group,
             url,
-            tvgName: data.tvgName || ""
+            tvgName: data.tvgName || "",
+            tvgSeason: data.tvgSeason || "",
+            tvgEpisode: data.tvgEpisode || "",
+            tvgSerie: data.tvgSerie || "",
+            serieTitle: data.serieTitle || data.seriesTitle || ""
           });
           return {
             seriesName: info.seriesName,
@@ -2756,6 +2781,10 @@ function parseEXTINF(line) {
     streamType: attrs["stream-type"] || attrs["stream_type"] || "",
     contentType: attrs["content-type"] || attrs["content_type"] || "",
     mediaType: attrs["media-type"] || attrs["media_type"] || "",
+    tvgSeason: attrs["tvg-season"] || attrs["season"] || "",
+    tvgEpisode: attrs["tvg-episode"] || attrs["episode"] || attrs["ep"] || "",
+    tvgSerie: attrs["tvg-serie"] || attrs["tvg-series"] || attrs["serie-id"] || "",
+    serieTitle: attrs["serie-title"] || attrs["series-title"] || attrs["series-name"] || "",
     country: attrs["tvg-country"] || attrs.country || "",
     language: attrs["tvg-language"] || attrs.language || ""
   };
