@@ -81,14 +81,14 @@ async function resolveDeviceActivation(code,deviceUid,deviceName,platform){
     if(existing.status==="blocked") return {ok:false,status:403,error:"Este dispositivo foi revogado. Digite o código novamente para criar uma nova ativação."};
     await p.query("update devices set status='online',device_name=coalesce($1,device_name),platform=coalesce($2,platform),last_seen_at=now() where id=$3",[String(deviceName||"GC PLAY PRO"),String(platform||""),existing.id]);
     await p.query("insert into activations(client_id,device_id,activation_code,activated_at) values($1,$2,$3,now())",[client.id,existing.id,client.activation_code]);
-    return {ok:true,device_id:existing.id,client_id:client.id,expires_at:client.expires_at,list_name:client.list_name,playlist_url:buildManagedPlaylistUrl(client)};
+    return {ok:true,device_id:existing.id,client_id:client.id,list_id:client.list_id,expires_at:client.expires_at,list_name:client.list_name,playlist_url:buildManagedPlaylistUrl(client)};
   }
   const limit=Math.max(1,Number(client.device_limit)||1);
   const activeCount=Number((await p.query("select count(*)::int n from devices where client_id=$1 and status<>'blocked'",[client.id])).rows[0].n);
   if(activeCount>=limit) return {ok:false,status:409,error:"Limite de dispositivos atingido. Remova um dispositivo no painel para liberar uma nova ativação."};
   const created=(await p.query("insert into devices(client_id,device_uid,device_name,platform,last_seen_at,status) values($1,$2,$3,$4,now(),'online') returning id",[client.id,String(deviceUid||""),String(deviceName||"GC PLAY PRO"),String(platform||"")])).rows[0];
   await p.query("insert into activations(client_id,device_id,activation_code,activated_at) values($1,$2,$3,now())",[client.id,created.id,client.activation_code]);
-  return {ok:true,device_id:created.id,client_id:client.id,expires_at:client.expires_at,list_name:client.list_name,playlist_url:buildManagedPlaylistUrl(client)};
+  return {ok:true,device_id:created.id,client_id:client.id,list_id:client.list_id,expires_at:client.expires_at,list_name:client.list_name,playlist_url:buildManagedPlaylistUrl(client)};
 }
 
 app.post("/api/device/activate",async(req,res)=>{
@@ -115,7 +115,7 @@ app.post("/api/device/check",async(req,res)=>{
     if(!d)return res.status(404).json({ok:false,active:false,reason:"device_revoked"});
     if(d.status==="blocked")return res.status(403).json({ok:false,active:false,reason:"device_revoked"});
     await p.query("update devices set status='online',last_seen_at=now() where id=$1",[d.id]);
-    return res.json({ok:true,active:true,device_id:d.id,client_id:client.id,expires_at:client.expires_at,list_name:client.list_name});
+    return res.json({ok:true,active:true,device_id:d.id,client_id:client.id,list_id:client.list_id,expires_at:client.expires_at,list_name:client.list_name});
   }catch(e){return res.status(500).json({ok:false,active:false,reason:"server_error",error:e.message})}
 });
 
