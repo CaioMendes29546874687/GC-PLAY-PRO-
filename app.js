@@ -36,7 +36,7 @@ const WRITE_BATCH = 20000;
 /* Primeira pintura agressiva: não espere 1000 itens para mostrar a biblioteca. */
 const FIRST_PAINT_BATCH = 150;
 const UI_RENDER_INTERVAL = 1500;
-const CACHE_META_KEY = "GC_PLAY_PRO_CATALOG_META_V5";
+const CACHE_META_KEY = "GC_PLAY_PRO_CATALOG_META_V6";
 const CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 const WRITE_QUEUE_LIMIT = 3;
 const RESUME_KEY = "GC_PLAY_PRO_RESUME_V1";
@@ -389,6 +389,11 @@ function loadState() {
         const session = JSON.parse(xtreamSaved);
         if (session?.base && session?.username && session?.password) {
           state.xtreamSession = session;
+          state.xtreamLoaded = {
+            live: Number(actualLive || 0) > 0,
+            movie: false,
+            series: false
+          };
         }
       }
     } catch {}
@@ -2157,7 +2162,7 @@ async function tryLoadXtreamFast(url, signal) {
 
 async function ensureXtreamSectionLoaded(type) {
   const session = state.xtreamSession;
-  if (!session || !["movie","series"].includes(type)) return false;
+  if (!session || !["live","movie","series"].includes(type)) return false;
 
   state.xtreamLoaded = state.xtreamLoaded || { live:false, movie:false, series:false };
   if (state.xtreamLoaded[type]) return true;
@@ -2168,15 +2173,15 @@ async function ensureXtreamSectionLoaded(type) {
   state.__xtreamLoading[type] = (async () => {
     const started = performance.now();
     try {
-      const label = type === "movie" ? "filmes" : "séries";
+      const label = type === "live" ? "TV ao vivo" : (type === "movie" ? "filmes" : "séries");
       updateLoadMessage("Carregando catálogo de " + label + "...");
       window.GCArchitecture?.diagnostics?.record?.("xtream_section_start", {
         type,
         startedAt: new Date().toISOString()
       });
 
-      const actionCategories = type === "movie" ? "get_vod_categories" : "get_series_categories";
-      const actionStreams = type === "movie" ? "get_vod_streams" : "get_series";
+      const actionCategories = type === "live" ? "get_live_categories" : (type === "movie" ? "get_vod_categories" : "get_series_categories");
+      const actionStreams = type === "live" ? "get_live_streams" : (type === "movie" ? "get_vod_streams" : "get_series");
 
       /* As duas respostas são independentes e têm timeout próprio. */
       const [catResult, streamResult] = await Promise.all([
@@ -2203,7 +2208,29 @@ async function ensureXtreamSectionLoaded(type) {
         const title = String(row.name).trim();
         const group = getXtreamCategoryName(catMap, row.category_id, type === "movie" ? "FILMES" : "SÉRIES");
 
-        if (type === "movie") {
+        if (type === "live") {
+          const extension = String(session.liveExtension || "m3u8").replace(/^\./, "").toLowerCase();
+          items.push({
+            id: "xt-live-" + id,
+            name: title,
+            nameLower: normalizeText(title),
+            group,
+            type: "live",
+            url: buildXtreamStreamUrl(session, "live", id, extension),
+            logo: row.stream_icon || "",
+            tvgId: row.epg_channel_id || "",
+            tvgName: title,
+            country: "", language: "", seriesName: "", seriesKey: "",
+            season: null, episode: null, seriesSeason: ["",0],
+            genre: getGenreName(group),
+            xtreamKind: "live",
+            xtreamStreamId: String(id),
+            xtreamExtension: extension,
+            epgChannelId: row.epg_channel_id || "",
+            tvArchive: Number(row.tv_archive || 0),
+            tvArchiveDuration: Number(row.tv_archive_duration || 0)
+          });
+        } else if (type === "movie") {
           const extension = String(row.container_extension || "mp4").replace(/^\./, "").toLowerCase();
           items.push({
             id: "xt-movie-" + id,
@@ -2270,7 +2297,7 @@ async function ensureXtreamSectionLoaded(type) {
         elapsedMs
       });
       updateLoadMessage(
-        (type === "movie" ? "Filmes" : "Séries") +
+        (type === "live" ? "TV ao vivo" : (type === "movie" ? "Filmes" : "Séries")) +
         ": " + formatNumber(items.length) + " itens disponíveis."
       );
       return true;
@@ -6565,7 +6592,12 @@ async function handleSection(
       "all";
 
     renderGenreFilters();
-    render();
+
+    if (state.xtreamSession && !state.xtreamLoaded?.live) {
+      await ensureXtreamSectionLoaded("live");
+    } else {
+      await render();
+    }
 
     return;
   }
@@ -7238,17 +7270,23 @@ async function tryRestoreCatalogInstant(url) {
 
     state.groupsReady = state.groups.length > 0;
 
-    const counts = meta.counts || {};
+    const [actualLive, actualMovie, actualSeriesEpisodes] = await Promise.all([
+      countByType("live"),
+      countByType("movie"),
+      countByType("series")
+    ]);
+
     state.counts = {
-      live: Number(counts.live || 0),
-      movie: Number(counts.movie || 0),
-      series: Number(counts.series || 0)
+      live: Number(actualLive || 0),
+      movie: Number(actualMovie || 0),
+      /* Xtream VOD/series are loaded by section; do not show stale snapshot counts. */
+      series: Number(actualSeriesEpisodes || 0)
     };
 
-    state.total = Number(
-      meta.total ||
-      state.counts.live + state.counts.movie + state.counts.series
-    );
+    state.total =
+      state.counts.live +
+      state.counts.movie +
+      state.counts.series;
 
     state.seriesCatalog = [];
     state.seriesCatalogMap = new Map();
@@ -7458,6 +7496,7 @@ async function loadM3U(
       state.db = await openDB();
       state.xtreamSession = xtreamFast.session;
       state.xtreamUserInfo = xtreamFast.userInfo || null;
+      state.xtreamLoaded = { live: Number(xtreamFast.counts?.live || 0) > 0, movie: false, series: false };
       state.playlistMeta.url = url;
       state.playlistMeta.name = document.getElementById("playlistName")?.value?.trim() || "Minha Playlist";
       /* Xtream agora usa carregamento sob demanda para séries. Não faça
