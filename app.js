@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-06-PLAYFIX4 */
+/* GC BUILD 2026-10-06-PLAYFIX6 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -658,12 +658,14 @@ function writeBatch(
       return;
     }
 
+    /* Não bloqueie o store de séries durante a gravação normal.
+       Uma transação readwrite com escopo menor reduz contenção no IndexedDB,
+       especialmente em listas com centenas de milhares de itens. */
     const stores = [STORE_NAME];
 
     if (
-      state.db.objectStoreNames.contains(
-        SERIES_STORE
-      )
+      seriesUpdates.length &&
+      state.db.objectStoreNames.contains(SERIES_STORE)
     ) {
       stores.push(SERIES_STORE);
     }
@@ -5792,9 +5794,11 @@ async function playItem(item) {
         : "";
 
     const liveDirectHlsFallback =
-      item.xtreamKind === "live" && liveHlsUrl !== sourceUrl
-        ? liveHlsUrl
-        : (item.xtreamKind === "live" && isHLS(originalUrl) && originalUrl !== sourceUrl ? originalUrl : "");
+      item.xtreamKind === "live" && isHLS(sourceUrl) && sourceUrl !== playbackUrl
+        ? sourceUrl
+        : (item.xtreamKind === "live" && isHLS(originalUrl) && originalUrl !== playbackUrl
+            ? originalUrl
+            : "");
 
     const shakaStarted = await playShaka(
       video,
@@ -6019,23 +6023,65 @@ async function playItem(item) {
     }
   };
 
+  /*
+     Alguns servidores aceitam a conexão mas não entregam metadata/frame.
+     Nesse caso o elemento <video> pode permanecer em HAVE_NOTHING sem
+     disparar error. Após poucos segundos trocamos para o caminho alternativo.
+     loadeddata é um sinal melhor de primeiro frame do que play() sozinho.
+  */
+  let vodFallbackTimer = null;
+  let vodReady = false;
+  const clearVodFallback = () => {
+    if (vodFallbackTimer) {
+      clearTimeout(vodFallbackTimer);
+      vodFallbackTimer = null;
+    }
+  };
+  const markVodReady = () => {
+    vodReady = true;
+    clearVodFallback();
+  };
+  video.addEventListener("loadeddata", markVodReady, { once: true });
+  video.addEventListener("playing", markVodReady, { once: true });
+  video.addEventListener("canplay", markVodReady, { once: true });
+
+  vodFallbackTimer = setTimeout(() => {
+    if (vodReady || video.readyState >= 2 || video.videoWidth > 0) return;
+
+    const fallback = video.__gcDirectPlaybackUrl;
+    if (!fallback || video.__gcDirectPlaybackRetry) {
+      if (message) message.textContent = "A fonte de vídeo não respondeu.";
+      return;
+    }
+
+    video.__gcDirectPlaybackRetry = "1";
+    video.__gcDirectPlaybackUrl = "";
+    if (message) message.textContent = "Fonte lenta — tentando gateway GC...";
+
+    try {
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+      video.src = fallback;
+      video.load();
+      video.play().catch(() => {});
+    } catch (fallbackError) {
+      console.warn("[GC PLAY PRO] fallback VOD:", fallbackError);
+      if (message) message.textContent = "Não foi possível iniciar este vídeo.";
+    }
+  }, 7000);
+
   try {
     await video.play();
-
-    if (message) {
-      message.textContent =
-        "";
+    if (video.readyState >= 2 || video.videoWidth > 0) {
+      markVodReady();
+      if (message) message.textContent = "";
+    } else if (message) {
+      message.textContent = "Conectando ao vídeo...";
     }
   } catch (error) {
-    console.warn(
-      "Autoplay bloqueado:",
-      error
-    );
-
-    if (message) {
-      message.textContent =
-        "Toque no botão ▶ do player para iniciar.";
-    }
+    console.warn("Autoplay bloqueado:", error);
+    if (message) message.textContent = "Toque no botão ▶ do player para iniciar.";
   }
 }
 
@@ -8282,47 +8328,46 @@ async function loadM3U(
        RESULTADO FINAL
        ----------------------------------------------------- */
 
-    /* A importação só é considerada concluída depois que TODA a fila
-       do IndexedDB terminou. Antes disso, o cache podia ser salvo com
-       apenas parte da playlist e a próxima abertura restaurava um banco
-       incompleto. */
-    while (writeProcessing || writeQueue.length) {
-      if (writeError) throw writeError;
-      await sleep(25);
-    }
-
-    if (writeError) throw writeError;
-
     /*
-       Não bloquear a abertura da biblioteca pela reconstrução detalhada
-       de temporadas/episódios. Em listas grandes ela pode percorrer
-       centenas de milhares de registros. O contador de séries já foi
-       calculado por chaves únicas durante a importação.
+       NÃO espere o IndexedDB terminar para liberar a biblioteca.
+       O parser já terminou; a gravação continua em segundo plano.
+       Isso elimina o maior gargalo percebido pelo usuário em playlists
+       gigantes. O catálogo persistente será finalizado antes da próxima
+       sessão, enquanto a RAM mantém a primeira navegação utilizável.
     */
-    const seriesRebuildPromise = rebuildSeriesCatalogInBackground(true)
-      .then(() => {
-        if (state.seriesCatalogReady) {
-          state.counts.series = state.seriesCatalog.length;
-          state.total = processed;
-          updateLiveCounters();
-          renderStats();
-          saveCatalogCacheMeta(url);
-          if (state.currentFilter === "series") render();
+    const catalogFinalizePromise = (async () => {
+      try {
+        while (writeProcessing || writeQueue.length) {
+          if (writeError) throw writeError;
+          await sleep(25);
         }
-      })
-      .catch(error => console.warn("[GC PLAY PRO] reconstrução de séries em segundo plano:", error));
-    state.seriesRebuildPromise = seriesRebuildPromise;
+        if (writeError) throw writeError;
+
+        const seriesRebuildPromise = rebuildSeriesCatalogInBackground(true)
+          .then(() => {
+            if (state.seriesCatalogReady) {
+              state.counts.series = state.seriesCatalog.length;
+              state.total = processed;
+              updateLiveCounters();
+              renderStats();
+              saveCatalogCacheMeta(url);
+              if (state.currentFilter === "series") render();
+            }
+          });
+        state.seriesRebuildPromise = seriesRebuildPromise;
+        await seriesRebuildPromise;
+      } catch (error) {
+        console.warn("[GC PLAY PRO] finalização do catálogo em segundo plano:", error);
+      }
+    })();
+    state.catalogFinalizePromise = catalogFinalizePromise;
 
     /* O total representa itens/episódios importados. A contagem de
        séries representa séries únicas. */
     state.total = processed;
 
     try {
-      const databaseGroups = await getGroups();
-      if (databaseGroups.length) {
-        state.groups = databaseGroups;
-        localStorage.setItem("GC_PLAY_PRO_GROUPS_V1", JSON.stringify(state.groups));
-      }
+      localStorage.setItem("GC_PLAY_PRO_GROUPS_V1", JSON.stringify(state.groups));
     } catch (groupError) {
       console.warn("[GC PLAY PRO] grupos finais:", groupError);
     }
@@ -10147,14 +10192,14 @@ async function initApp() {
   );
 
   /*
-     BUILD GUARD — 2026-10-06 PLAYFIX4
+     BUILD GUARD — 2026-10-06 PLAYFIX6
      O catálogo anterior ficou persistido no IndexedDB mesmo depois das
      correções de parser/classificação. Isso fazia a interface continuar
      mostrando números antigos e categorias incorretas.
      Em uma mudança estrutural de catálogo, fazemos uma única limpeza e
      deixamos a rotina de ativação/importação reconstruir a biblioteca.
   */
-  const GC_CATALOG_BUILD = "20261006-PLAYFIX4";
+  const GC_CATALOG_BUILD = "20261006-PLAYFIX6";
   try {
     const previousBuild = localStorage.getItem("GC_PLAY_PRO_CATALOG_BUILD_V1");
     if (previousBuild !== GC_CATALOG_BUILD) {
