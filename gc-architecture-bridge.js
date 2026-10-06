@@ -127,6 +127,14 @@
     /* Para listas grandes, consulta o índice RAM primeiro e só depois
        usa o catálogo completo quando ele já estiver disponível. */
     let result=A.search.search(lastIndex,query,limit);
+    if(typeof global.GCArchitectureGlobalSearch==="function"){
+      try{
+        const indexed=await global.GCArchitectureGlobalSearch(query,limit);
+        if(indexed.length) result=indexed;
+      }catch(error){
+        diag("search_backend_error",{error:String(error?.message||error)});
+      }
+    }
     if(!result.length && Array.isArray(s?.seriesCatalog) && s.seriesCatalog.length){
       result=A.search.search(s.seriesCatalog,query,limit);
     }
