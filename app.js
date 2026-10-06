@@ -7877,60 +7877,47 @@ async function performSearch(
       </div>
     `;
 
-  const ramMatches =
-    state.items.filter(
-      item =>
-        item.nameLower.includes(
-          normalized
-        ) ||
-        normalizeText(
-          item.group
-        ).includes(
-          normalized
-        )
-    );
+  let matches = [];
 
-  const unique =
-    new Map();
+  /*
+   * Catálogos grandes não podem depender somente de state.items.
+   * O backend global usa cursor do IndexedDB e continua funcionando
+   * mesmo quando a memória contém apenas uma janela do catálogo.
+   */
+  if (typeof window.GCArchitectureGlobalSearch === "function") {
+    try {
+      matches = await window.GCArchitectureGlobalSearch(normalized, 100);
+    } catch (error) {
+      console.warn("[GC PLAY PRO] busca global:", error);
+    }
+  }
 
-  ramMatches
-    .slice(0, 100)
-    .forEach(
-      item => unique.set(
-        item.id,
-        item
+  if (requestId !== searchRequestId) return;
+
+  if (!matches.length) {
+    const unique = new Map();
+
+    state.items
+      .filter(item =>
+        normalizeText(item.name || "").includes(normalized) ||
+        normalizeText(item.group || "").includes(normalized) ||
+        normalizeText(item.seriesName || "").includes(normalized)
       )
-    );
+      .slice(0, 100)
+      .forEach(item => unique.set(item.id, item));
 
-  if (
-    unique.size < 100 &&
-    state.db
-  ) {
-    const dbMatches =
-      await searchDatabase(
+    if (unique.size < 100 && state.db) {
+      const dbMatches = await searchDatabase(
         normalized,
         100 - unique.size,
         requestId
       );
-
-    if (
-      requestId !== searchRequestId
-    ) {
-      return;
+      if (requestId !== searchRequestId) return;
+      dbMatches.forEach(item => unique.set(item.id, item));
     }
 
-    dbMatches.forEach(
-      item => unique.set(
-        item.id,
-        item
-      )
-    );
+    matches = Array.from(unique.values()).slice(0, 100);
   }
-
-  const matches =
-    Array.from(
-      unique.values()
-    ).slice(0, 100);
 
   if (!matches.length) {
     results.innerHTML =
