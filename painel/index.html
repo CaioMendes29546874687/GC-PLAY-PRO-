@@ -64,7 +64,7 @@
 
 <section class="hero">
   <div class="heroText"><h1>GC <span>PLAY PRO</span> ♛</h1><p>CONTROLE TOTAL • VALIDADE SINCRONIZADA PELA LISTA</p>
-    <div class="heroActions"><button class="btn primary" id="newClient">＋ NOVO CLIENTE</button><button class="btn" id="newList">＋ NOVA LISTA</button><button class="btn" id="sync">↻ SINCRONIZAR AGORA</button><span class="pill" id="autoState">AUTO-SYNC: ATIVO AO ABRIR O PAINEL</span></div>
+    <div class="heroActions"><button class="btn primary" id="newClient">＋ NOVO CLIENTE</button><button class="btn" id="newList">＋ NOVA LISTA</button><button class="btn" id="sync">↻ SINCRONIZAR AGORA</button><button class="btn" id="migrateRender">⇄ MIGRAR PARA RENDER</button><span class="pill" id="autoState">AUTO-SYNC: ATIVO AO ABRIR O PAINEL</span></div>
   </div>
 </section>
 
@@ -121,8 +121,23 @@ function parseSource(raw){
 function openModal(id){$(id).style.display="grid"}function closeModal(id){$(id).style.display="none"}
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
 
+const RENDER_API="https://gc-play-pro-backend.onrender.com";
+async function migrateToRender(silent=false){
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session?.access_token)return false;
+ try{
+  if(!silent)toast("RENDER • migrando dados do Supabase...");
+  const r=await fetch(RENDER_API+"/api/migration/pull",{method:"POST",headers:{Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},body:"{}",cache:"no-store"});
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok||!data.ok)throw new Error(data.error||("HTTP "+r.status));
+  localStorage.setItem("gc_render_migrated","1");
+  if(!silent)toast("✓ RENDER • migração concluída.");
+  return true;
+ }catch(e){if(!silent)toast("RENDER • "+(e?.message||String(e)));return false}
+}
 async function showApp(session){
  $("authScreen").classList.add("hidden");$("app").style.display="flex";
+ await migrateToRender(true);
  const {data:userData}=await sb.auth.getUser();const u=userData.user;
  $("adminEmail").textContent=u?.email||"";$("adminName").textContent=u?.user_metadata?.full_name||"Administrador";
  $("avatar").textContent=($("adminName").textContent||"CM").slice(0,2).toUpperCase();
@@ -228,7 +243,7 @@ async function syncAll(silent=false){
  await load();
  if(!silent)toast(data?.ok?"✓ SYNC 5 • "+(data?.count||0)+" lista(s) verificadas.":"⚠ SYNC 5 • "+(data?.results?.find(x=>!x.ok)?.error||"verifique os logs."));
 }
-$("sync").onclick=()=>syncAll(false);$("syncSide").onclick=()=>syncAll(false);
+$("sync").onclick=()=>syncAll(false);$("syncSide").onclick=()=>syncAll(false);$("migrateRender").onclick=()=>migrateToRender(false);
 $("askExpiring").onclick=()=>{$("clientSearch").value="";render();document.getElementById("listsCard").scrollIntoView({behavior:"smooth"});toast("Mostrando o painel de validade.")};
 async function editClient(id){
  const c=rows.clients.find(x=>x.id===id);if(!c)return;editClientId=id;$("eName").value=c.name;$("ePlan").value=c.plan;$("eLimit").value=c.device_limit;$("eList").value=c.list_id||"";openModal("editModal");
