@@ -148,7 +148,7 @@ async function fetchMedia(request, target) {
   const firstType = upstream.headers.get("content-type") || "";
   const retryStatus = [401, 403, 406, 408, 425, 429, 500, 502, 503, 504].includes(upstream.status);
   const suspiciousMediaBody =
-    /text\\/html/i.test(firstType) &&
+    /text\/html/i.test(firstType) &&
     (target.pathname.toLowerCase().includes(".m3u8") || target.pathname.toLowerCase().includes(".mpd"));
 
   if (retryStatus || suspiciousMediaBody) {
