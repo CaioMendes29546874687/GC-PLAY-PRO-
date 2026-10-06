@@ -6,7 +6,7 @@
   "use strict";
   if(window.__GC_PLAYBACK_CORE_V2__) return;
   window.__GC_PLAYBACK_CORE_V2__=true;
-  const VERSION="2026.10.06.2";
+  const VERSION="2026.10.06.4";
   const originalApi=window.GC_PLAY_PRO;
   const state=()=>window.__GC_STATE__||originalApi?.state||null;
   const msg=t=>{const e=document.getElementById("playerMessage");if(e)e.textContent=t||""};
@@ -41,57 +41,17 @@
     if(p){p.classList.remove("hidden");p.classList.add("active","open","show")}
   }
   function directUrl(item){
-    let u=clean(item?.url);
+    const u=clean(item?.url);
+    if(u) return u;
     const s=state();
-    if(item?.xtreamKind==="live" && s?.xtreamSession && item.xtreamStreamId){
+    if(s?.xtreamSession && item?.xtreamStreamId && typeof window.buildXtreamStreamUrl==="function"){
       try{
-        if(typeof window.buildXtreamStreamUrl==="function")
-          return window.buildXtreamStreamUrl(s.xtreamSession,"live",item.xtreamStreamId,"m3u8");
+        const kind=item.xtreamKind||item.type||"live";
+        const ext=item.xtreamExtension || (kind==="live"?"ts":"mp4");
+        return window.buildXtreamStreamUrl(s.xtreamSession,kind,item.xtreamStreamId,ext);
       }catch{}
     }
     return u;
-  }
-  async function nativeVideo(v,u,item){
-    const direct=http(u)&&/^https:\/\//i.test(u);
-    const primary=direct?u:proxy(u,item);
-    const fallback=primary===u?proxy(u,item):u;
-    let settled=false;
-    const cleanup=[];
-    const finish=()=>{if(settled)return;settled=true;cleanup.forEach(x=>x());msg("")};
-    const fail=async()=>{
-      if(settled)return;
-      if(fallback && fallback!==primary){
-        v.src=fallback; v.load();
-        try{await v.play();return}catch{}
-      }
-      msg("Não foi possível iniciar este vídeo.");
-    };
-    const timer=setTimeout(fail,7000);
-    const onPlaying=()=>{clearTimeout(timer);finish()};
-    const onError=()=>{clearTimeout(timer);fail()};
-    v.addEventListener("playing",onPlaying,{once:true});
-    v.addEventListener("error",onError,{once:true});
-    cleanup.push(()=>v.removeEventListener("playing",onPlaying),()=>v.removeEventListener("error",onError));
-    v.src=primary;v.load();
-    try{await v.play()}catch{msg("Toque em ▶ para iniciar.");}
-  }
-  function waitPlaying(v,timeout=9000){
-    return new Promise((resolve,reject)=>{
-      let done=false;
-      const finish=(ok,err)=>{
-        if(done)return; done=true;
-        clearTimeout(timer);
-        v.removeEventListener("playing",onPlaying);
-        v.removeEventListener("error",onError);
-        if(ok)resolve(true); else reject(err||Error("media startup failed"));
-      };
-      const onPlaying=()=>finish(true);
-      const onError=()=>finish(false,v.error||Error("HTML5 media error"));
-      const timer=setTimeout(()=>finish(false,Error("startup timeout")),timeout);
-      v.addEventListener("playing",onPlaying,{once:true});
-      v.addEventListener("error",onError,{once:true});
-      if(v.readyState>=3) onPlaying();
-    });
   }
   async function play(item){
     if(!item?.url){msg("Este conteúdo não possui uma URL válida.");return false}
@@ -128,9 +88,11 @@
         msg("Aguardando primeiro quadro..."); await waitPlaying(v,9000); msg(""); note("playing"); return true;
       }
       if(kind==="ts"){
-        if(typeof window.playMpegTS!=="function")throw Error("Motor MPEG-TS indisponível");
-        note("ts_start");
-        await window.playMpegTS(v,proxy(raw,item),document.getElementById("playerMessage"),raw,"");
+        const nativeTs=window.__GC_NATIVE_PLAY_MPEGTS__;
+        const engine=typeof nativeTs==="function"?nativeTs:window.playMpegTS;
+        if(typeof engine!=="function")throw Error("Motor MPEG-TS indisponível");
+        note("ts_start",{direct:true,native:engine===nativeTs});
+        await engine(v,raw,document.getElementById("playerMessage"));
         msg("Aguardando primeiro quadro...");
         await waitPlaying(v,10000);
         msg(""); note("playing"); return true;
