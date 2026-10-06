@@ -1,6 +1,7 @@
 import express from "express";
 import pg from "pg";
 import crypto from "node:crypto";
+import parser from "iptv-playlist-parser";
 const {Pool}=pg;
 const app=express();
 const PORT=process.env.PORT||10000;
@@ -37,6 +38,34 @@ async function dashboardData(){const p=await db();const [l,c,d,g]=await Promise.
  p.query("select id,client_id,device_uid,device_name,platform,last_seen_at,status,network_online,network_rtt_ms,network_downlink_mbps,network_effective_type,backend_rtt_ms,diagnostics_status,last_playback_at,last_playback_error,last_buffer_seconds,last_stream_name,last_stream_type from devices order by last_seen_at desc"),
  p.query("select id,list_id,status,old_expiry,new_expiry,details,created_at from sync_logs order by created_at desc limit 12")
 ]);return{lists:l.rows.map(safeList),clients:c.rows,devices:d.rows,logs:g.rows}}
+/*
+ * M3U parser fallback.
+ * The browser keeps the streaming parser for very large playlists.
+ * This endpoint uses iptv-playlist-parser only when a playlist is small
+ * enough to safely materialize in memory or when the streaming parser
+ * cannot recognize the source. It also keeps playlist fetching server-side
+ * so a source that does not expose CORS can still be inspected.
+ */
+app.post("/api/playlist/parse",async(req,res)=>{
+  const source=String(req.body?.url||"").trim();
+  if(!/^https?:\\/\\//i.test(source)) return res.status(400).json({ok:false,error:"URL M3U inválida."});
+  const MAX_BYTES=12*1024*1024;
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),45000);
+  try{
+    const response=await fetch(source,{headers:{Accept:"application/vnd.apple.mpegurl,audio/x-mpegurl,text/plain,*/*","User-Agent":"GC-PLAY-PRO/1.0"},redirect:"follow",cache:"no-store",signal:controller.signal});
+    if(!response.ok) return res.status(response.status).json({ok:false,error:"Origem HTTP "+response.status});
+    const len=Number(response.headers.get("content-length")||0);
+    if(len>MAX_BYTES) return res.status(413).json({ok:false,error:"Playlist grande demais para o parser de compatibilidade.",maxBytes:MAX_BYTES});
+    const text=await response.text();
+    if(Buffer.byteLength(text,"utf8")>MAX_BYTES) return res.status(413).json({ok:false,error:"Playlist grande demais para o parser de compatibilidade.",maxBytes:MAX_BYTES});
+    const parsed=parser.parse(text);
+    return res.json({ok:true,header:parsed.header||null,items:Array.isArray(parsed.items)?parsed.items:[],parser:"iptv-playlist-parser@0.15.2"});
+  }catch(e){
+    return res.status(502).json({ok:false,error:e?.name==="AbortError"?"Tempo limite do parser de compatibilidade.":String(e?.message||e)});
+  }finally{clearTimeout(timer)}
+});
+
 app.get("/health",async(_q,r)=>{try{await (await db()).query("select 1");r.json({ok:true,service:"gc-play-pro-backend",database:"ok",version:"render-native-panel-1"})}catch(e){r.status(503).json({ok:false,error:e.message})}});
 app.get("/api/status",async(_q,r)=>{try{const p=await db();const q=await p.query("select (select count(*) from provider_lists) lists,(select count(*) from clients) clients,(select count(*) from devices) devices,(select count(*) from activations) activations,(select count(*) from sync_logs) sync_logs,(select count(*) from admin_profiles) admin_profiles");r.json({ok:true,...q.rows[0]})}catch(e){r.status(503).json({ok:false,error:e.message})}});
 app.get("/api/auth/status",async(_q,r)=>{try{r.json({ok:true,configured:await adminCount()>0})}catch(e){r.status(503).json({ok:false,error:e.message})}});
