@@ -1045,6 +1045,8 @@ function extractSeriesInfo(item) {
 
   const patterns = [
     /\b(?:s|t)\s*0*(\d{1,3})\s*e\s*0*(\d{1,4})\b/i,
+    /\[\s*(?:s|t)\s*0*(\d{1,3})\s*e\s*0*(\d{1,4})\s*\]/i,
+    /\b0*(\d{1,3})\s*[ªaº]?\s*(?:temporada|season)\s*[-: ]*\s*(?:e|ep|epis[oó]dio)?\s*0*(\d{1,4})\b/i,
     /\b(?:season|temporada)\s*0*(\d{1,3})\s*(?:e|ep|episode|episodio)\s*0*(\d{1,4})\b/i,
     /\b0*(\d{1,3})\s*x\s*0*(\d{1,4})\b/i,
     /(?:^|[\s._()[\]-])(?:s|season|t|temporada)\s*0*(\d{1,3})\s*(?:[-_.:/ ]*?)?(?:e|ep|episode|episodio)\s*0*(\d{1,4})(?=$|[\s._()[\]-])/i,
@@ -1286,7 +1288,7 @@ async function migrateCatalogTypes() {
      (seriesKey/season/episode). A migração anterior só alterava
      o tipo e deixava episódios antigos com seriesKey vazio.
   */
-  const migrationKey = "GC_PLAY_PRO_CATEGORY_TYPES_V5";
+  const migrationKey = "GC_PLAY_PRO_CATEGORY_TYPES_V6";
 
   try {
     if (localStorage.getItem(migrationKey) === "1") {
@@ -1387,6 +1389,7 @@ async function migrateCatalogTypes() {
 
         localStorage.removeItem("GC_PLAY_PRO_SERIES_MIGRATION_V3");
         localStorage.removeItem("GC_PLAY_PRO_SERIES_MIGRATION_V2");
+        localStorage.removeItem("GC_PLAY_PRO_CATEGORY_TYPES_V5");
         localStorage.removeItem("GC_PLAY_PRO_CATEGORY_TYPES_V4");
       } catch {}
 
