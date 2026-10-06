@@ -227,8 +227,144 @@
     } catch {}
   }
 
+  function installPlaylistManager() {
+    const settings = document.querySelector("#settingsDialog .gc-dialog");
+    if (!settings || settings.__gcPlaylistManager) return;
+    settings.__gcPlaylistManager = true;
+
+    const wrap = document.createElement("div");
+    wrap.className = "setting-item gc-pro-playlists-setting";
+    wrap.innerHTML = `
+      <div>
+        <strong>▣ Minhas listas</strong>
+        <span>Gerencie até 8 fontes M3U/Xtream neste dispositivo.</span>
+      </div>
+      <button class="secondary-button" id="gcManagePlaylists" type="button">GERENCIAR</button>
+    `;
+    const version = settings.querySelector(".settings-version");
+    settings.insertBefore(wrap, version || null);
+
+    const openManager = () => {
+      let dialog = document.getElementById("gcPlaylistManagerDialog");
+      if (!dialog) {
+        dialog = document.createElement("dialog");
+        dialog.id = "gcPlaylistManagerDialog";
+        dialog.innerHTML = `
+          <div class="gc-dialog">
+            <button type="button" class="modal-close" id="gcPlaylistManagerClose">×</button>
+            <span class="gc-kicker">LISTAS</span>
+            <h2>Minhas listas</h2>
+            <p id="gcPlaylistManagerInfo">Escolha a fonte que deseja usar.</p>
+            <div id="gcPlaylistManagerList"></div>
+            <div style="display:flex;gap:8px;margin-top:14px">
+              <button type="button" class="secondary-button" id="gcPlaylistSaveCurrent">SALVAR LISTA ATUAL</button>
+            </div>
+          </div>
+        `;
+        document.body.appendChild(dialog);
+        document.getElementById("gcPlaylistManagerClose")?.addEventListener("click", () => dialog.close());
+        document.getElementById("gcPlaylistSaveCurrent")?.addEventListener("click", () => {
+          const url = localStorage.getItem("GC_PLAY_PRO_PLAYLIST_URL") || "";
+          const name = localStorage.getItem("GC_PLAY_PRO_PLAYLIST_NAME") || "Minha lista";
+          if (!url) return;
+          try {
+            savePlaylist(name, url, /player_api\\.php|get\\.php/i.test(url) ? "xtream" : "m3u");
+            renderManager();
+          } catch (e) {
+            console.warn("[GC PLAY PRO] salvar lista atual:", e);
+          }
+        });
+      }
+
+      const renderManager = () => {
+        const list = document.getElementById("gcPlaylistManagerList");
+        if (!list) return;
+        const entries = playlists();
+        if (!entries.length) {
+          list.innerHTML = '<div class="gc-results-count">Nenhuma lista salva neste aparelho.</div>';
+          return;
+        }
+        list.innerHTML = entries.map(item => `
+          <div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08)">
+            <div style="flex:1;min-width:0">
+              <strong style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${String(item.name).replace(/[&<>"]/g,"")}</strong>
+              <small style="opacity:.65">${String(item.type).toUpperCase()}</small>
+            </div>
+            <button type="button" class="secondary-button" data-gc-open-playlist="${String(item.id)}">ABRIR</button>
+            <button type="button" class="secondary-button" data-gc-remove-playlist="${String(item.id)}">×</button>
+          </div>
+        `).join("");
+
+        list.querySelectorAll("[data-gc-open-playlist]").forEach(btn => {
+          btn.addEventListener("click", async () => {
+            btn.disabled = true;
+            try {
+              const ok = await openPlaylist(btn.dataset.gcOpenPlaylist);
+              if (ok) dialog.close();
+            } finally { btn.disabled = false; }
+          });
+        });
+
+        list.querySelectorAll("[data-gc-remove-playlist]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            removePlaylist(btn.dataset.gcRemovePlaylist);
+            renderManager();
+          });
+        });
+      };
+
+      renderManager();
+      try { dialog.showModal(); } catch { dialog.classList.add("active","open","show"); }
+    };
+
+    document.getElementById("gcManagePlaylists")?.addEventListener("click", openManager);
+  }
+
+  function installRemoteNavigation() {
+    if (window.__GC_PRO_REMOTE_KEYS__) return;
+    window.__GC_PRO_REMOTE_KEYS__ = true;
+
+    document.addEventListener("keydown", event => {
+      const key = event.key;
+      if (!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Enter","Escape"].includes(key)) return;
+
+      const active = document.activeElement;
+      if (active?.matches?.("input,textarea,select,video")) return;
+
+      if (key === "Escape") {
+        try { window.GC_PLAY_PRO?.closePlayer?.(); } catch {}
+        return;
+      }
+
+      if (key === "Enter") {
+        if (active?.click) active.click();
+        return;
+      }
+
+      const focusables = Array.from(document.querySelectorAll(
+        'button:not([disabled]),[tabindex="0"],select'
+      )).filter(el => el.offsetParent !== null);
+      if (!focusables.length) return;
+
+      const index = focusables.indexOf(active);
+      if (index < 0) {
+        focusables[0]?.focus();
+        return;
+      }
+
+      const direction = key === "ArrowRight" || key === "ArrowDown" ? 1 : -1;
+      const next = focusables[index + direction];
+      if (next) {
+        event.preventDefault();
+        next.focus();
+      }
+    }, true);
+  }
+
   function boot() {
     ensurePlayerTools();
+    installPlaylistManager();
+    installRemoteNavigation();
     installPlayerWatchdog();
 
     const observer = new MutationObserver(() => {
