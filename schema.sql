@@ -85,3 +85,13 @@ CREATE TRIGGER provider_lists_updated_at BEFORE UPDATE ON provider_lists FOR EAC
 
 DROP TRIGGER IF EXISTS clients_updated_at ON clients;
 CREATE TRIGGER clients_updated_at BEFORE UPDATE ON clients FOR EACH ROW EXECUTE FUNCTION gc_set_updated_at();
+
+CREATE TABLE IF NOT EXISTS admin_auth (
+  id uuid PRIMARY KEY,
+  email text UNIQUE NOT NULL,
+  password_hash text NOT NULL,
+  full_name text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_admin_auth_email ON admin_auth(lower(email));
