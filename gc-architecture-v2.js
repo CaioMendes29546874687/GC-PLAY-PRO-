@@ -179,6 +179,7 @@
   /* 12 — diagnostics */
   const DiagnosticsEngine={
     events:[],
+    record(type,data={}){return this.push(type,data)},
     push(type,data={}){const e={type,time:new Date().toISOString(),...data};this.events.push(e);if(this.events.length>100)this.events.shift();try{sessionStorage.setItem("GC2_DIAG",JSON.stringify(this.events))}catch{};return e},
     snapshot(){return {version:VERSION,events:this.events.slice(-20),adapter:AdapterEngine.detect(),connection:navigator.connection?{effectiveType:navigator.connection.effectiveType,downlink:navigator.connection.downlink}:null}}
   };
