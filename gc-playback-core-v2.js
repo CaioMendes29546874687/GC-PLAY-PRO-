@@ -6,7 +6,7 @@
   "use strict";
   if(window.__GC_PLAYBACK_CORE_V2__) return;
   window.__GC_PLAYBACK_CORE_V2__=true;
-  const VERSION="2026.10.06.4";
+  const VERSION="2026.10.06.5";
   const originalApi=window.GC_PLAY_PRO;
   const state=()=>window.__GC_STATE__||originalApi?.state||null;
   const msg=t=>{const e=document.getElementById("playerMessage");if(e)e.textContent=t||""};
@@ -91,8 +91,10 @@
         const nativeTs=window.__GC_NATIVE_PLAY_MPEGTS__;
         const engine=typeof nativeTs==="function"?nativeTs:window.playMpegTS;
         if(typeof engine!=="function")throw Error("Motor MPEG-TS indisponível");
-        note("ts_start",{direct:true,native:engine===nativeTs});
-        await engine(v,raw,document.getElementById("playerMessage"));
+
+        const proxied=proxy(raw,item);
+        note("ts_start",{proxyFirst:proxied!==raw,native:engine===nativeTs});
+        await engine(v,proxied,document.getElementById("playerMessage"));
         msg("Aguardando primeiro quadro...");
         await waitPlaying(v,10000);
         msg(""); note("playing"); return true;
