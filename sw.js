@@ -6,7 +6,7 @@
 
 "use strict";
 
-const CACHE_NAME = "gc-play-pro-v173-activationfix";
+const CACHE_NAME = "gc-play-pro-v174-catalog-recovery";
 
 const APP_SHELL = [
   "./",
