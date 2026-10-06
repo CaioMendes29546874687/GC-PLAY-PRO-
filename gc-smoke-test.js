@@ -22,11 +22,14 @@ const runtime = fs.readFileSync("gc-pro-runtime.js", "utf8");
 const checks = [
   ["sem proxy de vídeo Supabase", !app.includes("/functions/v1/m3u-proxy")],
   ["gateway Cloudflare configurado", /gc-catalog\.caioroberto318\.workers\.dev/.test(app)],
+  ["media gateway configurado", /mode=media/.test(app) && /buildMediaProxyUrl/.test(app)],
+  ["DASH via media gateway", /isDASH\(sourceUrl\)/.test(app)],
   ["Xtream com timeout", /timeoutMs = action === "get_series_info" \? 30000 : 25000/.test(app)],
   ["filmes sob demanda", /ensureXtreamSectionLoaded\("movie"\)/.test(app)],
   ["séries sob demanda", /ensureXtreamSectionLoaded\("series"\)/.test(app)],
   ["runtime carregado no index", /gc-pro-runtime\.js\?v=/.test(index)],
   ["runtime no service worker", /gc-pro-runtime\.js\?v=/.test(sw)],
+  ["service worker cache versionado", /gc-play-pro-v170-archfix/.test(sw)],
   ["multi-playlist", /MAX_PLAYLISTS = 8/.test(runtime)],
   ["PiP", /requestPictureInPicture/.test(runtime)],
   ["watchdog de travamento", /waiting_8s/.test(runtime)]

@@ -1491,7 +1491,6 @@ async function migrateCatalogTypes() {
    ========================================================= */
 
 function shouldUseProxy(url) {
-  /* Compatibilidade: mídia nunca é enviada ao gateway. */
   return false;
 }
 
@@ -1502,6 +1501,19 @@ function buildProxyUrl(url) {
     const parsed = new URL(value);
     if (!/^https?:$/.test(parsed.protocol)) return value;
     return `${GC_CATALOG_GATEWAY}?url=${encodeURIComponent(value)}`;
+  } catch {
+    return value;
+  }
+}
+
+function buildMediaProxyUrl(url) {
+  const value = String(url || "").trim();
+  if (!value) return "";
+  try {
+    const parsed = new URL(value);
+    if (!/^https?:$/.test(parsed.protocol)) return value;
+    if (parsed.hostname === new URL(GC_CATALOG_GATEWAY).hostname && parsed.searchParams.get("mode") === "media") return value;
+    return `${GC_CATALOG_GATEWAY}?mode=media&url=${encodeURIComponent(value)}`;
   } catch {
     return value;
   }
@@ -4955,6 +4967,13 @@ async function playItem(item) {
       ? liveHlsUrl
       : originalUrl;
 
+  /* HLS/live media uses the streaming gateway so manifests, segments,
+     keys and Range requests share the same CORS-safe path. */
+  const playbackUrl =
+    isHLS(sourceUrl) || isDASH(sourceUrl) || (looksLikeLiveStream && item.type === "live")
+      ? buildMediaProxyUrl(sourceUrl)
+      : sourceUrl;
+
   video.playbackRate =
     Number(state.settings.playbackRate) > 0
       ? Number(state.settings.playbackRate)
@@ -5008,7 +5027,7 @@ async function playItem(item) {
      Para HTTP usamos o proxy desde o primeiro pedido. HTTPS continua
      tentando direto e mantém o proxy como fallback. */
   /* Playback é sempre direto; Cloudflare é somente catálogo. */
-  const playbackUrl = sourceUrl;
+  /* playbackUrl already normalized above. */
 
   /* -------------------------------------------------------
      MPEG-TS AO VIVO
@@ -5035,7 +5054,7 @@ async function playItem(item) {
   if (isHLS(sourceUrl)) {
     const liveTsProxyFallback =
       item.xtreamKind === "live" && liveTsUrl !== sourceUrl
-        ? (shouldUseProxy(liveTsUrl) ? buildProxyUrl(liveTsUrl) : liveTsUrl)
+        ? buildMediaProxyUrl(liveTsUrl)
         : "";
 
     const liveTsDirectFallback =
@@ -5088,10 +5107,10 @@ async function playItem(item) {
         item.xtreamKind === "live"
           ? (
               originalLiveIsHls
-                ? (shouldUseProxy(originalUrl) ? buildProxyUrl(originalUrl) : originalUrl)
+                ? buildMediaProxyUrl(originalUrl)
                 : (
                     liveHlsUrl !== sourceUrl
-                      ? (shouldUseProxy(liveHlsUrl) ? buildProxyUrl(liveHlsUrl) : liveHlsUrl)
+                      ? buildMediaProxyUrl(liveHlsUrl)
                       : ""
                   )
             )
@@ -6898,6 +6917,27 @@ async function tryRestoreCatalogInstant(url) {
       getSavedPlaylist()?.name ||
       "Minha Playlist";
 
+    /*
+       Restaurar também a sessão Xtream salva. Sem isso o catálogo
+       instantâneo aparecia, mas Filmes/Séries ficavam sem fonte para
+       o carregamento sob demanda após recarregar a página.
+    */
+    state.xtreamSession = null;
+    state.xtreamUserInfo = null;
+    try {
+      const savedXtream = localStorage.getItem("GC_PLAY_PRO_XTREAM_SESSION_V1");
+      const session = savedXtream ? JSON.parse(savedXtream) : null;
+      if (session?.base && session?.username && session?.password) {
+        const parsed = parseXtreamLogin(url);
+        if (parsed &&
+            parsed.base === session.base &&
+            parsed.username === session.username &&
+            parsed.password === session.password) {
+          state.xtreamSession = session;
+        }
+      }
+    } catch {}
+
     renderStats();
     renderGenreFilters();
     render();
@@ -7010,6 +7050,10 @@ async function loadM3U(
 
   state.groups =
     [];
+
+  state.xtreamSession = null;
+  state.xtreamUserInfo = null;
+  state.xtreamSeriesFallbackNeeded = false;
 
   state.groupsReady =
     false;
