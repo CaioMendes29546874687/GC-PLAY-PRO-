@@ -1396,6 +1396,40 @@ body.gc-future:before{
 .gc-future .gc-player-toolbar select,
 .gc-future .gc-player-toolbar button{font-size:6px!important}
 .gc-future .gc-player-epg{max-height:75px!important;font-size:7px!important}
+/* GC PLAY PRO — EPG compacto, mas realmente utilizável no player */
+.gc-player-epg{
+  display:none;
+  max-width:1400px;
+  margin:0 auto;
+  padding:8px 10px;
+  border-top:1px solid var(--line);
+  background:#050c07;
+  color:#dcebe1;
+  overflow-x:auto;
+  overflow-y:hidden;
+  white-space:nowrap;
+}
+.gc-player-epg.show{display:flex;gap:8px;align-items:stretch}
+.gc-epg-item{
+  flex:0 0 210px;
+  min-height:58px;
+  padding:8px 9px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:rgba(255,255,255,.025);
+  overflow:hidden;
+}
+.gc-epg-item.active{border-color:var(--line2);box-shadow:inset 0 0 0 1px rgba(57,255,136,.08)}
+.gc-epg-time{font-size:7px;color:var(--green);font-weight:900;letter-spacing:.5px}
+.gc-epg-title{font-size:9px;font-weight:900;margin-top:4px;overflow:hidden;text-overflow:ellipsis}
+.gc-epg-desc{font-size:7px;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis}
+.gc-epg-loading,.gc-epg-empty{font-size:8px;color:var(--muted);padding:8px 2px}
+.gc-future .gc-player-epg{max-height:150px!important;font-size:7px!important}
+@media(max-width:700px){
+  .gc-player-epg{padding:6px;gap:6px}
+  .gc-epg-item{flex-basis:180px;min-height:52px}
+  .gc-future .gc-player-epg{max-height:105px!important}
+}
 
 /* Search: make it look like the reference search station */
 .gc-future #searchDialog{
