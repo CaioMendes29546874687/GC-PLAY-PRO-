@@ -6476,9 +6476,8 @@ async function playHLS(
         /* FRAG_BUFFERED pode ocorrer com áudio/segmento aceito sem
            existir ainda um primeiro frame de vídeo. Nunca desarme o
            watchdog apenas por isso. */
-        if (video.videoWidth > 0) {
+        if (livePlaybackStarted) {
           if (message) message.textContent = "";
-          clearStartupTimer();
         }
       });
       direct.on(HlsDirect.Events.ERROR, (event, data) => {
@@ -6497,7 +6496,7 @@ async function playHLS(
          criado. Se não houver metadata/frame rapidamente, passa para TS.
       */
       directHlsTimer = setTimeout(() => {
-        if (video.videoWidth > 0) return;
+        if (livePlaybackStarted) return;
         try { direct.destroy(); } catch {}
         if (state.hls === direct) state.hls = null;
         try { window.GCPlaybackInspector?.event?.("liveFallback", {detail:"HLS direto sem primeiro frame em 6s → MPEG-TS"}); } catch {}
@@ -6556,6 +6555,11 @@ async function playHLS(
   const startMpegTSFallback = async () => {
     if (!mpegtsFallbackUrl || fallbackStarted) return false;
     fallbackStarted = true;
+    try {
+      window.GCPlaybackInspector?.event?.("mpegTsFallbackStarted", {
+        detail: JSON.stringify({ proxy: !!mpegtsFallbackUrl, direct: !!directMpegtsFallbackUrl })
+      });
+    } catch {}
     clearStartupTimer();
 
     try {
@@ -6633,8 +6637,18 @@ async function playHLS(
      O timer interno do HLS só existe depois que o CDN terminou de
      carregar. Este watchdog cobre justamente esse ponto cego.
   */
+  try {
+    window.GCPlaybackInspector?.event?.("liveWatchdogStarted", {
+      detail: "Watchdog LIVE armado: 7s, autoridade = evento playing"
+    });
+  } catch {}
   hardLiveTimer = setTimeout(async () => {
     if (livePlaybackStarted || fallbackStarted) return;
+    try {
+      window.GCPlaybackInspector?.event?.("liveWatchdogFired", {
+        detail: "Watchdog LIVE disparou: sem evento playing em 7s"
+      });
+    } catch {}
     try {
       window.GCPlaybackInspector?.event?.("liveFallback", {
         detail: "Watchdog global: HLS.js sem evento playing em 7s → MPEG-TS"
@@ -6772,11 +6786,11 @@ async function playHLS(
     /* HLS sem primeiro frame também troca de transporte cedo,
        evitando a tela de carregamento indefinida. */
     startupTimer = setTimeout(async () => {
-      if (video.videoWidth > 0) return;
+      if (livePlaybackStarted) return;
 
       try {
         window.GCPlaybackInspector?.event?.("liveFallback", {
-          detail: "HLS inicial sem primeiro frame em 6s"
+          detail: "HLS inicial sem evento playing em 6s"
         });
       } catch {}
 
