@@ -1803,7 +1803,31 @@ function buildMediaProxyUrl(url, item = null) {
   try {
     const parsed = new URL(value);
     if (!/^https?:$/.test(parsed.protocol)) return value;
-    if (parsed.hostname === new URL(GC_CATALOG_GATEWAY).hostname && parsed.searchParams.get("mode") === "media") return value;
+
+    /*
+       ARQUITETURA DE PLAYBACK:
+       - LIVE -> Supabase m3u-proxy (gateway que já funcionava para os canais)
+       - FILMES/SÉRIES -> Cloudflare gc-catalog
+       O site/painel de ativação continua no Render e não participa do
+       transporte de vídeo.
+    */
+    const isLive =
+      String(item?.type || "").toLowerCase() === "live" ||
+      String(item?.xtreamKind || "").toLowerCase() === "live";
+
+    if (isLive) {
+      const supabaseProxy = new URL(
+        `${GC_SUPABASE_URL}/functions/v1/m3u-proxy`
+      );
+      supabaseProxy.searchParams.set("url", value);
+      return supabaseProxy.toString();
+    }
+
+    if (
+      parsed.hostname === new URL(GC_CATALOG_GATEWAY).hostname &&
+      parsed.searchParams.get("mode") === "media"
+    ) return value;
+
     const proxy = new URL(GC_CATALOG_GATEWAY);
     proxy.searchParams.set("mode", "media");
     proxy.searchParams.set("url", value);
