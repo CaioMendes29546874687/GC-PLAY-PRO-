@@ -5245,7 +5245,8 @@ async function playMpegTS(
         detail: JSON.stringify({ timeoutMs: 5000, readyState: video.readyState, videoWidth: video.videoWidth, videoHeight: video.videoHeight })
       }); } catch {}
       if (!tryDirectFallback() && message) {
-        message.textContent = "O canal não entregou vídeo MPEG-TS.";\n      }
+        message.textContent = "O canal não entregou vídeo MPEG-TS.";
+      }
     }, 4500);
 
     player.on(
