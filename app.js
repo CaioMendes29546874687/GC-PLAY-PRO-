@@ -6047,6 +6047,17 @@ async function playItem(item) {
      ------------------------------------------------------- */
 
   if (isHLS(sourceUrl)) {
+    try {
+      window.GCPlaybackInspector?.event?.("hlsBranchEntered", {
+        detail: JSON.stringify({
+          source: String(sourceUrl || "").slice(0, 220),
+          playback: String(playbackUrl || "").slice(0, 220),
+          isHLS: isHLS(sourceUrl),
+          isLive: looksLikeLiveStream
+        })
+      });
+    } catch {}
+
     const liveCandidates = buildPlaybackAlternatives(
       originalUrl || sourceUrl,
       item.type
@@ -6079,14 +6090,59 @@ async function playItem(item) {
        recebe as variantes descobertas acima, porque o diagnóstico atual
        provou que o primeiro /m3u8 pode simplesmente não responder.
     */
-    const hlsStarted = await playHLS(
-      video,
-      playbackUrl,
-      message,
-      liveTsProxyFallback,
-      liveTsDirectFallback,
-      liveDirectHlsFallback
-    );
+    /*
+       Guarda de entrada do playHLS: se o motor HLS ficar preso durante
+       o carregamento do CDN/loader, o playItem não pode permanecer
+       indefinidamente na bolinha. O fallback é acionado pelo mesmo
+       MPEG-TS que já foi calculado para esta URL.
+    */
+    let hlsCallSafetyTimer = null;
+    if (looksLikeLiveStream && liveTsProxyFallback) {
+      hlsCallSafetyTimer = setTimeout(async () => {
+        try {
+          window.GCPlaybackInspector?.event?.("hlsCallSafetyFired", {
+            detail: "playHLS não concluiu a inicialização em 8s → MPEG-TS de emergência"
+          });
+          window.GCPlaybackInspector?.event?.("liveFallback", {
+            detail: "Guarda externa do playItem: HLS preso em 8s → MPEG-TS"
+          });
+        } catch {}
+        try {
+          const native = window.__GC_NATIVE_PLAY_MPEGTS__;
+          if (typeof native === "function") {
+            await native(video, liveTsProxyFallback, message, liveTsDirectFallback);
+          }
+        } catch (error) {
+          console.warn("[GC PLAY PRO] guarda externa LIVE:", error);
+        }
+      }, 8000);
+    }
+
+    try {
+      window.GCPlaybackInspector?.event?.("hlsCallStarting", {
+        detail: "Chamando playHLS()"
+      });
+    } catch {}
+
+    let hlsStarted;
+    try {
+      hlsStarted = await playHLS(
+        video,
+        playbackUrl,
+        message,
+        liveTsProxyFallback,
+        liveTsDirectFallback,
+        liveDirectHlsFallback
+      );
+    } finally {
+      if (hlsCallSafetyTimer) clearTimeout(hlsCallSafetyTimer);
+    }
+
+    try {
+      window.GCPlaybackInspector?.event?.("hlsCallReturned", {
+        detail: JSON.stringify({ result: hlsStarted !== false })
+      });
+    } catch {}
 
     if (hlsStarted !== false) return;
 
@@ -6117,6 +6173,11 @@ async function playItem(item) {
      ------------------------------------------------------- */
 
   if (looksLikeLiveStream) {
+    try {
+      window.GCPlaybackInspector?.event?.("liveTsBranchEntered", {
+        detail: "LIVE caiu no ramo MPEG-TS; HLS não foi selecionado."
+      });
+    } catch {}
     if (message) {
       message.textContent = "Conectando ao MPEG-TS...";
     }
