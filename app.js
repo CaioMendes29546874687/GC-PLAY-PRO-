@@ -302,6 +302,35 @@ function isDASH(url) {
   return /(?:\.mpd)(?:$|[?#])/i.test(value) || value.includes("manifest.mpd");
 }
 
+/*
+   Normalização das URLs de mídia:
+   alguns provedores entregam VOD como "...token#.mp4". O "#" inicia
+   um fragmento HTTP e nunca deveria fazer parte do caminho do vídeo.
+   Também existem rotas LIVE ".../ts" que precisam tentar HLS antes
+   do MPEG-TS no navegador.
+*/
+function normalizePlaybackSourceUrl(url, type="") {
+  let value = String(url || "").trim();
+  if (!value) return value;
+
+  /* Corrige "#.mp4", "#.mkv", etc. que vieram literalmente na M3U. */
+  value = value.replace(/#\.(mp4|m4v|mkv|webm|avi|mov|wmv|flv)(?=$|[?])/i, ".$1");
+
+  if (String(type).toLowerCase() === "live" && !isHLS(value) && !isDASH(value)) {
+    try {
+      const u = new URL(value);
+      if (/\/(?:ts|mpeg|mpg|m2ts)$/i.test(u.pathname)) {
+        u.pathname = u.pathname.replace(/\/(?:ts|mpeg|mpg|m2ts)$/i, "/m3u8");
+        value = u.toString();
+      }
+    } catch {
+      value = value.replace(/\/(?:ts|mpeg|mpg|m2ts)$/i, "/m3u8");
+    }
+  }
+
+  return value;
+}
+
 function isM3U(url) {
   const value = String(url || "").toLowerCase();
 
@@ -5373,6 +5402,13 @@ async function playItem(item) {
      PLAYBACK INSPECTOR — entrada garantida no próprio motor.
      Não depende de wrapper externo, timing de scripts ou clique.
   */
+  if (item?.url) {
+    const normalizedPlaybackUrl = normalizePlaybackSourceUrl(item.url, item.type);
+    if (normalizedPlaybackUrl !== item.url) {
+      console.info("[GC PLAY PRO] URL de mídia normalizada:", item.url, "→", normalizedPlaybackUrl);
+      item = { ...item, url: normalizedPlaybackUrl };
+    }
+  }
   try {
     if (window.GCPlaybackInspector?.begin && item?.url) {
       window.GCPlaybackInspector.begin(item);
