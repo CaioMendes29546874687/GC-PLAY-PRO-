@@ -130,7 +130,7 @@
   const PlaybackEngine={
     classify(url){
       const u=text(url).toLowerCase().split("?")[0];
-      if(/(?:\\.m3u8|\\/m3u8)(?:$|[?#])/.test(u)||u.includes("m3u8"))return"hls";
+      if(/(?:\.m3u8|\/m3u8)(?:$|[?#])/.test(u)||u.includes("m3u8"))return"hls";
       if(u.endsWith(".mpd")||u.includes(".mpd"))return"dash";
       if(/\.m3u$/.test(u))return"m3u";
       if(/\.(mp4|mkv|webm|mov)(?:$|\/)/.test(u))return"vod";
