@@ -110,7 +110,11 @@ function event(name,data={}){
     hlsGatewayProbeError:["HLS GATEWAY","FAIL","Falha ao consultar o gateway do manifesto."]
   };
   const m=map[name]||["EVENTO","INFO",name];
-  add(m[0],m[1],m[2],{elapsed_ms:elapsed,error_code:data.code||"",detail:data.detail||""});
+  let detail = data?.detail || "";
+  if (!detail && data && Object.keys(data).length) {
+    try { detail = JSON.stringify(data); } catch { detail = String(data); }
+  }
+  add(m[0],m[1],m[2],{elapsed_ms:elapsed,error_code:data.code||"",detail});
 }
 function fullReport(){
   return JSON.stringify({
