@@ -6476,7 +6476,7 @@ async function playHLS(
         /* FRAG_BUFFERED pode ocorrer com áudio/segmento aceito sem
            existir ainda um primeiro frame de vídeo. Nunca desarme o
            watchdog apenas por isso. */
-        if (video.readyState >= 2 || video.videoWidth > 0) {
+        if (video.videoWidth > 0) {
           if (message) message.textContent = "";
           clearStartupTimer();
         }
@@ -6497,7 +6497,7 @@ async function playHLS(
          criado. Se não houver metadata/frame rapidamente, passa para TS.
       */
       directHlsTimer = setTimeout(() => {
-        if (video.readyState >= 2 || video.videoWidth > 0) return;
+        if (video.videoWidth > 0) return;
         try { direct.destroy(); } catch {}
         if (state.hls === direct) state.hls = null;
         try { window.GCPlaybackInspector?.event?.("liveFallback", {detail:"HLS direto sem primeiro frame em 6s → MPEG-TS"}); } catch {}
@@ -6614,7 +6614,7 @@ async function playHLS(
      carregar. Este watchdog cobre justamente esse ponto cego.
   */
   hardLiveTimer = setTimeout(async () => {
-    if (video.readyState >= 2 || video.videoWidth > 0 || fallbackStarted) return;
+    if (video.videoWidth > 0 || fallbackStarted) return;
     try {
       window.GCPlaybackInspector?.event?.("liveFallback", {
         detail: "Watchdog global: HLS.js sem primeiro frame em 7s → MPEG-TS"
@@ -6741,7 +6741,7 @@ async function playHLS(
         /* Um fragmento pode ser bufferizado sem que o vídeo tenha
            produzido imagem. O watchdog só pode ser encerrado quando
            houver metadata/frame real. */
-        if (video.readyState >= 2 || video.videoWidth > 0) {
+        if (video.videoWidth > 0) {
           clearStartupTimer();
           if (message) {
             message.textContent = "";
@@ -6753,7 +6753,7 @@ async function playHLS(
     /* HLS sem primeiro frame também troca de transporte cedo,
        evitando a tela de carregamento indefinida. */
     startupTimer = setTimeout(async () => {
-      if (video.readyState >= 2 || video.videoWidth > 0) return;
+      if (video.videoWidth > 0) return;
 
       try {
         window.GCPlaybackInspector?.event?.("liveFallback", {
