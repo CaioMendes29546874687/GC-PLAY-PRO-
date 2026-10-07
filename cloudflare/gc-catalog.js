@@ -1,4 +1,4 @@
-const GC_WORKER_VERSION = "2026.10.07.10";
+const GC_WORKER_VERSION = "2026.10.07.11";
 const ALLOW_ORIGIN = "https://caiomendes29546874687.github.io";
 const CATALOG_CORS = {
   "Access-Control-Allow-Origin": ALLOW_ORIGIN,
