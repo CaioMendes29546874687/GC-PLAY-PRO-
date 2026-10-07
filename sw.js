@@ -6,14 +6,14 @@
 
 "use strict";
 
-const CACHE_NAME = "gc-play-pro-v195-playback-inspector";
+const CACHE_NAME = "gc-play-pro-v196-playback-inspector";
 
 const APP_SHELL = [
   "./",
   "./index.html",
   "./style.css?v=20261006-PLAYFIX1",
   "./app.js?v=20261006-PLAYFIX11",
-  "./gc-playback-diagnostics.js?v=20261006-INSPECTOR2",
+  "./gc-playback-diagnostics.js?v=20261006-INSPECTOR3",
   "./gc-architecture-v2.js?v=20261006-16",
   "./gc-architecture-bridge.js?v=20261006-4",
   "./gc-final-readiness.js?v=20261006-2",
