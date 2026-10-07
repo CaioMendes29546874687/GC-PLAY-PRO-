@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-07-PLAYFIX26 */
+/* GC BUILD 2026-10-07-HLSFIX32 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -6760,10 +6760,29 @@ async function playHLS(
       !Hls ||
       !Hls.isSupported()
     ) {
+      try {
+        window.GCPlaybackInspector?.event?.("hlsEngineLoaded", {
+          detail: JSON.stringify({
+            version: Hls?.version || "",
+            supported: !!Hls?.isSupported?.(),
+            userAgent: navigator.userAgent || ""
+          })
+        });
+      } catch {}
       throw new Error(
         "HLS não suportado neste navegador."
       );
     }
+
+    try {
+      window.GCPlaybackInspector?.event?.("hlsEngineLoaded", {
+        detail: JSON.stringify({
+          version: Hls.version || "",
+          supported: !!Hls.isSupported(),
+          worker: false
+        })
+      });
+    } catch {}
 
     /*
        O proxy precisa ser usado também nos segmentos,
@@ -6800,7 +6819,7 @@ async function playHLS(
 
     const hls =
       new Hls({
-        enableWorker: true,
+        enableWorker: false,
         backBufferLength: 12,
 
         lowLatencyMode: false,
@@ -6997,7 +7016,11 @@ async function playHLS(
     try {
       hls.loadSource(url);
       window.GCPlaybackInspector?.event?.("hlsLoadSourceCalled", {
-        detail: "Manifesto HLS enviado ao HLS.js."
+        detail: JSON.stringify({
+          url: String(url || "").slice(0, 260),
+          state: hls.state || "",
+          version: Hls.version || ""
+        })
       });
     } catch (loadError) {
       window.GCPlaybackInspector?.event?.("hlsLoadSourceError", {
