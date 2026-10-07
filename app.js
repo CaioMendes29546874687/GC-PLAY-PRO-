@@ -9999,6 +9999,8 @@ window.closeDialog = closeDialog;
 
 window.__GC_STATE__ = state;
 
+window.findItem = findItem;
+
 window.GC_PLAY_PRO = {
   state,
 
