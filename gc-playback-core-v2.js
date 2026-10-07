@@ -41,13 +41,38 @@
     if(p){p.classList.remove("hidden");p.classList.add("active","open","show")}
   }
   function directUrl(item){
+    const s=state();
+    const kind=String(item?.xtreamKind||item?.type||"").toLowerCase();
+
+    /*
+     * LIVE: HLS é o transporte primário no navegador.
+     * Registros antigos do catálogo podem ter xtreamExtension="ts";
+     * nunca deixe esse metadado transformar um LIVE em MPEG-TS antes
+     * de testar a variante .m3u8.
+     */
+    if(
+      kind==="live" &&
+      s?.xtreamSession &&
+      item?.xtreamStreamId &&
+      typeof window.buildXtreamStreamUrl==="function"
+    ){
+      try{
+        const hlsUrl=window.buildXtreamStreamUrl(
+          s.xtreamSession,
+          "live",
+          item.xtreamStreamId,
+          "m3u8"
+        );
+        if(http(hlsUrl)) return hlsUrl;
+      }catch{}
+    }
+
     const u=clean(item?.url);
     if(u) return u;
-    const s=state();
+
     if(s?.xtreamSession && item?.xtreamStreamId && typeof window.buildXtreamStreamUrl==="function"){
       try{
-        const kind=item.xtreamKind||item.type||"live";
-        const ext=item.xtreamExtension || (kind==="live"?"ts":"mp4");
+        const ext=item.xtreamExtension || (kind==="live"?"m3u8":"mp4");
         return window.buildXtreamStreamUrl(s.xtreamSession,kind,item.xtreamStreamId,ext);
       }catch{}
     }
