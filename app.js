@@ -6517,6 +6517,7 @@ async function playHLS(
      Se o CDN do motor ou sua inicialização travar, o canal não fica
      preso indefinidamente na bolinha: em 7s tenta MPEG-TS. */
   let hardLiveTimer = null;
+  let livePlaybackStarted = false;
 
   const clearStartupTimer = () => {
     if (startupTimer) {
@@ -6532,6 +6533,25 @@ async function playHLS(
       hardLiveTimer = null;
     }
   };
+
+  /* LIVE só é considerado iniciado quando o elemento realmente emite
+     "playing". Não usamos FRAG_BUFFERED ou videoWidth isoladamente. */
+  const markLivePlaybackStarted = () => {
+    if (livePlaybackStarted) return;
+    livePlaybackStarted = true;
+    clearStartupTimer();
+    try {
+      window.GCPlaybackInspector?.event?.("liveFirstFrame", {
+        detail: JSON.stringify({
+          readyState: video.readyState,
+          videoWidth: video.videoWidth,
+          videoHeight: video.videoHeight,
+          currentTime: Number(video.currentTime || 0)
+        })
+      });
+    } catch {}
+  };
+  video.addEventListener("playing", markLivePlaybackStarted, { once: true });
 
   const startMpegTSFallback = async () => {
     if (!mpegtsFallbackUrl || fallbackStarted) return false;
@@ -6614,10 +6634,10 @@ async function playHLS(
      carregar. Este watchdog cobre justamente esse ponto cego.
   */
   hardLiveTimer = setTimeout(async () => {
-    if (video.videoWidth > 0 || fallbackStarted) return;
+    if (livePlaybackStarted || fallbackStarted) return;
     try {
       window.GCPlaybackInspector?.event?.("liveFallback", {
-        detail: "Watchdog global: HLS.js sem primeiro frame em 7s → MPEG-TS"
+        detail: "Watchdog global: HLS.js sem evento playing em 7s → MPEG-TS"
       });
     } catch {}
     await startMpegTSFallback();
@@ -6741,11 +6761,10 @@ async function playHLS(
         /* Um fragmento pode ser bufferizado sem que o vídeo tenha
            produzido imagem. O watchdog só pode ser encerrado quando
            houver metadata/frame real. */
-        if (video.videoWidth > 0) {
-          clearStartupTimer();
-          if (message) {
-            message.textContent = "";
-          }
+        if (video.videoWidth > 0 && message) {
+          /* FRAG_BUFFERED não encerra o watchdog: pode ser apenas áudio
+             ou buffer sem primeiro frame. */
+          message.textContent = "";
         }
       }
     );
