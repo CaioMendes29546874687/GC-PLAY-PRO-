@@ -5944,8 +5944,17 @@ async function playItem(item) {
   try {
     const inspector = window.GCPlaybackInspector;
     const plan = inspector?.classify?.(item);
-    if (inspector?.probeSource) {
+    /*
+       LIVE não faz um GET de probe separado. O HLS.js/mpegts.js já abre
+       exatamente a mesma fonte; um segundo GET pode gerar 404/timeout
+       paralelo e ainda atrasar o fallback real.
+    */
+    if (inspector?.probeSource && !looksLikeLiveStream) {
       inspector.probeSource(playbackUrl, plan?.plan || "UNKNOWN").catch(()=>{});
+    } else if (looksLikeLiveStream) {
+      inspector?.event?.("probeSkipped", {
+        detail: "LIVE: probe HTTP separado ignorado; diagnóstico acompanha o motor real."
+      });
     }
   } catch (diagError) {
     console.warn("[GC INSPECTOR] probe:", diagError);
@@ -6504,6 +6513,10 @@ async function playHLS(
   let startupTimer = null;
   let fallbackStarted = false;
   let directHlsTimer = null;
+  /* WATCHDOG GLOBAL LIVE — não depende do carregamento do HLS.js.
+     Se o CDN do motor ou sua inicialização travar, o canal não fica
+     preso indefinidamente na bolinha: em 7s tenta MPEG-TS. */
+  let hardLiveTimer = null;
 
   const clearStartupTimer = () => {
     if (startupTimer) {
@@ -6513,6 +6526,10 @@ async function playHLS(
     if (directHlsTimer) {
       clearTimeout(directHlsTimer);
       directHlsTimer = null;
+    }
+    if (hardLiveTimer) {
+      clearTimeout(hardLiveTimer);
+      hardLiveTimer = null;
     }
   };
 
@@ -6590,6 +6607,21 @@ async function playHLS(
   /* -------------------------------------------------------
      HLS.JS
      ------------------------------------------------------- */
+
+  /*
+     WATCHDOG GLOBAL: começa ANTES de await loadHLS().
+     O timer interno do HLS só existe depois que o CDN terminou de
+     carregar. Este watchdog cobre justamente esse ponto cego.
+  */
+  hardLiveTimer = setTimeout(async () => {
+    if (video.readyState >= 2 || video.videoWidth > 0 || fallbackStarted) return;
+    try {
+      window.GCPlaybackInspector?.event?.("liveFallback", {
+        detail: "Watchdog global: HLS.js sem primeiro frame em 7s → MPEG-TS"
+      });
+    } catch {}
+    await startMpegTSFallback();
+  }, 7000);
 
   try {
     const Hls =
