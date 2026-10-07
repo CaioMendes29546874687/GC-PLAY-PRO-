@@ -5402,11 +5402,12 @@ async function playItem(item) {
      PLAYBACK INSPECTOR — entrada garantida no próprio motor.
      Não depende de wrapper externo, timing de scripts ou clique.
   */
+  const gcRawInputUrl = String(item?.url || "");
   if (item?.url) {
     const normalizedPlaybackUrl = normalizePlaybackSourceUrl(item.url, item.type);
     if (normalizedPlaybackUrl !== item.url) {
       console.info("[GC PLAY PRO] URL de mídia normalizada:", item.url, "→", normalizedPlaybackUrl);
-      item = { ...item, url: normalizedPlaybackUrl };
+      item = { ...item, url: normalizedPlaybackUrl, __gcOriginalPlaybackUrl: gcRawInputUrl };
     }
   }
   try {
@@ -5720,6 +5721,8 @@ async function playItem(item) {
 
   const originalUrl =
     item.url;
+  const rawOriginalUrl =
+    item.__gcOriginalPlaybackUrl || item.url;
 
   /*
      Xtream ao vivo: no Chrome/Android priorizamos HLS (.m3u8).
@@ -5748,7 +5751,7 @@ async function playItem(item) {
           item.xtreamStreamId,
           "ts"
         )
-      : originalUrl;
+      : rawOriginalUrl;
 
   /*
      Xtream ao vivo: quando a conta oferece TS, usamos MPEG-TS como
