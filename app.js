@@ -5157,15 +5157,27 @@ async function playMpegTS(
         state.mpegts = directPlayer;
 
         let directResolved = false;
+        /* Não aceite apenas readyState/áudio como sucesso.
+           Para LIVE, o único sucesso real é o evento "playing".
+           Se o endpoint direto não entregar vídeo em 5s, encerra esta
+           tentativa e passa imediatamente para a próxima estratégia. */
         const directTimer = setTimeout(() => {
-          if (!directResolved && video.readyState < 2) {
-            if (!trySecondaryHlsFallback()) {
-              if (message) {
-                message.textContent = "O canal não entregou um fluxo MPEG-TS válido.";
-              }
+          if (!directResolved && !livePlaybackStarted) {
+            try { directPlayer.destroy(); } catch {}
+            if (state.mpegts === directPlayer) state.mpegts = null;
+            try {
+              video.pause();
+              video.removeAttribute("src");
+              video.load();
+            } catch {}
+            try { window.GCPlaybackInspector?.event?.("mpegTsDirectTimeout", {
+              detail: JSON.stringify({ timeoutMs: 5000, readyState: video.readyState, videoWidth: video.videoWidth, videoHeight: video.videoHeight })
+            }); } catch {}
+            if (!trySecondaryHlsFallback() && message) {
+              message.textContent = "O canal não entregou vídeo MPEG-TS.";
             }
           }
-        }, 7000);
+        }, 5000);
 
         directPlayer.on(mpegts.Events.ERROR, (type, detail, info) => {
           console.warn("[GC PLAY PRO] MPEG-TS direto:", type, detail, info);
@@ -5206,9 +5218,14 @@ async function playMpegTS(
           directResolved = true;
           clearTimeout(directTimer);
           if (message) message.textContent = "";
+          try { window.GCPlaybackInspector?.event?.("mpegTsDirectPlaying", {
+            detail: JSON.stringify({ readyState: video.readyState, videoWidth: video.videoWidth, videoHeight: video.videoHeight })
+          }); } catch {}
         };
 
-        video.addEventListener("loadeddata", markDirectReady, { once: true });
+        video.addEventListener("loadeddata", () => {
+          /* loadeddata pode existir sem vídeo visível; não encerra o timeout. */
+        }, { once: true });
         video.addEventListener("playing", markDirectReady, { once: true });
 
         return true;
@@ -5226,7 +5243,10 @@ async function playMpegTS(
     /* Não deixe um proxy travado prender o canal por 12s.
        Se o upstream não responder, tenta a origem direta rapidamente. */
     startupTimer = setTimeout(() => {
-      if (startupResolved || video.readyState >= 2) return;
+      if (startupResolved || livePlaybackStarted) return;
+      try { window.GCPlaybackInspector?.event?.("mpegTsProxyTimeout", {
+        detail: JSON.stringify({ timeoutMs: 5000, readyState: video.readyState, videoWidth: video.videoWidth, videoHeight: video.videoHeight })
+      }); } catch {}
       if (!tryDirectFallback() && message) {
         message.textContent = "O canal está demorando para responder.";
       }
