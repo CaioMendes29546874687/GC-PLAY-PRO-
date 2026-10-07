@@ -1,7 +1,7 @@
 /* GC PLAY PRO — PLAYBACK INSPECTOR 2026-10-06 */
 (function(){
 "use strict";
-const V="20261006-INSPECTOR7";
+const V="20261006-INSPECTOR8";
 const stages=[];
 let session=null;
 
@@ -39,6 +39,33 @@ function begin(item){
   else if(!/^https?:\/\//i.test(String(item.url))) add("02 • URL","WARN","URL não é HTTP/HTTPS; navegador pode não suportar.",{source:safeUrl(item.url)});
   else add("02 • URL","OK","URL HTTP(S) válida.",{source:safeUrl(item.url)});
   return p;
+}
+async function probeSource(url,kind){
+  if(!session||!url)return;
+  const target=String(url);
+  const started=performance.now();
+  add("03 • TESTE DE REDE","TRY","Testando a fonte antes de concluir falha...",{source:safeUrl(target)});
+  const ctrl=new AbortController(), timer=setTimeout(()=>ctrl.abort(),5000);
+  try{
+    const headers={};
+    if(/^VOD /.test(kind)) headers.Range="bytes=0-1023";
+    const r=await fetch(target,{method:"GET",headers,cache:"no-store",credentials:"omit",signal:ctrl.signal});
+    const ct=r.headers.get("content-type")||"";
+    const cl=r.headers.get("content-length")||"";
+    let sample="";
+    try{sample=new TextDecoder().decode((await r.arrayBuffer()).slice(0,2048));}catch{}
+    const looksManifest=/#EXTM3U|#EXTINF/i.test(sample);
+    const looksVideo=/^video\//i.test(ct)||/mp4|mpeg|webm|matroska|octet-stream/i.test(ct);
+    const looksHtml=/<!doctype html|<html|access denied|cloudflare|forbidden/i.test(sample);
+    let status="OK", verdict="FONTE RESPONDE";
+    if(r.status>=400){status="FAIL";verdict="HTTP "+r.status+" — servidor recusou a mídia";}
+    else if(looksHtml){status="FAIL";verdict="Servidor devolveu HTML/erro em vez de mídia";}
+    else if(/^VOD /.test(kind)&&!looksVideo){status="WARN";verdict="Content-Type não parece vídeo";}
+    else if(/^LIVE/.test(kind)&&!looksManifest&&!looksVideo){status="WARN";verdict="Resposta não identificada como HLS ou vídeo";}
+    add("03 • RESPOSTA DA FONTE",status,verdict+" • HTTP "+r.status+" • "+(ct||"Content-Type ausente"),{elapsed_ms:Math.round(performance.now()-started),content_type:ct,content_length:cl});
+  }catch(e){
+    add("03 • RESPOSTA DA FONTE","FAIL",e?.name==="AbortError"?"Timeout de 5s ao consultar a fonte.":"Falha de rede: "+(e?.message||e),{elapsed_ms:Math.round(performance.now()-started)});
+  }finally{clearTimeout(timer)}
 }
 function event(name,data={}){
   if(!session) return;
@@ -138,7 +165,7 @@ function install(){
     api.playItem=wrapped;
   }
 }
-window.GCPlaybackInspector={version:V,classify,begin,event,install,getSession:()=>session,getStages:()=>stages.slice()};
+window.GCPlaybackInspector={version:V,classify,begin,event,probeSource,install,getSession:()=>session,getStages:()=>stages.slice()};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",install,{once:true}); else install();
 setTimeout(install,500); setTimeout(install,2000);
 })();
