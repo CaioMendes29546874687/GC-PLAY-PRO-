@@ -6829,6 +6829,23 @@ async function playHLS(
     state.hls =
       hls;
 
+    /* Diagnóstico real do HLS: mostra se o manifesto e os segmentos chegam
+       ao HLS.js. Isso separa rapidamente proxy, rede e decodificação. */
+    try {
+      const gcDiagEvents = [
+        "MANIFEST_LOADING","MANIFEST_LOADED","MANIFEST_PARSED",
+        "LEVEL_LOADING","LEVEL_LOADED","FRAG_LOADING","FRAG_LOADED",
+        "FRAG_BUFFERED","BUFFER_APPENDED","ERROR"
+      ];
+      gcDiagEvents.forEach((name) => {
+        const ev = Hls.Events[name];
+        if (!ev) return;
+        hls.on(ev, (_event, data) => {
+          try { window.GCPlaybackInspector?.hlsEvent?.(name, data || {}); } catch {}
+        });
+      });
+    } catch {}
+
     hls.on(
       Hls.Events.MEDIA_ATTACHED,
       () => {
