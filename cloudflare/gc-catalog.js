@@ -1,4 +1,4 @@
-const GC_WORKER_VERSION = "2026.10.07.11";
+const GC_WORKER_VERSION = "2026.10.07.12";
 const ALLOW_ORIGIN = "https://caiomendes29546874687.github.io";
 const CATALOG_CORS = {
   "Access-Control-Allow-Origin": ALLOW_ORIGIN,
@@ -149,15 +149,36 @@ async function fetchMedia(request, target) {
     redirect: "follow"
   };
 
+  const isIpLiteral = host => {
+    const h = String(host || "").toLowerCase();
+    return /^\d{1,3}(?:\.\d{1,3}){3}$/.test(h) || h.includes(":");
+  };
+
+  let redirectRewrittenHost = "";
   const fetchTarget = async (targetUrl, headers, timeoutMs = 6000) => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
+    let current = new URL(targetUrl.toString());
+    const originalHost = current.hostname;
     try {
-      return await fetch(targetUrl.toString(), {
-        ...requestInit,
-        headers: new Headers(headers),
-        signal: controller.signal
-      });
+      for (let hop = 0; hop < 4; hop++) {
+        const response = await fetch(current.toString(), {
+          ...requestInit,
+          redirect: "manual",
+          headers: new Headers(headers),
+          signal: controller.signal
+        });
+        if (response.status < 300 || response.status >= 400) return response;
+        const location = response.headers.get("Location");
+        if (!location) return response;
+        const next = new URL(location, current);
+        if (isIpLiteral(next.hostname) && next.hostname !== originalHost) {
+          redirectRewrittenHost = next.hostname;
+          next.hostname = originalHost;
+        }
+        current = next;
+      }
+      return new Response("Too many redirects", { status: 508 });
     } finally {
       clearTimeout(timer);
     }
