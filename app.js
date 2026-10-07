@@ -6456,12 +6456,33 @@ async function playHLS(
       direct.on(HlsDirect.Events.MANIFEST_PARSED, async () => {
         if (state.settings.autoplay) { try { await video.play(); } catch {} }
       });
-      direct.on(HlsDirect.Events.FRAG_BUFFERED, () => { if (message) message.textContent = ""; });
+      direct.on(HlsDirect.Events.FRAG_BUFFERED, () => {
+        if (message) message.textContent = "";
+        clearStartupTimer();
+      });
       direct.on(HlsDirect.Events.ERROR, (event, data) => {
-        if (data?.fatal && message) message.textContent = "HLS direto também falhou.";
+        if (data?.fatal) {
+          try { direct.destroy(); } catch {}
+          if (state.hls === direct) state.hls = null;
+          if (message) message.textContent = "HLS direto falhou. Tentando MPEG-TS...";
+          startMpegTSFallback();
+        }
       });
       direct.attachMedia(video);
       direct.loadSource(directHlsFallbackUrl);
+
+      /*
+         Não considere o HLS direto "resolvido" só porque o objeto foi
+         criado. Se não houver metadata/frame rapidamente, passa para TS.
+      */
+      directHlsTimer = setTimeout(() => {
+        if (video.readyState >= 2 || video.videoWidth > 0) return;
+        try { direct.destroy(); } catch {}
+        if (state.hls === direct) state.hls = null;
+        try { window.GCPlaybackInspector?.event?.("liveFallback", {detail:"HLS direto sem primeiro frame em 6s → MPEG-TS"}); } catch {}
+        startMpegTSFallback();
+      }, 6000);
+
       return true;
     } catch (error) {
       console.warn("[GC PLAY PRO] HLS direto falhou:", error);
@@ -6470,11 +6491,16 @@ async function playHLS(
   };
   let startupTimer = null;
   let fallbackStarted = false;
+  let directHlsTimer = null;
 
   const clearStartupTimer = () => {
     if (startupTimer) {
       clearTimeout(startupTimer);
       startupTimer = null;
+    }
+    if (directHlsTimer) {
+      clearTimeout(directHlsTimer);
+      directHlsTimer = null;
     }
   };
 
@@ -6674,6 +6700,13 @@ async function playHLS(
        evitando a tela de carregamento indefinida. */
     startupTimer = setTimeout(async () => {
       if (video.readyState >= 2 || video.videoWidth > 0) return;
+
+      try {
+        window.GCPlaybackInspector?.event?.("liveFallback", {
+          detail: "HLS inicial sem primeiro frame em 6s"
+        });
+      } catch {}
+
       if (await tryDirectHlsFallback()) return;
       startMpegTSFallback();
     }, 6000);
