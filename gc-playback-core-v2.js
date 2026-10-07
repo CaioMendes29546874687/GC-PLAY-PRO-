@@ -6,7 +6,7 @@
   "use strict";
   if(window.__GC_PLAYBACK_CORE_V2__) return;
   window.__GC_PLAYBACK_CORE_V2__=true;
-  const VERSION="2026.10.07.7";
+  const VERSION="2026.10.07.8";
   const originalApi=window.GC_PLAY_PRO;
   const state=()=>window.__GC_STATE__||originalApi?.state||null;
   const msg=t=>{const e=document.getElementById("playerMessage");if(e)e.textContent=t||""};
@@ -144,7 +144,7 @@
           directHlsFallback
         );
         msg("Aguardando primeiro quadro...");
-        await waitPlaying(v,9000);
+        await waitPlaying(v,7500);
         msg(""); note("playing"); return true;
       }
       if(kind==="dash"){
@@ -179,17 +179,26 @@
     }catch(e){
       note("primary_failed",{error:String(e?.message||e)});
       stopEngines(); resetVideo(v);
+
+      /*
+       * O motor específico já possui seus próprios fallbacks.
+       * Não reinicie HLS/MPEG-TS aqui: isso criava uma segunda cadeia
+       * de retries e deixava LIVE preso no spinner por dezenas de segundos.
+       *
+       * Para HLS LIVE, uma tentativa completa é suficiente:
+       * Gateway -> HLS direto (quando apropriado) -> MPEG-TS.
+       */
+      if(kind==="hls" || kind==="ts"){
+        note("final_failed",{error:String(e?.message||e),reason:"engine_fallback_chain_exhausted"});
+        msg("O fluxo não respondeu. Tente outro canal.");
+        return false;
+      }
+
       msg("Primeira conexão falhou. Tentando origem direta...");
       try{
-        if(kind==="hls" && typeof window.playHLS==="function"){
-          await window.playHLS(v,raw,document.getElementById("playerMessage"));
-          await waitPlaying(v,9000); msg(""); note("direct_playing"); return true;
-        }
-        if(kind==="ts" && typeof window.playMpegTS==="function"){
-          await window.playMpegTS(v,raw,document.getElementById("playerMessage"));
-          await waitPlaying(v,10000); msg(""); note("direct_playing"); return true;
-        }
-        await nativeVideo(v,raw,item); await waitPlaying(v,7000); msg(""); note("direct_playing"); return true;
+        await nativeVideo(v,raw,item);
+        await waitPlaying(v,7000);
+        msg(""); note("direct_playing"); return true;
       }catch(e2){
         note("final_failed",{error:String(e2?.message||e2)});
         stopEngines(); resetVideo(v);
