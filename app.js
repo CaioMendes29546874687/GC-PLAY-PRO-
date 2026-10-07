@@ -6464,8 +6464,13 @@ async function playHLS(
         if (state.settings.autoplay) { try { await video.play(); } catch {} }
       });
       direct.on(HlsDirect.Events.FRAG_BUFFERED, () => {
-        if (message) message.textContent = "";
-        clearStartupTimer();
+        /* FRAG_BUFFERED pode ocorrer com áudio/segmento aceito sem
+           existir ainda um primeiro frame de vídeo. Nunca desarme o
+           watchdog apenas por isso. */
+        if (video.readyState >= 2 || video.videoWidth > 0) {
+          if (message) message.textContent = "";
+          clearStartupTimer();
+        }
       });
       direct.on(HlsDirect.Events.ERROR, (event, data) => {
         if (data?.fatal) {
@@ -6696,9 +6701,14 @@ async function playHLS(
     hls.on(
       Hls.Events.FRAG_BUFFERED,
       () => {
-        clearStartupTimer();
-        if (message) {
-          message.textContent = "";
+        /* Um fragmento pode ser bufferizado sem que o vídeo tenha
+           produzido imagem. O watchdog só pode ser encerrado quando
+           houver metadata/frame real. */
+        if (video.readyState >= 2 || video.videoWidth > 0) {
+          clearStartupTimer();
+          if (message) {
+            message.textContent = "";
+          }
         }
       }
     );
