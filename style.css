@@ -2035,3 +2035,13 @@ body.gc-future:before{
   }
   .gc-diag-body{max-height:34vh}
 }
+
+/* GC PLAYBACK INSPECTOR — HARD POSITION OVERRIDE */
+body > #gcPlaybackDiagnostics{
+ position:fixed!important;left:50%!important;right:auto!important;top:72px!important;bottom:auto!important;
+ transform:translateX(-50%)!important;width:min(620px,calc(100vw - 16px))!important;
+ max-height:42vh!important;margin:0!important;z-index:2147483647!important;
+ display:block!important;overflow:hidden!important;box-sizing:border-box!important;
+}
+body > #gcPlaybackDiagnostics[open]{display:block!important}
+body > #gcPlaybackDiagnostics .gc-diag-body{max-height:34vh!important;overflow:auto!important}
