@@ -1,12 +1,19 @@
 /* GC PLAY PRO — PLAYBACK INSPECTOR 2026-10-06 */
 (function(){
 "use strict";
-const V="20261006-INSPECTOR9";
+const V="20261006-INSPECTOR10";
 const stages=[];
 let session=null;
 
 function safeUrl(u){
-  try{ const x=new URL(String(u||"")); return x.protocol+"//"+x.host+x.pathname.replace(/\/+/g,"/"); }catch{return String(u||"").slice(0,160);}
+  try{
+    const x=new URL(String(u||""));
+    let path=x.pathname.replace(/\/+/g,"/");
+    /* Não expor tokens de acesso que alguns provedores colocam no caminho. */
+    path=path.replace(/(\/play\/)[^/]+/i,"$1***");
+    path=path.replace(/(\/live\/)[^/]+\/[^/]+\/[^/]+/i,"$1***");
+    return x.protocol+"//"+x.host+path;
+  }catch{return String(u||"").slice(0,160).replace(/\/play\/[^/\s]+/ig,"/play/***");}
 }
 function classify(item){
   const u=String(item?.url||"").trim().toLowerCase();
