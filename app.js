@@ -5369,6 +5369,21 @@ async function probeMediaSource(url) {
 }
 
 async function playItem(item) {
+  /*
+     PLAYBACK INSPECTOR — entrada garantida no próprio motor.
+     Não depende de wrapper externo, timing de scripts ou clique.
+  */
+  try {
+    if (window.GCPlaybackInspector?.begin && item?.url) {
+      window.GCPlaybackInspector.begin(item);
+      window.GCPlaybackInspector.event?.("playItemStart", {
+        detail: "playItem entrou no motor principal"
+      });
+    }
+  } catch (diagError) {
+    console.warn("[GC INSPECTOR] begin:", diagError);
+  }
+
   if (!item || !item.url) {
     toast(
       "Este conteúdo não possui uma URL válida."
@@ -5768,6 +5783,21 @@ async function playItem(item) {
   )
     ? sourceUrl
     : proxyPlaybackUrl;
+
+  /* Diagnóstico determinístico: registra a fonte e o caminho efetivamente
+     escolhido ANTES de entregar a mídia ao HLS/DASH/HTML5/MPEG-TS. */
+  try {
+    const inspector = window.GCPlaybackInspector;
+    inspector?.event?.("motorSelected", {
+      detail: JSON.stringify({
+        transport: looksLikeLiveStream ? "LIVE" : (isDASH(sourceUrl) ? "DASH" : (isHLS(sourceUrl) ? "HLS" : "VOD")),
+        source: String(sourceUrl || "").replace(/([?&](?:username|password|pass|token|auth|key)=)[^&]*/ig,"$1***").slice(0,220),
+        playback: String(playbackUrl || "").replace(/([?&](?:username|password|pass|token|auth|key)=)[^&]*/ig,"$1***").slice(0,220)
+      })
+    });
+  } catch (diagError) {
+    console.warn("[GC INSPECTOR] motor:", diagError);
+  }
 
   /*
      O fallback deve ser o caminho alternativo real:
