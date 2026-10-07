@@ -144,13 +144,13 @@
 
 <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/shaka-player@5.2.12/dist/shaka-player.compiled.js" data-gc-shaka="1"></script>
-<script src="app.js?v=20261007-PLAYFIX26"></script>\n<script src="gc-playback-diagnostics.js?v=20261007-INSPECTOR10"></script>
+<script src="app.js?v=20261007-PLAYFIX27"></script>\n<script src="gc-playback-diagnostics.js?v=20261007-INSPECTOR10"></script>
 <script src="gc-architecture-v2.js?v=20261006-16"></script>
 <script src="gc-architecture-bridge.js?v=20261006-4"></script>
 <script src="gc-final-readiness.js?v=20261006-2"></script>
 <script src="gc-pro-runtime.js?v=20261006-1"></script>
 <script src="gc-playback-hotfix.js?v=20261001-3"></script>
-<script src="gc-live-fix.js?v=20261007-PLAYFIX26"></script><script src="gc-catalog-trigger.js?v=20261006-1"></script>
+<script src="gc-live-fix.js?v=20261007-PLAYFIX27"></script><script src="gc-catalog-trigger.js?v=20261006-1"></script>
 <script src="gc-android-live-fix.js?v=20261001-1"></script>
 <link rel="stylesheet" href="gc-pro-ui-v3.css?v=20261001-11">
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
@@ -158,7 +158,7 @@
 <script src="gc-final-fix.js?v=20261002-14"></script>
 <script src="gc-vlc.js?v=20261006-ARCHFIX1"></script>
 <script>
-if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=20261007-PLAYFIX26",{scope:"./"}).catch(e=>console.warn("[GC] SW",e)));}
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=20261007-PLAYFIX27",{scope:"./"}).catch(e=>console.warn("[GC] SW",e)));}
 </script>
 <script>
 /* GC PLAY PRO — FUTURE EXPERIENCE */
@@ -791,7 +791,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 /* GC PLAY PRO — SERVICE WORKER UPDATE CONTROL */
 (function(){
   if(!("serviceWorker" in navigator)) return;
-  const SW_URL="./sw.js?v=20261007-PLAYFIX26";
+  const SW_URL="./sw.js?v=20261007-PLAYFIX27";
   navigator.serviceWorker.register(SW_URL,{updateViaCache:"none"})
     .then(reg=>{
       try{ reg.update(); }catch{}
