@@ -68,10 +68,9 @@ function render(){
 }
 function ensureUi(){
   if(document.getElementById("gcPlaybackDiagnostics"))return;
-  const panel=document.getElementById("playerPanel"); if(!panel)return;
   const wrap=document.createElement("details"); wrap.id="gcPlaybackDiagnostics"; wrap.className="gc-playback-diagnostics"; wrap.open=true;
   wrap.innerHTML="<summary>🔎 DIAGNÓSTICO DO PLAYBACK</summary><div class='gc-diag-body'></div>";
-  panel.appendChild(wrap);
+  document.body.appendChild(wrap);
   wrap.querySelector("summary").addEventListener("click",()=>render());
 }
 function bindVideo(){
