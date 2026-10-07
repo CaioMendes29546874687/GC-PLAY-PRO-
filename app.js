@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-06-PLAYFIX7 */
+/* GC BUILD 2026-10-06-PLAYFIX11 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -5378,19 +5378,65 @@ async function playItem(item) {
 
   // Android TV/Android: use the native Media3/ExoPlayer engine.
   // The web player remains the fallback for PC, browser and Smart TV browsers.
-  if (window.AndroidGCPlayer && typeof window.AndroidGCPlayer.play === "function") {
+  /*
+     Android WebView: o bridge nativo só pode assumir o playback depois de
+     confirmar que o ExoPlayer realmente entrou em reprodução. A versão
+     anterior retornava imediatamente após play(), deixando a interface
+     presa no spinner caso o servidor/proxy recusasse a mídia.
+     Se houver erro ou timeout, devolvemos o conteúdo ao player web.
+  */
+  if (
+    !window.__GC_NATIVE_DISABLED__ &&
+    window.AndroidGCPlayer &&
+    typeof window.AndroidGCPlayer.play === "function"
+  ) {
     try {
       const nativeUrl = buildMediaProxyUrl(item.url, item);
-      window.AndroidGCPlayer.play(
-        nativeUrl || item.url,
-        String(item.name || "GC PLAY PRO"),
-        String(item.type || "")
-      );
       state.currentItem = item;
       gcDiagReport("native_start", { engine: "media3-exoplayer" });
-      return;
+
+      const nativeResult = await new Promise(resolve => {
+        let settled = false;
+        const finish = ok => {
+          if (settled) return;
+          settled = true;
+          window.removeEventListener("gc-native-player", onNative);
+          clearTimeout(timer);
+          resolve(ok);
+        };
+        const onNative = event => {
+          const detail = event?.detail || {};
+          if (detail.event === "nativePlaying") finish(true);
+          else if (detail.event === "nativeError" || detail.event === "nativeTimeout") finish(false);
+        };
+        const timer = setTimeout(() => {
+          try { window.AndroidGCPlayer.stop?.(); } catch {}
+          finish(false);
+        }, 9000);
+
+        window.addEventListener("gc-native-player", onNative);
+        try {
+          window.AndroidGCPlayer.play(
+            nativeUrl || item.url,
+            String(item.name || "GC PLAY PRO"),
+            String(item.type || "")
+          );
+        } catch (error) {
+          clearTimeout(timer);
+          finish(false);
+        }
+      });
+
+      if (nativeResult) return;
+
+      console.warn("[GC NATIVE PLAYER] ExoPlayer não iniciou; usando player web.");
+      window.__GC_NATIVE_DISABLED__ = true;
+      try { window.AndroidGCPlayer.stop?.(); } catch {}
+      /* Continua abaixo no mesmo playItem com HLS/DASH/MPEG-TS/<video>. */
     } catch (nativeError) {
       console.warn("[GC NATIVE PLAYER] fallback para player web:", nativeError);
+      try { window.AndroidGCPlayer.stop?.(); } catch {}
+      window.__GC_NATIVE_DISABLED__ = true;
     }
   }
 
