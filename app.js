@@ -6547,7 +6547,7 @@ async function playHLS(
       const HlsDirect = await loadHLS();
       if (!HlsDirect?.isSupported()) throw new Error("HLS.js indisponível");
       const direct = new HlsDirect({
-        enableWorker: true,
+        enableWorker: false,
         backBufferLength: 12,
         lowLatencyMode: false,
         maxBufferLength: 12,
@@ -6819,11 +6819,7 @@ async function playHLS(
 
         levelLoadingTimeOut: 30000,
 
-        loader: GCProxyLoader,
-
-        fLoader: GCProxyLoader,
-
-        pLoader: GCProxyLoader
+        /* Gateway já reescreve manifesto e segmentos; usar loader nativo do HLS.js. */
       });
 
     state.hls =
