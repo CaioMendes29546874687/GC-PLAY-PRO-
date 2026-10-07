@@ -6,7 +6,7 @@
 
 "use strict";
 
-const CACHE_NAME = "gc-play-pro-v199-body-mounted-inspector";
+const CACHE_NAME = "gc-play-pro-v200-hard-pinned-inspector";
 
 const APP_SHELL = [
   "./",
