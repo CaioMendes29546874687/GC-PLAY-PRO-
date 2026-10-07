@@ -22,7 +22,7 @@ const runtime = fs.readFileSync("gc-pro-runtime.js", "utf8");
 const checks = [
   ["sem proxy de vídeo Supabase", !app.includes("/functions/v1/m3u-proxy")],
   ["gateway Cloudflare configurado", /gc-catalog\.caioroberto318\.workers\.dev/.test(app)],
-  ["media gateway configurado", /mode=media/.test(app) && /buildMediaProxyUrl/.test(app)],
+  ["media gateway configurado", /searchParams\.set\(["\x27]mode["\x27],\s*["\x27]media["\x27]\)/.test(app) && /buildMediaProxyUrl/.test(app)],
   ["DASH via media gateway", /isDASH\(sourceUrl\)/.test(app)],
   ["catálogo paginado", /data-load-more-catalog/.test(app) && /offset = 0/.test(app)],
   ["Xtream com timeout", /timeoutMs = action === "get_series_info" \? 30000 : 25000/.test(app)],
