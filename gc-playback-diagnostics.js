@@ -1,7 +1,7 @@
 /* GC PLAY PRO — PLAYBACK INSPECTOR 2026-10-06 */
 (function(){
 "use strict";
-const V="20261006-INSPECTOR8";
+const V="20261006-INSPECTOR9";
 const stages=[];
 let session=null;
 
@@ -86,12 +86,89 @@ function event(name,data={}){
   const m=map[name]||["EVENTO","INFO",name];
   add(m[0],m[1],m[2],{elapsed_ms:elapsed,error_code:data.code||"",detail:data.detail||""});
 }
+function fullReport(){
+  return JSON.stringify({
+    inspector_version:V,
+    generated_at:new Date().toISOString(),
+    session:session?{
+      id:session.id,name:session.name,type:session.type,
+      elapsed_ms:Math.round(performance.now()-session.started),
+      plan:session.plan,
+      source:safeUrl(session.item?.url)
+    }:null,
+    environment:{
+      online:navigator.onLine,
+      user_agent:navigator.userAgent,
+      platform:navigator.platform||"",
+      language:navigator.language||"",
+      screen:innerWidth+"x"+innerHeight,
+      device_pixel_ratio:devicePixelRatio
+    },
+    stages:stages.map(x=>({...x}))
+  },null,2);
+}
+function textReport(){
+  if(!session)return "GC PLAYBACK INSPECTOR\\nNenhuma sessão de reprodução.";
+  const lines=[
+    "GC PLAYBACK INSPECTOR — "+V,
+    "GERADO: "+new Date().toISOString(),
+    "CONTEÚDO: "+session.name,
+    "TIPO: "+session.type,
+    "PLANO: "+session.plan.plan+" → "+session.plan.engine,
+    "FALLBACK: "+session.plan.fallback,
+    "FONTE: "+safeUrl(session.item?.url),
+    "ONLINE: "+navigator.onLine,
+    "UA: "+navigator.userAgent,
+    "",
+    "===== ETAPAS ====="
+  ];
+  stages.forEach((x,i)=>lines.push(
+    String(i+1).padStart(2,"0")+" | "+x.status+" | "+x.stage+" | "+x.detail+
+    (x.elapsed_ms!=null?" | "+x.elapsed_ms+" ms":"")+
+    (x.content_type?" | Content-Type: "+x.content_type:"")+
+    (x.content_length?" | Content-Length: "+x.content_length:"")
+  ));
+  return lines.join("\\n");
+}
+async function copyReport(){
+  const txt=textReport();
+  try{
+    await navigator.clipboard.writeText(txt);
+    toastDiag("✓ DIAGNÓSTICO COMPLETO COPIADO");
+    return true;
+  }catch{}
+  try{
+    const ta=document.createElement("textarea");
+    ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";
+    document.body.appendChild(ta);ta.select();
+    const ok=document.execCommand("copy");ta.remove();
+    toastDiag(ok?"✓ DIAGNÓSTICO COMPLETO COPIADO":"Não foi possível copiar.");
+    return ok;
+  }catch{toastDiag("Não foi possível copiar.");return false}
+}
+function downloadReport(){
+  const blob=new Blob([fullReport()],{type:"application/json;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="gc-playback-diagnostico-"+Date.now()+".json";
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+}
+function toastDiag(msg){
+  let t=document.getElementById("gcDiagToast");
+  if(!t){t=document.createElement("div");t.id="gcDiagToast";document.body.appendChild(t);}
+  t.textContent=msg;t.style.cssText="position:fixed!important;left:50%!important;bottom:24px!important;transform:translateX(-50%)!important;z-index:2147483647!important;background:#06110a!important;color:#63ff9b!important;border:1px solid #39ff88!important;border-radius:10px!important;padding:10px 14px!important;font:900 12px Arial!important;box-shadow:0 10px 40px #000!important";
+  clearTimeout(window.__gcDiagToastTimer);window.__gcDiagToastTimer=setTimeout(()=>t.remove(),2400);
+}
 function render(){
   const box=document.getElementById("gcPlaybackDiagnostics");
   if(!box||!session)return;
   const p=session.plan;
   box.innerHTML="<div class='gc-diag-head'><strong>GC PLAYBACK INSPECTOR</strong><span>"+p.plan+" • "+p.engine+"</span></div>"+
-    stages.map((x,i)=>"<div class='gc-diag-row'><b>"+String(i+1).padStart(2,"0")+"</b><span class='gc-diag-status gc-"+x.status.toLowerCase()+"'>"+x.status+"</span><div><strong>"+x.stage+"</strong><small>"+x.detail+(x.elapsed_ms!=null?" • "+x.elapsed_ms+" ms":"")+"</small></div></div>").join("");
+    "<div class='gc-diag-actions'><button type='button' id='gcDiagCopy'>📋 COPIAR COMPLETO</button><button type='button' id='gcDiagJson'>💾 JSON</button></div>"+
+    stages.map((x,i)=>"<div class='gc-diag-row'><b>"+String(i+1).padStart(2,"0")+"</b><span class='gc-diag-status gc-"+x.status.toLowerCase()+"'>"+x.status+"</span><div><strong>"+x.stage+"</strong><small>"+x.detail+(x.elapsed_ms!=null?" • "+x.elapsed_ms+" ms":"")+(x.content_type?" • "+x.content_type:"")+"</small></div></div>").join("");
+  document.getElementById("gcDiagCopy")?.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();copyReport()});
+  document.getElementById("gcDiagJson")?.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();downloadReport()});
 }
 function pinUi(el){
   if(!el)return;
@@ -165,7 +242,7 @@ function install(){
     api.playItem=wrapped;
   }
 }
-window.GCPlaybackInspector={version:V,classify,begin,event,probeSource,install,getSession:()=>session,getStages:()=>stages.slice()};
+window.GCPlaybackInspector={version:V,classify,begin,event,probeSource,fullReport,textReport,copyReport,downloadReport,install,getSession:()=>session,getStages:()=>stages.slice()};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",install,{once:true}); else install();
 setTimeout(install,500); setTimeout(install,2000);
 })();
