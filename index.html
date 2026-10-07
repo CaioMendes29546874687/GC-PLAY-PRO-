@@ -158,7 +158,7 @@
 <script src="gc-final-fix.js?v=20261002-14"></script>
 <script src="gc-vlc.js?v=20261006-ARCHFIX1"></script>
 <script>
-if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=20261006-PLAYFIX9",{scope:"./"}).catch(e=>console.warn("[GC] SW",e)));}
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=20261007-PLAYFIX26",{scope:"./"}).catch(e=>console.warn("[GC] SW",e)));}
 </script>
 <script>
 /* GC PLAY PRO — FUTURE EXPERIENCE */
@@ -791,7 +791,7 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 /* GC PLAY PRO — SERVICE WORKER UPDATE CONTROL */
 (function(){
   if(!("serviceWorker" in navigator)) return;
-  const SW_URL="./sw.js?v=20261006-PLAYFIX9";
+  const SW_URL="./sw.js?v=20261007-PLAYFIX26";
   navigator.serviceWorker.register(SW_URL,{updateViaCache:"none"})
     .then(reg=>{
       try{ reg.update(); }catch{}
