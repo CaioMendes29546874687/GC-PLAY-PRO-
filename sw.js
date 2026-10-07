@@ -6,7 +6,7 @@
 
 "use strict";
 
-const CACHE_NAME = "gc-play-pro-v222-hls41";
+const CACHE_NAME = "gc-play-pro-v223-live-supabase";
 
 const APP_SHELL = [
   "./",
