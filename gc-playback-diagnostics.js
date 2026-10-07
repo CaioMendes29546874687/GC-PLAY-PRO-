@@ -46,7 +46,8 @@ function event(name,data={}){
   const map={
     native_start:["03 • MOTOR NATIVO","TRY","Android Media3/ExoPlayer recebeu a mídia."],
     nativePlaying:["04 • PRIMEIRO FRAME","OK","ExoPlayer confirmou reprodução."],
-    nativeError:["04 • MOTOR NATIVO","FAIL","ExoPlayer informou erro."],\n    nativeTimeout:["04 • MOTOR NATIVO","FAIL","ExoPlayer não confirmou primeiro frame dentro do limite; fallback necessário."],
+    nativeError:["04 • MOTOR NATIVO","FAIL","ExoPlayer informou erro."],
+    nativeTimeout:["04 • MOTOR NATIVO","FAIL","ExoPlayer não confirmou primeiro frame dentro do limite; fallback necessário."],
     waiting:["04 • BUFFER","WAIT","Vídeo aguardando dados."],
     stalled:["04 • REDE","WARN","Fluxo parou temporariamente."],
     loadedmetadata:["04 • METADATA","OK","Metadata do vídeo recebida."],
