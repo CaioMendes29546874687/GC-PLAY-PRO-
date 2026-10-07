@@ -293,7 +293,7 @@ function isHLS(url) {
   /* Alguns provedores usam /m3u8 sem ponto (.m3u8).
      Esse é exatamente o formato usado pelo canal Cultura FHD. */
   return (
-    /(?:\\.m3u8|\\/m3u8)(?:$|[?#])/i.test(value) ||
+    /(?:\.m3u8|\/m3u8)(?:$|[?#])/i.test(value) ||
     /[?&]format=m3u8(?:$|&)/i.test(value)
   );
 }
