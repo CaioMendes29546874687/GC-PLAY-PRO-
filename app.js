@@ -312,11 +312,37 @@ function isDASH(url) {
 function buildPlaybackAlternatives(url, type="") {
   const out=[];
   const add=v=>{
-    const s=String(v||"").trim();
-    if(s && !out.includes(s)) out.push(s);
+    const value=String(v||"").trim();
+    if(value && !out.includes(value)) out.push(value);
+  };
+  const addTransportVariants=v=>{
+    const rawValue=String(v||"").trim();
+    if(!rawValue) return;
+    add(rawValue);
+    try{
+      const u=new URL(rawValue);
+      /* Muitos provedores publicam o mesmo endpoint em HTTP e HTTPS.
+         GitHub Pages não pode reproduzir HTTP diretamente, então HTTPS
+         precisa ser uma alternativa automática, sem alterar o catálogo. */
+      if(u.protocol==="http:"){
+        const https=new URL(u.toString());
+        https.protocol="https:";
+        add(https.toString());
+      }
+      /* :80 é desnecessário e alguns gateways/provedores tratam a rota
+         com porta explícita de forma diferente da rota padrão. */
+      if(u.protocol==="http:" && u.port==="80"){
+        const noPort=new URL(u.toString());
+        noPort.port="";
+        add(noPort.toString());
+        const noPortHttps=new URL(noPort.toString());
+        noPortHttps.protocol="https:";
+        add(noPortHttps.toString());
+      }
+    }catch{}
   };
   const raw=String(url||"").trim();
-  add(raw);
+  addTransportVariants(raw);
   try{
     const u=new URL(raw);
     /* Fragmentos como "#.mp4" nunca chegam ao servidor. */
@@ -326,22 +352,22 @@ function buildPlaybackAlternatives(url, type="") {
       const v=new URL(u.toString());
       v.pathname=pathNoFragment.replace(mediaExt,"");
       v.hash="";
-      add(v.toString());
+      addTransportVariants(v.toString());
     }
     if(u.hash){
       const v=new URL(u.toString());
       v.hash="";
-      add(v.toString());
+      addTransportVariants(v.toString());
     }
     if(String(type).toLowerCase()==="live"){
-      const base=new URL(u.toString());
+      const base=new URL(raw);
       base.hash="";
       base.pathname=base.pathname.replace(/\/(?:m3u8|ts|mpeg|mpg|m2ts)$/i,"");
-      add(base.toString());
+      addTransportVariants(base.toString());
       for(const ext of ["m3u8","ts"]){
         const v=new URL(base.toString());
         v.pathname=base.pathname.replace(/\/$/,"")+"/"+ext;
-        add(v.toString());
+        addTransportVariants(v.toString());
       }
     }
   }catch{}
@@ -5976,29 +6002,37 @@ async function playItem(item) {
      ------------------------------------------------------- */
 
   if (isHLS(sourceUrl)) {
+    const liveCandidates = buildPlaybackAlternatives(
+      originalUrl || sourceUrl,
+      item.type
+    ).filter(Boolean);
+
+    /* Guarda alternativas reais no elemento para que o watchdog do HLS
+       possa trocar HTTP→HTTPS, /m3u8→/ts e /play/TOKEN sem reiniciar
+       todo o app. */
+    video.__gcHlsAlternatives = liveCandidates
+      .map(v => buildMediaProxyUrl(v, item))
+      .filter(v => v && v !== playbackUrl);
+
     const liveTsProxyFallback =
       item.xtreamKind === "live" && liveTsUrl !== sourceUrl
         ? buildMediaProxyUrl(liveTsUrl, item)
-        : "";
+        : (liveCandidates.find(v => /\/ts(?:$|[?#])/i.test(v))
+            ? buildMediaProxyUrl(liveCandidates.find(v => /\/ts(?:$|[?#])/i.test(v)), item)
+            : "");
 
     const liveTsDirectFallback =
       item.xtreamKind === "live" && liveTsUrl !== sourceUrl
         ? liveTsUrl
-        : "";
+        : (liveCandidates.find(v => /\/ts(?:$|[?#])/i.test(v)) || "");
 
     const liveDirectHlsFallback =
-      item.xtreamKind === "live" && isHLS(sourceUrl) && sourceUrl !== playbackUrl
-        ? sourceUrl
-        : (item.xtreamKind === "live" && isHLS(originalUrl) && originalUrl !== playbackUrl
-            ? originalUrl
-            : "");
+      liveCandidates.find(v => isHLS(v) && v !== sourceUrl) || "";
 
     /*
-       HLS.js é o primeiro motor no navegador. Ele foi desenhado para
-       carregar o manifesto, níveis e segmentos diretamente no <video>
-       e expõe recuperação específica para erros de rede/mídia.
-       Shaka fica como segunda linha para HLS/DASH quando o caminho
-       HLS.js não consegue iniciar.
+       HLS.js é o primeiro motor no navegador. O watchdog agora também
+       recebe as variantes descobertas acima, porque o diagnóstico atual
+       provou que o primeiro /m3u8 pode simplesmente não responder.
     */
     const hlsStarted = await playHLS(
       video,
