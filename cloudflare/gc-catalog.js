@@ -1,3 +1,4 @@
+const GC_WORKER_VERSION = "2026.10.07.8";
 const ALLOW_ORIGIN = "https://caiomendes29546874687.github.io";
 const CATALOG_CORS = {
   "Access-Control-Allow-Origin": ALLOW_ORIGIN,
@@ -176,18 +177,33 @@ async function fetchMedia(request, target) {
      porque 522 não é uma falha do HLS.js: é timeout entre Cloudflare e
      a origem.
   */
-  if ((upstream.status === 522 || upstream.status === 524) && target.protocol === "http:") {
+  if (
+    target.protocol === "http:" &&
+    [401, 403, 406, 522, 524].includes(upstream.status)
+  ) {
     try {
+      /*
+       * Alguns provedores IPTV expõem o mesmo endpoint HTTP e HTTPS,
+       * mas recusam HTTP com 403/406. Para LIVE/HLS, tentar HTTPS é
+       * barato e evita mandar o navegador para uma cadeia de retries
+       * que nunca produzirá o primeiro frame.
+       */
       const httpsTarget = new URL(target.toString());
       httpsTarget.protocol = "https:";
       const httpsHeaders = new Headers(baseHeaders);
       httpsHeaders.delete("Origin");
       httpsHeaders.delete("Referer");
-      upstream = await fetchTarget(httpsTarget, httpsHeaders);
-      if (upstream.status === 401 || upstream.status === 403 || upstream.status === 406) {
+
+      const httpsFirst = await fetchTarget(httpsTarget, httpsHeaders);
+      if (httpsFirst.ok || ![401,403,406].includes(upstream.status)) {
+        upstream = httpsFirst;
+      } else {
         httpsHeaders.set("Origin", httpsTarget.origin);
         httpsHeaders.set("Referer", httpsTarget.origin + "/");
-        upstream = await fetchTarget(httpsTarget, httpsHeaders);
+        const httpsRetry = await fetchTarget(httpsTarget, httpsHeaders);
+        if (httpsRetry.ok || httpsRetry.status !== upstream.status) {
+          upstream = httpsRetry;
+        }
       }
     } catch {}
   }
@@ -240,6 +256,8 @@ async function fetchMedia(request, target) {
   }
 
   const outHeaders = new Headers(MEDIA_CORS);
+  outHeaders.set("X-GC-Upstream-Status", String(upstream.status || ""));
+  outHeaders.set("X-GC-Upstream-Host", target.hostname);
   for (const name of [
     "content-type", "content-length", "content-range", "accept-ranges",
     "etag", "last-modified", "cache-control"
@@ -248,6 +266,7 @@ async function fetchMedia(request, target) {
     if (value) outHeaders.set(name, value);
   }
   outHeaders.set("Cache-Control", "no-store");
+  outHeaders.set("X-GC-Worker", GC_WORKER_VERSION);
   return new Response(upstream.body, {
     status: upstream.status,
     statusText: upstream.statusText,
