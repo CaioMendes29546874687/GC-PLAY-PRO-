@@ -4989,8 +4989,27 @@ async function playMpegTS(
 
     let startupResolved = false;
     let startupTimer = null;
+    let hardMpegDeadline = null;
+
+    const clearHardMpegDeadline = () => {
+      if (hardMpegDeadline) {
+        clearTimeout(hardMpegDeadline);
+        hardMpegDeadline = null;
+      }
+    };
+
+    hardMpegDeadline = setTimeout(() => {
+      if (livePlaybackStarted || startupResolved) return;
+      try { window.GCPlaybackInspector?.event?.("mpegTsHardTimeout", {
+        detail: JSON.stringify({ timeoutMs: 10000, readyState: video.readyState, videoWidth: video.videoWidth, videoHeight: video.videoHeight })
+      }); } catch {}
+      try { if (state.mpegts === player) { player.destroy(); state.mpegts = null; } } catch {}
+      try { video.pause(); video.removeAttribute("src"); video.load(); } catch {}
+      if (message) message.textContent = "Canal ao vivo não entregou vídeo em 10s.";
+    }, 10000);
 
     const clearStartupTimer = () => {
+      clearHardMpegDeadline();
       if (startupTimer) {
         clearTimeout(startupTimer);
         startupTimer = null;
@@ -5194,9 +5213,7 @@ async function playMpegTS(
             textDetail.includes("unrecoverable");
 
           if (retryable || !video.videoWidth) {
-            if (!trySecondaryHlsFallback() && message) {
-              message.textContent = "O canal não entregou um fluxo compatível.";
-            }
+            if (message) message.textContent = "O canal não entregou um fluxo compatível.";
           }
         });
 
@@ -5231,7 +5248,7 @@ async function playMpegTS(
         return true;
       } catch (error) {
         console.warn("[GC PLAY PRO] falha MPEG-TS direto:", error);
-        return trySecondaryHlsFallback();
+        return false;
       }
     };
     /* LIVE: loadeddata pode representar somente áudio/buffer. O único
@@ -5284,36 +5301,14 @@ async function playMpegTS(
         */
         if (httpInvalid) {
           if (!tryDirectFallback()) {
-            trySecondaryHlsFallback();
+            if (message) message.textContent = "O canal não entregou vídeo MPEG-TS.";
           }
           return;
         }
 
-        if (
-          !player.__gcRetried &&
-          (
-            errorType === mpegts.ErrorTypes.NETWORK_ERROR ||
-            errorDetail === mpegts.ErrorDetails.NETWORK_TIMEOUT ||
-            errorDetail === mpegts.ErrorDetails.NETWORK_UNRECOVERABLE_EARLY_EOF
-          )
-        ) {
-          player.__gcRetried = true;
-
-          setTimeout(async () => {
-            if (state.mpegts !== player) return;
-
-            try {
-              player.unload();
-              player.load();
-              await player.play();
-
-              if (message) message.textContent = "";
-            } catch (retryError) {
-              console.warn("MPEG-TS retry falhou:", retryError);
-              tryDirectFallback();
-            }
-          }, 900);
-        }
+        /* Não reinicie automaticamente o mesmo LIVE após erro de rede.
+           O fallback de transporte já foi tentado uma vez; repetir aqui
+           recria o pipeline e causa a bolinha infinita. */
       }
     );
 
