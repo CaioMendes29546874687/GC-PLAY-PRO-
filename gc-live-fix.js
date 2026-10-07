@@ -1,4 +1,4 @@
-/* GC PLAY PRO — live fix 2026-10-01-5 */
+/* GC PLAY PRO — live fix 2026-10-07-6 */
 (function(){
   "use strict";
 
@@ -27,8 +27,22 @@
 (function(){
   const nativeHls = window.playHLS;
   if (typeof nativeHls !== "function" || window.__GC_HLS_ANDROID_WRAP__) return;
-  window.playHLS = async function(video, url, message, fallbackUrl = "") {
-    if (!video) return nativeHls(video, url, message, fallbackUrl);
+  window.playHLS = async function(
+    video,
+    url,
+    message,
+    fallbackUrl = "",
+    directFallbackUrl = "",
+    directHlsFallbackUrl = ""
+  ) {
+    if (!video) return nativeHls(
+      video,
+      url,
+      message,
+      fallbackUrl,
+      directFallbackUrl,
+      directHlsFallbackUrl
+    );
     const originalCanPlayType = video.canPlayType;
     try {
       video.canPlayType = function(type) {
@@ -37,7 +51,7 @@
       };
     } catch {}
     try {
-      return await nativeHls(video, url, message, fallbackUrl);
+      return await nativeHls(video, url, message, fallbackUrl, directFallbackUrl, directHlsFallbackUrl);
     } finally {
       try { video.canPlayType = originalCanPlayType; } catch {}
     }
