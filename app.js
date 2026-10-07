@@ -6627,6 +6627,11 @@ async function playHLS(
     const Hls =
       await loadHLS();
 
+    /* Se o watchdog global já iniciou MPEG-TS enquanto o CDN do HLS.js
+       ainda carregava, não recrie o HLS por cima do fallback que está
+       funcionando. */
+    if (fallbackStarted) return true;
+
     if (
       !Hls ||
       !Hls.isSupported()
