@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-07-HLSFIX33 */
+/* GC BUILD 2026-10-07-HLSFIX34 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -6920,20 +6920,32 @@ async function playHLS(
           credentials: "omit"
         });
         const text = await response.text();
+        const gatewayStatus = Number(response.status || 0);
+        const gatewayUnavailable = !response.ok && [401,403,404,410,408,425,429,500,502,503,504].includes(gatewayStatus);
         window.GCPlaybackInspector?.event?.("hlsGatewayProbe", {
-          status: response.status,
+          status: gatewayStatus,
           ok: response.ok,
           contentType: response.headers.get("content-type") || "",
           gcHls: response.headers.get("x-gc-hls") || "",
           bytes: text.length,
-          firstLine: String(text || "").split(/\\r?\\n/)[0].slice(0, 160)
+          firstLine: String(text || "").split(/\\r?\\n/)[0].slice(0, 160),
+          unavailable: gatewayUnavailable
         });
+        if (gatewayUnavailable && !livePlaybackStarted && !fallbackStarted) {
+          try {
+            window.GCPlaybackInspector?.event?.("hlsGatewayUnavailable", {
+              detail: JSON.stringify({ status: gatewayStatus, fallback: "direct-hls-then-mpegts" })
+            });
+          } catch {}
+          if (await tryDirectHlsFallback()) return;
+          await startMpegTSFallback();
+        }
       } catch (error) {
         window.GCPlaybackInspector?.event?.("hlsGatewayProbeError", {
           detail: String(error?.message || error)
         });
       }
-    }, 2500);
+    }, 1800);
 
     startupTimer = setTimeout(async () => {
       if (livePlaybackStarted) return;
