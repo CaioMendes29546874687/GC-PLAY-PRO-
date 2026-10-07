@@ -6626,6 +6626,8 @@ async function playHLS(
      Se o CDN do motor ou sua inicialização travar, o canal não fica
      preso indefinidamente na bolinha: em 7s tenta MPEG-TS. */
   let hardLiveTimer = null;
+  let gatewayProbeTimer = null;
+  let sourceUnavailable = false;
   let livePlaybackStarted = false;
 
   const clearStartupTimer = () => {
@@ -6640,6 +6642,10 @@ async function playHLS(
     if (hardLiveTimer) {
       clearTimeout(hardLiveTimer);
       hardLiveTimer = null;
+    }
+    if (gatewayProbeTimer) {
+      clearTimeout(gatewayProbeTimer);
+      gatewayProbeTimer = null;
     }
   };
 
@@ -6753,7 +6759,7 @@ async function playHLS(
     });
   } catch {}
   hardLiveTimer = setTimeout(async () => {
-    if (livePlaybackStarted || fallbackStarted) return;
+    if (livePlaybackStarted || fallbackStarted || sourceUnavailable) return;
     try {
       window.GCPlaybackInspector?.event?.("liveWatchdogFired", {
         detail: "Watchdog LIVE disparou: sem evento playing em 7s"
@@ -6930,8 +6936,8 @@ async function playHLS(
     /* Diagnóstico tardio: se o HLS.js não produzir sequer MANIFEST_LOADING/
        MANIFEST_LOADED, consulta uma única vez o gateway real. Isso diferencia
        falha de rede/proxy de falha interna do HLS.js sem atrasar fluxos normais. */
-    const gatewayProbeTimer = setTimeout(async () => {
-      if (livePlaybackStarted) return;
+    gatewayProbeTimer = setTimeout(async () => {
+      if (livePlaybackStarted || sourceUnavailable) return;
       try {
         const probeUrl = buildMediaProxyUrl(url);
         const response = await fetch(probeUrl, {
@@ -6952,11 +6958,69 @@ async function playHLS(
           unavailable: gatewayUnavailable
         });
         if (gatewayUnavailable && !livePlaybackStarted && !fallbackStarted) {
+          const permanentSourceError = gatewayStatus === 404 || gatewayStatus === 410;
           try {
             window.GCPlaybackInspector?.event?.("hlsGatewayUnavailable", {
-              detail: JSON.stringify({ status: gatewayStatus, fallback: "direct-hls-then-mpegts" })
+              detail: JSON.stringify({
+                status: gatewayStatus,
+                permanentSourceError,
+                fallback: permanentSourceError ? "probe-mpegts-before-fallback" : "direct-hls-then-mpegts"
+              })
             });
           } catch {}
+
+          /*
+             404/410 do not mean that HLS.js is broken: the provider/gateway
+             is explicitly saying that this exact source is unavailable.
+             Do not send Android Chrome into a dead direct-HTTP HLS retry,
+             which only creates another MSE blob and leaves the spinner alive.
+             First test the already-generated MPEG-TS proxy fallback. If that
+             endpoint is also unavailable, finish with a clear source error.
+          */
+          if (permanentSourceError && mpegtsFallbackUrl) {
+            try {
+              const controller = new AbortController();
+              const probeTimer = setTimeout(() => controller.abort(), 2500);
+              const tsProbe = await fetch(mpegtsFallbackUrl, {
+                method: "GET",
+                cache: "no-store",
+                credentials: "omit",
+                headers: { "Range": "bytes=0-1", "Accept": "video/mp2t,video/*,*/*" },
+                signal: controller.signal
+              });
+              clearTimeout(probeTimer);
+              const tsType = tsProbe.headers.get("content-type") || "";
+              try { await tsProbe.body?.cancel(); } catch {}
+              window.GCPlaybackInspector?.event?.("mpegTsGatewayProbe", {
+                detail: JSON.stringify({
+                  status: tsProbe.status,
+                  ok: tsProbe.ok,
+                  contentType: tsType
+                })
+              });
+              if (tsProbe.ok) {
+                await startMpegTSFallback();
+                return;
+              }
+            } catch (tsError) {
+              try {
+                window.GCPlaybackInspector?.event?.("mpegTsGatewayProbeError", {
+                  detail: String(tsError?.message || tsError)
+                });
+              } catch {}
+            }
+            sourceUnavailable = true;
+            clearStartupTimer();
+            try { if (state.hls) { state.hls.destroy(); state.hls = null; } } catch {}
+            try {
+              window.GCPlaybackInspector?.event?.("liveSourceUnavailable", {
+                detail: JSON.stringify({ status: gatewayStatus, message: "Fonte HLS e fallback MPEG-TS indisponíveis." })
+              });
+            } catch {}
+            if (message) message.textContent = "Fonte do canal offline ou expirada.";
+            return;
+          }
+
           if (await tryDirectHlsFallback()) return;
           await startMpegTSFallback();
         }
@@ -6968,7 +7032,7 @@ async function playHLS(
     }, 1800);
 
     startupTimer = setTimeout(async () => {
-      if (livePlaybackStarted) return;
+      if (livePlaybackStarted || sourceUnavailable) return;
       try {
         window.GCPlaybackInspector?.event?.("liveFallback", {
           detail: "HLS inicial sem evento playing em 6s"
