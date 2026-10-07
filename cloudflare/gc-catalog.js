@@ -1,4 +1,4 @@
-const GC_WORKER_VERSION = "2026.10.07.8";
+const GC_WORKER_VERSION = "2026.10.07.9";
 const ALLOW_ORIGIN = "https://caiomendes29546874687.github.io";
 const CATALOG_CORS = {
   "Access-Control-Allow-Origin": ALLOW_ORIGIN,
@@ -170,42 +170,24 @@ async function fetchMedia(request, target) {
   }
 
   /*
-     Alguns provedores IPTV respondem por HTTP, mas o endpoint HTTPS
-     é o que realmente está disponível para o Worker. Quando o HTTP
-     termina em 522/524, tente a mesma rota em HTTPS antes de devolver
-     o erro ao player. Isso é especialmente importante para o HLS LIVE,
-     porque 522 não é uma falha do HLS.js: é timeout entre Cloudflare e
-     a origem.
+     IMPORTANTE: preserve o protocolo fornecido pela lista.
+     Nunca converta HTTP -> HTTPS por conta própria. Um endpoint HTTP
+     pode estar atrás de um certificado HTTPS inválido; forçar HTTPS
+     transforma uma origem que poderia responder em HTTP em erro 526.
+     O player recebe o status real da origem e decide o fallback.
   */
-  if (
-    target.protocol === "http:" &&
-    [401, 403, 406, 522, 524].includes(upstream.status)
-  ) {
-    try {
-      /*
-       * Alguns provedores IPTV expõem o mesmo endpoint HTTP e HTTPS,
-       * mas recusam HTTP com 403/406. Para LIVE/HLS, tentar HTTPS é
-       * barato e evita mandar o navegador para uma cadeia de retries
-       * que nunca produzirá o primeiro frame.
-       */
-      const httpsTarget = new URL(target.toString());
-      httpsTarget.protocol = "https:";
-      const httpsHeaders = new Headers(baseHeaders);
-      httpsHeaders.delete("Origin");
-      httpsHeaders.delete("Referer");
-
-      const httpsFirst = await fetchTarget(httpsTarget, httpsHeaders);
-      if (httpsFirst.ok || ![401,403,406].includes(upstream.status)) {
-        upstream = httpsFirst;
-      } else {
-        httpsHeaders.set("Origin", httpsTarget.origin);
-        httpsHeaders.set("Referer", httpsTarget.origin + "/");
-        const httpsRetry = await fetchTarget(httpsTarget, httpsHeaders);
-        if (httpsRetry.ok || httpsRetry.status !== upstream.status) {
-          upstream = httpsRetry;
-        }
-      }
-    } catch {}
+  if (upstream.status === 526) {
+    const outHeaders = new Headers(MEDIA_CORS);
+    outHeaders.set("X-GC-Upstream-Status", "526");
+    outHeaders.set("X-GC-Upstream-Host", target.hostname);
+    outHeaders.set("X-GC-Transport", target.protocol.replace(":", ""));
+    outHeaders.set("X-GC-Worker", GC_WORKER_VERSION);
+    outHeaders.set("Cache-Control", "no-store");
+    return new Response(upstream.body, {
+      status: 526,
+      statusText: upstream.statusText || "Origin TLS failure",
+      headers: outHeaders
+    });
   }
 
   const ct = upstream.headers.get("content-type") || "";
