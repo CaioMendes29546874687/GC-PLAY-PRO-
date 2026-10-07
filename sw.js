@@ -12,7 +12,7 @@ const APP_SHELL = [
   "./",
   "./index.html",
   "./style.css?v=20261006-PLAYFIX1",
-  "./app.js?v=20261007-HLSFIX39",
+  "./app.js?v=20261007-LIVE-SUPABASE1",
   "./gc-playback-diagnostics.js?v=20261007-INSPECTOR17",
   "./gc-architecture-v2.js?v=20261007-HLSFIX2",
   "./gc-architecture-bridge.js?v=20261006-4",
