@@ -6,14 +6,14 @@
 
 "use strict";
 
-const CACHE_NAME = "gc-play-pro-v200-hard-pinned-inspector";
+const CACHE_NAME = "gc-play-pro-v201-inspector7-network";
 
 const APP_SHELL = [
   "./",
   "./index.html",
   "./style.css?v=20261006-PLAYFIX1",
   "./app.js?v=20261006-PLAYFIX11",
-  "./gc-playback-diagnostics.js?v=20261006-INSPECTOR3",
+  "./gc-playback-diagnostics.js?v=20261006-INSPECTOR7",
   "./gc-architecture-v2.js?v=20261006-16",
   "./gc-architecture-bridge.js?v=20261006-4",
   "./gc-final-readiness.js?v=20261006-2",
@@ -76,8 +76,9 @@ self.addEventListener("fetch", event => {
   }
 
   /*
-     Shell estático: cache primeiro. O nome versionado do app.js
-     permite invalidar o código quando uma nova versão é publicada.
+     Shell: REDE PRIMEIRO.
+     Isso é deliberado para evitar que o Service Worker mantenha uma
+     versão antiga do inspetor/playback depois de um deploy.
   */
   const isShellAsset =
     url.pathname.endsWith("/app.js") ||
@@ -88,15 +89,12 @@ self.addEventListener("fetch", event => {
   if (!isShellAsset) return;
 
   event.respondWith(
-    caches.match(request)
-      .then(cached => {
-        if (cached) return cached;
-
-        return fetch(request).then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-          return response;
-        });
+    fetch(new Request(request,{cache:"no-store"}))
+      .then(response => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+        return response;
       })
+      .catch(() => caches.match(request))
   );
 });
