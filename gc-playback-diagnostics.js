@@ -1,7 +1,7 @@
 /* GC PLAY PRO — PLAYBACK INSPECTOR 2026-10-06 */
 (function(){
 "use strict";
-const V="20261007-INSPECTOR15";
+const V="20261007-INSPECTOR17";
 const stages=[];
 let session=null;
 
