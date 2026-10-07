@@ -6189,7 +6189,14 @@ async function playItem(item) {
   /* Não faça fetch/probe antes de filmes e episódios.
      Esse preflight pode falhar por CORS mesmo quando <video> consegue
      tocar a mídia cross-origin. O <video> será a autoridade final. */
-  if (!isVodFile) {
+  /*
+     LIVE/HLS não passa mais pelo pré-teste de 5s.
+     O próprio HLS.js precisa ser a autoridade para manifesto/segmentos,
+     e o watchdog de 6s decide quando trocar para outra rota ou MPEG-TS.
+     O pré-teste antigo podia consumir 5s e depois deixar o fluxo preso
+     antes mesmo de o fallback HLS/MPEG-TS entrar.
+  */
+  if (!isVodFile && !looksLikeLiveStream) {
     const probe = await probeMediaSource(playbackUrl);
     if (!probe.ok) {
       console.error("[GC PLAY PRO] pré-teste de mídia:", probe);
