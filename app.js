@@ -6959,9 +6959,29 @@ async function playHLS(
       }
     );
 
-    hls.attachMedia(
-      video
-    );
+    try {
+      window.GCPlaybackInspector?.event?.("hlsAttachMedia", {
+        detail: "HLS.js anexando ao elemento de vídeo."
+      });
+    } catch {}
+
+    hls.attachMedia(video);
+
+    /* Não dependa exclusivamente de MEDIA_ATTACHED para disparar o
+       manifesto. Em alguns Android/Chrome o callback pode atrasar quando
+       o elemento de vídeo foi reutilizado pelo player. O loadSource() é
+       idempotente aqui e evita ficar eternamente na bolinha. */
+    try {
+      hls.loadSource(url);
+      window.GCPlaybackInspector?.event?.("hlsLoadSourceCalled", {
+        detail: "Manifesto HLS enviado ao HLS.js."
+      });
+    } catch (loadError) {
+      window.GCPlaybackInspector?.event?.("hlsLoadSourceError", {
+        detail: String(loadError?.message || loadError)
+      });
+      throw loadError;
+    }
 
   } catch (error) {
     console.error(
