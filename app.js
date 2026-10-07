@@ -5793,8 +5793,11 @@ async function playItem(item) {
     /\/live\//i.test(originalUrl) ||
     /\/stream\//i.test(originalUrl) ||
     /\/channel\//i.test(originalUrl) ||
-    /\/play\//i.test(originalUrl) ||
-    /\/tv\//i.test(sourceUrl);
+    /\/tv\//i.test(sourceUrl) ||
+    (
+      /\/play\//i.test(originalUrl) &&
+      !/\.(?:mp4|m4v|mkv|webm|avi|mov|wmv|flv)(?:$|[?#])/i.test(originalUrl)
+    );
 
   /*
      TODO conteúdo HTTP(S) passa pelo gateway de mídia. Isso é importante
