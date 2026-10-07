@@ -20,7 +20,7 @@ function classify(item){
   const type=String(item?.type||"").toLowerCase();
   const xt=String(item?.xtreamKind||"").toLowerCase();
   const live=type==="live"||xt==="live"||/\/live\/|\/channel\/|\/stream\/|\/tv\//.test(u);
-  if(/\.m3u8(?:$|[?#])/.test(u)) return {plan:"HLS",engine:"HLS.js",fallback:"MPEG-TS",reason:"manifesto HLS"};
+  if(/(?:\\.m3u8|\\/m3u8)(?:$|[?#])/.test(u)||/[?&]format=m3u8(?:$|&)/.test(u)) return {plan:"HLS",engine:"HLS.js",fallback:"MPEG-TS",reason:"manifesto HLS"};
   if(/\.mpd(?:$|[?#])|manifest\.mpd/.test(u)) return {plan:"DASH/CMAF",engine:"Shaka Player",fallback:"HLS/DASH alternativo",reason:"manifesto MPEG-DASH"};
   if(live && /\.(ts|m2ts|mpeg|mpg)(?:$|[?#])/.test(u)) return {plan:"LIVE MPEG-TS",engine:"mpegts.js",fallback:"HLS",reason:"transporte TS ao vivo"};
   if(live) return {plan:"LIVE",engine:"HLS.js → mpegts.js",fallback:"URL direta",reason:"rota de transmissão ao vivo"};
