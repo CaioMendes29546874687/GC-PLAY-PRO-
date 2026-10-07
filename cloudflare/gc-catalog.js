@@ -148,13 +148,15 @@ async function fetchMedia(request, target) {
     redirect: "follow"
   };
 
-  let upstream = await fetch(target.toString(), {
+  const fetchTarget = async (targetUrl, headers) => fetch(targetUrl.toString(), {
     ...requestInit,
-    headers: new Headers(baseHeaders)
+    headers: new Headers(headers)
   });
 
+  let upstream = await fetchTarget(target, baseHeaders);
+
   const firstType = upstream.headers.get("content-type") || "";
-  const retryStatus = [401, 403, 406, 408, 425, 429, 500, 502, 503, 504].includes(upstream.status);
+  const retryStatus = [401, 403, 406, 408, 425, 429, 500, 502, 503, 504, 522, 524].includes(upstream.status);
   const suspiciousMediaBody =
     /text\/html/i.test(firstType) &&
     (target.pathname.toLowerCase().includes(".m3u8") || target.pathname.toLowerCase().endsWith("/m3u8") || target.pathname.toLowerCase().includes(".mpd"));
@@ -163,10 +165,31 @@ async function fetchMedia(request, target) {
     const providerHeaders = new Headers(baseHeaders);
     providerHeaders.set("Origin", target.origin);
     providerHeaders.set("Referer", target.origin + "/");
-    upstream = await fetch(target.toString(), {
-      ...requestInit,
-      headers: providerHeaders
-    });
+    upstream = await fetchTarget(target, providerHeaders);
+  }
+
+  /*
+     Alguns provedores IPTV respondem por HTTP, mas o endpoint HTTPS
+     é o que realmente está disponível para o Worker. Quando o HTTP
+     termina em 522/524, tente a mesma rota em HTTPS antes de devolver
+     o erro ao player. Isso é especialmente importante para o HLS LIVE,
+     porque 522 não é uma falha do HLS.js: é timeout entre Cloudflare e
+     a origem.
+  */
+  if ((upstream.status === 522 || upstream.status === 524) && target.protocol === "http:") {
+    try {
+      const httpsTarget = new URL(target.toString());
+      httpsTarget.protocol = "https:";
+      const httpsHeaders = new Headers(baseHeaders);
+      httpsHeaders.delete("Origin");
+      httpsHeaders.delete("Referer");
+      upstream = await fetchTarget(httpsTarget, httpsHeaders);
+      if (upstream.status === 401 || upstream.status === 403 || upstream.status === 406) {
+        httpsHeaders.set("Origin", httpsTarget.origin);
+        httpsHeaders.set("Referer", httpsTarget.origin + "/");
+        upstream = await fetchTarget(httpsTarget, httpsHeaders);
+      }
+    } catch {}
   }
 
   const ct = upstream.headers.get("content-type") || "";
@@ -189,10 +212,7 @@ async function fetchMedia(request, target) {
       const providerHeaders = new Headers(baseHeaders);
       providerHeaders.set("Origin", target.origin);
       providerHeaders.set("Referer", target.origin + "/");
-      const retry = await fetch(target.toString(), {
-        ...requestInit,
-        headers: providerHeaders
-      });
+      const retry = await fetchTarget(target, providerHeaders);
       if (retry.ok && retry.body) {
         const retryText = await retry.text();
         if (looksLikeValidHls(retryText)) {
