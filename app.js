@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-07-HLSFIX32 */
+/* GC BUILD 2026-10-07-HLSFIX33 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -7019,9 +7019,30 @@ async function playHLS(
         detail: JSON.stringify({
           url: String(url || "").slice(0, 260),
           state: hls.state || "",
-          version: Hls.version || ""
+          version: Hls.version || "",
+          autoStartLoad: hls.config?.autoStartLoad !== false
         })
       });
+
+      /* Alguns WebViews/Android Chrome podem criar o pipeline HLS mas
+         não iniciar o loader automaticamente. Forçamos o startLoad()
+         uma vez após loadSource, sem trocar o motor nem a URL. */
+      setTimeout(() => {
+        if (livePlaybackStarted || fallbackStarted || state.hls !== hls) return;
+        try {
+          hls.startLoad(-1);
+          window.GCPlaybackInspector?.event?.("hlsStartLoadCalled", {
+            detail: JSON.stringify({
+              state: hls.state || "",
+              started: true
+            })
+          });
+        } catch (startError) {
+          window.GCPlaybackInspector?.event?.("hlsStartLoadError", {
+            detail: String(startError?.message || startError)
+          });
+        }
+      }, 150);
     } catch (loadError) {
       window.GCPlaybackInspector?.event?.("hlsLoadSourceError", {
         detail: String(loadError?.message || loadError)
