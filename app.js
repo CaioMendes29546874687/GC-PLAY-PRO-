@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-07-HLSFIX34 */
+/* GC BUILD 2026-10-07-HLSFIX36 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -5177,7 +5177,7 @@ async function playMpegTS(
               message.textContent = "O canal não entregou vídeo MPEG-TS.";
             }
           }
-        }, 5000);
+        }, 4500);
 
         directPlayer.on(mpegts.Events.ERROR, (type, detail, info) => {
           console.warn("[GC PLAY PRO] MPEG-TS direto:", type, detail, info);
@@ -5234,11 +5234,8 @@ async function playMpegTS(
         return trySecondaryHlsFallback();
       }
     };
-    video.addEventListener("loadeddata", () => {
-      startupResolved = true;
-      clearStartupTimer();
-      if (message) message.textContent = "";
-    }, { once: true });
+    /* LIVE: loadeddata pode representar somente áudio/buffer. O único
+       sinal que encerra o timeout é playing, que é o primeiro frame real. */
 
     /* Não deixe um proxy travado prender o canal por 12s.
        Se o upstream não responder, tenta a origem direta rapidamente. */
@@ -5250,7 +5247,7 @@ async function playMpegTS(
       if (!tryDirectFallback() && message) {
         message.textContent = "O canal está demorando para responder.";
       }
-    }, 5000);
+    }, 4500);
 
     player.on(
       mpegts.Events.ERROR,
@@ -5343,17 +5340,10 @@ async function playMpegTS(
       */
       await player.play();
 
-      if (
-        video.readyState >= 2 ||
-        video.videoWidth > 0 ||
-        video.videoHeight > 0
-      ) {
+      if (livePlaybackStarted) {
         startupResolved = true;
         clearStartupTimer();
-
-        if (message) {
-          message.textContent = "";
-        }
+        if (message) message.textContent = "";
       } else if (message) {
         message.textContent =
           "Motor iniciado — aguardando dados do canal...";
@@ -6771,7 +6761,7 @@ async function playHLS(
       });
     } catch {}
     await startMpegTSFallback();
-  }, 7000);
+  }, 5000);
 
   try {
     const Hls =
@@ -6938,16 +6928,19 @@ async function playHLS(
        falha de rede/proxy de falha interna do HLS.js sem atrasar fluxos normais. */
     gatewayProbeTimer = setTimeout(async () => {
       if (livePlaybackStarted || sourceUnavailable) return;
+      const probeController = new AbortController();
+      const probeAbortTimer = setTimeout(() => probeController.abort(), 4000);
       try {
         const probeUrl = buildMediaProxyUrl(url);
         const response = await fetch(probeUrl, {
           method: "GET",
           cache: "no-store",
-          credentials: "omit"
+          credentials: "omit",
+          signal: probeController.signal
         });
         const text = await response.text();
         const gatewayStatus = Number(response.status || 0);
-        const gatewayUnavailable = !response.ok && [401,403,404,410,408,425,429,500,502,503,504].includes(gatewayStatus);
+        const gatewayUnavailable = !response.ok && [401,403,404,408,410,425,429,500,502,503,504,522].includes(gatewayStatus);
         window.GCPlaybackInspector?.event?.("hlsGatewayProbe", {
           status: gatewayStatus,
           ok: response.ok,
@@ -7026,8 +7019,10 @@ async function playHLS(
         }
       } catch (error) {
         window.GCPlaybackInspector?.event?.("hlsGatewayProbeError", {
-          detail: String(error?.message || error)
+          detail: String(error?.name === "AbortError" ? "Gateway probe timeout (4s)" : (error?.message || error))
         });
+      } finally {
+        clearTimeout(probeAbortTimer);
       }
     }, 1800);
 
@@ -7041,7 +7036,7 @@ async function playHLS(
 
       if (await tryDirectHlsFallback()) return;
       startMpegTSFallback();
-    }, 6000);
+    }, 5000);
 
     hls.on(
       Hls.Events.ERROR,
