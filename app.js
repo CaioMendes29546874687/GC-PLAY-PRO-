@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-06-PLAYFIX11 */
+/* GC BUILD 2026-10-07-PLAYFIX26 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -6447,6 +6447,17 @@ async function playHLS(
   /* Alguns servidores aceitam HLS direto, mas o proxy pode falhar
      na reescrita do manifesto/segmentos. Antes de cair para MPEG-TS,
      tentamos uma única vez o HLS direto com o loader padrão. */
+  try {
+    window.GCPlaybackInspector?.event?.("playHLSEntered", {
+      detail: JSON.stringify({
+        androidLike: /Android|Android TV/i.test(navigator.userAgent || ""),
+        proxyHls: !!url,
+        tsFallback: !!mpegtsFallbackUrl,
+        directTsFallback: !!directMpegtsFallbackUrl,
+        directHlsFallback: !!directHlsFallbackUrl
+      })
+    });
+  } catch {}
   let directHlsStarted = false;
   const tryDirectHlsFallback = async () => {
     if (!directHlsFallbackUrl || directHlsStarted || directHlsFallbackUrl === url) return false;
