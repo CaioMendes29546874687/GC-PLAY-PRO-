@@ -4861,7 +4861,7 @@ function loadMpegTS() {
           const timer = setTimeout(() => {
             script.remove();
             reject(new Error("Tempo esgotado ao carregar mpegts.js."));
-          }, 5000);
+          }, 4000);
 
           script.onload = () => {
             clearTimeout(timer);
@@ -6354,7 +6354,7 @@ async function playItem(item) {
           message.textContent = `Continuando de ${formatResumeTime(resumePosition)}...`;
           setTimeout(() => {
             if (message) message.textContent = "";
-          }, 1800);
+          }, 1200);
         }
       } catch {}
     }
@@ -6601,7 +6601,7 @@ async function playHLS(
         if (state.hls === direct) state.hls = null;
         try { window.GCPlaybackInspector?.event?.("liveFallback", {detail:"HLS direto sem primeiro frame em 6s → MPEG-TS"}); } catch {}
         startMpegTSFallback();
-      }, 6000);
+      }, 3500);
 
       return true;
     } catch (error) {
@@ -7054,6 +7054,25 @@ async function playHLS(
           data.fatal
         ) {
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR && !hls.__gcNetworkRetry) {
+            const httpStatus = Number(data?.response?.code || data?.networkDetails?.status || 0);
+
+            /*
+             * 401/403/404/410 são respostas do transporte/origem, não
+             * problemas que recoverMediaError() consiga consertar.
+             * Para LIVE, passe imediatamente ao MPEG-TS já preparado.
+             */
+            if ([401,403,404,410].includes(httpStatus)) {
+              try {
+                window.GCPlaybackInspector?.event?.("hlsHttpBlocked", {
+                  detail: JSON.stringify({status:httpStatus, fallback:"mpegts"})
+                });
+              } catch {}
+              if (mpegtsFallbackUrl && !fallbackStarted) {
+                await startMpegTSFallback();
+                return;
+              }
+            }
+
             hls.__gcNetworkRetry = true;
             if (message) message.textContent = "Reconectando ao fluxo...";
             try {
