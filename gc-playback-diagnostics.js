@@ -1,7 +1,7 @@
 /* GC PLAY PRO — PLAYBACK INSPECTOR 2026-10-06 */
 (function(){
 "use strict";
-const V="20261006-INSPECTOR1";
+const V="20261006-INSPECTOR5";
 const stages=[];
 let session=null;
 
@@ -67,7 +67,13 @@ function render(){
     stages.map((x,i)=>"<div class='gc-diag-row'><b>"+String(i+1).padStart(2,"0")+"</b><span class='gc-diag-status gc-"+x.status.toLowerCase()+"'>"+x.status+"</span><div><strong>"+x.stage+"</strong><small>"+x.detail+(x.elapsed_ms!=null?" • "+x.elapsed_ms+" ms":"")+"</small></div></div>").join("");
 }
 function ensureUi(){
-  if(document.getElementById("gcPlaybackDiagnostics"))return;
+  const existing=document.getElementById("gcPlaybackDiagnostics");
+  if(existing){
+    if(existing.parentElement!==document.body) document.body.appendChild(existing);
+    existing.classList.add("gc-playback-diagnostics");
+    existing.open=true;
+    return;
+  }
   const wrap=document.createElement("details"); wrap.id="gcPlaybackDiagnostics"; wrap.className="gc-playback-diagnostics"; wrap.open=true;
   wrap.innerHTML="<summary>🔎 DIAGNÓSTICO DO PLAYBACK</summary><div class='gc-diag-body'></div>";
   document.body.appendChild(wrap);
