@@ -74,6 +74,23 @@ async function probeSource(url,kind){
     add("03 • RESPOSTA DA FONTE","FAIL",e?.name==="AbortError"?"Timeout de 5s ao consultar a fonte.":"Falha de rede: "+(e?.message||e),{elapsed_ms:Math.round(performance.now()-started)});
   }finally{clearTimeout(timer)}
 }
+function hlsEvent(name,data={}){
+  if(!session) return;
+  const elapsed=Math.round(performance.now()-session.started);
+  const safe = {
+    type: data?.type || "",
+    details: data?.details || "",
+    fatal: !!data?.fatal,
+    code: data?.code || "",
+    responseCode: data?.response?.code || data?.response?.status || "",
+    url: safeUrl(data?.url || data?.context?.url || ""),
+    reason: data?.reason || ""
+  };
+  let status="INFO";
+  if(name==="ERROR" && safe.fatal) status="FAIL";
+  else if(/LOADED|PARSED|BUFFERED/.test(name)) status="OK";
+  add("HLS.js",status,name,safe);
+}
 function event(name,data={}){
   if(!session) return;
   const elapsed=Math.round(performance.now()-session.started);
@@ -88,7 +105,9 @@ function event(name,data={}){
     loadeddata:["05 • PRIMEIRO FRAME","OK","Primeiro frame disponível."],
     canplay:["05 • DECODIFICAÇÃO","OK","Navegador informou que pode reproduzir."],
     playing:["06 • REPRODUÇÃO","OK","Playback efetivamente iniciado."],
-    error:["06 • REPRODUÇÃO","FAIL","HTML5 MediaError detectado."]
+    error:["06 • REPRODUÇÃO","FAIL","HTML5 MediaError detectado."],
+    hlsGatewayProbe:["HLS GATEWAY","INFO","Gateway respondeu ao teste do manifesto."],
+    hlsGatewayProbeError:["HLS GATEWAY","FAIL","Falha ao consultar o gateway do manifesto."]
   };
   const m=map[name]||["EVENTO","INFO",name];
   add(m[0],m[1],m[2],{elapsed_ms:elapsed,error_code:data.code||"",detail:data.detail||""});
