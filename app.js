@@ -5798,6 +5798,15 @@ async function playItem(item) {
   } catch (diagError) {
     console.warn("[GC INSPECTOR] motor:", diagError);
   }
+  try {
+    const inspector = window.GCPlaybackInspector;
+    const plan = inspector?.classify?.(item);
+    if (inspector?.probeSource) {
+      inspector.probeSource(playbackUrl, plan?.plan || "UNKNOWN").catch(()=>{});
+    }
+  } catch (diagError) {
+    console.warn("[GC INSPECTOR] probe:", diagError);
+  }
 
   /*
      O fallback deve ser o caminho alternativo real:
