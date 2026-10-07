@@ -1,7 +1,7 @@
 /* GC PLAY PRO — PLAYBACK INSPECTOR 2026-10-06 */
 (function(){
 "use strict";
-const V="20261006-INSPECTOR5";
+const V="20261006-INSPECTOR7";
 const stages=[];
 let session=null;
 
@@ -66,18 +66,37 @@ function render(){
   box.innerHTML="<div class='gc-diag-head'><strong>GC PLAYBACK INSPECTOR</strong><span>"+p.plan+" • "+p.engine+"</span></div>"+
     stages.map((x,i)=>"<div class='gc-diag-row'><b>"+String(i+1).padStart(2,"0")+"</b><span class='gc-diag-status gc-"+x.status.toLowerCase()+"'>"+x.status+"</span><div><strong>"+x.stage+"</strong><small>"+x.detail+(x.elapsed_ms!=null?" • "+x.elapsed_ms+" ms":"")+"</small></div></div>").join("");
 }
+function pinUi(el){
+  if(!el)return;
+  el.classList.add("gc-playback-diagnostics");
+  el.open=true;
+  el.style.setProperty("position","fixed","important");
+  el.style.setProperty("left","50%","important");
+  el.style.setProperty("right","auto","important");
+  el.style.setProperty("top","72px","important");
+  el.style.setProperty("bottom","auto","important");
+  el.style.setProperty("transform","translateX(-50%)","important");
+  el.style.setProperty("width","min(620px, calc(100vw - 16px))","important");
+  el.style.setProperty("max-height","42vh","important");
+  el.style.setProperty("margin","0","important");
+  el.style.setProperty("z-index","2147483647","important");
+  el.style.setProperty("display","block","important");
+  el.style.setProperty("overflow","hidden","important");
+  el.style.setProperty("box-sizing","border-box","important");
+}
 function ensureUi(){
-  const existing=document.getElementById("gcPlaybackDiagnostics");
-  if(existing){
-    if(existing.parentElement!==document.body) document.body.appendChild(existing);
-    existing.classList.add("gc-playback-diagnostics");
-    existing.open=true;
-    return;
+  let existing=document.getElementById("gcPlaybackDiagnostics");
+  if(!existing){
+    existing=document.createElement("details");
+    existing.id="gcPlaybackDiagnostics";
+    existing.innerHTML="<summary>🔎 DIAGNÓSTICO DO PLAYBACK</summary><div class='gc-diag-body'></div>";
+    document.body.appendChild(existing);
+    existing.querySelector("summary").addEventListener("click",()=>render());
+  }else if(existing.parentElement!==document.body){
+    document.body.appendChild(existing);
   }
-  const wrap=document.createElement("details"); wrap.id="gcPlaybackDiagnostics"; wrap.className="gc-playback-diagnostics"; wrap.open=true;
-  wrap.innerHTML="<summary>🔎 DIAGNÓSTICO DO PLAYBACK</summary><div class='gc-diag-body'></div>";
-  document.body.appendChild(wrap);
-  wrap.querySelector("summary").addEventListener("click",()=>render());
+  pinUi(existing);
+  return existing;
 }
 function bindVideo(){
   const v=document.getElementById("videoPlayer"); if(!v||v.__gcInspectorBound)return;
@@ -87,7 +106,12 @@ function bindVideo(){
   },true));
 }
 function install(){
-  ensureUi(); bindVideo();
+  const ui=ensureUi();
+  if(!window.__GC_INSPECTOR_RELOCATOR__){
+    window.__GC_INSPECTOR_RELOCATOR__=new MutationObserver(()=>{const x=document.getElementById("gcPlaybackDiagnostics"); if(x) { if(x.parentElement!==document.body) document.body.appendChild(x); pinUi(x); }});
+    window.__GC_INSPECTOR_RELOCATOR__.observe(document.documentElement,{childList:true,subtree:true});
+  }
+  bindVideo();
   window.addEventListener("gc-native-player",e=>{
     const d=e.detail||{};
     if(d.event==="nativePlaying")event("nativePlaying",{detail:d.value});
