@@ -342,7 +342,43 @@ function buildPlaybackAlternatives(url, type="") {
     }catch{}
   };
   const raw=String(url||"").trim();
-  addTransportVariants(raw);
+  /*
+     Prioriza a URL canônica sem :80 antes de tentar a forma literal.
+     O diagnóstico mostrou que /play/TOKEN.mp4 sem a porta explícita
+     consegue chegar ao primeiro frame, enquanto /play/TOKEN.mp4:80
+     pode ficar dezenas de segundos aguardando.
+  */
+  try{
+    const u=new URL(raw);
+    const normalized=new URL(u.toString());
+    if(normalized.protocol==="http:" && normalized.port==="80"){
+      normalized.port="";
+      addTransportVariants(normalized.toString());
+    } else {
+      addTransportVariants(normalized.toString());
+    }
+
+    /* Fragmentos como "#.mp4" nunca chegam ao servidor. */
+    const pathNoFragment=normalized.pathname;
+    const mediaExt=/\.(mp4|m4v|mkv|webm|avi|mov|wmv|flv)$/i;
+    if(mediaExt.test(pathNoFragment)){
+      const v=new URL(normalized.toString());
+      v.pathname=pathNoFragment.replace(mediaExt,"");
+      v.hash="";
+      addTransportVariants(v.toString());
+    }
+    if(normalized.hash){
+      const v=new URL(normalized.toString());
+      v.hash="";
+      addTransportVariants(v.toString());
+    }
+
+    /* Mantém a URL literal original como fallback, depois das formas
+       canônicas mais rápidas. */
+    if(raw!==normalized.toString()) addTransportVariants(raw);
+  } catch {
+    addTransportVariants(raw);
+  }
   try{
     const u=new URL(raw);
     /* Fragmentos como "#.mp4" nunca chegam ao servidor. */
