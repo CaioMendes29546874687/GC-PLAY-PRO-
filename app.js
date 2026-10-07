@@ -4895,6 +4895,62 @@ function loadMpegTS() {
   return window.__GC_MPEGTS_LOAD__;
 }
 
+async function gcProbeMpegTSGateway(url) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 3500);
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      cache: "no-store",
+      credentials: "omit",
+      headers: {
+        "Range": "bytes=0-375",
+        "Accept": "video/mp2t,video/mpeg,video/*,*/*"
+      },
+      signal: controller.signal
+    });
+    const reader = response.body?.getReader?.();
+    let bytes = 0;
+    let firstByte = null;
+    if (reader) {
+      const chunk = await reader.read();
+      const data = chunk?.value;
+      if (data && data.byteLength) {
+        bytes = data.byteLength;
+        firstByte = Number(data[0]);
+      }
+      try { await reader.cancel(); } catch {}
+    }
+    const headers = response.headers;
+    window.GCPlaybackInspector?.event?.("mpegTsGatewayProbe", {
+      detail: JSON.stringify({
+        status: response.status,
+        ok: response.ok,
+        contentType: headers.get("content-type") || "",
+        contentLength: headers.get("content-length") || "",
+        contentRange: headers.get("content-range") || "",
+        upstreamStatus: headers.get("x-gc-upstream-status") || "",
+        upstreamHost: headers.get("x-gc-upstream-host") || "",
+        worker: headers.get("x-gc-worker") || "",
+        bytes,
+        firstByte,
+        mpegSync: firstByte === 0x47
+      })
+    });
+    return response.ok && bytes > 0;
+  } catch (error) {
+    window.GCPlaybackInspector?.event?.("mpegTsGatewayProbeError", {
+      detail: JSON.stringify({
+        name: error?.name || "",
+        message: String(error?.message || error)
+      })
+    });
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function isMpegTSLive(item) {
   if (!item || item.type !== "live") return false;
 
@@ -4986,6 +5042,10 @@ async function playMpegTS(
 
     state.mpegts =
       player;
+
+    /* Diagnóstico real do primeiro pacote: status, content-type e byte
+       de sincronismo MPEG-TS (0x47). Não bloqueia o player. */
+    void gcProbeMpegTSGateway(url);
 
     let startupResolved = false;
     let startupTimer = null;
