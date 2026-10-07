@@ -5173,7 +5173,7 @@ async function playMpegTS(
             try { window.GCPlaybackInspector?.event?.("mpegTsDirectTimeout", {
               detail: JSON.stringify({ timeoutMs: 5000, readyState: video.readyState, videoWidth: video.videoWidth, videoHeight: video.videoHeight })
             }); } catch {}
-            if (!trySecondaryHlsFallback() && message) {
+            if (message) {
               message.textContent = "O canal não entregou vídeo MPEG-TS.";
             }
           }
@@ -5245,8 +5245,7 @@ async function playMpegTS(
         detail: JSON.stringify({ timeoutMs: 5000, readyState: video.readyState, videoWidth: video.videoWidth, videoHeight: video.videoHeight })
       }); } catch {}
       if (!tryDirectFallback() && message) {
-        message.textContent = "O canal está demorando para responder.";
-      }
+        message.textContent = "O canal não entregou vídeo MPEG-TS.";\n      }
     }, 4500);
 
     player.on(
@@ -6131,52 +6130,8 @@ async function playItem(item) {
       }
     };
 
-    if (looksLikeLiveStream && liveTsProxyFallback) {
-      hlsSafetyPlayingHandler = () => clearHlsSafety();
-      video.addEventListener("playing", hlsSafetyPlayingHandler, { once: true });
-
-      hlsCallSafetyTimer = setTimeout(async () => {
-        hlsCallSafetyTimer = null;
-        if (video.readyState >= 3 && video.videoWidth > 0) {
-          clearHlsSafety();
-          return;
-        }
-
-        try {
-          window.GCPlaybackInspector?.event?.("hlsCallSafetyFired", {
-            detail: "HLS sem primeiro frame em 6,5s → MPEG-TS de emergência"
-          });
-          window.GCPlaybackInspector?.event?.("liveFallback", {
-            detail: "Guarda externa LIVE: encerrando HLS e iniciando MPEG-TS"
-          });
-        } catch {}
-
-        /*
-         * Evita dois motores disputando o mesmo <video>.
-         */
-        try {
-          if (state.hls) {
-            state.hls.destroy();
-            state.hls = null;
-          }
-        } catch {}
-
-        try {
-          video.pause();
-          video.removeAttribute("src");
-          video.load();
-        } catch {}
-
-        try {
-          const native = window.__GC_NATIVE_PLAY_MPEGTS__;
-          if (typeof native !== "function") throw new Error("Motor MPEG-TS indisponível");
-          await native(video, liveTsProxyFallback, message, liveTsDirectFallback);
-        } catch (error) {
-          console.warn("[GC PLAY PRO] guarda externa LIVE:", error);
-          if (message) message.textContent = "O canal não respondeu ao HLS nem ao MPEG-TS.";
-        }
-      }, 6500);
-    }
+    /* Uma única guarda global controla o LIVE. O antigo timer de 6,5 s
+       criava um segundo fallback enquanto o watchdog de HLS já executava. */
 
     try {
       window.GCPlaybackInspector?.event?.("hlsCallStarting", {
@@ -6803,7 +6758,7 @@ async function playHLS(
       });
     } catch {}
     await startMpegTSFallback();
-  }, 5000);
+  }, 7000);
 
   try {
     const Hls =
@@ -7078,7 +7033,7 @@ async function playHLS(
 
       if (await tryDirectHlsFallback()) return;
       startMpegTSFallback();
-    }, 5000);
+    }, 6500);
 
     hls.on(
       Hls.Events.ERROR,
@@ -7099,11 +7054,11 @@ async function playHLS(
             const httpStatus = Number(data?.response?.code || data?.networkDetails?.status || 0);
 
             /*
-             * 401/403/404/410 são respostas do transporte/origem, não
+             * 401/403/404/410/526 são respostas do transporte/origem, não
              * problemas que recoverMediaError() consiga consertar.
              * Para LIVE, passe imediatamente ao MPEG-TS já preparado.
              */
-            if ([401,403,404,410].includes(httpStatus)) {
+            if ([401,403,404,410,526].includes(httpStatus)) {
               try {
                 window.GCPlaybackInspector?.event?.("hlsHttpBlocked", {
                   detail: JSON.stringify({status:httpStatus, fallback:"mpegts"})
