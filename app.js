@@ -289,11 +289,12 @@ function isHttpUrl(url) {
 }
 
 function isHLS(url) {
-  const value = String(url || "").toLowerCase();
-
+  const value = String(url || "").trim().toLowerCase();
+  /* Alguns provedores usam /m3u8 sem ponto (.m3u8).
+     Esse é exatamente o formato usado pelo canal Cultura FHD. */
   return (
-    value.includes(".m3u8") ||
-    value.includes("m3u8?")
+    /(?:\\.m3u8|\\/m3u8)(?:$|[?#])/i.test(value) ||
+    /[?&]format=m3u8(?:$|&)/i.test(value)
   );
 }
 
