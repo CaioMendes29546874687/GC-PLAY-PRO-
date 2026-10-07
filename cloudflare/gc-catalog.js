@@ -148,34 +148,96 @@ async function fetchMedia(request, target) {
     redirect: "follow"
   };
 
-  let upstream = await fetch(target.toString(), {
-    ...requestInit,
-    headers: new Headers(baseHeaders)
-  });
+  /*
+     PLAYFIX18 — alguns provedores publicam o mesmo token em HTTP e HTTPS.
+     Como o cliente roda no GitHub Pages (HTTPS), tentamos HTTPS automaticamente
+     quando a origem HTTP retorna 404/5xx ou quando a subrequisição falha.
+     A tentativa original continua sendo preservada para não quebrar fontes
+     que só aceitam HTTP.
+  */
+  const targetCandidates = [target];
+  if (target.protocol === "http:") {
+    try {
+      const httpsTarget = new URL(target.toString());
+      httpsTarget.protocol = "https:";
+      targetCandidates.push(httpsTarget);
+    } catch {}
+  }
 
+  let upstream = null;
+  let upstreamTarget = target;
+  let lastFetchError = null;
+
+  for (const candidate of targetCandidates) {
+    try {
+      const candidateResponse = await fetch(candidate.toString(), {
+        ...requestInit,
+        headers: new Headers(baseHeaders)
+      });
+
+      upstream = candidateResponse;
+      upstreamTarget = candidate;
+
+      /*
+         404/5xx são sinais úteis de que a rota HTTP não existe ou não está
+         acessível nessa borda. Só então testamos a variante HTTPS.
+      */
+      if (
+        candidate !== target &&
+        candidateResponse.ok
+      ) {
+        break;
+      }
+
+      const shouldTryNext =
+        candidate === target &&
+        targetCandidates.length > 1 &&
+        [404, 408, 425, 429, 500, 502, 503, 504].includes(candidateResponse.status);
+
+      if (!shouldTryNext) break;
+    } catch (error) {
+      lastFetchError = error;
+      if (candidate === target && targetCandidates.length > 1) continue;
+      throw error;
+    }
+  }
+
+  if (!upstream) {
+    throw lastFetchError || new Error("Origem de mídia não respondeu.");
+  }
+
+  /* O retry com Origin/Referer continua valendo para a URL que respondeu. */
   const firstType = upstream.headers.get("content-type") || "";
   const retryStatus = [401, 403, 406, 408, 425, 429, 500, 502, 503, 504].includes(upstream.status);
   const suspiciousMediaBody =
     /text\/html/i.test(firstType) &&
-    (target.pathname.toLowerCase().includes(".m3u8") || target.pathname.toLowerCase().includes(".mpd"));
+    (upstreamTarget.pathname.toLowerCase().includes(".m3u8") || upstreamTarget.pathname.toLowerCase().includes(".mpd"));
 
   if (retryStatus || suspiciousMediaBody) {
     const providerHeaders = new Headers(baseHeaders);
-    providerHeaders.set("Origin", target.origin);
-    providerHeaders.set("Referer", target.origin + "/");
-    upstream = await fetch(target.toString(), {
-      ...requestInit,
-      headers: providerHeaders
-    });
+    providerHeaders.set("Origin", upstreamTarget.origin);
+    providerHeaders.set("Referer", upstreamTarget.origin + "/");
+    try {
+      upstream = await fetch(upstreamTarget.toString(), {
+        ...requestInit,
+        headers: providerHeaders
+      });
+    } catch (error) {
+      /*
+         Se a tentativa com cabeçalhos do provedor falhar, mantém a
+         resposta anterior em vez de transformar uma fonte válida em 502.
+      */
+      console.warn?.("[GC MEDIA] retry provider falhou", error);
+    }
   }
 
   const ct = upstream.headers.get("content-type") || "";
-  const targetIsHls = looksLikeHls(target, ct);
-  const targetIsDash = looksLikeDash(target, ct);
+  const targetIsHls = looksLikeHls(upstreamTarget, ct);
+  const targetIsDash = looksLikeDash(upstreamTarget, ct);
 
   if (targetIsHls && upstream.ok && upstream.body) {
     const text = await upstream.text();
-    const rewritten = rewriteHlsManifest(text, target.toString(), new URL(request.url).origin, customReferrer, customUserAgent);
+    const rewritten = rewriteHlsManifest(text, upstreamTarget.toString(), new URL(request.url).origin, customReferrer, customUserAgent);
     const outHeaders = new Headers(MEDIA_CORS);
     outHeaders.set("Content-Type", "application/vnd.apple.mpegurl");
     outHeaders.set("Cache-Control", "no-store");
@@ -184,7 +246,7 @@ async function fetchMedia(request, target) {
 
   if (targetIsDash && upstream.ok && upstream.body) {
     const text = await upstream.text();
-    const rewritten = rewriteDashManifest(text, target.toString(), new URL(request.url).origin, customReferrer, customUserAgent);
+    const rewritten = rewriteDashManifest(text, upstreamTarget.toString(), new URL(request.url).origin, customReferrer, customUserAgent);
     const outHeaders = new Headers(MEDIA_CORS);
     outHeaders.set("Content-Type", "application/dash+xml");
     outHeaders.set("Cache-Control", "no-store");
