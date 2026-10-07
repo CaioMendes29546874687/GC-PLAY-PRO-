@@ -6892,9 +6892,36 @@ async function playHLS(
 
     /* HLS sem primeiro frame também troca de transporte cedo,
        evitando a tela de carregamento indefinida. */
+    /* Diagnóstico tardio: se o HLS.js não produzir sequer MANIFEST_LOADING/
+       MANIFEST_LOADED, consulta uma única vez o gateway real. Isso diferencia
+       falha de rede/proxy de falha interna do HLS.js sem atrasar fluxos normais. */
+    const gatewayProbeTimer = setTimeout(async () => {
+      if (livePlaybackStarted) return;
+      try {
+        const probeUrl = buildMediaProxyUrl(url);
+        const response = await fetch(probeUrl, {
+          method: "GET",
+          cache: "no-store",
+          credentials: "omit"
+        });
+        const text = await response.text();
+        window.GCPlaybackInspector?.event?.("hlsGatewayProbe", {
+          status: response.status,
+          ok: response.ok,
+          contentType: response.headers.get("content-type") || "",
+          gcHls: response.headers.get("x-gc-hls") || "",
+          bytes: text.length,
+          firstLine: String(text || "").split(/\\r?\\n/)[0].slice(0, 160)
+        });
+      } catch (error) {
+        window.GCPlaybackInspector?.event?.("hlsGatewayProbeError", {
+          detail: String(error?.message || error)
+        });
+      }
+    }, 2500);
+
     startupTimer = setTimeout(async () => {
       if (livePlaybackStarted) return;
-
       try {
         window.GCPlaybackInspector?.event?.("liveFallback", {
           detail: "HLS inicial sem evento playing em 6s"
