@@ -6046,7 +6046,9 @@ async function playItem(item) {
      HLS
      ------------------------------------------------------- */
 
-  if (isHLS(sourceUrl)) {
+  /* HARD LIVE GUARD: uma fonte LIVE identificada como .m3u8 nunca pode
+     cair no ramo MPEG-TS, mesmo que algum metadado antigo diga \"ts\". */
+  if (isHLS(sourceUrl) || (item.type === "live" && /m3u8/i.test(String(sourceUrl)))) {
     try {
       window.GCPlaybackInspector?.event?.("hlsBranchEntered", {
         detail: JSON.stringify({
@@ -6173,6 +6175,21 @@ async function playItem(item) {
      ------------------------------------------------------- */
 
   if (looksLikeLiveStream) {
+    /* Segurança adicional: se chegarmos aqui com .m3u8, jamais inicializar
+       MPEG-TS. Isso protege contra classificadores/versões antigas em cache. */
+    if (/m3u8/i.test(String(sourceUrl))) {
+      try {
+        window.GCPlaybackInspector?.event?.("liveHlsHardGuard", {
+          detail: "LIVE com m3u8 detectado no ramo TS — redirecionando para HLS.js."
+        });
+      } catch {}
+      try {
+        await playHLS(video, playbackUrl, message, "", originalUrl !== playbackUrl ? originalUrl : "");
+      } catch (error) {
+        console.warn("[GC PLAY PRO] hard HLS guard:", error);
+      }
+      return;
+    }
     try {
       window.GCPlaybackInspector?.event?.("liveTsBranchEntered", {
         detail: "LIVE caiu no ramo MPEG-TS; HLS não foi selecionado."
