@@ -1,4 +1,4 @@
-const GC_WORKER_VERSION = "2026.10.07.9";
+const GC_WORKER_VERSION = "2026.10.07.10";
 const ALLOW_ORIGIN = "https://caiomendes29546874687.github.io";
 const CATALOG_CORS = {
   "Access-Control-Allow-Origin": ALLOW_ORIGIN,
@@ -149,12 +149,32 @@ async function fetchMedia(request, target) {
     redirect: "follow"
   };
 
-  const fetchTarget = async (targetUrl, headers) => fetch(targetUrl.toString(), {
-    ...requestInit,
-    headers: new Headers(headers)
-  });
+  const fetchTarget = async (targetUrl, headers, timeoutMs = 6000) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(targetUrl.toString(), {
+        ...requestInit,
+        headers: new Headers(headers),
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  };
 
-  let upstream = await fetchTarget(target, baseHeaders);
+  let upstream;
+  try {
+    upstream = await fetchTarget(target, baseHeaders, 6000);
+  } catch (error) {
+    const outHeaders = new Headers(MEDIA_CORS);
+    outHeaders.set("X-GC-Upstream-Status", "TIMEOUT");
+    outHeaders.set("X-GC-Upstream-Host", target.hostname);
+    outHeaders.set("X-GC-Transport", target.protocol.replace(":", ""));
+    outHeaders.set("X-GC-Worker", GC_WORKER_VERSION);
+    outHeaders.set("Cache-Control", "no-store");
+    return new Response("Upstream timeout", { status: 504, headers: outHeaders });
+  }
 
   const firstType = upstream.headers.get("content-type") || "";
   const retryStatus = [401, 403, 406, 408, 425, 429, 500, 502, 503, 504, 522, 524].includes(upstream.status);
@@ -166,7 +186,15 @@ async function fetchMedia(request, target) {
     const providerHeaders = new Headers(baseHeaders);
     providerHeaders.set("Origin", target.origin);
     providerHeaders.set("Referer", target.origin + "/");
-    upstream = await fetchTarget(target, providerHeaders);
+    try {
+      upstream = await fetchTarget(target, providerHeaders, 6000);
+    } catch {
+      const outHeaders = new Headers(MEDIA_CORS);
+      outHeaders.set("X-GC-Upstream-Status", "TIMEOUT_RETRY");
+      outHeaders.set("X-GC-Upstream-Host", target.hostname);
+      outHeaders.set("X-GC-Worker", GC_WORKER_VERSION);
+      return new Response("Upstream retry timeout", { status: 504, headers: outHeaders });
+    }
   }
 
   /*
@@ -195,7 +223,20 @@ async function fetchMedia(request, target) {
   const targetIsDash = looksLikeDash(target, ct);
 
   if (targetIsHls && upstream.ok && upstream.body) {
-    let text = await upstream.text();
+    let text;
+    try {
+      text = await Promise.race([
+        upstream.text(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("HLS body timeout")), 5000))
+      ]);
+    } catch {
+      const outHeaders = new Headers(MEDIA_CORS);
+      outHeaders.set("X-GC-HLS", "timeout");
+      outHeaders.set("X-GC-Upstream-Status", String(upstream.status));
+      outHeaders.set("X-GC-Upstream-Host", target.hostname);
+      outHeaders.set("X-GC-Worker", GC_WORKER_VERSION);
+      return new Response("HLS manifest timeout", { status: 504, headers: outHeaders });
+    }
 
     // Alguns provedores retornam HTTP 200 com corpo vazio/HTML ou uma resposta
     // que não é um manifesto HLS válido. Nesse caso, repete com Origin/Referer
@@ -225,6 +266,9 @@ async function fetchMedia(request, target) {
     outHeaders.set("Content-Type", "application/vnd.apple.mpegurl");
     outHeaders.set("Cache-Control", "no-store");
     outHeaders.set("X-GC-HLS", looksLikeValidHls(text) ? "valid" : "invalid");
+    outHeaders.set("X-GC-Upstream-Status", String(upstream.status));
+    outHeaders.set("X-GC-Upstream-Host", target.hostname);
+    outHeaders.set("X-GC-Worker", GC_WORKER_VERSION);
     return new Response(rewritten, { status: upstream.status, headers: outHeaders });
   }
 
