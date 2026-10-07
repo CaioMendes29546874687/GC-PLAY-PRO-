@@ -309,6 +309,45 @@ function isDASH(url) {
    Também existem rotas LIVE ".../ts" que precisam tentar HLS antes
    do MPEG-TS no navegador.
 */
+function buildPlaybackAlternatives(url, type="") {
+  const out=[];
+  const add=v=>{
+    const s=String(v||"").trim();
+    if(s && !out.includes(s)) out.push(s);
+  };
+  const raw=String(url||"").trim();
+  add(raw);
+  try{
+    const u=new URL(raw);
+    /* Fragmentos como "#.mp4" nunca chegam ao servidor. */
+    const pathNoFragment=u.pathname;
+    const mediaExt=/\.(mp4|m4v|mkv|webm|avi|mov|wmv|flv)$/i;
+    if(mediaExt.test(pathNoFragment)){
+      const v=new URL(u.toString());
+      v.pathname=pathNoFragment.replace(mediaExt,"");
+      v.hash="";
+      add(v.toString());
+    }
+    if(u.hash){
+      const v=new URL(u.toString());
+      v.hash="";
+      add(v.toString());
+    }
+    if(String(type).toLowerCase()==="live"){
+      const base=new URL(u.toString());
+      base.hash="";
+      base.pathname=base.pathname.replace(/\/(?:m3u8|ts|mpeg|mpg|m2ts)$/i,"");
+      add(base.toString());
+      for(const ext of ["m3u8","ts"]){
+        const v=new URL(base.toString());
+        v.pathname=base.pathname.replace(/\/$/,"")+"/"+ext;
+        add(v.toString());
+      }
+    }
+  }catch{}
+  return out;
+}
+
 function normalizePlaybackSourceUrl(url, type="") {
   let value = String(url || "").trim();
   if (!value) return value;
@@ -6096,6 +6135,27 @@ async function playItem(item) {
     }
   }
 
+  /* VOD resiliente: alguns provedores usam /play/TOKEN sem extensão.
+     Se a lista trouxe "#.mp4" ou ".mp4" e o servidor responder 404/formato,
+     tentaremos automaticamente a rota equivalente sem extensão. */
+  if (isVodFile) {
+    const rawCandidates = buildPlaybackAlternatives(rawOriginalUrl || sourceUrl, item.type);
+    const currentCandidates = buildPlaybackAlternatives(sourceUrl, item.type);
+    const candidates = [...rawCandidates, ...currentCandidates]
+      .filter(Boolean)
+      .filter(v => v !== playbackUrl);
+    video.__gcVodAlternatives = candidates.map(v => buildMediaProxyUrl(v, item));
+    video.__gcVodAlternativeIndex = 0;
+    try {
+      window.GCPlaybackInspector?.event?.("vodAlternatives", {
+        detail: JSON.stringify({ candidates: video.__gcVodAlternatives.length })
+      });
+    } catch {}
+  } else {
+    video.__gcVodAlternatives = [];
+    video.__gcVodAlternativeIndex = 0;
+  }
+
   video.src = playbackUrl;
 
   if (message) {
@@ -6159,6 +6219,35 @@ async function playItem(item) {
       "VIDEO ERROR:",
       mediaError
     );
+
+    /* Antes de desistir de um VOD, tente variantes reais da própria URL
+       (principalmente /play/TOKEN quando /play/TOKEN.mp4 devolve 404). */
+    if (isVodFile && video.__gcVodAlternatives?.length && !video.__gcVodAlternativeRetry) {
+      const idx = Number(video.__gcVodAlternativeIndex || 0);
+      const next = video.__gcVodAlternatives[idx];
+      if (next) {
+        video.__gcVodAlternativeIndex = idx + 1;
+        video.__gcVodAlternativeRetry = "1";
+        if (message) message.textContent = "Fonte recusada — tentando rota alternativa...";
+        try {
+          video.pause();
+          video.removeAttribute("src");
+          video.load();
+          video.src = next;
+          video.load();
+          video.play().catch(()=>{});
+          try {
+            window.GCPlaybackInspector?.event?.("vodAlternative", {
+              detail: "Tentando variante " + (idx + 1) + "/" + video.__gcVodAlternatives.length
+            });
+          } catch {}
+          setTimeout(()=>{ video.__gcVodAlternativeRetry = ""; }, 900);
+          return;
+        } catch (e) {
+          console.warn("[GC PLAY PRO] alternativa VOD:",e);
+        }
+      }
+    }
 
     /*
        Se o gateway falhar para um VOD, faça uma única tentativa direta.
