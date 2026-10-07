@@ -6,7 +6,7 @@
   "use strict";
   if(window.__GC_PLAYBACK_CORE_V2__) return;
   window.__GC_PLAYBACK_CORE_V2__=true;
-  const VERSION="2026.10.06.6";
+  const VERSION="2026.10.07.7";
   const originalApi=window.GC_PLAY_PRO;
   const state=()=>window.__GC_STATE__||originalApi?.state||null;
   const msg=t=>{const e=document.getElementById("playerMessage");if(e)e.textContent=t||""};
@@ -118,10 +118,31 @@
     const note=(stage,extra={})=>{console.info("[GC PLAYBACK V2]",stage,{kind,url:raw,...extra});try{window.dispatchEvent(new CustomEvent("gc-playback-stage",{detail:{stage,kind,...extra}}))}catch{}};
     try{
       if(kind==="hls"){
-        const p=proxy(raw,item); const fallback=p!==raw?raw:"";
+        const p=proxy(raw,item);
+        const directHlsFallback=raw;
+        let proxiedTsFallback="", directTsFallback="";
+        if(String(item?.type||"").toLowerCase()==="live"){
+          try{
+            const tsSource=new URL(raw);
+            tsSource.pathname=tsSource.pathname.replace(/\\/(?:m3u8|hls)(?:\\.m3u8)?$/i,"/ts");
+            directTsFallback=tsSource.toString();
+            proxiedTsFallback=proxy(directTsFallback,item);
+          }catch{}
+        }
         if(typeof window.playHLS!=="function") throw Error("Motor HLS indisponível");
-        note("hls_start",{proxied:p!==raw});
-        await window.playHLS(v,p,document.getElementById("playerMessage"),"",fallback);
+        note("hls_start",{
+          proxied:p!==raw,
+          directHls:true,
+          tsFallback:!!proxiedTsFallback
+        });
+        await window.playHLS(
+          v,
+          p,
+          document.getElementById("playerMessage"),
+          proxiedTsFallback,
+          directTsFallback,
+          directHlsFallback
+        );
         msg("Aguardando primeiro quadro...");
         await waitPlaying(v,9000);
         msg(""); note("playing"); return true;
