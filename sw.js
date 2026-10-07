@@ -6,7 +6,7 @@
 
 "use strict";
 
-const CACHE_NAME = "gc-play-pro-v190-playcore6";
+const CACHE_NAME = "gc-play-pro-v191-native-playback";
 
 const APP_SHELL = [
   "./",
@@ -24,7 +24,6 @@ const APP_SHELL = [
   "./gc-android-live-fix.js?v=20261001-1",
   "./gc-final-fix.js?v=20261002-14",
   "./gc-vlc.js?v=20261006-ARCHFIX1",
-  "./gc-playback-core-v2.js?v=20261006-4"
 ];
 
 self.addEventListener("install", event => {
