@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-07-HLSFIX36 */
+/* GC BUILD 2026-10-08-RENDERLIVE2 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -1816,9 +1816,9 @@ function buildMediaProxyUrl(url, item = null) {
       String(item?.xtreamKind || "").toLowerCase() === "live";
 
     if (isLive) {
-      /* LIVE permanece no gateway principal até o gateway TCP definitivo
-         estar pronto. Não usamos o Worker de diagnóstico como player. */
-      const liveGateway = new URL("https://gc-live-tcp-test.caioroberto318.workers.dev");
+      /* LIVE/TV AO VIVO: Render é o único gateway de transporte.
+         Cloudflare fica reservado para filmes e séries. */
+      const liveGateway = new URL("https://gc-play-pro-backend.onrender.com/api/live");
       liveGateway.searchParams.set("url", value);
       return liveGateway.toString();
     }
