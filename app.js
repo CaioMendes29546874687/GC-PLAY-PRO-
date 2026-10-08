@@ -1975,11 +1975,11 @@ function decodeBase64Text(value) {
   }
 }
 
-async function loadLiveEPG(item) {
-  const container = $("#playerEPG");
+async function loadLiveEPG(item, targetContainer = null) {
+  const container = targetContainer || $("#playerEPG");
   if (!container) return;
 
-  if (!item || item.type !== "live" || !item.xtreamStreamId) {
+  if (!item || item.type !== "live") {
     container.innerHTML = "";
     container.classList.remove("show");
     return;
