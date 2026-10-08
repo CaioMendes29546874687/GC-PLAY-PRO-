@@ -11244,6 +11244,18 @@ async function initApp() {
     return;
   }
 
+  /* LISTA GERENCIADA: aguarda o /check do Manager antes de consultar o catálogo local. */
+  let gcActivationManaged = false;
+  try {
+    if (window.__GC_ACTIVATION_MANAGED__) {
+      await (window.__GC_ACTIVATION_READY__ || Promise.resolve());
+      gcActivationManaged = true;
+    }
+  } catch (e) {
+    console.warn("[GC PLAY PRO] sincronização da ativação:", e);
+    gcActivationManaged = true;
+  }
+
   /* -------------------------------------------------------
      CARREGAR CATÁLOGO
      ------------------------------------------------------- */
@@ -11261,7 +11273,7 @@ async function initApp() {
   try {
     const savedPlaylist = getSavedPlaylist();
 
-    if (savedPlaylist?.url) {
+    if (!gcActivationManaged && savedPlaylist?.url) {
       let hasLocalItems = false;
 
       try {
@@ -11285,7 +11297,7 @@ async function initApp() {
      não carregou uma nova playlist. Assim o startup não fica preso
      reconstruindo uma base vazia/antiga antes de tentar a M3U salva.
   */
-  if (!restoredPlaylistAtStartup) {
+  if (!gcActivationManaged && !restoredPlaylistAtStartup) {
     await loadLocalCatalog();
 
     /*
