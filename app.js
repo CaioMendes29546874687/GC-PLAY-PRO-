@@ -8535,12 +8535,13 @@ function processParsedItem(
    pequenos para que a primeira tela possa ser restaurada sem contar
    centenas de milhares de registros.
 */
-function saveCatalogCacheMeta(url) {
+function saveCatalogCacheMeta(url, complete = true) {
   try {
     localStorage.setItem(
       CACHE_META_KEY,
       JSON.stringify({
         url: String(url || "").trim(),
+        complete: !!complete,
         updatedAt: Date.now(),
         total: Number(state.total || 0),
         counts: {
@@ -8568,6 +8569,8 @@ function getCatalogCacheMeta(url) {
     }
 
     if (!Number.isFinite(Number(meta.updatedAt))) return null;
+    /* Nunca trate um catálogo parcial (ex.: somente TV Xtream) como lista completa. */
+    if (meta.complete !== true) return null;
 
     return meta;
   } catch {
@@ -8905,7 +8908,13 @@ async function loadM3U(
 
       await buildGenreCatalog();
       await loadDatabaseStats();
-      saveCatalogCacheMeta(url);
+      /* Xtream Fast neste estágio contém somente TV ao vivo. Não marque esse
+         snapshot como catálogo completo, pois isso fazia 1.163 canais
+         parecerem a playlist inteira no próximo refresh. */
+      try { window.GCListDiagnostics?.phase?.("catalog_partial", {
+        message: "Primeira etapa concluída: TV ao vivo carregada. Filmes e séries ainda serão sincronizados.",
+        counts: {...state.counts}, total: Number(state.total || 0)
+      }); } catch {}
 
       state.loading = false;
       resetToPlaylistHome();
@@ -8928,9 +8937,31 @@ async function loadM3U(
       );
 
       toast(
-        "Xtream Fast: " + formatNumber(xtreamFast.items.length) + " conteúdos carregados.",
+        "TV ao vivo: " + formatNumber(xtreamFast.items.length) + " canais carregados. Filmes e séries serão sincronizados em seguida.",
         5000
       );
+
+      /* Completa o catálogo automaticamente, mas fora do caminho crítico da
+         primeira pintura. Não usa cache parcial: após cada seção, os contadores
+         passam a refletir o catálogo real. */
+      setTimeout(async () => {
+        try {
+          window.GCListDiagnostics?.phase?.("background_catalog_sync", {
+            message: "Sincronizando automaticamente filmes e séries após a TV ao vivo."
+          });
+          await ensureXtreamSectionLoaded("movie");
+          await ensureXtreamSectionLoaded("series");
+          try { window.GCListDiagnostics?.phase?.("catalog_ready", {
+            message: "TV, filmes e séries sincronizados.",
+            counts: {...state.counts},
+            total: Number(state.total || 0)
+          }); } catch {}
+          updateLoadMessage("Catálogo completo: " + formatNumber(state.total) + " conteúdos.");
+        } catch (syncError) {
+          console.warn("[GC PLAY PRO] sincronização automática de filmes/séries:", syncError);
+          try { window.GCListDiagnostics?.fail?.(syncError); } catch {}
+        }
+      }, 50);
 
       return true;
     }
@@ -9255,7 +9286,7 @@ async function loadM3U(
               state.total = processed;
               updateLiveCounters();
               renderStats();
-              saveCatalogCacheMeta(url);
+              saveCatalogCacheMeta(url, true);
               if (state.currentFilter === "series") render();
             }
           });
@@ -9292,7 +9323,9 @@ async function loadM3U(
     await renderHomeDashboard();
 
     renderStats();
-    saveCatalogCacheMeta(url);
+    /* Aqui o parser já percorreu a playlist inteira; este é o único ponto em
+       que o snapshot pode ser considerado completo. */
+    saveCatalogCacheMeta(url, true);
 
     updateLoadMessage(
       `Playlist carregada: ${formatNumber(
