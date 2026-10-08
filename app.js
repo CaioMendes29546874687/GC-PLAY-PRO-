@@ -2093,17 +2093,48 @@ async function tryLoadXtreamFast(url, signal) {
        e atrasavam TV, filmes e séries. A abertura busca apenas autenticação
        + TV ao vivo; VOD e séries entram sob demanda.
     */
-    const liveResults = await Promise.allSettled([
-      fetchXtreamJSON(session, "", signal),
-      fetchXtreamJSON(session, "get_live_categories", signal),
-      fetchXtreamJSON(session, "get_live_streams", signal)
+    /*
+       FAST-FIRST: não espere autenticação + categorias + streams.
+       Em listas gigantes, um endpoint lento não pode segurar a primeira
+       pintura. O stream de TV é a informação crítica para liberar o app.
+       Categorias e autenticação continuam em paralelo e são aproveitadas
+       quando chegarem.
+    */
+    const liveStreamPromise = fetchXtreamJSON(session, "get_live_streams", signal);
+    const liveCategoriesPromise = fetchXtreamJSON(session, "get_live_categories", signal);
+    const authPromise = fetchXtreamJSON(session, "", signal);
+
+    const liveResult = await Promise.race([
+      liveStreamPromise.then(value => ({status:"fulfilled", value})),
+      new Promise(resolve => setTimeout(() => resolve({
+        status:"rejected",
+        reason:new Error("FAST_LIVE_TIMEOUT")
+      }), 9000))
     ]);
 
-    /* Cada índice corresponde exatamente ao endpoint acima.
-       A versão anterior preenchia 3 chamadas e deixava os índices
-       de filmes/séries como null, fazendo o catálogo inicial contar
-       apenas TV ao vivo mesmo quando a API respondia corretamente. */
-    const results = liveResults;
+    if (signal?.aborted) {
+      throw new DOMException("Operação cancelada", "AbortError");
+    }
+
+    const results = [
+      { status:"pending", value:null, promise:authPromise },
+      { status:"pending", value:null, promise:liveCategoriesPromise },
+      liveResult
+    ];
+
+    /*
+       Categorias/auth não bloqueiam o primeiro paint. Se já responderam,
+       usamos imediatamente; caso contrário os dados são aplicados pelos
+       fluxos normais sem atrasar a abertura.
+    */
+    if (liveCategoriesPromise) {
+      liveCategoriesPromise.then(value => { results[1] = {status:"fulfilled", value}; })
+        .catch(reason => { results[1] = {status:"rejected", reason}; });
+    }
+    if (authPromise) {
+      authPromise.then(value => { results[0] = {status:"fulfilled", value}; })
+        .catch(reason => { results[0] = {status:"rejected", reason}; });
+    }
 
     if (signal?.aborted) {
       throw new DOMException("Operação cancelada", "AbortError");
@@ -2132,11 +2163,9 @@ async function tryLoadXtreamFast(url, signal) {
        Assim a aplicação nunca precisa baixar a M3U inteira para separar
        TV, filmes e séries.
     */
-    const endpointOk =
-      results.slice(1).some(result => result?.status === "fulfilled");
-
+    const endpointOk = liveResult?.status === "fulfilled";
     if (!endpointOk) {
-      console.warn("[GC PLAY PRO] Nenhum endpoint de catálogo Xtream respondeu.");
+      console.warn("[GC PLAY PRO] FAST_LIVE não respondeu em 9s; iniciando M3U streaming sem esperar outro endpoint.");
       return null;
     }
 
