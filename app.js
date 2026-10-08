@@ -1989,7 +1989,7 @@ async function loadLiveEPG(item) {
   if (item.url) {
     try {
       const parsed = new URL(String(item.url));
-      const match = parsed.pathname.match(/\/live\/([^/]+)\/([^/]+)\/(\d+)(?:\.[^/]+)?$/i);
+      const match = parsed.pathname.match(/\/(?:live|play|movie|series)\/([^/]+)\/([^/]+)\/(\d+)(?:\.[^/]+)?$/i);
       if (match) {
         if (!epgSession) {
           epgSession = {
@@ -2035,13 +2035,26 @@ async function loadLiveEPG(item) {
     container.innerHTML = entries.map((entry, index) => {
       const title = decodeBase64Text(entry.title) || "Programação";
       const description = decodeBase64Text(entry.description);
-      const start = entry.start || "";
-      const end = entry.end || "";
-      const now = Number(entry.now_playing) === 1 || index === 0;
+      const start = String(entry.start || "");
+      const end = String(entry.end || "");
+      const startMs = Date.parse(start.replace(" ", "T"));
+      const endMs = Date.parse(end.replace(" ", "T"));
+      const nowMs = Date.now();
+      const now = Number(entry.now_playing) === 1 ||
+        (Number.isFinite(startMs) && Number.isFinite(endMs) && nowMs >= startMs && nowMs < endMs) ||
+        (!Number.isFinite(startMs) && index === 0);
+      const status = now ? "AGORA" : (index === 1 ? "A SEGUIR" : "DEPOIS");
+      const hhmm = value => {
+        const m = String(value || "").match(/(?:^|[T ])(\\d{2}:\\d{2})/);
+        return m ? m[1] : "--:--";
+      };
 
       return `
         <div class="gc-epg-item ${now ? "active" : ""}">
-          <div class="gc-epg-time">${escapeHTML(start.slice(11,16))} — ${escapeHTML(end.slice(11,16))}</div>
+          <div class="gc-epg-topline">
+            <span class="gc-epg-badge">${status}</span>
+            <span class="gc-epg-time">${hhmm(start)} — ${hhmm(end)}</span>
+          </div>
           <div class="gc-epg-title">${escapeHTML(title)}</div>
           ${description ? `<div class="gc-epg-desc">${escapeHTML(description)}</div>` : ""}
         </div>
@@ -5068,7 +5081,8 @@ async function playMpegTS(
   url,
   message,
   directFallbackUrl = "",
-  secondaryFallbackUrl = ""
+  secondaryFallbackUrl = "",
+  isLive = true
 ) {
   try {
     const mpegts =
@@ -5097,7 +5111,7 @@ async function playMpegTS(
       mpegts.createPlayer(
         {
           type: "mpegts",
-          isLive: true,
+          isLive: !!isLive,
           url,
           cors: true,
           hasAudio: true,
@@ -5866,7 +5880,7 @@ async function playItem(item) {
     Promise.resolve().then(() => loadLiveEPG(item)).catch(() => {});
   }
 
-  if (item.type === "live" && state.xtreamSession && item.xtreamStreamId) {
+  if (item.type === "live" && (state.xtreamSession || /\/(?:live|play)\/[^/]+\/[^/]+\/\d+(?:\.[^/]+)?$/i.test(String(item.url || "")))) {
     state.epgTimer = setInterval(() => {
       if (state.currentItem?.id === item.id) {
         loadLiveEPG(item);
@@ -6176,6 +6190,33 @@ async function playItem(item) {
      tentando direto e mantém o proxy como fallback. */
   /* Playback é sempre direto; Cloudflare é somente catálogo. */
   /* playbackUrl already normalized above. */
+
+  /* -------------------------------------------------------
+     MPEG-TS VOD
+     ------------------------------------------------------- */
+  const looksLikeMpegTsVOD =
+    isVodFile &&
+    /\.(?:ts|mpeg|mpg|m2ts)(?:$|[?#])/i.test(String(sourceUrl || ""));
+
+  if (looksLikeMpegTsVOD) {
+    try {
+      window.GCPlaybackInspector?.event?.("vodMpegTsBranch", {
+        detail: "VOD MPEG-TS detectado; usando mpegts.js."
+      });
+      if (message) message.textContent = "Conectando ao MPEG-TS...";
+      const started = await playMpegTS(
+        video,
+        playbackUrl,
+        message,
+        sourceUrl !== playbackUrl ? sourceUrl : "",
+        "",
+        false
+      );
+      if (started !== false) return;
+    } catch (error) {
+      console.warn("[GC PLAY PRO] VOD MPEG-TS:", error);
+    }
+  }
 
   /* -------------------------------------------------------
      MPEG-TS AO VIVO
