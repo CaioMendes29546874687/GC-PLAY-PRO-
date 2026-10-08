@@ -144,7 +144,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/shaka-player@5.2.12/dist/shaka-player.compiled.js" data-gc-shaka="1"></script>
-<script src="gc-m3u-read-diagnostics.js?v=20261008-M3UREAD1"></script>
+<script src="gc-m3u-read-diagnostics.js?v=20261008-M3UREAD2"></script>
 <script src="app.js?v=20261008-LISTDIAG1"></script>\n<script src="gc-architecture-v2.js?v=20261007-HLSFIX2"></script>
 <script src="gc-architecture-bridge.js?v=20261006-4"></script>
 <script src="gc-final-readiness.js?v=20261006-2"></script>
@@ -519,6 +519,7 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     return {show,hide};
   }
   async function validateServer(s){
+    window.GCListDiagnostics?.activation("activation_server_check_start",{message:"Consultando o servidor de ativação..."});
     if(!s?.activationCode||!s?.expiresAt)return {active:false,reason:"missing"};
     if(new Date(s.expiresAt).getTime()<=Date.now())return {active:false,reason:"expired"};
     try{
@@ -527,23 +528,28 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
       if(r.ok&&d.ok&&d.active){
         const next={...s,deviceId:d.device_id||s.deviceId,deviceUid:id(),clientId:d.client_id||s.clientId||"",listId:d.list_id||s.listId||"",expiresAt:d.expires_at||s.expiresAt,listName:d.list_name||s.listName,updatedAt:Date.now()};
         localStorage.setItem(K,JSON.stringify(next));
+        window.GCListDiagnostics?.activation("activation_server_check_done",{message:"Dispositivo autorizado.",offline:false});
         return {active:true};
       }
       if([403,404].includes(r.status))return {active:false,reason:d.reason||"revoked"};
+      window.GCListDiagnostics?.activation("activation_server_check_offline",{message:"Servidor não respondeu; ativação local ainda válida.",offline:true});
       return {active:true,offline:true};
     }catch{
       /* Falha de rede não apaga uma ativação ainda dentro da validade. */
+      window.GCListDiagnostics?.activation("activation_server_check_error",{message:"Falha de comunicação; mantendo ativação local válida.",offline:true});
       return {active:true,offline:true};
     }
   }
   async function boot(){
     const controls=ui();
     const s=read();
+    window.GCListDiagnostics?.activation(s?"activation_local_found":"activation_local_missing",{message:s?"Ativação encontrada neste aparelho.":"Nenhuma ativação local encontrada."});
     if(!s){
       setTimeout(controls.show,900);
       return;
     }
     const result=await validateServer(s);
+    window.GCListDiagnostics?.activation(result.active?"activation_ready":"activation_invalid",{message:result.active?"Ativação pronta para carregar a lista.":"Ativação inválida ou expirada."});
     if(!result.active){
       clearActivation();
       setTimeout(controls.show,300);
@@ -565,22 +571,24 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 (function(){
   function boot(){
     const p=localStorage.getItem("GC_PLAY_PRO_ACTIVATED_PLAYLIST_V1");
+    window.GCListDiagnostics?.activation(p?"playlist_url_found":"playlist_url_missing",{message:p?"URL da lista recebida do sistema de ativação.":"URL da lista ainda não disponível."});
     if(!p||typeof window.gcPlayProSavePlaylist!=="function")return;
     const current=localStorage.getItem("GC_PLAY_PRO_PLAYLIST_URL");
-    if(current===p)return;
+    if(current===p){ window.GCListDiagnostics?.activation("playlist_cache_current",{message:"URL já está associada ao catálogo local."}); return; }
     setTimeout(async()=>{
       try{
         /* A URL já vem do gc-device. Importar diretamente evita chamar
            a rotina do formulário com um argumento que não é um Event. */
         localStorage.setItem("GC_PLAY_PRO_PLAYLIST_NAME","GC PLAY PRO — LISTA ATIVADA");
         localStorage.setItem("GC_PLAY_PRO_PLAYLIST_URL",p);
+        window.GCListDiagnostics?.activation("auto_load_start",{message:"Iniciando leitura automática da lista M3U.",url:p});
         if(typeof window.loadM3U==="function"){
           await window.loadM3U(p);
         }
       }catch(e){
         console.warn("[GC ACTIVATION] carga automática",e);
       }
-    },1800);
+    },0);
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
