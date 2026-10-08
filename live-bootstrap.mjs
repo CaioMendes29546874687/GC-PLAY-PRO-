@@ -47,6 +47,7 @@ if(!express.application.__gcLiveRenderPatched){
     if(!this.__gcLiveRenderMounted){
       this.__gcLiveRenderMounted=true;
       this.use("/api/live",liveProxy);
+      this.use("/api/media",liveProxy);
       this.get("/api/live-health",(_req,res)=>res.json({ok:true,service:"gc-play-pro-backend",gateway:LIVE_BOOTSTRAP}));
     }
     return originalListen.apply(this,args);
