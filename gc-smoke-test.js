@@ -40,7 +40,7 @@ const checks = [
   ["séries sob demanda", /ensureXtreamSectionLoaded\(["\x27]series["\x27]\)/.test(app)],
   ["runtime carregado no index", /gc-pro-runtime\.js\?v=/.test(index)],
   ["runtime no service worker", /gc-pro-runtime\.js\?v=/.test(sw)],
-  ["service worker cache versionado", /gc-play-pro-v222-hls41/.test(sw)],
+  ["service worker cache versionado", /const CACHE_NAME = ["\\x27]gc-play-pro-v[^"\\x27]+["\\x27];/.test(sw)],
   ["multi-playlist", /MAX_PLAYLISTS = 8/.test(runtime)],
   ["PiP", /requestPictureInPicture/.test(runtime)],
   ["watchdog de travamento", /waiting_8s/.test(runtime)]
