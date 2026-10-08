@@ -6,14 +6,14 @@
 
 "use strict";
 
-const CACHE_NAME = "gc-play-pro-v227-render-live";
+const CACHE_NAME = "gc-play-pro-v228-list-diag";
 
 const APP_SHELL = [
   "./",
   "./index.html",
   "./style.css?v=20261006-PLAYFIX1",
-  "./app.js?v=20261008-RENDERLIVE2",
-  "./gc-playback-diagnostics.js?v=20261007-INSPECTOR17",
+  "./app.js?v=20261008-LISTDIAG1",
+  "./gc-list-loader-diagnostics.js?v=20261008-LISTDIAG1",
   "./gc-architecture-v2.js?v=20261007-HLSFIX2",
   "./gc-architecture-bridge.js?v=20261006-4",
   "./gc-final-readiness.js?v=20261006-2",
@@ -78,13 +78,13 @@ self.addEventListener("fetch", event => {
   /*
      Shell: REDE PRIMEIRO.
      Isso é deliberado para evitar que o Service Worker mantenha uma
-     versão antiga do inspetor/playback depois de um deploy.
+     versão antiga do diagnóstico depois de um deploy.
   */
   const isShellAsset =
     url.pathname.endsWith("/app.js") ||
     url.pathname.endsWith("/style.css") ||
     url.pathname.endsWith("/index.html") ||
-    url.pathname.endsWith("/gc-playback-diagnostics.js");
+    url.pathname.endsWith("/gc-list-loader-diagnostics.js");
 
   if (!isShellAsset) return;
 
