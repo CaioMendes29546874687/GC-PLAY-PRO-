@@ -91,7 +91,7 @@ function buildManagedPlaylistUrl(list){
 async function loadClientForActivation(code){
   const p=await db();
   const q=await p.query(
-    "select c.id,c.name,c.activation_code,c.device_limit,c.status,c.list_id,l.name list_name,l.source_url,l.server_url,l.username,l.provider_password,l.expires_at,l.status list_status from clients c left join provider_lists l on l.id=c.list_id where upper(c.activation_code)=upper($1) limit 1",
+    "select c.id,c.name,c.activation_code,c.device_limit,c.status,c.list_id,l.name list_name,l.source_url,l.server_url,l.username,l.provider_password,l.expires_at,l.status list_status,l.updated_at list_updated_at from clients c left join provider_lists l on l.id=c.list_id where upper(c.activation_code)=upper($1) limit 1",
     [code]
   );
   return q.rows[0]||null;
@@ -161,7 +161,7 @@ app.post("/api/device/check",async(req,res)=>{
     if(!d)return res.status(404).json({ok:false,active:false,reason:"device_revoked"});
     if(d.status==="blocked")return res.status(403).json({ok:false,active:false,reason:"device_revoked"});
     await p.query("update devices set status='online',last_seen_at=now() where id=$1",[d.id]);
-    return res.json({ok:true,active:true,device_id:d.id,client_id:client.id,list_id:client.list_id,expires_at:client.expires_at,list_name:client.list_name});
+    return res.json({ok:true,active:true,device_id:d.id,client_id:client.id,list_id:client.list_id,expires_at:client.expires_at,list_name:client.list_name,playlist_url:buildManagedPlaylistUrl(client),playlist_updated_at:client.list_updated_at||null});
   }catch(e){return res.status(500).json({ok:false,active:false,reason:"server_error",error:e.message})}
 });
 
