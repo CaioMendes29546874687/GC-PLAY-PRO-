@@ -779,6 +779,8 @@ function writeBatch(
   items,
   seriesUpdates = []
 ) {
+  const gcWriteStarted = performance.now();
+  try { window.GCListDiagnostics?.phase?.("idb_batch_start", { items: items?.length || 0, series: seriesUpdates?.length || 0 }); } catch {}
   return new Promise((resolve, reject) => {
     if (!state.db) {
       reject(
@@ -830,7 +832,7 @@ function writeBatch(
     }
 
     transaction.oncomplete =
-      () => resolve();
+      () => { try { window.GCListDiagnostics?.phase?.("idb_batch_complete", { items: items?.length || 0, series: seriesUpdates?.length || 0, elapsedMs: Math.round(performance.now()-gcWriteStarted) }); } catch {} resolve(); };
 
     transaction.onerror =
       () => reject(
