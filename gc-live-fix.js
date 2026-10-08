@@ -18,6 +18,14 @@
     return raw;
   }
   window.GC_RENDER_LIVE_URL=renderLiveUrl;
+  /* O player legado cria Hls diretamente; interceptamos loadSource para que LIVE nunca vá ao Cloudflare/origem HTTP. */
+  if(window.Hls?.prototype&&!window.Hls.prototype.__gcRenderLiveLoadSource){
+    const originalLoadSource=window.Hls.prototype.loadSource;
+    window.Hls.prototype.loadSource=function(url){
+      return originalLoadSource.call(this,renderLiveUrl(url));
+    };
+    window.Hls.prototype.__gcRenderLiveLoadSource=true;
+  }
   const nativeHls=window.playHLS;
   if(typeof nativeHls==="function"&&!window.__GC_RENDER_LIVE_WRAP__){
     window.playHLS=async function(video,url,message,fallbackUrl="",directFallbackUrl="",directHlsFallbackUrl=""){
