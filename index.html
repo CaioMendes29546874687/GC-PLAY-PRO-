@@ -567,6 +567,14 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     }
     const result=await validateServer(s);
     window.GCListDiagnostics?.activation(result.active?"activation_ready":"activation_invalid",{message:result.active?"Ativação pronta para carregar a lista.":"Ativação inválida ou expirada."});
+    if(result.active){
+      const p=localStorage.getItem("GC_PLAY_PRO_ACTIVATED_PLAYLIST_V1");
+      const current=localStorage.getItem("GC_PLAY_PRO_PLAYLIST_URL");
+      const force=!!localStorage.getItem("GC_PLAY_PRO_PLAYLIST_FORCE_RELOAD_V1");
+      if(p && current===p && !force){
+        window.GCListDiagnostics?.activation("playlist_cache_current",{message:"Catálogo local atual encontrado. A M3U não será baixada novamente nesta abertura."});
+      }
+    }
     if(!result.active){
       clearActivation();
       setTimeout(controls.show,300);
