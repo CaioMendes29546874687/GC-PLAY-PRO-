@@ -1818,7 +1818,7 @@ function buildMediaProxyUrl(url, item = null) {
     if (isLive) {
       /* LIVE permanece no gateway principal até o gateway TCP definitivo
          estar pronto. Não usamos o Worker de diagnóstico como player. */
-      const liveGateway = new URL(GC_CATALOG_GATEWAY);
+      const liveGateway = new URL("https://gc-live-tcp-test.caioroberto318.workers.dev");
       liveGateway.searchParams.set("url", value);
       return liveGateway.toString();
     }
