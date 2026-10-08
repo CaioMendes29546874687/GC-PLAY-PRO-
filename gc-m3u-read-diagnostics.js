@@ -12,6 +12,7 @@
     firstItemMs:null, firstPaintMs:null, responseMs:null,
     parseMs:null, writeQueuedMs:null, finalizeMs:null,
     contentType:"", status:null, error:"",
+    catalogCounts:{live:0,movie:0,series:0,total:0},
     lastProgressAt:0, lastProgressItems:0, lastProgressBytes:0,
     events:[], activationReadyAt:0, autoLoadAt:0, handoffDelayMs:null
   };
@@ -29,6 +30,16 @@
   const phase=(name,data={})=>{
     state.phase=name;
     emit("phase",{phase:name,...data});
+    render();
+  };
+  const catalogProgress=(data={})=>{
+    state.catalogCounts={
+      live:Number(data.live??state.catalogCounts.live||0),
+      movie:Number(data.movie??state.catalogCounts.movie||0),
+      series:Number(data.series??state.catalogCounts.series||0),
+      total:Number(data.total??state.catalogCounts.total||0)
+    };
+    emit("catalog_progress",{counts:{...state.catalogCounts},...data});
     render();
   };
   const activation=(phaseName,data={})=>{
@@ -49,7 +60,7 @@
       startedAt:now(),lastAt:now(),bytes:0,chunks:0,items:0,
       firstItemMs:null,firstPaintMs:null,responseMs:null,
       parseMs:null,writeQueuedMs:null,finalizeMs:null,
-      contentType:"",status:null,error:"",events:[]
+      contentType:"",status:null,error:"",catalogCounts:{live:0,movie:0,series:0,total:0},events:[]
     });
     emit("start",{source:state.source,...meta});
     render();
@@ -207,6 +218,7 @@
         <div class="m3card"><span class="m3k">ITENS LIDOS</span><span class="m3v">${state.items.toLocaleString("pt-BR")}</span></div>
         <div class="m3card"><span class="m3k">DADOS RECEBIDOS</span><span class="m3v">${formatBytes(state.bytes)}</span></div>
         <div class="m3card"><span class="m3k">VELOCIDADE</span><span class="m3v">${formatBytes(s.bytesPerSecond)}/s</span></div>
+        <div class="m3card"><span class="m3k">CATÁLOGO UI</span><span class="m3v">${state.catalogCounts.live.toLocaleString("pt-BR")} canais • ${state.catalogCounts.movie.toLocaleString("pt-BR")} filmes • ${state.catalogCounts.series.toLocaleString("pt-BR")} séries</span></div>
         <div class="m3card"><span class="m3k">1º ITEM</span><span class="m3v">${formatMs(state.firstItemMs)}</span></div>
         <div class="m3card"><span class="m3k">1ª EXIBIÇÃO</span><span class="m3v">${formatMs(state.firstPaintMs)}</span></div>
         <div class="m3card" style="grid-column:1/-1"><span class="m3k">O QUE ESTÁ ACONTECENDO</span><span class="m3v">${String(detail||"Acompanhando...")}</span></div>
@@ -230,7 +242,7 @@
     if(box){box.remove();box=null}
   }
 
-  window.GCListDiagnostics={start,phase,activation,response,chunk,itemProgress,firstPaint,write,finish,fail,getState:snapshot,getReport:snapshot,clear};
+  window.GCListDiagnostics={start,phase,activation,catalogProgress,response,chunk,itemProgress,firstPaint,write,finish,fail,getState:snapshot,getReport:snapshot,clear};
   window.GCM3UReadDiagnostics=window.GCListDiagnostics;
   // Abre automaticamente na inicialização para mostrar o caminho completo da lista.
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",()=>{ensureUI();activation("boot",{message:"Aguardando ativação e origem da lista..."});},{once:true});
