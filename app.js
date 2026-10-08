@@ -38,7 +38,7 @@ const SERIES_STORE = "seriesCatalog";
 const RAM_LIMIT = 4000;
 const WRITE_BATCH = 20000;
 /* Primeira pintura agressiva: não espere 1000 itens para mostrar a biblioteca. */
-const FIRST_PAINT_BATCH = 150;
+const FIRST_PAINT_BATCH = 20;
 const UI_RENDER_INTERVAL = 1500;
 const CACHE_META_KEY = "GC_PLAY_PRO_CATALOG_META_V7";
 const CACHE_MAX_AGE_MS = 2 * 60 * 60 * 1000;
