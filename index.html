@@ -526,9 +526,23 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
       const r=await gcDevicePost("/check",{activation_code:s.activationCode,device_uid:id()});
       const d=await r.json().catch(()=>({}));
       if(r.ok&&d.ok&&d.active){
-        const next={...s,deviceId:d.device_id||s.deviceId,deviceUid:id(),clientId:d.client_id||s.clientId||"",listId:d.list_id||s.listId||"",expiresAt:d.expires_at||s.expiresAt,listName:d.list_name||s.listName,updatedAt:Date.now()};
+        const serverPlaylistUrl=String(d.playlist_url||s.playlistUrl||"").trim();
+        const oldPlaylistUrl=String(s.playlistUrl||localStorage.getItem("GC_PLAY_PRO_ACTIVATED_PLAYLIST_V1")||"").trim();
+        const serverListId=String(d.list_id||s.listId||"").trim();
+        const oldListId=String(s.listId||"").trim();
+        const playlistChanged=!!serverPlaylistUrl && serverPlaylistUrl!==oldPlaylistUrl;
+        const listVersionChanged=!!serverListId && !!oldListId && serverListId!==oldListId;
+        const next={...s,deviceId:d.device_id||s.deviceId,deviceUid:id(),clientId:d.client_id||s.clientId||"",listId:serverListId,expiresAt:d.expires_at||s.expiresAt,listName:d.list_name||s.listName,playlistUrl:serverPlaylistUrl,updatedAt:Date.now()};
         localStorage.setItem(K,JSON.stringify(next));
-        window.GCListDiagnostics?.activation("activation_server_check_done",{message:"Dispositivo autorizado.",offline:false});
+        if(serverPlaylistUrl) localStorage.setItem("GC_PLAY_PRO_ACTIVATED_PLAYLIST_V1",serverPlaylistUrl);
+        if(playlistChanged||listVersionChanged){
+          localStorage.setItem("GC_PLAY_PRO_PLAYLIST_URL", "");
+          localStorage.setItem("GC_PLAY_PRO_PLAYLIST_FORCE_RELOAD_V1", JSON.stringify({at:Date.now(),reason:playlistChanged?"playlist_url_changed":"list_version_changed",listId:serverListId,url:serverPlaylistUrl}));
+          localStorage.removeItem("GC_PLAY_PRO_CATALOG_META_V7");
+          localStorage.removeItem("GC_PLAY_PRO_XTREAM_SESSION_V1");
+          window.GCListDiagnostics?.activation("playlist_changed",{message:"O site de ativação entregou uma lista nova. O catálogo antigo não será reutilizado.",oldUrl:oldPlaylistUrl,newUrl:serverPlaylistUrl,listVersionChanged});
+        }
+        window.GCListDiagnostics?.activation("activation_server_check_done",{message:playlistChanged||listVersionChanged?"Ativação atualizada com uma nova lista.":"Dispositivo autorizado.",offline:false});
         return {active:true};
       }
       if([403,404].includes(r.status))return {active:false,reason:d.reason||"revoked"};
@@ -574,7 +588,10 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     window.GCListDiagnostics?.activation(p?"playlist_url_found":"playlist_url_missing",{message:p?"URL da lista recebida do sistema de ativação.":"URL da lista ainda não disponível."});
     if(!p||typeof window.gcPlayProSavePlaylist!=="function")return;
     const current=localStorage.getItem("GC_PLAY_PRO_PLAYLIST_URL");
-    if(current===p){ window.GCListDiagnostics?.activation("playlist_cache_current",{message:"URL já está associada ao catálogo local."}); return; }
+    const forceRaw=localStorage.getItem("GC_PLAY_PRO_PLAYLIST_FORCE_RELOAD_V1");
+    let forceReload=false;
+    try{ forceReload=!!JSON.parse(forceRaw||"null"); }catch{}
+    if(current===p && !forceReload){ window.GCListDiagnostics?.activation("playlist_cache_current",{message:"Lista atual já está associada ao catálogo local."}); return; }
     setTimeout(async()=>{
       try{
         /* A URL já vem do gc-device. Importar diretamente evita chamar
@@ -584,6 +601,8 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
         window.GCListDiagnostics?.activation("auto_load_start",{message:"Iniciando leitura automática da lista M3U.",url:p});
         if(typeof window.loadM3U==="function"){
           await window.loadM3U(p);
+          localStorage.removeItem("GC_PLAY_PRO_PLAYLIST_FORCE_RELOAD_V1");
+          window.GCListDiagnostics?.activation("new_playlist_loaded",{message:"Nova lista carregada e catálogo anterior substituído."});
         }
       }catch(e){
         console.warn("[GC ACTIVATION] carga automática",e);
