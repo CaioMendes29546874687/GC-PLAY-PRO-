@@ -7,7 +7,7 @@
   const KEY="GC_PLAY_PRO_M3U_READ_DIAG_V3";
   const MAX=240;
   const state={
-    version:3, active:false, phase:"idle", source:"",
+    version:4, active:false, phase:"boot", source:"",
     startedAt:0, lastAt:0, bytes:0, chunks:0, items:0,
     firstItemMs:null, firstPaintMs:null, responseMs:null,
     parseMs:null, writeQueuedMs:null, finalizeMs:null,
@@ -23,7 +23,7 @@
     state.events.push(e);
     if(state.events.length>MAX) state.events.shift();
     state.lastAt=now();
-    try{localStorage.setItem(KEY,JSON.stringify({version:3,updatedAt:Date.now(),state:{...state,events:state.events}}))}catch{}
+    try{localStorage.setItem(KEY,JSON.stringify({version:4,updatedAt:Date.now(),state:{...state,events:state.events}}))}catch{}
     try{window.dispatchEvent(new CustomEvent("gc-m3u-read-diagnostic",{detail:e}))}catch{}
   };
   const phase=(name,data={})=>{
@@ -31,6 +31,13 @@
     emit("phase",{phase:name,...data});
     render();
   };
+  const activation=(phaseName,data={})=>{
+    if(!state.startedAt) state.startedAt=now();
+    state.active=true;
+    phase(String(phaseName||"activation"),data);
+    return snapshot();
+  };
+
   const start=(source,meta={})=>{
     Object.assign(state,{
       active:true,phase:"starting",source:String(source||"").slice(0,600),
@@ -213,7 +220,10 @@
     if(box){box.remove();box=null}
   }
 
-  window.GCListDiagnostics={start,phase,response,chunk,itemProgress,firstPaint,write,finish,fail,getState:snapshot,getReport:snapshot,clear};
+  window.GCListDiagnostics={start,phase,activation,response,chunk,itemProgress,firstPaint,write,finish,fail,getState:snapshot,getReport:snapshot,clear};
   window.GCM3UReadDiagnostics=window.GCListDiagnostics;
+  // Abre automaticamente na inicialização para mostrar o caminho completo da lista.
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",()=>{ensureUI();activation("boot",{message:"Aguardando ativação e origem da lista..."});},{once:true});
+  else {ensureUI();activation("boot",{message:"Aguardando ativação e origem da lista..."});}
   window.addEventListener("gc-m3u-read-diagnostic",render);
 })();
