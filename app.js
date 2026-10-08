@@ -1816,11 +1816,11 @@ function buildMediaProxyUrl(url, item = null) {
       String(item?.xtreamKind || "").toLowerCase() === "live";
 
     if (isLive) {
-      const supabaseProxy = new URL(
-        `${GC_SUPABASE_URL}/functions/v1/m3u-proxy`
+      const tcpTestProxy = new URL(
+        "https://gc-live-tcp-test.caioroberto318.workers.dev/"
       );
-      supabaseProxy.searchParams.set("url", value);
-      return supabaseProxy.toString();
+      tcpTestProxy.searchParams.set("url", value);
+      return tcpTestProxy.toString();
     }
 
     if (
