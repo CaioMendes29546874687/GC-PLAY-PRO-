@@ -3973,6 +3973,17 @@ function looksLikeSeriesRecord(item) {
 }
 
 async function getAllSeriesItems() {
+  /*
+     Se a biblioteca veio do cache instantâneo, o índice de séries pode
+     estar sendo reconstruído em segundo plano. Nunca abra a tela usando
+     o índice antigo/partial nesse intervalo — aguarde a reconstrução.
+  */
+  if (state.seriesCatalogBuilding) {
+    while (state.seriesCatalogBuilding) {
+      await sleep(25);
+    }
+  }
+
   if (Array.isArray(state.seriesCatalog) && state.seriesCatalog.length) {
     return state.seriesCatalog;
   }
@@ -8715,6 +8726,24 @@ async function tryRestoreCatalogInstant(url) {
       `Biblioteca pronta: ${formatNumber(state.total)} conteúdos`,
       2500
     );
+
+    /*
+       O catálogo principal foi restaurado instantaneamente, mas o
+       índice de séries não pode ser tratado como parte do snapshot:
+       ele é derivado dos episódios e pode estar antigo/incompleto.
+       Reconstruímos em segundo plano, sem bloquear o primeiro paint.
+       Quando terminar, se o usuário estiver em Séries, a tela é
+       atualizada automaticamente com todas as temporadas/episódios.
+    */
+    rebuildSeriesCatalogInBackground(true)
+      .then(() => {
+        if (state.currentFilter === "series") {
+          render();
+        }
+      })
+      .catch(error => {
+        console.warn("[GC PLAY PRO] reconstrução de séries após cache:", error);
+      });
 
     /*
        Após meia hora, uma nova submissão volta ao fluxo de rede.
