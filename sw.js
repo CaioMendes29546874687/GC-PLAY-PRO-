@@ -6,7 +6,7 @@
 
 "use strict";
 
-const CACHE_NAME = "gc-play-pro-v232-live-hls";
+const CACHE_NAME = "gc-play-pro-v233-vod-render";
 
 const APP_SHELL = [
   "./",
