@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets"
+        xmlns:tizen="http://tizen.org/ns/widgets"
+        id="http://gcplaypro.com/tv"
+        version="1.0.0"
+        viewmodes="maximized">
+  <name>GC PLAY PRO</name>
+  <content src="tv.html"/>
+  <icon src="icon.svg"/>
+  <description>GC PLAY PRO — experiência IPTV otimizada para Samsung Smart TV.</description>
+
+  <access origin="*" subdomains="true"/>
+
+  <tizen:application
+      id="com.gcplaypro.tv"
+      package="com.gcplaypro"
+      required_version="6.0"/>
+
+  <tizen:profile name="tv-samsung"/>
+
+  <tizen:privilege name="http://tizen.org/privilege/internet"/>
+
+  <feature name="http://tizen.org/feature/screen.size.all"/>
+
+  <tizen:metadata key="http://samsung.com/tv/metadata/prelaunch.support" value="true"/>
+  <tizen:metadata key="http://samsung.com/tv/metadata/use.network" value="true"/>
+  <tizen:metadata key="http://samsung.com/tv/metadata/devel.api.version" value="6.0"/>
+
+  <tizen:setting
+      screen-orientation="landscape"
+      context-menu="disable"
+      background-support="disable"
+      encryption="disable"
+      install-location="auto"
+      hwkey-event="enable"/>
+</widget>
