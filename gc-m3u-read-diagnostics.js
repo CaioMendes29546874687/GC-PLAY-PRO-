@@ -1,251 +1,122 @@
-/* GC M3U READ DIAGNOSTICS — leitura real da playlist, sem clonar o response.
- * Objetivo: descobrir exatamente onde o carregamento fica lento.
- * NÃO intercepta fetch e NÃO duplica o body da M3U.
- */
-"use strict";
+/* GC PLAY PRO — M3U READ DIAGNOSTICS v5
+   Não intercepta fetch e não clona Response.
+   Mede o carregador real através dos hooks do app.js. */
 (function(){
-  const KEY="GC_PLAY_PRO_M3U_READ_DIAG_V3";
-  const MAX=240;
-  const state={
-    version:4, active:false, phase:"boot", source:"",
-    startedAt:0, lastAt:0, bytes:0, chunks:0, items:0,
-    firstItemMs:null, firstPaintMs:null, responseMs:null,
-    parseMs:null, writeQueuedMs:null, finalizeMs:null,
-    contentType:"", status:null, error:"",
-    catalogCounts:{live:0,movie:0,series:0,total:0},
-    lastProgressAt:0, lastProgressItems:0, lastProgressBytes:0,
-    events:[], activationReadyAt:0, autoLoadAt:0, handoffDelayMs:null
+  "use strict";
+  var KEY="GC_PLAY_PRO_M3U_READ_DIAG_V5";
+  var s={
+    version:5,active:true,phase:"boot",source:"",startedAt:0,lastAt:0,
+    bytes:0,chunks:0,items:0,firstItemMs:null,firstPaintMs:null,
+    responseMs:null,writeQueuedMs:null,finalizeMs:null,contentType:"",
+    status:null,error:"",counts:{live:0,movie:0,series:0,total:0},
+    activationReadyAt:0,autoLoadAt:0,handoffDelayMs:null,events:[]
   };
-
-  const now=()=>performance.now();
-  const elapsed=()=>state.startedAt?Math.max(0,Math.round(now()-state.startedAt)):0;
-  const emit=(type,data={})=>{
-    const e={t:elapsed(),type,...data};
-    state.events.push(e);
-    if(state.events.length>MAX) state.events.shift();
-    state.lastAt=now();
-    try{localStorage.setItem(KEY,JSON.stringify({version:4,updatedAt:Date.now(),state:{...state,events:state.events}}))}catch{}
-    try{window.dispatchEvent(new CustomEvent("gc-m3u-read-diagnostic",{detail:e}))}catch{}
-  };
-  const phase=(name,data={})=>{
-    state.phase=name;
-    emit("phase",{phase:name,...data});
-    render();
-  };
-  const catalogProgress=(data={})=>{
-    state.catalogCounts={
-      live:Number(data.live ?? state.catalogCounts.live ?? 0),
-      movie:Number(data.movie ?? state.catalogCounts.movie ?? 0),
-      series:Number(data.series ?? state.catalogCounts.series ?? 0),
-      total:Number(data.total ?? state.catalogCounts.total ?? 0)
+  var box=null;
+  function t(){return performance.now();}
+  function elapsed(){return s.startedAt?Math.max(0,Math.round(t()-s.startedAt)):0;}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify({version:5,updatedAt:Date.now(),state:s}));}catch(e){}}
+  function event(type,data){
+    var e=Object.assign({t:elapsed(),type:type},data||{});
+    s.events.push(e); if(s.events.length>300)s.events.shift(); s.lastAt=t(); save();
+    try{window.dispatchEvent(new CustomEvent("gc-m3u-read-diagnostic",{detail:e}));}catch(e){}
+  }
+  function phase(name,data){
+    s.phase=String(name||"unknown"); event("phase",Object.assign({phase:s.phase},data||{})); render();
+  }
+  function activation(name,data){
+    if(!s.startedAt)s.startedAt=t();
+    if(name==="activation_ready")s.activationReadyAt=t();
+    if(name==="auto_load_start"){s.autoLoadAt=t();s.handoffDelayMs=s.activationReadyAt?Math.max(0,Math.round(s.autoLoadAt-s.activationReadyAt)):null;}
+    phase(name,data); return report();
+  }
+  function start(source,meta){
+    s.active=true;s.phase="starting";s.source=String(source||"").slice(0,1000);s.startedAt=t();
+    s.lastAt=t();s.bytes=0;s.chunks=0;s.items=0;s.firstItemMs=null;s.firstPaintMs=null;
+    s.responseMs=null;s.writeQueuedMs=null;s.finalizeMs=null;s.contentType="";s.status=null;s.error="";s.events=[];
+    event("start",Object.assign({source:s.source},meta||{}));render();
+  }
+  function response(data){
+    if(s.responseMs===null)s.responseMs=elapsed();
+    s.status=data&&data.status!=null?data.status:s.status;
+    s.contentType=data&&data.contentType||s.contentType; event("response",data||{});render();
+  }
+  function chunk(n){n=Number(n)||0;s.bytes+=n;s.chunks++;event("chunk",{bytes:n,totalBytes:s.bytes,chunks:s.chunks});render();}
+  function itemProgress(n){n=Number(n)||0;s.items=n;if(n>0&&s.firstItemMs===null)s.firstItemMs=elapsed();event("items",{items:n,bytes:s.bytes});render();}
+  function firstPaint(){if(s.firstPaintMs===null)s.firstPaintMs=elapsed();event("first_paint",{elapsedMs:s.firstPaintMs,items:s.items});render();}
+  function write(data){s.writeQueuedMs=elapsed();event("write_queue",Object.assign({elapsedMs:s.writeQueuedMs},data||{}));render();}
+  function finish(data){
+    data=data||{};s.active=false;s.phase="done";
+    if(data.items!=null)s.items=Number(data.items)||0;if(data.bytes!=null)s.bytes=Number(data.bytes)||0;
+    s.finalizeMs=elapsed();event("finish",Object.assign({elapsedMs:s.finalizeMs,items:s.items,bytes:s.bytes},data));render();
+  }
+  function fail(err,data){
+    s.active=false;s.phase="error";s.error=String(err&&err.message||err||"erro desconhecido");
+    event("error",Object.assign({error:s.error,elapsedMs:elapsed()},data||{}));render();
+  }
+  function catalogProgress(data){
+    data=data||{};
+    s.counts={
+      live:Number(data.live!=null?data.live:s.counts.live)||0,
+      movie:Number(data.movie!=null?data.movie:s.counts.movie)||0,
+      series:Number(data.series!=null?data.series:s.counts.series)||0,
+      total:Number(data.total!=null?data.total:s.counts.total)||0
     };
-    emit("catalog_progress",{counts:{...state.catalogCounts},...data});
-    render();
-  };
-  const activation=(phaseName,data={})=>{
-    if(!state.startedAt) state.startedAt=now();
-    if(phaseName==="activation_ready") state.activationReadyAt=now();
-    if(phaseName==="auto_load_start"){
-      state.autoLoadAt=now();
-      state.handoffDelayMs=state.activationReadyAt?Math.max(0,Math.round(state.autoLoadAt-state.activationReadyAt)):null;
-    }
-    state.active=true;
-    phase(String(phaseName||"activation"),data);
-    return snapshot();
-  };
-
-  const start=(source,meta={})=>{
-    Object.assign(state,{
-      active:true,phase:"starting",source:String(source||"").slice(0,600),
-      startedAt:now(),lastAt:now(),bytes:0,chunks:0,items:0,
-      firstItemMs:null,firstPaintMs:null,responseMs:null,
-      parseMs:null,writeQueuedMs:null,finalizeMs:null,
-      contentType:"",status:null,error:"",catalogCounts:{live:0,movie:0,series:0,total:0},events:[]
-    });
-    emit("start",{source:state.source,...meta});
-    render();
-  };
-  const response=(data={})=>{
-    if(state.responseMs==null) state.responseMs=elapsed();
-    state.status=data.status??state.status;
-    state.contentType=data.contentType||state.contentType;
-    emit("response",{...data,elapsedMs:state.responseMs});
-    render();
-  };
-  const chunk=(bytes)=>{
-    const n=Number(bytes)||0;
-    state.bytes+=n; state.chunks++;
-    if(state.chunks===1) emit("first_chunk",{bytes:n});
-    const t=now();
-    if(t-state.lastProgressAt>=350){
-      state.lastProgressAt=t;
-      emit("network_progress",{bytes:state.bytes,chunks:state.chunks,items:state.items});
-      render();
-    }
-  };
-  const itemProgress=(count)=>{
-    const n=Number(count)||0;
-    state.items=n;
-    if(state.firstItemMs==null && n>0){
-      state.firstItemMs=elapsed();
-      emit("first_item",{items:n,elapsedMs:state.firstItemMs});
-    }
-    const t=now();
-    if(t-state.lastProgressAt>=350 || n-state.lastProgressItems>=1000){
-      state.lastProgressAt=t; state.lastProgressItems=n;
-      emit("parse_progress",{items:n,bytes:state.bytes});
-      render();
-    }
-  };
-  const firstPaint=()=>{
-    if(state.firstPaintMs==null){
-      state.firstPaintMs=elapsed();
-      emit("first_paint",{elapsedMs:state.firstPaintMs,items:state.items});
-      render();
-    }
-  };
-  const write=(data={})=>{
-    state.writeQueuedMs=elapsed();
-    emit("write_queue",{elapsedMs:state.writeQueuedMs,...data});
-    render();
-  };
-  const finish=(data={})=>{
-    state.active=false; state.phase="done";
-    state.items=Number(data.items??state.items);
-    state.bytes=Number(data.bytes??state.bytes);
-    state.finalizeMs=elapsed();
-    emit("finish",{elapsedMs:state.finalizeMs,items:state.items,bytes:state.bytes,...data});
-    render();
-  };
-  const fail=(error,data={})=>{
-    state.active=false; state.phase="error";
-    state.error=String(error?.message||error||"erro desconhecido");
-    emit("error",{elapsedMs:elapsed(),error:state.error,...data});
-    render();
-  };
-
-  function formatBytes(n){
-    n=Number(n)||0;
-    if(n<1024)return n+" B";
-    if(n<1048576)return (n/1024).toFixed(1)+" KB";
-    if(n<1073741824)return (n/1048576).toFixed(2)+" MB";
-    return (n/1073741824).toFixed(2)+" GB";
+    event("catalog_progress",{counts:Object.assign({},s.counts),message:data.message||"Contadores da interface"});render();
   }
-  function formatMs(ms){
-    if(ms==null)return "—";
-    ms=Number(ms)||0;
-    return ms<1000?ms+" ms":(ms/1000).toFixed(1)+" s";
+  function bytes(n){
+    n=Number(n)||0;if(n<1024)return n+" B";if(n<1048576)return (n/1024).toFixed(1)+" KB";
+    if(n<1073741824)return (n/1048576).toFixed(2)+" MB";return (n/1073741824).toFixed(2)+" GB";
   }
-  function rate(){
-    const sec=Math.max(.001,elapsed()/1000);
-    return state.bytes/sec;
-  }
+  function ms(n){if(n==null)return "—";n=Number(n)||0;return n<1000?n+" ms":(n/1000).toFixed(1)+" s";}
   function bottleneck(){
-    if(state.error)return "ERRO DURANTE A LEITURA";
-    if(state.phase==="starting" || state.phase==="fetch_start" || state.phase==="connecting")
-      return "CONEXÃO / ORIGEM";
-    if(state.phase==="response_wait")
-      return "TTFB / SERVIDOR / PROXY";
-    if(state.responseMs!=null && state.firstItemMs==null && elapsed()>1500)
-      return "PARSER — nenhum item reconhecido";
-    if(state.firstPaintMs==null && state.items>0 && elapsed()>2500)
-      return "PRIMEIRA PINTURA / INDEXAÇÃO";
-    if(state.phase==="finalizing")
-      return "INDEXAÇÃO / GRAVAÇÃO";
-    if(state.phase==="done")return "SEM GARGALO CRÍTICO";
-    return "PROCESSAMENTO M3U";
+    if(s.error)return "ERRO";if(s.phase==="connecting"||s.phase==="fetch_start")return "CONEXÃO / ORIGEM";
+    if(s.phase==="response_wait")return "SERVIDOR / TTFB";
+    if(s.phase==="streaming")return "DOWNLOAD / LEITURA";
+    if(s.phase==="finalizing")return "INDEXAÇÃO / GRAVAÇÃO";
+    if(s.phase==="done")return "SEM GARGALO CRÍTICO";
+    return "CARREGAMENTO / PROCESSAMENTO";
   }
-  function snapshot(){
-    return {
-      ...state,
-      elapsedMs:elapsed(),
-      bytesPerSecond:Math.round(rate()),
-      bytesFormatted:formatBytes(state.bytes),
-      bottleneck:bottleneck(),
-      device:{
-        online:navigator.onLine,
-        ua:navigator.userAgent,
-        memory:navigator.deviceMemory||null,
-        connection:navigator.connection?{
-          effectiveType:navigator.connection.effectiveType||"",
-          downlink:navigator.connection.downlink||null,
-          rtt:navigator.connection.rtt||null,
-          saveData:!!navigator.connection.saveData
-        }:null
-      }
-    };
+  function report(){
+    return {version:5,active:s.active,phase:s.phase,source:s.source,startedAt:s.startedAt,lastAt:s.lastAt,
+      bytes:s.bytes,chunks:s.chunks,items:s.items,firstItemMs:s.firstItemMs,firstPaintMs:s.firstPaintMs,
+      responseMs:s.responseMs,writeQueuedMs:s.writeQueuedMs,finalizeMs:s.finalizeMs,contentType:s.contentType,
+      status:s.status,error:s.error,counts:Object.assign({},s.counts),events:s.events.slice(),
+      elapsedMs:elapsed(),bytesPerSecond:Math.round(s.bytes/Math.max(.001,elapsed()/1000)),
+      bottleneck:bottleneck(),handoffDelayMs:s.handoffDelayMs};
   }
-
-  let box=null;
-  function ensureUI(){
+  function ensure(){
     if(box||!document.body)return;
-    const style=document.createElement("style");
-    style.textContent=`
-      #gcM3UDiag{position:fixed;right:14px;bottom:74px;width:min(470px,calc(100vw - 28px));z-index:999998;background:rgba(2,8,5,.98);border:1px solid rgba(57,255,136,.55);border-radius:16px;box-shadow:0 20px 80px #000;color:#eafff1;font:12px Arial,sans-serif;overflow:hidden}
-      #gcM3UDiag .m3h{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:rgba(57,255,136,.08);color:#67ff9e;font-weight:900;letter-spacing:.7px}
-      #gcM3UDiag .m3b{padding:11px;max-height:58vh;overflow:auto}
-      #gcM3UDiag .m3grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
-      #gcM3UDiag .m3card{padding:8px;border:1px solid rgba(255,255,255,.08);border-radius:9px;background:rgba(255,255,255,.025)}
-      #gcM3UDiag .m3k{display:block;color:#789487;font-size:9px;letter-spacing:.7px;margin-bottom:3px}
-      #gcM3UDiag .m3v{font-weight:800;color:#eafff1;word-break:break-word}
-      #gcM3UDiag .m3ok{color:#63ff9b}.m3warn{color:#ffd166}.m3err{color:#ff7070}
-      #gcM3UDiag .m3bar{height:5px;background:#102018;border-radius:8px;overflow:hidden;margin:8px 0}
-      #gcM3UDiag .m3fill{height:100%;width:0;background:#39ff88;transition:width .2s}
-      #gcM3UDiag .m3foot{display:flex;gap:6px;justify-content:flex-end}
-      #gcM3UDiag button{background:#07140c;color:#9dffbe;border:1px solid rgba(57,255,136,.3);border-radius:8px;padding:6px 9px}
-      @media(max-width:600px){#gcM3UDiag{right:7px;bottom:68px;width:calc(100vw - 14px)}}
-    `;
-    document.head.appendChild(style);
-    box=document.createElement("aside");box.id="gcM3UDiag";
-    box.innerHTML=`<div class="m3h"><span>⚡ DIAGNÓSTICO DE LEITURA M3U</span><button id="gcM3Close">×</button></div><div class="m3b" id="gcM3Body"></div>`;
-    document.body.appendChild(box);
-    box.querySelector("#gcM3Close").onclick=()=>{box.remove();box=null};
+    var st=document.createElement("style");
+    st.textContent="#gcM3UDiag{position:fixed;right:14px;bottom:74px;width:min(470px,calc(100vw - 28px));max-height:82vh;z-index:2147483647;background:#020805;color:#eafff1;border:1px solid #39ff88;border-radius:16px;box-shadow:0 20px 80px #000;font:12px Arial,sans-serif;overflow:hidden}#gcM3UDiag .h{padding:14px;background:#062417;color:#63ff9b;font-weight:900;display:flex;justify-content:space-between}#gcM3UDiag .b{padding:11px;overflow:auto;max-height:72vh}.g{display:grid;grid-template-columns:1fr 1fr;gap:7px}.c{padding:9px;border:1px solid #163226;border-radius:9px;margin-bottom:7px}.k{display:block;color:#789487;font-size:9px;letter-spacing:1px;margin-bottom:4px}.v{font-weight:800;word-break:break-word}.ok{color:#63ff9b}.err{color:#ff7070}.btn{background:#07140c;color:#9dffbe;border:1px solid #247044;border-radius:8px;padding:7px 10px}";
+    document.head.appendChild(st);box=document.createElement("aside");box.id="gcM3UDiag";
+    box.innerHTML='<div class="h"><span>⚡ DIAGNÓSTICO DE LEITURA M3U</span><button id="gcDiagX" class="btn">×</button></div><div class="b" id="gcDiagBody"></div>';
+    document.body.appendChild(box);document.getElementById("gcDiagX").onclick=function(){box.style.display="none";};
   }
   function render(){
-    if(!state.active && state.phase==="idle")return;
-    ensureUI();
-    const s=snapshot(), body=box?.querySelector("#gcM3Body");
-    const last=state.events[state.events.length-1]||{};
-    const detail=last.message||last.error||last.url||"";
-    const handoff=state.handoffDelayMs==null?"—":formatMs(state.handoffDelayMs);
-    if(!body)return;
-    const statusClass=state.error?"m3err":state.phase==="done"?"m3ok":"m3warn";
-    body.innerHTML=`
-      <div class="m3grid">
-        <div class="m3card"><span class="m3k">FASE ATUAL</span><span class="m3v ${statusClass}">${String(state.phase).toUpperCase()}</span></div>
-        <div class="m3card"><span class="m3k">GARGALO PROVÁVEL</span><span class="m3v">${bottleneck()}</span></div>
-        <div class="m3card"><span class="m3k">TEMPO</span><span class="m3v">${formatMs(s.elapsedMs)}</span></div>
-        <div class="m3card"><span class="m3k">ITENS LIDOS</span><span class="m3v">${state.items.toLocaleString("pt-BR")}</span></div>
-        <div class="m3card"><span class="m3k">DADOS RECEBIDOS</span><span class="m3v">${formatBytes(state.bytes)}</span></div>
-        <div class="m3card"><span class="m3k">VELOCIDADE</span><span class="m3v">${formatBytes(s.bytesPerSecond)}/s</span></div>
-        <div class="m3card"><span class="m3k">CATÁLOGO UI</span><span class="m3v">${state.catalogCounts.live.toLocaleString("pt-BR")} canais • ${state.catalogCounts.movie.toLocaleString("pt-BR")} filmes • ${state.catalogCounts.series.toLocaleString("pt-BR")} séries</span></div>
-        <div class="m3card"><span class="m3k">1º ITEM</span><span class="m3v">${formatMs(state.firstItemMs)}</span></div>
-        <div class="m3card"><span class="m3k">1ª EXIBIÇÃO</span><span class="m3v">${formatMs(state.firstPaintMs)}</span></div>
-        <div class="m3card" style="grid-column:1/-1"><span class="m3k">O QUE ESTÁ ACONTECENDO</span><span class="m3v">${String(detail||"Acompanhando...")}</span></div>
-        <div class="m3card"><span class="m3k">ATRASO ATIVAÇÃO → LEITURA</span><span class="m3v">${handoff}</span></div>
-      </div>
-      <div class="m3bar"><div class="m3fill" style="width:${Math.min(100,Math.max(4,state.firstPaintMs?100:Math.min(96,(state.items/5000)*100)))}%"></div></div>
-      <div class="m3card"><span class="m3k">ORIGEM / URL DA LISTA</span><span class="m3v">${state.source||last.url||"Aguardando URL entregue pela ativação..."}</span></div>
-      <div class="m3card" style="margin-top:7px"><span class="m3k">HTTP / CONTENT-TYPE</span><span class="m3v">${state.status??"—"} / ${state.contentType||"—"}</span></div>
-      ${state.error?`<div class="m3card m3err" style="margin-top:7px"><span class="m3k">ERRO</span><span class="m3v">${state.error}</span></div>`:""}
-      <div class="m3foot" style="margin-top:9px"><button id="gcM3Copy">COPIAR RELATÓRIO</button><button id="gcM3Clear">LIMPAR</button></div>
-    `;
-    body.querySelector("#gcM3Copy").onclick=async()=>{
-      const report=JSON.stringify(snapshot(),null,2);
-      try{await navigator.clipboard.writeText(report);body.querySelector("#gcM3Copy").textContent="COPIADO ✓"}catch{console.log("[GC M3U DIAG REPORT]",report);body.querySelector("#gcM3Copy").textContent="VEJA O CONSOLE"}
-    };
-    body.querySelector("#gcM3Clear").onclick=()=>clear();
+    if(!document.body)return;ensure();if(!box)return;
+    var b=document.getElementById("gcDiagBody");if(!b)return;
+    var total=s.counts.total||s.counts.live+s.counts.movie+s.counts.series;
+    b.innerHTML='<div class="g">'+
+      '<div class="c"><span class="k">FASE ATUAL</span><span class="v">'+String(s.phase).toUpperCase()+'</span></div>'+
+      '<div class="c"><span class="k">GARGALO</span><span class="v">'+bottleneck()+'</span></div>'+
+      '<div class="c"><span class="k">TEMPO</span><span class="v">'+ms(elapsed())+'</span></div>'+
+      '<div class="c"><span class="k">ITENS LIDOS</span><span class="v">'+s.items.toLocaleString("pt-BR")+'</span></div>'+
+      '<div class="c"><span class="k">DADOS RECEBIDOS</span><span class="v">'+bytes(s.bytes)+'</span></div>'+
+      '<div class="c"><span class="k">VELOCIDADE</span><span class="v">'+bytes(s.bytes/Math.max(.001,elapsed()/1000))+'/s</span></div>'+
+      '<div class="c"><span class="k">CATÁLOGO UI</span><span class="v">'+s.counts.live.toLocaleString("pt-BR")+' canais • '+s.counts.movie.toLocaleString("pt-BR")+' filmes • '+s.counts.series.toLocaleString("pt-BR")+' séries</span></div>'+
+      '<div class="c"><span class="k">TOTAL UI</span><span class="v">'+Number(total).toLocaleString("pt-BR")+'</span></div>'+
+      '<div class="c"><span class="k">1º ITEM</span><span class="v">'+ms(s.firstItemMs)+'</span></div>'+
+      '<div class="c"><span class="k">1ª EXIBIÇÃO</span><span class="v">'+ms(s.firstPaintMs)+'</span></div>'+
+      '</div>'+
+      '<div class="c"><span class="k">O QUE ESTÁ ACONTECENDO</span><span class="v">'+String((s.events.length?s.events[s.events.length-1].message:"Acompanhando...")||"Acompanhando...")+'</span></div>'+
+      '<div class="c"><span class="k">ORIGEM / URL</span><span class="v">'+(s.source||"Aguardando URL entregue pela ativação...")+'</span></div>'+
+      '<div class="c"><span class="k">HTTP / CONTENT-TYPE</span><span class="v">'+(s.status==null?"—":s.status)+" / "+(s.contentType||"—")+'</span></div>'+
+      (s.error?'<div class="c err"><span class="k">ERRO</span><span class="v">'+s.error+'</span></div>':"")+
+      '<div style="text-align:right"><button id="gcDiagCopy" class="btn">COPIAR RELATÓRIO</button></div>';
+    document.getElementById("gcDiagCopy").onclick=function(){try{navigator.clipboard.writeText(JSON.stringify(report(),null,2));this.textContent="COPIADO ✓";}catch(e){console.log(JSON.stringify(report(),null,2));}};
   }
-  function clear(){
-    state.active=false;state.phase="idle";state.events=[];
-    try{localStorage.removeItem(KEY)}catch{}
-    if(box){box.remove();box=null}
-  }
-
-  window.GCListDiagnostics={start,phase,activation,catalogProgress,response,chunk,itemProgress,firstPaint,write,finish,fail,getState:snapshot,getReport:snapshot,clear};
+  window.GCListDiagnostics={start:start,phase:phase,activation:activation,catalogProgress:catalogProgress,response:response,chunk:chunk,itemProgress:itemProgress,firstPaint:firstPaint,write:write,finish:finish,fail:fail,getState:report,getReport:report};
   window.GCM3UReadDiagnostics=window.GCListDiagnostics;
-  // Abre automaticamente na inicialização para mostrar o caminho completo da lista.
-  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",()=>{ensureUI();activation("boot",{message:"Aguardando ativação e origem da lista..."});},{once:true});
-  else {ensureUI();activation("boot",{message:"Aguardando ativação e origem da lista..."});}
-  window.addEventListener("gc-m3u-read-diagnostic",render);
+  function boot(){ensure();activation("boot",{message:"Diagnóstico iniciado; aguardando ativação e leitura da lista."});}
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
