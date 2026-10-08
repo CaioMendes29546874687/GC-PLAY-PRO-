@@ -2667,6 +2667,8 @@ async function loadM3USectionFallback(type, sourceUrl) {
    ========================================================= */
 
 async function fetchPlaylist(url, signal) {
+  try { window.GCListDiagnostics?.print?.(); } catch {}
+  try { window.GCListDiagnostics?.phase?.("fetch_start", { source: String(url || "").slice(0, 300) }); } catch {}
   const baseUrl = resolvePlaylistUrl(url);
 
   /*
@@ -2731,6 +2733,7 @@ async function fetchPlaylist(url, signal) {
       if (!response.body) {
         throw new Error("O servidor não retornou um fluxo de dados.");
       }
+      try { window.GCListDiagnostics?.phase?.("stream_open", { status: response.status, contentType: response.headers.get("content-type") || "" }); } catch {}
 
       const contentType = (response.headers.get("content-type") || "").toLowerCase();
 
