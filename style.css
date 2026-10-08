@@ -2146,3 +2146,43 @@ body > #gcPlaybackDiagnostics .gc-diag-body{max-height:34vh!important;overflow:a
   .gc-future .gc-epg-item{width:235px;min-height:76px;padding:8px}
   .gc-future .gc-player-toolbar{min-height:46px;padding:6px 8px;overflow-x:auto}
 }
+
+/* GC PLAY PRO — PLAYER/EPG FINAL POSITION
+   Vídeo sobe e o EPG fica imediatamente abaixo dele. */
+.gc-future .player-panel{
+  align-items:flex-start;
+}
+.gc-future .video-container{
+  justify-content:flex-start !important;
+  padding-top:0 !important;
+}
+.gc-future #videoPlayer{
+  margin-top:0 !important;
+  align-self:center;
+  aspect-ratio:16/9;
+  height:auto !important;
+  max-height:min(58vh,620px) !important;
+}
+.gc-future .gc-player-epg{
+  flex:0 0 auto;
+  min-height:56px;
+  max-height:150px !important;
+  width:100%;
+  display:block !important;
+  overflow-x:auto;
+  overflow-y:auto;
+  box-sizing:border-box;
+}
+.gc-future .gc-epg-loading,
+.gc-future .gc-epg-empty{
+  min-height:48px;
+}
+@media(max-width:700px){
+  .gc-future #videoPlayer{
+    max-height:38vh !important;
+  }
+  .gc-future .gc-player-epg{
+    min-height:52px;
+    max-height:135px !important;
+  }
+}
