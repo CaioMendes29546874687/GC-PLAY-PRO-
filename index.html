@@ -145,6 +145,58 @@
 <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/shaka-player@5.2.12/dist/shaka-player.compiled.js" data-gc-shaka="1"></script>
 <script src="gc-m3u-read-diagnostics.js?v=20261008-M3UREAD5"></script>
+<script>
+/* GC PLAY PRO — DIAGNÓSTICO FALLBACK
+   Se o arquivo externo não executar, este painel mínimo assume o controle
+   para nunca deixar o usuário sem diagnóstico. */
+(function(){
+  if(window.GCListDiagnostics && typeof window.GCListDiagnostics.start==="function") return;
+  var events=[], counts={live:0,movie:0,series:0,total:0}, box;
+  function make(){
+    if(box||!document.body)return;
+    box=document.createElement("div");
+    box.id="gcDiagFallback";
+    box.style.cssText="position:fixed;right:12px;bottom:76px;width:min(460px,calc(100vw - 24px));max-height:70vh;overflow:auto;z-index:2147483647;background:#020805;color:#eafff1;border:2px solid #39ff88;border-radius:16px;padding:14px;font:13px Arial;box-shadow:0 10px 50px #000";
+    document.body.appendChild(box); draw("BOOT");
+  }
+  function draw(phase,msg){
+    make(); if(!box)return;
+    var e=events[events.length-1]||{};
+    box.innerHTML="<b style='color:#63ff9b;font-size:17px'>⚡ DIAGNÓSTICO M3U</b><button id='gdx' style='float:right;background:#07140c;color:#9dffbe;border:1px solid #39ff88;border-radius:8px;padding:5px 10px'>×</button>"+
+      "<hr style='border-color:#163226'><b>FASE:</b> "+String(phase||"BOOT").toUpperCase()+
+      "<br><b>ITENS:</b> "+(e.items||0).toLocaleString("pt-BR")+
+      "<br><b>DADOS:</b> "+(e.bytes||0).toLocaleString("pt-BR")+" B"+
+      "<br><b>CANAIS:</b> "+counts.live.toLocaleString("pt-BR")+
+      " &nbsp; <b>FILMES:</b> "+counts.movie.toLocaleString("pt-BR")+
+      " &nbsp; <b>SÉRIES:</b> "+counts.series.toLocaleString("pt-BR")+
+      "<br><b>O QUE ESTÁ ACONTECENDO:</b> "+(msg||e.message||"Acompanhando o carregamento...")+
+      "<br><small>Este é o diagnóstico de emergência; o carregador real continua funcionando.</small>";
+    document.getElementById("gdx").onclick=function(){box.style.display="none";};
+  }
+  function rec(phase,data){
+    data=data||{}; events.push(Object.assign({phase:phase},data)); if(events.length>100)events.shift();
+    draw(phase,data.message||"");
+  }
+  window.GCListDiagnostics={
+    start:function(url){rec("START",{url:url});},
+    phase:function(p,d){rec(p,d);},
+    activation:function(p,d){rec(p,d);},
+    catalogProgress:function(d){counts={live:+(d&&d.live||0),movie:+(d&&d.movie||0),series:+(d&&d.series||0),total:+(d&&d.total||0)};rec("CATALOG_COUNTS_READY",d);},
+    response:function(d){rec("RESPONSE",d);},
+    chunk:function(n){rec("STREAMING",{bytes:+n||0});},
+    itemProgress:function(n){rec("PARSING",{items:+n||0});},
+    firstPaint:function(){rec("FIRST_PAINT");},
+    write:function(d){rec("INDEXING",d);},
+    finish:function(d){rec("DONE",d);},
+    fail:function(e,d){rec("ERROR",Object.assign({message:String(e&&e.message||e)},d||{}));},
+    getState:function(){return {events:events,counts:counts};},
+    getReport:function(){return {events:events,counts:counts};}
+  };
+  window.GCM3UReadDiagnostics=window.GCListDiagnostics;
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){make();rec("BOOT",{message:"Diagnóstico fallback iniciado."});},{once:true});
+  else {make();rec("BOOT",{message:"Diagnóstico fallback iniciado."});}
+})();
+</script>
 <script src="app.js?v=20261008-LISTDIAG1"></script>\n<script src="gc-architecture-v2.js?v=20261007-HLSFIX2"></script>
 <script src="gc-architecture-bridge.js?v=20261006-4"></script>
 <script src="gc-final-readiness.js?v=20261006-2"></script>
