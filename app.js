@@ -2818,6 +2818,8 @@ async function* parseM3UStream(
         break;
       }
 
+      try { window.GCListDiagnostics?.chunk?.(value?.byteLength || 0); } catch {}
+
       buffer +=
         decoder.decode(
           value,
@@ -8749,11 +8751,14 @@ async function loadM3U(
      a biblioteca local antes de qualquer download. Isso evita apagar
      o banco e reprocessar 100k/300k+ registros para cada abertura.
   */
+  try { window.GCListDiagnostics?.phase?.("cache_check"); } catch {}
   const cachedInstant = await tryRestoreCatalogInstant(url);
   if (cachedInstant) {
+    try { window.GCListDiagnostics?.phase?.("cache_hit"); window.GCListDiagnostics?.finish?.({ items: state.items?.length || 0, cached: true }); } catch {}
     state.loading = false;
     return true;
   }
+  try { window.GCListDiagnostics?.phase?.("cache_miss"); } catch {}
 
   writeError = null;
 
@@ -8795,6 +8800,9 @@ async function loadM3U(
 
   const startTime =
     performance.now();
+
+  try { window.GCListDiagnostics?.start?.(url, { device: navigator.userAgent.slice(0, 180) }); } catch {}
+  try { window.GCListDiagnostics?.phase?.("connecting"); } catch {}
 
   try {
     /* -----------------------------------------------------
@@ -8895,11 +8903,13 @@ async function loadM3U(
       return true;
     }
 
+    try { window.GCListDiagnostics?.phase?.("response_wait"); } catch {}
     const response =
       await fetchPlaylist(
         url,
         controller.signal
       );
+    try { window.GCListDiagnostics?.response?.({ status: response.status, contentType: response.headers.get("content-type") || "" }); window.GCListDiagnostics?.phase?.("streaming"); } catch {}
 
     if (
       controller.signal.aborted
@@ -8987,6 +8997,7 @@ async function loadM3U(
       );
 
       processed++;
+      try { window.GCListDiagnostics?.itemProgress?.(processed); } catch {}
 
       /* -----------------------------------------------
          A CADA 500 ITENS
@@ -9009,6 +9020,7 @@ async function loadM3U(
           batchToWrite,
           takeSeriesCatalogUpdates()
         );
+        try { window.GCListDiagnostics?.write?.({ items: processed, batch: batchToWrite.length }); } catch {}
 
         /* ---------------------------------------------
            PRIMEIRA EXIBIÇÃO
@@ -9018,6 +9030,7 @@ async function loadM3U(
           firstPaint =
             true;
 
+          try { window.GCListDiagnostics?.firstPaint?.(); } catch {}
           render();
 
           updateLiveCounters();
@@ -9238,6 +9251,8 @@ async function loadM3U(
         startTime
       ) / 1000;
 
+    try { window.GCListDiagnostics?.phase?.("finalizing", { items: processed }); } catch {}
+
     updateLiveCounters();
 
     state.loading = false;
@@ -9261,6 +9276,8 @@ async function loadM3U(
       )} conteúdos carregados.`,
       5000
     );
+
+    try { window.GCListDiagnostics?.finish?.({ items: processed, elapsedMs: Math.round(performance.now()-startTime) }); } catch {}
 
     /*
        O formulário também fecha o diálogo imediatamente quando
@@ -9330,6 +9347,7 @@ async function loadM3U(
       "[GC PLAY PRO] Erro M3U:",
       error
     );
+    try { window.GCListDiagnostics?.fail?.(error, { items: state.items?.length || 0 }); } catch {}
 
     let message =
       "Não foi possível carregar a playlist.";
