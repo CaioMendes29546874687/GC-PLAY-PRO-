@@ -1808,10 +1808,12 @@ function buildMediaProxyUrl(url, item = null) {
 
     /*
        ARQUITETURA DE PLAYBACK:
-       - LIVE -> Supabase m3u-proxy (gateway que já funcionava para os canais)
-       - FILMES/SÉRIES -> Cloudflare gc-catalog
-       O site/painel de ativação continua no Render e não participa do
-       transporte de vídeo.
+       - LIVE -> Render /api/live
+       - FILMES/SÉRIES -> Render /api/media
+       - Cloudflare -> somente catálogo/M3U/API/índice
+       O relay do Render já preserva streaming, Range, Content-Type e
+       reescreve manifests HLS quando necessário. Isso é mais adequado
+       para VOD do que usar o Worker de catálogo como relay de mídia.
     */
     const isLive =
       String(item?.type || "").toLowerCase() === "live" ||
@@ -1828,10 +1830,19 @@ function buildMediaProxyUrl(url, item = null) {
     if (
       parsed.hostname === new URL(GC_CATALOG_GATEWAY).hostname &&
       parsed.searchParams.get("mode") === "media"
-    ) return value;
+    ) {
+      const nested = parsed.searchParams.get("url");
+      if (nested) {
+        const relay = new URL("https://gc-play-pro-backend.onrender.com/api/media");
+        relay.searchParams.set("url", nested);
+        return relay.toString();
+      }
+      return value;
+    }
 
-    const proxy = new URL(GC_CATALOG_GATEWAY);
-    proxy.searchParams.set("mode", "media");
+    /* VOD: usa o mesmo relay Render que já provou ser estável para LIVE.
+       Não passa mais pelo Worker Cloudflare de catálogo. */
+    const proxy = new URL("https://gc-play-pro-backend.onrender.com/api/media");
     proxy.searchParams.set("url", value);
     if (item?.httpReferrer) proxy.searchParams.set("ref", String(item.httpReferrer).slice(0, 2048));
     if (item?.httpUserAgent) proxy.searchParams.set("ua", String(item.httpUserAgent).slice(0, 2048));
