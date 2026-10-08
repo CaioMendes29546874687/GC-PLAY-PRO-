@@ -197,7 +197,7 @@
   else {make();rec("BOOT",{message:"Diagnóstico fallback iniciado."});}
 })();
 </script>
-<script src="app.js?v=20261008-PLAYER2"></script>\n<script src="gc-architecture-v2.js?v=20261007-HLSFIX2"></script>
+<script src="app.js?v=20261008-PLAYER3"></script>\n<script src="gc-architecture-v2.js?v=20261007-HLSFIX2"></script>
 <script src="gc-architecture-bridge.js?v=20261006-4"></script>
 <script src="gc-final-readiness.js?v=20261006-2"></script>
 <script src="gc-pro-runtime.js?v=20261006-1"></script>
@@ -210,7 +210,7 @@
 <script src="gc-final-fix.js?v=20261002-14"></script>
 <script src="gc-vlc.js?v=20261006-ARCHFIX1"></script>
 <script>
-if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=20261008-PLAYER2",{scope:"./"}).catch(e=>console.warn("[GC] SW",e)));}
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=20261008-PLAYER3",{scope:"./"}).catch(e=>console.warn("[GC] SW",e)));}
 </script>
 <script>
 /* GC PLAY PRO — FUTURE EXPERIENCE */
@@ -856,7 +856,7 @@ body.gc-samsung-tv .gc-ai-fab{right:24px!important;bottom:24px!important}
 /* GC PLAY PRO — SERVICE WORKER UPDATE CONTROL */
 (function(){
   if(!("serviceWorker" in navigator)) return;
-  const SW_URL="./sw.js?v=20261008-PLAYER2";
+  const SW_URL="./sw.js?v=20261008-PLAYER3";
   navigator.serviceWorker.register(SW_URL,{updateViaCache:"none"})
     .then(reg=>{
       try{ reg.update(); }catch{}
