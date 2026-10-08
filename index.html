@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#020503">
 <title>GC PLAY PRO</title>
-<link rel="stylesheet" href="style.css?v=20261006-PLAYFIX1">
+<link rel="stylesheet" href="style.css?v=20261008-PLAYER2">
 <style>
 .gc-validity{display:inline-flex;align-items:center;margin-left:10px;padding:6px 10px;border:1px solid rgba(57,255,136,.28);border-radius:999px;background:rgba(2,12,7,.65);color:#9de9b8;font-size:11px;font-weight:800;letter-spacing:.8px}
 .gc-validity-warn{color:#ffd84a;border-color:rgba(255,216,74,.38)}
@@ -197,7 +197,7 @@
   else {make();rec("BOOT",{message:"Diagnóstico fallback iniciado."});}
 })();
 </script>
-<script src="app.js?v=20261008-LISTDIAG1"></script>\n<script src="gc-architecture-v2.js?v=20261007-HLSFIX2"></script>
+<script src="app.js?v=20261008-PLAYER2"></script>\n<script src="gc-architecture-v2.js?v=20261007-HLSFIX2"></script>
 <script src="gc-architecture-bridge.js?v=20261006-4"></script>
 <script src="gc-final-readiness.js?v=20261006-2"></script>
 <script src="gc-pro-runtime.js?v=20261006-1"></script>
@@ -210,7 +210,7 @@
 <script src="gc-final-fix.js?v=20261002-14"></script>
 <script src="gc-vlc.js?v=20261006-ARCHFIX1"></script>
 <script>
-if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=20261008-M3UDIAG6",{scope:"./"}).catch(e=>console.warn("[GC] SW",e)));}
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js?v=20261008-PLAYER2",{scope:"./"}).catch(e=>console.warn("[GC] SW",e)));}
 </script>
 <script>
 /* GC PLAY PRO — FUTURE EXPERIENCE */
@@ -856,7 +856,7 @@ body.gc-samsung-tv .gc-ai-fab{right:24px!important;bottom:24px!important}
 /* GC PLAY PRO — SERVICE WORKER UPDATE CONTROL */
 (function(){
   if(!("serviceWorker" in navigator)) return;
-  const SW_URL="./sw.js?v=20261007-PLAYFIX27";
+  const SW_URL="./sw.js?v=20261008-PLAYER2";
   navigator.serviceWorker.register(SW_URL,{updateViaCache:"none"})
     .then(reg=>{
       try{ reg.update(); }catch{}
