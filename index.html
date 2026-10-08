@@ -511,8 +511,11 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
     addEventListener("offline",apply);
   };
 
-  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",boot,{once:true});
-  else boot();
+  window.__GC_ACTIVATION_MANAGED__=true;
+  window.__GC_ACTIVATION_READY__=new Promise(resolve=>{
+    const run=()=>Promise.resolve().then(boot).then(()=>resolve(true)).catch(e=>{console.warn("[GC ACTIVATION] boot:",e);resolve(true);});
+    if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",run,{once:true}); else run();
+  });
 })();
 </script>
 
