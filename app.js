@@ -4391,32 +4391,14 @@ async function getSeriesEpisodes(seriesKey, season = null) {
    ========================================================= */
 
 function renderStats() {
-  /* Diagnóstico da leitura real: acompanha quando os contadores saem de
-     zero e quando o catálogo passa a estar disponível para a interface. */
   try {
-    const sig = [
-      Number(state.counts?.live || 0),
-      Number(state.counts?.movie || 0),
-      Number(state.counts?.series || 0),
-      Number(state.total || 0)
-    ].join("|");
-    if (window.__GC_LAST_STATS_SIG__ !== sig) {
-      window.__GC_LAST_STATS_SIG__ = sig;
-      window.GCListDiagnostics?.phase?.(
-        sig === "0|0|0|0" ? "catalog_waiting" : "catalog_counts_ready",
-        {
-          message: sig === "0|0|0|0"
-            ? "Catálogo ainda não terminou de restaurar/carregar."
-            : "Contadores reais do catálogo disponíveis.",
-          counts: {
-            live: Number(state.counts?.live || 0),
-            movie: Number(state.counts?.movie || 0),
-            series: Number(state.counts?.series || 0)
-          },
-          total: Number(state.total || 0)
-        }
-      );
-    }
+    window.GCListDiagnostics?.catalogProgress?.({
+      live:Number(state.counts?.live||0),
+      movie:Number(state.counts?.movie||0),
+      series:Number(state.counts?.series||0),
+      total:Number(state.total||0),
+      message:"Contadores atuais da interface."
+    });
   } catch {}
 
   const channelCount =
