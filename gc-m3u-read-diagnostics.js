@@ -13,7 +13,7 @@
     parseMs:null, writeQueuedMs:null, finalizeMs:null,
     contentType:"", status:null, error:"",
     lastProgressAt:0, lastProgressItems:0, lastProgressBytes:0,
-    events:[]
+    events:[], activationReadyAt:0, autoLoadAt:0, handoffDelayMs:null
   };
 
   const now=()=>performance.now();
@@ -33,6 +33,11 @@
   };
   const activation=(phaseName,data={})=>{
     if(!state.startedAt) state.startedAt=now();
+    if(phaseName==="activation_ready") state.activationReadyAt=now();
+    if(phaseName==="auto_load_start"){
+      state.autoLoadAt=now();
+      state.handoffDelayMs=state.activationReadyAt?Math.max(0,Math.round(state.autoLoadAt-state.activationReadyAt)):null;
+    }
     state.active=true;
     phase(String(phaseName||"activation"),data);
     return snapshot();
@@ -191,6 +196,7 @@
     const s=snapshot(), body=box?.querySelector("#gcM3Body");
     const last=state.events[state.events.length-1]||{};
     const detail=last.message||last.error||last.url||"";
+    const handoff=state.handoffDelayMs==null?"—":formatMs(state.handoffDelayMs);
     if(!body)return;
     const statusClass=state.error?"m3err":state.phase==="done"?"m3ok":"m3warn";
     body.innerHTML=`
@@ -204,6 +210,7 @@
         <div class="m3card"><span class="m3k">1º ITEM</span><span class="m3v">${formatMs(state.firstItemMs)}</span></div>
         <div class="m3card"><span class="m3k">1ª EXIBIÇÃO</span><span class="m3v">${formatMs(state.firstPaintMs)}</span></div>
         <div class="m3card" style="grid-column:1/-1"><span class="m3k">O QUE ESTÁ ACONTECENDO</span><span class="m3v">${String(detail||"Acompanhando...")}</span></div>
+        <div class="m3card"><span class="m3k">ATRASO ATIVAÇÃO → LEITURA</span><span class="m3v">${handoff}</span></div>
       </div>
       <div class="m3bar"><div class="m3fill" style="width:${Math.min(100,Math.max(4,state.firstPaintMs?100:Math.min(96,(state.items/5000)*100)))}%"></div></div>
       <div class="m3card"><span class="m3k">ORIGEM / URL DA LISTA</span><span class="m3v">${state.source||last.url||"Aguardando URL entregue pela ativação..."}</span></div>
