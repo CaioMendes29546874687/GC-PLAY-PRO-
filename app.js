@@ -1816,11 +1816,11 @@ function buildMediaProxyUrl(url, item = null) {
       String(item?.xtreamKind || "").toLowerCase() === "live";
 
     if (isLive) {
-      const tcpTestProxy = new URL(
-        "https://gc-live-tcp-test.caioroberto318.workers.dev/"
-      );
-      tcpTestProxy.searchParams.set("url", value);
-      return tcpTestProxy.toString();
+      /* LIVE permanece no gateway principal até o gateway TCP definitivo
+         estar pronto. Não usamos o Worker de diagnóstico como player. */
+      const liveGateway = new URL(GC_CATALOG_GATEWAY);
+      liveGateway.searchParams.set("url", value);
+      return liveGateway.toString();
     }
 
     if (
