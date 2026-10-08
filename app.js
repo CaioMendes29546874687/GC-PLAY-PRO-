@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-08-RENDERLIVE2 */
+/* GC BUILD 2026-10-08-RENDERLIVE3 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -5942,7 +5942,20 @@ async function playItem(item) {
           item.xtreamStreamId,
           "ts"
         )
-      : rawOriginalUrl;
+      : (() => {
+          /* LIVE HTTP HLS: o Inspector confirmou que a rota /ts do mesmo
+             endpoint responde 200 e entrega MPEG-TS válido. Use-a como
+             transporte primário para evitar esperar 7s pelo HLS que está
+             expirando no Render; HLS continua como fallback. */
+          try {
+            const u = new URL(rawOriginalUrl || "");
+            if (/\/(?:m3u8)$/i.test(u.pathname)) {
+              u.pathname = u.pathname.replace(/\/m3u8$/i, "/ts");
+              return u.toString();
+            }
+          } catch {}
+          return rawOriginalUrl;
+        })();
 
   /*
      Xtream ao vivo: quando a conta oferece TS, usamos MPEG-TS como
@@ -5970,7 +5983,11 @@ async function playItem(item) {
   const sourceUrl =
     item.xtreamKind === "live"
       ? liveHlsUrl
-      : originalUrl;
+      : (
+          item.type === "live" && isHLS(originalUrl)
+            ? liveTsUrl
+            : originalUrl
+        );
 
   /*
      Determine o tipo de transporte ANTES de montar playbackUrl.
