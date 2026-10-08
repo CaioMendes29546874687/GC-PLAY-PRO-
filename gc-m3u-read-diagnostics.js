@@ -189,6 +189,8 @@
     if(!state.active && state.phase==="idle")return;
     ensureUI();
     const s=snapshot(), body=box?.querySelector("#gcM3Body");
+    const last=state.events[state.events.length-1]||{};
+    const detail=last.message||last.error||last.url||"";
     if(!body)return;
     const statusClass=state.error?"m3err":state.phase==="done"?"m3ok":"m3warn";
     body.innerHTML=`
@@ -201,9 +203,10 @@
         <div class="m3card"><span class="m3k">VELOCIDADE</span><span class="m3v">${formatBytes(s.bytesPerSecond)}/s</span></div>
         <div class="m3card"><span class="m3k">1º ITEM</span><span class="m3v">${formatMs(state.firstItemMs)}</span></div>
         <div class="m3card"><span class="m3k">1ª EXIBIÇÃO</span><span class="m3v">${formatMs(state.firstPaintMs)}</span></div>
+        <div class="m3card" style="grid-column:1/-1"><span class="m3k">O QUE ESTÁ ACONTECENDO</span><span class="m3v">${String(detail||"Acompanhando...")}</span></div>
       </div>
       <div class="m3bar"><div class="m3fill" style="width:${Math.min(100,Math.max(4,state.firstPaintMs?100:Math.min(96,(state.items/5000)*100)))}%"></div></div>
-      <div class="m3card"><span class="m3k">ORIGEM</span><span class="m3v">${state.source||"—"}</span></div>
+      <div class="m3card"><span class="m3k">ORIGEM / URL DA LISTA</span><span class="m3v">${state.source||last.url||"Aguardando URL entregue pela ativação..."}</span></div>
       <div class="m3card" style="margin-top:7px"><span class="m3k">HTTP / CONTENT-TYPE</span><span class="m3v">${state.status??"—"} / ${state.contentType||"—"}</span></div>
       ${state.error?`<div class="m3card m3err" style="margin-top:7px"><span class="m3k">ERRO</span><span class="m3v">${state.error}</span></div>`:""}
       <div class="m3foot" style="margin-top:9px"><button id="gcM3Copy">COPIAR RELATÓRIO</button><button id="gcM3Clear">LIMPAR</button></div>
