@@ -6054,11 +6054,7 @@ async function playItem(item) {
   const sourceUrl =
     item.xtreamKind === "live"
       ? liveHlsUrl
-      : (
-          item.type === "live" && isHLS(originalUrl)
-            ? liveTsUrl
-            : originalUrl
-        );
+      : originalUrl;
 
   /*
      Determine o tipo de transporte ANTES de montar playbackUrl.
