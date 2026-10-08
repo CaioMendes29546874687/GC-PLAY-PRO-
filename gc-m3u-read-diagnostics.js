@@ -11,17 +11,28 @@
     status:null,error:"",counts:{live:0,movie:0,series:0,total:0},
     activationReadyAt:0,autoLoadAt:0,handoffDelayMs:null,events:[]
   };
-  var box=null;
+  var box=null, lastUi=0, lastSave=0;
   function t(){return performance.now();}
   function elapsed(){return s.startedAt?Math.max(0,Math.round(t()-s.startedAt)):0;}
-  function save(){try{localStorage.setItem(KEY,JSON.stringify({version:5,updatedAt:Date.now(),state:s}));}catch(e){}}
+  function save(force){
+  var n=Date.now();
+  if(!force && n-lastSave<1200)return;
+  lastSave=n;
+  try{localStorage.setItem(KEY,JSON.stringify({version:5,updatedAt:n,state:s}));}catch(e){}
+}
+function ui(force){
+  var n=t();
+  if(!force && n-lastUi<350)return;
+  lastUi=n;
+  render();
+}
   function event(type,data){
     var e=Object.assign({t:elapsed(),type:type},data||{});
-    s.events.push(e); if(s.events.length>300)s.events.shift(); s.lastAt=t(); save();
+    s.events.push(e); if(s.events.length>300)s.events.shift(); s.lastAt=t(); save(false);
     try{window.dispatchEvent(new CustomEvent("gc-m3u-read-diagnostic",{detail:e}));}catch(e){}
   }
   function phase(name,data){
-    s.phase=String(name||"unknown"); event("phase",Object.assign({phase:s.phase},data||{})); render();
+    s.phase=String(name||"unknown"); event("phase",Object.assign({phase:s.phase},data||{})); ui(true);
   }
   function activation(name,data){
     if(!s.startedAt)s.startedAt=t();
@@ -33,25 +44,34 @@
     s.active=true;s.phase="starting";s.source=String(source||"").slice(0,1000);s.startedAt=t();
     s.lastAt=t();s.bytes=0;s.chunks=0;s.items=0;s.firstItemMs=null;s.firstPaintMs=null;
     s.responseMs=null;s.writeQueuedMs=null;s.finalizeMs=null;s.contentType="";s.status=null;s.error="";s.events=[];
-    event("start",Object.assign({source:s.source},meta||{}));render();
+    event("start",Object.assign({source:s.source},meta||{}));save(true);ui(true);
   }
   function response(data){
     if(s.responseMs===null)s.responseMs=elapsed();
     s.status=data&&data.status!=null?data.status:s.status;
-    s.contentType=data&&data.contentType||s.contentType; event("response",data||{});render();
+    s.contentType=data&&data.contentType||s.contentType; event("response",data||{}); save(true); ui(true);
   }
-  function chunk(n){n=Number(n)||0;s.bytes+=n;s.chunks++;event("chunk",{bytes:n,totalBytes:s.bytes,chunks:s.chunks});render();}
-  function itemProgress(n){n=Number(n)||0;s.items=n;if(n>0&&s.firstItemMs===null)s.firstItemMs=elapsed();event("items",{items:n,bytes:s.bytes});render();}
-  function firstPaint(){if(s.firstPaintMs===null)s.firstPaintMs=elapsed();event("first_paint",{elapsedMs:s.firstPaintMs,items:s.items});render();}
-  function write(data){s.writeQueuedMs=elapsed();event("write_queue",Object.assign({elapsedMs:s.writeQueuedMs},data||{}));render();}
+  function chunk(n){
+  n=Number(n)||0;s.bytes+=n;s.chunks++;
+  if(s.chunks===1 || t()-lastUi>=350) { event("chunk",{bytes:n,totalBytes:s.bytes,chunks:s.chunks}); ui(true); }
+}
+  function itemProgress(n){
+  n=Number(n)||0;s.items=n;
+  if(n>0&&s.firstItemMs===null)s.firstItemMs=elapsed();
+  if(n===1 || n%1000===0 || t()-lastUi>=350){
+    event("items",{items:n,bytes:s.bytes}); ui(true);
+  }
+}
+  function firstPaint(){if(s.firstPaintMs===null)s.firstPaintMs=elapsed();event("first_paint",{elapsedMs:s.firstPaintMs,items:s.items});save(true);ui(true);}
+  function write(data){s.writeQueuedMs=elapsed();event("write_queue",Object.assign({elapsedMs:s.writeQueuedMs},data||{}));ui(true);}
   function finish(data){
     data=data||{};s.active=false;s.phase="done";
     if(data.items!=null)s.items=Number(data.items)||0;if(data.bytes!=null)s.bytes=Number(data.bytes)||0;
-    s.finalizeMs=elapsed();event("finish",Object.assign({elapsedMs:s.finalizeMs,items:s.items,bytes:s.bytes},data));render();
+    s.finalizeMs=elapsed();event("finish",Object.assign({elapsedMs:s.finalizeMs,items:s.items,bytes:s.bytes},data));save(true);ui(true);
   }
   function fail(err,data){
     s.active=false;s.phase="error";s.error=String(err&&err.message||err||"erro desconhecido");
-    event("error",Object.assign({error:s.error,elapsedMs:elapsed()},data||{}));render();
+    event("error",Object.assign({error:s.error,elapsedMs:elapsed()},data||{}));save(true);ui(true);
   }
   function catalogProgress(data){
     data=data||{};
@@ -61,7 +81,7 @@
       series:Number(data.series!=null?data.series:s.counts.series)||0,
       total:Number(data.total!=null?data.total:s.counts.total)||0
     };
-    event("catalog_progress",{counts:Object.assign({},s.counts),message:data.message||"Contadores da interface"});render();
+    event("catalog_progress",{counts:Object.assign({},s.counts),message:data.message||"Contadores da interface"});ui(false);
   }
   function bytes(n){
     n=Number(n)||0;if(n<1024)return n+" B";if(n<1048576)return (n/1024).toFixed(1)+" KB";
