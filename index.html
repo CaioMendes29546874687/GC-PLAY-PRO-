@@ -144,7 +144,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.8.2/dist/mpegts.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/shaka-player@5.2.12/dist/shaka-player.compiled.js" data-gc-shaka="1"></script>
-<script src="gc-list-loader-diagnostics.js?v=20261008-LISTDIAG1"></script>
+<script src="gc-m3u-read-diagnostics.js?v=20261008-M3UREAD1"></script>
 <script src="app.js?v=20261008-LISTDIAG1"></script>\n<script src="gc-architecture-v2.js?v=20261007-HLSFIX2"></script>
 <script src="gc-architecture-bridge.js?v=20261006-4"></script>
 <script src="gc-final-readiness.js?v=20261006-2"></script>
@@ -733,59 +733,6 @@ body.gc-samsung-tv .gc-ai-fab{right:24px!important;bottom:24px!important}
 })();
 </script>
 <script src="gc-samsung-fix.js?v=20261003-1"></script>
-<style id="gc-inspector-fallback-style">
-#gcInspectorFixed{position:fixed;right:14px;bottom:78px;width:min(430px,calc(100vw - 28px));max-height:48vh;z-index:999999;background:rgba(2,8,5,.97);border:1px solid rgba(57,255,136,.55);border-radius:14px;box-shadow:0 18px 70px rgba(0,0,0,.7);color:#eafff1;font:12px Arial,sans-serif;overflow:hidden}
-#gcInspectorFixed .gci-head{display:flex;justify-content:space-between;align-items:center;padding:11px 13px;background:rgba(57,255,136,.08);color:#67ff9e;font-weight:900;letter-spacing:.8px}
-#gcInspectorFixed .gci-body{padding:10px;max-height:38vh;overflow:auto}
-#gcInspectorFixed .gci-line{padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.07);line-height:1.35}
-#gcInspectorFixed .gci-ok{color:#63ff9b}.gci-warn{color:#ffd166}.gci-fail{color:#ff7070}
-#gcInspectorFixed button{background:transparent;color:#9dffbe;border:1px solid rgba(57,255,136,.3);border-radius:7px;padding:4px 8px}
-</style>
-<script>
-(function(){
-"use strict";
-function boot(){
- if(document.getElementById("gcInspectorFixed"))return;
- const box=document.createElement("aside");box.id="gcInspectorFixed";
- box.innerHTML='<div class="gci-head"><span>🔎 GC PLAYBACK INSPECTOR</span><button id="gciClose">×</button></div><div id="gciBody" class="gci-body"></div>';
- document.body.appendChild(box);
- const body=document.getElementById("gciBody");
- const add=(msg,cls)=>{
-   const d=document.createElement("div");d.className="gci-line "+(cls||"");d.textContent=new Date().toLocaleTimeString("pt-BR")+" • "+msg;body.appendChild(d);
-   body.scrollTop=body.scrollHeight;
- };
- document.getElementById("gciClose").onclick=()=>box.remove();
- add("INSPETOR INICIADO","gci-ok");
- add("Verificando scripts e motor de reprodução...");
- setTimeout(()=>{
-   add("GCPlaybackInspector: "+(window.GCPlaybackInspector?"CARREGADO":"NÃO CARREGADO"),window.GCPlaybackInspector?"gci-ok":"gci-fail");
-   add("GC_PLAY_PRO: "+(window.GC_PLAY_PRO?"CARREGADO":"NÃO CARREGADO"),window.GC_PLAY_PRO?"gci-ok":"gci-fail");
-   add("Vídeo HTML5: "+(document.getElementById("videoPlayer")?"ENCONTRADO":"NÃO ENCONTRADO"),document.getElementById("videoPlayer")?"gci-ok":"gci-fail");
-   add("Rede: "+(navigator.onLine?"ONLINE":"OFFLINE"),navigator.onLine?"gci-ok":"gci-warn");
- },800);
- window.addEventListener("gc-native-player",e=>add("NATIVO: "+JSON.stringify(e.detail||{}),"gci-warn"));
- const old=window.GC_PLAY_PRO&&window.GC_PLAY_PRO.playItem;
- let wrapped=false;
- const hook=()=>{
-   const api=window.GC_PLAY_PRO;
-   if(!api||!api.playItem||wrapped)return;
-   const original=api.playItem;
-   api.playItem=async function(item){
-     add("PLAY: "+String(item?.name||"sem nome")+" • tipo="+String(item?.type||"desconhecido"),"gci-warn");
-     add("URL: "+(item?.url?"RECEBIDA":"AUSENTE"),item?.url?"gci-ok":"gci-fail");
-     try{
-       const r=await original.apply(this,arguments);
-       add("playItem retornou sem exceção","gci-ok"); return r;
-     }catch(e){add("ERRO playItem: "+(e?.message||e),"gci-fail");throw e;}
-   };
-   wrapped=true;
-   add("Interceptação de playItem ATIVA","gci-ok");
- };
- hook();setTimeout(hook,500);setTimeout(hook,1500);setTimeout(hook,3000);
-}
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
-})();
-</script>
 <script>
 /* GC PLAY PRO — SERVICE WORKER UPDATE CONTROL */
 (function(){
