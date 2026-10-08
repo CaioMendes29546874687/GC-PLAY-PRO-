@@ -1,0 +1,1 @@
+console.log('GC LIST DIAGNOSTICS READY'); window.GCListDiagnostics={getReport(){return {time:new Date().toISOString(),ua:navigator.userAgent,network:navigator.connection?{rtt:navigator.connection.rtt,downlink:navigator.connection.downlink,effectiveType:navigator.connection.effectiveType}:{}}}};
