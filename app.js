@@ -10504,6 +10504,32 @@ async function loadLocalCatalog() {
     );
     state.seriesCatalogReady = state.seriesCatalog.length > 0;
 
+    /*
+       VALIDAÇÃO DO ÍNDICE DE SÉRIES:
+       O catálogo de séries é um índice derivado dos episódios.
+       Se ele foi salvo incompleto (por exemplo, cada série aparece
+       com "T1 • 1 episódio", enquanto o object store possui milhares
+       de episódios), não podemos confiar no cache salvo.
+       Comparamos somente os totais primeiro — operação barata — e
+       reconstruímos o índice completo apenas quando houver divergência.
+    */
+    const storedEpisodeTotal = state.seriesCatalog.reduce(
+      (sum, entry) => sum + Number(entry.episodeCount || 0),
+      0
+    );
+    const actualSeriesEpisodeTotal = await countByType("series");
+    const seriesIndexIncomplete =
+      actualSeriesEpisodeTotal > 0 &&
+      storedEpisodeTotal !== actualSeriesEpisodeTotal;
+
+    if (seriesIndexIncomplete) {
+      console.warn(
+        "[GC PLAY PRO] Índice de séries incompleto:",
+        { storedEpisodeTotal, actualSeriesEpisodeTotal }
+      );
+      state.seriesCatalogReady = false;
+    }
+
     try {
       const saved = JSON.parse(localStorage.getItem("GC_PLAY_PRO_GROUPS_V1") || "[]");
       state.groups = Array.isArray(saved) ? saved : [];
