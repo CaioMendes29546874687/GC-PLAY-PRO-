@@ -34,10 +34,10 @@
   };
   const catalogProgress=(data={})=>{
     state.catalogCounts={
-      live:Number(data.live??state.catalogCounts.live||0),
-      movie:Number(data.movie??state.catalogCounts.movie||0),
-      series:Number(data.series??state.catalogCounts.series||0),
-      total:Number(data.total??state.catalogCounts.total||0)
+      live:Number(data.live ?? state.catalogCounts.live ?? 0),
+      movie:Number(data.movie ?? state.catalogCounts.movie ?? 0),
+      series:Number(data.series ?? state.catalogCounts.series ?? 0),
+      total:Number(data.total ?? state.catalogCounts.total ?? 0)
     };
     emit("catalog_progress",{counts:{...state.catalogCounts},...data});
     render();
