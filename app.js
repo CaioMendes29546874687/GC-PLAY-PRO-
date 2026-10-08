@@ -2024,22 +2024,47 @@ async function loadLiveEPG(item) {
   container.innerHTML = '<div class="gc-epg-loading">CARREGANDO PROGRAMAÇÃO...</div>';
 
   try {
-    const data = await fetchXtreamJSON(
-      epgSession,
-      "get_short_epg",
-      undefined,
-      {
-        stream_id: epgStreamId,
-        limit: 6
-      }
-    );
+    /*
+       Tenta primeiro o EPG curto. Alguns provedores Xtream não respondem
+       a get_short_epg, mas entregam a grade por get_simple_data_table.
+       Um canal sem EPG não pode deixar a área invisível: mostramos o estado
+       no próprio player para o usuário saber que a consulta foi feita.
+    */
+    let data = null;
+    let entries = [];
 
-    const entries = Array.isArray(data?.epg_listings)
-      ? data.epg_listings
-      : [];
+    try {
+      data = await fetchXtreamJSON(
+        epgSession,
+        "get_short_epg",
+        undefined,
+        { stream_id: epgStreamId, limit: 8 }
+      );
+      entries = Array.isArray(data?.epg_listings) ? data.epg_listings : [];
+    } catch (firstError) {
+      console.warn("[GC PLAY PRO] get_short_epg falhou:", firstError);
+    }
+
+    if (!entries.length) {
+      try {
+        data = await fetchXtreamJSON(
+          epgSession,
+          "get_simple_data_table",
+          undefined,
+          { stream_id: epgStreamId }
+        );
+        entries =
+          Array.isArray(data?.epg_listings) ? data.epg_listings :
+          Array.isArray(data?.data) ? data.data :
+          [];
+      } catch (secondError) {
+        console.warn("[GC PLAY PRO] get_simple_data_table falhou:", secondError);
+      }
+    }
 
     if (!entries.length) {
       container.innerHTML = '<div class="gc-epg-empty">EPG não disponível para este canal.</div>';
+      container.classList.add("show");
       return;
     }
 
@@ -5875,7 +5900,12 @@ async function playItem(item) {
   video.addEventListener("error",gcDiagReportError);
 
   const earlyUrl = String(item.url || "");
-  const earlyLive = item.type === "live" || earlyUrl.includes("/live/") || earlyUrl.includes("/stream/") || earlyUrl.includes("/channel/") || earlyUrl.includes("/play/") || earlyUrl.includes("/tv/");
+  const earlyType = String(item.type || "").toLowerCase();
+  const earlyLive =
+    earlyType === "live" ||
+    String(item.xtreamKind || "").toLowerCase() === "live" ||
+    (earlyType !== "movie" && earlyType !== "series" && earlyType !== "episode" &&
+      (/\/live\//i.test(earlyUrl) || /\/stream\//i.test(earlyUrl) || /\/channel\//i.test(earlyUrl) || /\/play\//i.test(earlyUrl) || /\/tv\//i.test(earlyUrl)));
   const earlyMode = isDASH(earlyUrl) ? "DASH/CMAF" : isHLS(earlyUrl) ? "HLS" : earlyLive ? "MPEG-TS AO VIVO" : "VÍDEO";
   if (title) title.textContent = item.name;
   if (message) message.textContent = "Conectando ao " + earlyMode + "...";
