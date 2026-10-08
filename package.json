@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node --import ./live-bootstrap.mjs server.js"
+    "start": "node live-bootstrap.mjs"
   },
   "dependencies": {
     "express": "^5.1.0",
