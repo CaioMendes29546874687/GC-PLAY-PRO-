@@ -4391,6 +4391,34 @@ async function getSeriesEpisodes(seriesKey, season = null) {
    ========================================================= */
 
 function renderStats() {
+  /* Diagnóstico da leitura real: acompanha quando os contadores saem de
+     zero e quando o catálogo passa a estar disponível para a interface. */
+  try {
+    const sig = [
+      Number(state.counts?.live || 0),
+      Number(state.counts?.movie || 0),
+      Number(state.counts?.series || 0),
+      Number(state.total || 0)
+    ].join("|");
+    if (window.__GC_LAST_STATS_SIG__ !== sig) {
+      window.__GC_LAST_STATS_SIG__ = sig;
+      window.GCListDiagnostics?.phase?.(
+        sig === "0|0|0|0" ? "catalog_waiting" : "catalog_counts_ready",
+        {
+          message: sig === "0|0|0|0"
+            ? "Catálogo ainda não terminou de restaurar/carregar."
+            : "Contadores reais do catálogo disponíveis.",
+          counts: {
+            live: Number(state.counts?.live || 0),
+            movie: Number(state.counts?.movie || 0),
+            series: Number(state.counts?.series || 0)
+          },
+          total: Number(state.total || 0)
+        }
+      );
+    }
+  } catch {}
+
   const channelCount =
     $("#channelCount");
 
@@ -8613,6 +8641,15 @@ async function tryRestoreCatalogInstant(url) {
       state.counts.movie +
       state.counts.series;
 
+    try {
+      window.GCListDiagnostics?.phase?.("catalog_cache_restored", {
+        message: "Catálogo local restaurado; exibindo contadores salvos sem baixar a M3U novamente.",
+        counts: {...state.counts},
+        total: state.total,
+        cacheUpdatedAt: meta.updatedAt
+      });
+    } catch {}
+
     state.seriesCatalog = [];
     state.seriesCatalogMap = new Map();
     state.seriesCatalogReady = false;
@@ -8754,7 +8791,20 @@ async function loadM3U(
   try { window.GCListDiagnostics?.phase?.("cache_check"); } catch {}
   const cachedInstant = await tryRestoreCatalogInstant(url);
   if (cachedInstant) {
-    try { window.GCListDiagnostics?.phase?.("cache_hit"); window.GCListDiagnostics?.finish?.({ items: state.items?.length || 0, cached: true }); } catch {}
+    try {
+      window.GCListDiagnostics?.phase?.("cache_hit", {
+        message: "Catálogo local encontrado e restaurado.",
+        counts: {...state.counts},
+        total: Number(state.total || 0)
+      });
+      window.GCListDiagnostics?.finish?.({
+        items: Number(state.total || 0),
+        counts: {...state.counts},
+        total: Number(state.total || 0),
+        bytes: 0,
+        cached: true
+      });
+    } catch {}
     state.loading = false;
     return true;
   }
