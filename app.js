@@ -5,7 +5,7 @@
 
 "use strict";
 
-/* GC BUILD 2026-10-08-RENDERLIVE3 */
+/* GC BUILD 2026-10-10-CHROME-RESPONSIVE1 */
 
 /* =========================================================
    CONFIGURAÇÕES
@@ -36,7 +36,8 @@ const STORE_NAME = "items";
 const SERIES_STORE = "seriesCatalog";
 
 const RAM_LIMIT = 4000;
-const WRITE_BATCH = 20000;
+/* Lotes menores reduzem picos de CPU/IndexedDB em Chrome desktop e Smart TVs. */
+const WRITE_BATCH = 8000;
 /* Primeira pintura agressiva: não espere 1000 itens para mostrar a biblioteca. */
 const FIRST_PAINT_BATCH = 20;
 const UI_RENDER_INTERVAL = 1500;
@@ -9198,8 +9199,14 @@ async function loadM3U(
       processed++;
       try { window.GCListDiagnostics?.itemProgress?.(processed); } catch {}
 
+      /* Cede tempo ao navegador durante listas grandes para manter
+         cliques, rolagem e pintura responsivos no Chrome. */
+      if (processed % 500 === 0) {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
+
       /* -----------------------------------------------
-         A CADA 500 ITENS
+         LOTE DE ESCRITA
          ----------------------------------------------- */
 
       const targetBatchSize = firstPaint ? WRITE_BATCH : FIRST_PAINT_BATCH;
@@ -9710,6 +9717,11 @@ async function loadFile(
       );
 
       processed++;
+
+      /* Evita monopolizar a thread principal ao ler arquivos M3U locais grandes. */
+      if (processed % 500 === 0) {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
 
       if (
         batch.length >=
